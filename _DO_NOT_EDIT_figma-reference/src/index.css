@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,100..900;1,75..125,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Archivo', system-ui, -apple-system, sans-serif;
+
+  --color-bg: #0B0B0D;
+  --color-surface: #171719;
+  --color-elevated: #1D1D20;
+  --color-bd: #2A2A2E;
+  --color-ink: #F4F4F1;
+  --color-muted: #A7A7AA;
+  --color-faint: #525255;
+  --color-crimson: #C1122F;
+  --color-crimson-hi: #D91535;
+}
+
+html {
+  background-color: #0B0B0D;
+  color: #F4F4F1;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  height: 100dvh;
+  overflow: hidden;
+  background-color: #0B0B0D;
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+:focus-visible {
+  outline: 1px solid #C1122F;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.timer-ring {
+  transition: stroke-dashoffset 0.95s linear;
+}

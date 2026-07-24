@@ -1,0 +1,20 @@
+---
+description: Approved visual language, accessibility, and Figma parity.
+globs: src/**/*.{tsx,css}
+alwaysApply: false
+---
+
+Read `docs/design-system.md` before UI work.
+
+- Dark mode is implemented first; components must remain compatible with a future light mode.
+- Use near-black charcoal, off-white, and restrained blood-red accents.
+- Red is an intentional accent, not a default surface color.
+- Prefer angular geometry and 0–4 px corner radii.
+- Avoid glassmorphism, neon glow, glossy effects, heavy shadows, and decorative gradients.
+- Use Archivo for display text and Inter for body/interface text.
+- Timer numerals use tabular figures.
+- Do not communicate status through color alone.
+- Use visible focus states and approximately 44×44 px touch targets.
+- Respect `prefers-reduced-motion`.
+- User-facing strings are Polish and must not be hardcoded repeatedly across unrelated components.
+- Match the reference screen first; propose improvements separately.

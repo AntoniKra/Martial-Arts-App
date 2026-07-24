@@ -1,0 +1,19 @@
+---
+description: Non-negotiable timer and guided-workout behavior.
+globs: '{src/features/workout-player/**,src/components/timer/**,src/infrastructure/audio/**,src/infrastructure/wake-lock/**}'
+alwaysApply: false
+---
+
+Read `docs/workout-player-spec.md` before changing the player.
+
+- Never implement the timer by only decrementing state once per second.
+- Calculate remaining time from a deadline and the current clock.
+- Pause stores a stable remaining duration; resume creates a new deadline.
+- The Previous control restarts the current element on first press and moves to the previous element on a second quick press.
+- Do not add a separate Repeat Round button.
+- Next moves forward with one press and records skipped or partial execution correctly.
+- ±15 seconds changes the active countdown and may extend beyond the original plan where allowed.
+- Rating during rest is optional and never pauses the countdown.
+- Show the next element; do not repeat the just-finished exercise in the rest summary.
+- Use gong audio for transitions and Screen Wake Lock while active.
+- The player must tolerate visibility changes and allow recovery after refresh.

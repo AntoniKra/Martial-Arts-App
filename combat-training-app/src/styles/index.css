@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,100..900;1,75..125,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
+
+  --color-bg: var(--app-bg);
+  --color-surface: var(--app-surface);
+  --color-elevated: var(--app-elevated);
+  --color-bd: var(--app-border);
+  --color-ink: var(--app-ink);
+  --color-muted: var(--app-muted);
+  --color-faint: var(--app-faint);
+  --color-crimson: var(--app-crimson);
+  --color-crimson-hi: var(--app-crimson-hi);
+}
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --app-bg: #0b0b0d;
+  --app-surface: #171719;
+  --app-elevated: #1d1d20;
+  --app-border: #2a2a2e;
+  --app-ink: #f4f4f1;
+  --app-muted: #a7a7aa;
+  --app-faint: #525255;
+  --app-crimson: #c1122f;
+  --app-crimson-hi: #d91535;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --app-bg: #f1f1ef;
+  --app-surface: #ffffff;
+  --app-elevated: #e8e8e5;
+  --app-border: #c9c9c5;
+  --app-ink: #111113;
+  --app-muted: #5f5f63;
+  --app-faint: #8c8c90;
+  --app-crimson: #b5122b;
+  --app-crimson-hi: #c1122f;
+}
+
+html {
+  min-width: 320px;
+  background: var(--app-bg);
+  color: var(--app-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100dvh;
+  margin: 0;
+  background: var(--app-bg);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--app-crimson);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

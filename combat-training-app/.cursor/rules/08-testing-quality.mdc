@@ -1,0 +1,16 @@
+---
+description: Quality gates and required test focus.
+globs: '{src/**,test/**,tests/**,playwright/**}'
+alwaysApply: false
+---
+
+- TypeScript must pass without `any`-based shortcuts.
+- Build and typecheck are mandatory after structural changes.
+- Test pure duration calculations and sequence construction as unit tests.
+- Test builder invariants: locked discipline, ordering, inheritance, breaks, and time summaries.
+- Test timer transitions with a controlled clock.
+- Test skipped and unrated exercise averages.
+- Test anonymous-user data isolation through RLS policies.
+- Add an end-to-end happy path: create plan, start, complete, rate, and open report.
+- Do not use `eslint-disable`, `@ts-ignore`, or broad mocks without an explicit justification.
+- A visual migration task should include a manual mobile and desktop comparison checklist.

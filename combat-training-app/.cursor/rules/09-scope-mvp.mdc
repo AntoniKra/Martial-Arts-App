@@ -1,0 +1,14 @@
+---
+description: Prevent accidental scope expansion before the deadline.
+globs:
+alwaysApply: true
+---
+
+Read `docs/mvp-scope.md` and `docs/backlog.md` before proposing features.
+
+- Prioritize a stable end-to-end MVP over optional functionality.
+- Do not implement goals, weight tracking, charts, social features, AI, wearables, voice coaching, or offline synchronization without explicit approval.
+- Strength mode is architecturally anticipated but not required until the rounds and continuous flows are stable.
+- Do not add comparison metrics that compare unrelated workouts.
+- Do not implement a technique-by-technique combination builder in the MVP.
+- If a requested change threatens the deadline, state the risk and propose the smallest usable alternative.

@@ -1,0 +1,18 @@
+---
+description: Frontend architecture and module-boundary rules.
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+- Use feature-oriented modules under `src/features`.
+- Put stable framework-independent types and calculations in `src/domain`.
+- Put external integrations in `src/infrastructure`.
+- Shared components belong in `src/components` only when they are genuinely reused.
+- A component used by one feature stays inside that feature.
+- React components must not execute raw Supabase queries.
+- Domain calculations must not be embedded in JSX.
+- Avoid `any`; model unknown data explicitly and validate external inputs.
+- Prefer named exports except where a framework convention clearly benefits from a default export.
+- Do not add a global state library without a demonstrated requirement.
+- Review components around 250–300 lines, but split by responsibility rather than line count.
+- Do not build speculative enterprise abstractions. Keep interfaces only where they protect a real boundary.

@@ -1,0 +1,14 @@
+---
+description: Core product vision and non-negotiable product principles.
+globs:
+alwaysApply: true
+---
+
+- This product is a combat-sports workout planner, guided workout player, journal, and post-workout analysis application.
+- Every workout has three phases: planning, guided execution, and post-workout feedback.
+- The MVP disciplines are Boxing, Kickboxing, Muay Thai, K-1, and MMA Striking.
+- The primary device is a smartphone, but the app must remain responsive on desktop.
+- The user-facing MVP language is Polish.
+- Code, database identifiers, file names, and technical naming are English.
+- Before changing product behavior, read the relevant specification in `docs/`.
+- Do not invent new product requirements or silently expand the MVP.

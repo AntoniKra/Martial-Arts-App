@@ -1,0 +1,20 @@
+---
+description: Workout, exercise, combination, and rating domain invariants.
+globs: src/{domain,features}/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+Read `docs/domain-model.md`, `docs/domain-glossary.md`, and `docs/feedback-system.md` before changing domain behavior.
+
+- A workout contains ordered blocks; blocks contain ordered workout items.
+- A workout item is an exercise or a standalone break.
+- MVP exercise modes are `rounds` and `continuous`; `strength` is reserved for future implementation.
+- One exercise contains one combination or one instruction.
+- Preserve `combinationId` when available and always store an immutable exercise-name snapshot.
+- Discipline becomes locked after the first exercise is added.
+- Skipped exercises never receive rating zero and never enter averages.
+- Unrated exercises never enter averages.
+- Keep completion quantity separate from subjective execution quality.
+- Exercise execution uses one 1–5 scale.
+- Perceived workout progress uses a separate 1–7 scale.
+- Goal-completion feedback is shown only when the workout has a main goal.

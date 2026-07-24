@@ -1,0 +1,18 @@
+---
+description: Supabase, persistence, schema, and user-data isolation rules.
+globs: '{src/infrastructure/**,supabase/**,src/features/**/api/**}'
+alwaysApply: false
+---
+
+Read `docs/database-model.md` before data-layer work.
+
+- MVP authentication uses an anonymous Supabase user with no visible login screen.
+- Every user-owned row must be protected by Row Level Security.
+- Database schema changes must be represented by versioned SQL migrations.
+- Use English snake_case table and column names.
+- Do not expose service-role keys in the frontend.
+- Do not place raw Supabase calls in React presentation components.
+- Validate external data at the infrastructure boundary.
+- Keep seed data separate from production data.
+- Use neutral technical keys and Polish display labels for disciplines, block types, tasks, and combinations.
+- Historical workout snapshots must remain stable after library records change.

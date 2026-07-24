@@ -1,0 +1,11 @@
+{
+  "created_from": "Combat Sports Training App.zip",
+  "reference_directory": "_DO_NOT_EDIT_figma-reference",
+  "production_directory": "combat-training-app",
+  "interface_language": "pl",
+  "code_language": "en",
+  "backend": "Supabase",
+  "auth_mvp": "anonymous",
+  "reference_app_tsx_lines": 2372,
+  "strategy": "clean production architecture with controlled visual migration"
+}

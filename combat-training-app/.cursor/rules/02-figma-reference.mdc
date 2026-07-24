@@ -1,0 +1,15 @@
+---
+description: Protect the Figma reference and control how code is migrated from it.
+globs:
+alwaysApply: true
+---
+
+- `_DO_NOT_EDIT_figma-reference` is strictly read-only.
+- Never create, modify, format, rename, move, delete, or install dependencies inside the reference directory.
+- All implementation changes belong in `combat-training-app`.
+- Use the reference for approved visuals, layout, hierarchy, icon shapes, and intended interactions.
+- Do not copy prototype business logic blindly.
+- Rewrite routing, persistence, timer logic, execution tracking, backend access, and validation.
+- Reproduce an approved screen before proposing UX improvements.
+- Any redesign must be proposed separately and requires approval.
+- Preserve snapshots or screenshots when visual parity needs verification.

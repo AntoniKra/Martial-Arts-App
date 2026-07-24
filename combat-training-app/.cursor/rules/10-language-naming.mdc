@@ -1,0 +1,14 @@
+---
+description: Language, naming, localization, and terminology conventions.
+globs:
+alwaysApply: true
+---
+
+- Code, file names, variables, types, functions, tests, database identifiers, and technical comments are English.
+- User-facing interface text is Polish.
+- Product documentation in `docs/` is Polish.
+- Cursor project rules are English.
+- Use domain terminology from `docs/domain-glossary.md`.
+- Use neutral keys such as `jab_cross_lead_hook` and separate localized labels such as `namePl`.
+- Do not use Polish diacritics in identifiers.
+- Avoid mixing `training` and `workout` for the same concept; use `workout` in code.

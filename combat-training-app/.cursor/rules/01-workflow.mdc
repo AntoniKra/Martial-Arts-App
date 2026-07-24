@@ -1,0 +1,18 @@
+---
+description: Safe implementation workflow for all non-trivial tasks.
+globs:
+alwaysApply: true
+---
+
+For every non-trivial task:
+
+1. Inspect the relevant production files and the applicable documents in `docs/`.
+2. Explain the current behavior.
+3. Propose the smallest safe change.
+4. List every file to create or modify.
+5. Separate visual migration, architecture changes, and business-logic changes into different tasks.
+6. Do not make scope or architecture decisions without explicit approval.
+7. After implementation, run the available typecheck, tests, and build.
+8. Report failures honestly; never suppress an error merely to make a command pass.
+9. Keep commits and tasks small enough to review and revert.
+10. Do not modify unrelated files.

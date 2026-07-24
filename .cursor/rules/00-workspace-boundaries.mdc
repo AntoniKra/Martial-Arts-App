@@ -1,0 +1,12 @@
+---
+description: Workspace boundaries between the read-only Figma prototype and the production application.
+globs:
+alwaysApply: true
+---
+
+- `_DO_NOT_EDIT_figma-reference` is a read-only visual and behavioral reference.
+- Never modify, rename, move, delete, format, or install dependencies inside `_DO_NOT_EDIT_figma-reference`.
+- All production code, documentation, configuration, and migrations belong in `combat-training-app`.
+- Before production work, read the applicable rules in `combat-training-app/.cursor/rules` and specifications in `combat-training-app/docs`.
+- Do not create production files at the workspace root.
+- Use the Figma code selectively for visual structure; never treat its routing, timer, persistence, or state management as production architecture.
