@@ -14,6 +14,14 @@
   --color-faint: var(--app-faint);
   --color-crimson: var(--app-crimson);
   --color-crimson-hi: var(--app-crimson-hi);
+  --color-on-accent: var(--app-on-accent);
+  --color-success: var(--app-success);
+  --color-warning: var(--app-warning);
+  --color-danger: var(--app-danger);
+
+  --radius-none: 0;
+  --radius-sm: var(--app-radius-sm);
+  --spacing-touch: var(--app-touch-min);
 }
 
 :root,
@@ -28,6 +36,13 @@
   --app-faint: #525255;
   --app-crimson: #c1122f;
   --app-crimson-hi: #d91535;
+  --app-on-accent: #f4f4f1;
+  --app-success: #3d7a4a;
+  --app-warning: #a67c2e;
+  --app-danger: #c1122f;
+  --app-focus-ring: #c1122f;
+  --app-radius-sm: 4px;
+  --app-touch-min: 2.75rem;
 }
 
 :root[data-theme='light'] {
@@ -41,6 +56,11 @@
   --app-faint: #8c8c90;
   --app-crimson: #b5122b;
   --app-crimson-hi: #c1122f;
+  --app-on-accent: #f4f4f1;
+  --app-success: #2f6b3c;
+  --app-warning: #8a6418;
+  --app-danger: #b5122b;
+  --app-focus-ring: #b5122b;
 }
 
 html {
@@ -66,8 +86,13 @@ select {
 }
 
 :focus-visible {
-  outline: 2px solid var(--app-crimson);
+  outline: 2px solid var(--app-focus-ring);
   outline-offset: 2px;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
