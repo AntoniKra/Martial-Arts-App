@@ -63,3 +63,17 @@ export const primaryNavigationItems: readonly NavigationItemConfig[] = [
     mobileVariant: 'create',
   },
 ] as const
+
+export const mobileNavigationOrder = ['home', 'newWorkout', 'workouts'] as const satisfies readonly NavigationItemId[]
+
+function getNavigationItemById(id: NavigationItemId): NavigationItemConfig {
+  const item = primaryNavigationItems.find((entry) => entry.id === id)
+  if (!item) {
+    throw new Error(`Unknown navigation item: ${id}`)
+  }
+  return item
+}
+
+export function getMobileNavigationItems(): readonly NavigationItemConfig[] {
+  return mobileNavigationOrder.map(getNavigationItemById)
+}
