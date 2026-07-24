@@ -95,6 +95,10 @@ select {
   font-feature-settings: 'tnum' 1;
 }
 
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
