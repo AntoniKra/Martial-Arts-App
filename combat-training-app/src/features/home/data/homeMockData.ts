@@ -1,0 +1,50 @@
+import type { HomeViewData } from '@/features/home/types/homeView.types'
+
+export const homeMockData: HomeViewData = {
+  sessionLabelPl: 'Sesja treningowa',
+  featuredPlan: {
+    id: 'p1',
+    name: 'Podstawy ortodoksu',
+    disciplineKey: 'boxing',
+    disciplineLabelPl: 'Boks',
+    goal: 'Wyostrzenie timingu jab–cross i pracy głową',
+    exerciseCount: 7,
+    roundCount: 22,
+    estimatedMinutes: 73,
+  },
+  recentSessions: [
+    {
+      id: 'h1',
+      name: 'Podstawy ortodoksu',
+      disciplineKey: 'boxing',
+      disciplineLabelPl: 'Boks',
+      dateLabelPl: '20 lip',
+      durationLabelPl: '51 min',
+      completionPercent: 86,
+      rpe: 7,
+      averageRatingLabel: '4,0',
+    },
+    {
+      id: 'h2',
+      name: 'Artyleria Muay Thai',
+      disciplineKey: 'muay_thai',
+      disciplineLabelPl: 'Muay Thai',
+      dateLabelPl: '18 lip',
+      durationLabelPl: '58 min',
+      completionPercent: 100,
+      rpe: 8,
+      averageRatingLabel: '4,3',
+    },
+    {
+      id: 'h3',
+      name: 'Integracja MMA stójka',
+      disciplineKey: 'mma_striking',
+      disciplineLabelPl: 'MMA stójka',
+      dateLabelPl: '15 lip',
+      durationLabelPl: '47 min',
+      completionPercent: 71,
+      rpe: 9,
+      averageRatingLabel: '3,2',
+    },
+  ],
+}

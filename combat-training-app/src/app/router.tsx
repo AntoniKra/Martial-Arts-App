@@ -1,13 +1,14 @@
 import { createBrowserRouter } from 'react-router-dom'
 
 import { AppLayout } from '@/components/layout/AppLayout'
+import { HomePage } from '@/pages/HomePage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 export const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
-      { path: '/', element: <PlaceholderPage title="Start" description="Ekran główny zostanie przeniesiony z referencji Figmy." /> },
+      { path: '/', element: <HomePage /> },
       { path: '/workouts', element: <PlaceholderPage title="Treningi" description="Zakładki Plany i Historia." /> },
       { path: '/workouts/new', element: <PlaceholderPage title="Nowy trening" description="Kreator bloków, ćwiczeń i przerw." /> },
       { path: '/workouts/:workoutId', element: <PlaceholderPage title="Szczegóły planu" /> },

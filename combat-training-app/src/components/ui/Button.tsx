@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
-type ButtonSize = 'sm' | 'md' | 'lg'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
+export type ButtonSize = 'sm' | 'md' | 'lg'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode
@@ -21,6 +21,30 @@ const variantClasses: Record<ButtonVariant, string> = {
   secondary: 'bg-elevated text-ink border border-bd hover:bg-bd active:bg-elevated',
   ghost: 'text-muted hover:text-ink active:text-ink',
   danger: 'bg-crimson/10 text-crimson border border-crimson/30 hover:bg-crimson/20 active:bg-crimson/10',
+}
+
+interface ButtonClassNameOptions {
+  variant?: ButtonVariant
+  size?: ButtonSize
+  className?: string
+  disabled?: boolean
+}
+
+export function getButtonClassName({
+  variant = 'primary',
+  size = 'md',
+  className = '',
+  disabled = false,
+}: ButtonClassNameOptions = {}): string {
+  return [
+    'inline-flex items-center justify-center gap-2 font-display font-semibold select-none transition-colors',
+    disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer',
+    sizeClasses[size],
+    variantClasses[variant],
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 function LoadingSpinner() {
@@ -52,15 +76,7 @@ export function Button({
       type={type}
       disabled={isDisabled}
       aria-busy={ariaBusy}
-      className={[
-        'inline-flex items-center justify-center gap-2 font-display font-semibold select-none transition-colors',
-        'cursor-pointer disabled:cursor-not-allowed disabled:opacity-40',
-        sizeClasses[size],
-        variantClasses[variant],
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      className={getButtonClassName({ variant, size, className, disabled: isDisabled })}
     >
       {loading ? <LoadingSpinner /> : null}
       <span className={loading ? 'opacity-80' : undefined}>{children}</span>
