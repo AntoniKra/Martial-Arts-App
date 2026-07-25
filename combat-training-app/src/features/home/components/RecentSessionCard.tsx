@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
-import { HomeDisciplineBadge } from '@/features/home/components/HomeDisciplineBadge'
+import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import type { HomeRecentSession } from '@/features/home/types/homeView.types'
 
 interface RecentSessionCardProps {
@@ -16,7 +16,7 @@ export function RecentSessionCard({ session }: RecentSessionCardProps) {
     >
       <div className="px-4 py-4">
         <div className="mb-1 flex items-center justify-between">
-          <HomeDisciplineBadge disciplineKey={session.disciplineKey} labelPl={session.disciplineLabelPl} />
+          <DisciplineBadge disciplineKey={session.disciplineKey} />
           <time className="text-[10px] text-muted">{session.dateLabelPl}</time>
         </div>
         <h3 className="mt-1 font-display text-[14px] font-semibold text-ink">{session.name}</h3>
@@ -25,7 +25,7 @@ export function RecentSessionCard({ session }: RecentSessionCardProps) {
             <span className="font-semibold tabular-nums text-ink">{session.durationLabelPl}</span>
           </span>
           <span className="whitespace-nowrap">
-            <span className="font-semibold tabular-nums text-ink">{session.completionPercent}%</span> wykonania
+            <span className="font-semibold tabular-nums text-ink">{session.exerciseCompletionPercent}%</span> wykonania
           </span>
           {session.rpe !== null ? (
             <span className="whitespace-nowrap">
@@ -44,7 +44,7 @@ export function RecentSessionCard({ session }: RecentSessionCardProps) {
       <div className="h-0.5 bg-elevated" aria-hidden="true">
         <div
           className="h-full bg-crimson transition-all"
-          style={{ width: `${session.completionPercent}%` }}
+          style={{ width: `${session.exerciseCompletionPercent}%` }}
         />
       </div>
     </Link>

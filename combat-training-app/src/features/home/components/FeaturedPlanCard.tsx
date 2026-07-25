@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
+import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { getButtonClassName } from '@/components/ui/Button'
-import { HomeDisciplineBadge } from '@/features/home/components/HomeDisciplineBadge'
-import { HomeRedAccent } from '@/features/home/components/HomeRedAccent'
+import { RedAccent } from '@/components/ui/RedAccent'
 import { HomeSectionLabel } from '@/features/home/components/HomeSectionLabel'
 import type { HomeFeaturedPlan } from '@/features/home/types/homeView.types'
 
@@ -44,7 +44,7 @@ export function FeaturedPlanCard({ plan }: FeaturedPlanCardProps) {
       <HomeSectionLabel className="mb-3 block">Aktywny plan</HomeSectionLabel>
       <div className="overflow-hidden border border-bd bg-surface">
         <div className="px-4 pt-4 pb-1">
-          <HomeDisciplineBadge disciplineKey={plan.disciplineKey} labelPl={plan.disciplineLabelPl} />
+          <DisciplineBadge disciplineKey={plan.disciplineKey} />
           <h2
             id="home-featured-plan-heading"
             className="mt-1 font-display text-[20px] font-bold leading-snug text-ink"
@@ -68,7 +68,7 @@ export function FeaturedPlanCard({ plan }: FeaturedPlanCardProps) {
             ))}
           </dl>
         </div>
-        <HomeRedAccent />
+        <RedAccent />
         <Link
           to={routes.workoutActive(plan.id)}
           className={getButtonClassName({

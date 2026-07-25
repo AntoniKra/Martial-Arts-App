@@ -1,8 +1,8 @@
-interface HomeChevronRightIconProps {
+interface ChevronRightIconProps {
   className?: string
 }
 
-export function HomeChevronRightIcon({ className = '' }: HomeChevronRightIconProps) {
+export function ChevronRightIcon({ className = '' }: ChevronRightIconProps) {
   return (
     <svg
       width={20}

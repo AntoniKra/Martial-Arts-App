@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
+import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
+import { RedAccent } from '@/components/ui/RedAccent'
 import { FeaturedPlanCard } from '@/features/home/components/FeaturedPlanCard'
-import { HomeChevronRightIcon } from '@/features/home/components/HomeChevronRightIcon'
-import { HomeRedAccent } from '@/features/home/components/HomeRedAccent'
 import { HomeSectionLabel } from '@/features/home/components/HomeSectionLabel'
 import { RecentSessionCard } from '@/features/home/components/RecentSessionCard'
 import type { HomeViewData } from '@/features/home/types/homeView.types'
@@ -21,7 +21,7 @@ export function HomeView({ data }: HomeViewProps) {
           <h1 className="mt-1 font-display text-[28px] font-bold leading-tight text-ink md:text-[32px]">
             Gotowy do treningu?
           </h1>
-          <HomeRedAccent className="mt-3 w-8" />
+          <RedAccent className="mt-3 w-8" />
         </header>
 
         <div className="space-y-6 md:grid md:grid-cols-2 md:items-start md:gap-8 md:space-y-0">
@@ -35,7 +35,7 @@ export function HomeView({ data }: HomeViewProps) {
               <span className="font-display text-[13px] font-semibold tracking-[0.04em] text-muted">
                 Utwórz nowy trening
               </span>
-              <HomeChevronRightIcon className="text-muted" />
+              <ChevronRightIcon className="text-muted" />
             </Link>
           </div>
 

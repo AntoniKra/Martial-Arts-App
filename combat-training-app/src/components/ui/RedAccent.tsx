@@ -1,7 +1,7 @@
-interface HomeRedAccentProps {
+interface RedAccentProps {
   className?: string
 }
 
-export function HomeRedAccent({ className = '' }: HomeRedAccentProps) {
+export function RedAccent({ className = '' }: RedAccentProps) {
   return <div aria-hidden="true" className={`h-px bg-crimson ${className}`} />
 }

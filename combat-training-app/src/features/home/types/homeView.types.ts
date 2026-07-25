@@ -4,7 +4,6 @@ export interface HomeFeaturedPlan {
   id: string
   name: string
   disciplineKey: DisciplineKey
-  disciplineLabelPl: string
   goal: string
   exerciseCount: number
   roundCount: number
@@ -15,10 +14,9 @@ export interface HomeRecentSession {
   id: string
   name: string
   disciplineKey: DisciplineKey
-  disciplineLabelPl: string
   dateLabelPl: string
   durationLabelPl: string
-  completionPercent: number
+  exerciseCompletionPercent: number
   rpe: number | null
   averageRatingLabel: string | null
 }
