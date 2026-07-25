@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import { forwardRef, type RefObject } from 'react'
 
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { Button } from '@/components/ui/Button'
@@ -7,6 +7,7 @@ import { RedAccent } from '@/components/ui/RedAccent'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { calculateWorkoutPlanSummary } from '@/domain/workout/workoutCalculations'
 import type { WorkoutExercise, WorkoutItem } from '@/domain/workout/workout.types'
+import type { WorkoutPlanSaveState } from '@/features/workout-builder/components/workoutBuilderUi.types'
 import type { WorkoutBuilderState } from '@/features/workout-builder/state/workoutBuilder.types'
 import { formatEstimatedDuration, formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
 import { formatPolishCount, polishPlural } from '@/features/workout-builder/utils/polishPlural'
@@ -14,7 +15,10 @@ import { formatPolishCount, polishPlural } from '@/features/workout-builder/util
 interface WorkoutPlanPreviewProps {
   state: WorkoutBuilderState
   displayPlanName: string
+  saveState: WorkoutPlanSaveState
+  saveErrorRef: RefObject<HTMLDivElement | null>
   onBack: () => void
+  onSave: () => void
 }
 
 function formatRoundLabel(roundCount: number): string {
@@ -64,10 +68,15 @@ function PreviewBreakItem({ breakItem }: { breakItem: Extract<WorkoutItem, { typ
 }
 
 export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPreviewProps>(
-  function WorkoutPlanPreview({ state, displayPlanName, onBack }, headingRef) {
+  function WorkoutPlanPreview(
+    { state, displayPlanName, saveState, saveErrorRef, onBack, onSave },
+    headingRef,
+  ) {
     const { draft } = state
     const summary = calculateWorkoutPlanSummary(draft)
     const blockCount = draft.blocks.length
+    const isSaving = saveState.status === 'saving'
+    const saveErrorMessage = saveState.status === 'error' ? saveState.message : null
 
     return (
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -76,7 +85,8 @@ export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPrev
             <button
               type="button"
               onClick={onBack}
-              className="mb-6 inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+              disabled={isSaving}
+              className="mb-6 inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronRightIcon className="rotate-180" />
               Wróć do edycji
@@ -170,11 +180,42 @@ export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPrev
               </ol>
             </section>
 
-            <div className="mt-8 pb-2">
-              <Button type="button" variant="secondary" className="w-full" onClick={onBack}>
+            <section
+              aria-labelledby="workout-preview-actions-heading"
+              aria-busy={isSaving}
+              className="mt-8 space-y-3 pb-2"
+            >
+              <h2 id="workout-preview-actions-heading" className="sr-only">
+                Działania podglądu planu
+              </h2>
+
+              {saveErrorMessage ? (
+                <div
+                  ref={saveErrorRef}
+                  role="alert"
+                  tabIndex={-1}
+                  className="border border-bd bg-surface px-4 py-4 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--app-focus-ring)]"
+                >
+                  <p className="font-display text-[14px] font-semibold text-ink">Nie udało się zapisać planu</p>
+                  <p className="mt-2 break-words text-[13px] leading-relaxed text-muted">{saveErrorMessage}</p>
+                </div>
+              ) : null}
+
+              <Button
+                type="button"
+                variant="primary"
+                className="w-full"
+                loading={isSaving}
+                disabled={isSaving}
+                onClick={onSave}
+              >
+                {isSaving ? 'Zapisywanie…' : 'Zapisz plan'}
+              </Button>
+
+              <Button type="button" variant="secondary" className="w-full" disabled={isSaving} onClick={onBack}>
                 Wróć do edycji
               </Button>
-            </div>
+            </section>
           </div>
         </div>
       </div>

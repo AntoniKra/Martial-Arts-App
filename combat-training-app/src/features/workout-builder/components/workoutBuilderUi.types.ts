@@ -59,6 +59,11 @@ export type ExerciseSelection =
       exerciseNameSnapshot: string
     }
 
+export type WorkoutPlanSaveState =
+  | { status: 'idle' }
+  | { status: 'saving' }
+  | { status: 'error'; message: string }
+
 export type WorkoutBuilderScreen =
   | {
       type: 'edit'

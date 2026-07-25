@@ -2,11 +2,13 @@ import type { Dispatch } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import type { WorkoutPlanRepository } from '@/application/workout/workoutPlanRepository'
 import { routes } from '@/app/routes'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { getButtonClassName } from '@/components/ui/Button'
 import { RedAccent } from '@/components/ui/RedAccent'
-import type { ExerciseConfiguration } from '@/domain/workout/workout.types'
+import { finalizeWorkoutPlan } from '@/domain/workout/finalizeWorkoutPlan'
+import type { ExerciseConfiguration, WorkoutPlan } from '@/domain/workout/workout.types'
 import { validateWorkoutPlanDraft, type WorkoutPlanValidationIssue } from '@/domain/workout/workoutValidation'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { ExerciseConfigurationView } from '@/features/workout-builder/components/ExerciseConfigurationView'
@@ -19,6 +21,7 @@ import type {
   ExerciseLibraryUiState,
   ExerciseSelection,
   WorkoutBuilderScreen,
+  WorkoutPlanSaveState,
 } from '@/features/workout-builder/components/workoutBuilderUi.types'
 import { createWorkoutExercise } from '@/features/workout-builder/state/workoutBuilder.factories'
 import type {
@@ -32,10 +35,13 @@ import {
   selectInheritedExerciseConfiguration,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
 import { copyExerciseConfiguration } from '@/features/workout-builder/utils/exerciseConfigurationCompare'
+import { mapWorkoutPlanSaveError } from '@/features/workout-builder/utils/workoutPlanSaveErrorMessages'
 
 interface WorkoutBuilderViewProps {
   state: WorkoutBuilderState
   dispatch: Dispatch<WorkoutBuilderAction>
+  workoutPlanRepository: WorkoutPlanRepository
+  onPlanSaved: (plan: WorkoutPlan) => void
 }
 
 const initialLibraryUiState: ExerciseLibraryUiState = {
@@ -44,20 +50,29 @@ const initialLibraryUiState: ExerciseLibraryUiState = {
   customName: '',
 }
 
-export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps) {
+export function WorkoutBuilderView({
+  state,
+  dispatch,
+  workoutPlanRepository,
+  onPlanSaved,
+}: WorkoutBuilderViewProps) {
   const [screen, setScreen] = useState<WorkoutBuilderScreen>({ type: 'edit' })
   const [libraryUiState, setLibraryUiState] = useState<ExerciseLibraryUiState>(initialLibraryUiState)
   const [pendingAddedExerciseId, setPendingAddedExerciseId] = useState<string | null>(null)
   const [pendingAddExerciseBlockId, setPendingAddExerciseBlockId] = useState<string | null>(null)
   const [pendingEditExerciseId, setPendingEditExerciseId] = useState<string | null>(null)
   const [validationIssues, setValidationIssues] = useState<WorkoutPlanValidationIssue[] | null>(null)
+  const [saveState, setSaveState] = useState<WorkoutPlanSaveState>({ status: 'idle' })
   const [pendingPreviewHeadingFocus, setPendingPreviewHeadingFocus] = useState(false)
   const [pendingPreviewButtonFocus, setPendingPreviewButtonFocus] = useState(false)
   const [pendingValidationSummaryFocus, setPendingValidationSummaryFocus] = useState(false)
+  const [pendingSaveErrorFocus, setPendingSaveErrorFocus] = useState(false)
 
   const previewButtonRef = useRef<HTMLButtonElement>(null)
   const previewHeadingRef = useRef<HTMLHeadingElement>(null)
   const validationSummaryRef = useRef<HTMLDivElement>(null)
+  const saveErrorRef = useRef<HTMLDivElement>(null)
+  const saveInFlightRef = useRef(false)
 
   const displayPlanName = selectDisplayPlanName(state)
 
@@ -105,6 +120,7 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
 
     if (result.isValid) {
       setValidationIssues(null)
+      setSaveState({ status: 'idle' })
       setScreen({ type: 'preview' })
       setPendingPreviewHeadingFocus(true)
       return
@@ -115,8 +131,44 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
   }
 
   function backToEditFromPreview() {
+    if (saveState.status === 'saving') {
+      return
+    }
+
     setScreen({ type: 'edit' })
     setPendingPreviewButtonFocus(true)
+  }
+
+  async function handleSavePlan() {
+    if (saveInFlightRef.current || saveState.status === 'saving') {
+      return
+    }
+
+    saveInFlightRef.current = true
+    setSaveState({ status: 'saving' })
+
+    const finalized = finalizeWorkoutPlan(state.draft)
+
+    if (!finalized.ok) {
+      saveInFlightRef.current = false
+      setSaveState({ status: 'idle' })
+      setValidationIssues(finalized.validation.issues)
+      setScreen({ type: 'edit' })
+      setPendingValidationSummaryFocus(true)
+      return
+    }
+
+    try {
+      await workoutPlanRepository.save(finalized.plan)
+      onPlanSaved(finalized.plan)
+    } catch (error) {
+      saveInFlightRef.current = false
+      setSaveState({
+        status: 'error',
+        message: mapWorkoutPlanSaveError(error),
+      })
+      setPendingSaveErrorFocus(true)
+    }
   }
 
   useEffect(() => {
@@ -187,6 +239,19 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
     return () => cancelAnimationFrame(frame)
   }, [pendingValidationSummaryFocus])
 
+  useEffect(() => {
+    if (!pendingSaveErrorFocus) {
+      return
+    }
+
+    const frame = requestAnimationFrame(() => {
+      saveErrorRef.current?.focus()
+      setPendingSaveErrorFocus(false)
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [pendingSaveErrorFocus])
+
   function handleAddExercise(configuration: ExerciseConfiguration, instruction: string | null) {
     if (screen.type !== 'configureNew') {
       return
@@ -226,7 +291,10 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
         ref={previewHeadingRef}
         state={state}
         displayPlanName={displayPlanName}
+        saveState={saveState}
+        saveErrorRef={saveErrorRef}
         onBack={backToEditFromPreview}
+        onSave={handleSavePlan}
       />
     )
   }
