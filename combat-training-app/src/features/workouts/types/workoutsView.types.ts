@@ -37,6 +37,11 @@ export interface WorkoutHistoryListItem {
   averageRatingLabel: string | null
 }
 
+export type WorkoutPlansLoadState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'success'; plans: WorkoutPlanListItem[] }
+
 export interface WorkoutsViewData {
   plans: WorkoutPlanListItem[]
   history: WorkoutHistoryListItem[]

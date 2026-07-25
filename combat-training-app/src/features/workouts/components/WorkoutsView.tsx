@@ -10,7 +10,11 @@ import { WorkoutHistoryCard } from '@/features/workouts/components/WorkoutHistor
 import { WorkoutPlanCard } from '@/features/workouts/components/WorkoutPlanCard'
 import { WorkoutsEmptyState } from '@/features/workouts/components/WorkoutsEmptyState'
 import { WorkoutsFilters } from '@/features/workouts/components/WorkoutsFilters'
-import type { WorkoutsTab, WorkoutsViewData } from '@/features/workouts/types/workoutsView.types'
+import type {
+  WorkoutHistoryListItem,
+  WorkoutPlansLoadState,
+  WorkoutsTab,
+} from '@/features/workouts/types/workoutsView.types'
 import {
   DEFAULT_WORKOUTS_FILTERS,
   filterWorkoutHistory,
@@ -18,7 +22,9 @@ import {
 } from '@/features/workouts/utils/workoutsFilters'
 
 interface WorkoutsViewProps {
-  data: WorkoutsViewData
+  plansLoadState: WorkoutPlansLoadState
+  history: WorkoutHistoryListItem[]
+  onRetryLoadPlans: () => void
 }
 
 const tabOptions = [
@@ -26,17 +32,45 @@ const tabOptions = [
   { label: 'Historia', value: 'history' as const },
 ] satisfies readonly { label: string; value: WorkoutsTab }[]
 
-export function WorkoutsView({ data }: WorkoutsViewProps) {
+function WorkoutPlansLoadingState() {
+  return (
+    <p className="border border-bd bg-surface px-6 py-12 text-center text-[13px] text-muted" role="status">
+      Ładowanie planów…
+    </p>
+  )
+}
+
+interface WorkoutPlansErrorStateProps {
+  message: string
+  onRetry: () => void
+}
+
+function WorkoutPlansErrorState({ message, onRetry }: WorkoutPlansErrorStateProps) {
+  return (
+    <div className="flex flex-col items-center border border-bd bg-surface px-6 py-12 text-center">
+      <h3 className="font-display text-[15px] font-semibold text-ink">Nie udało się wczytać planów</h3>
+      <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted">{message}</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className={getButtonClassName({ variant: 'primary', size: 'md', className: 'mt-5' })}
+      >
+        Spróbuj ponownie
+      </button>
+    </div>
+  )
+}
+
+export function WorkoutsView({ plansLoadState, history, onRetryLoadPlans }: WorkoutsViewProps) {
   const [tab, setTab] = useState<WorkoutsTab>('plans')
   const [filters, setFilters] = useState(DEFAULT_WORKOUTS_FILTERS)
 
-  const filteredPlans = useMemo(
-    () => filterWorkoutPlans(data.plans, filters),
-    [data.plans, filters],
-  )
+  const plans = plansLoadState.status === 'success' ? plansLoadState.plans : []
+
+  const filteredPlans = useMemo(() => filterWorkoutPlans(plans, filters), [plans, filters])
   const filteredHistory = useMemo(
-    () => filterWorkoutHistory(data.history, filters),
-    [data.history, filters],
+    () => filterWorkoutHistory(history, filters),
+    [history, filters],
   )
 
   const createWorkoutLink = (
@@ -50,6 +84,54 @@ export function WorkoutsView({ data }: WorkoutsViewProps) {
       <ChevronRightIcon className="text-muted" />
     </Link>
   )
+
+  function renderPlansContent() {
+    if (plansLoadState.status === 'loading') {
+      return <WorkoutPlansLoadingState />
+    }
+
+    if (plansLoadState.status === 'error') {
+      return (
+        <WorkoutPlansErrorState message={plansLoadState.message} onRetry={onRetryLoadPlans} />
+      )
+    }
+
+    if (plans.length === 0) {
+      return (
+        <WorkoutsEmptyState
+          variant="no-plans"
+          action={
+            <Link
+              to={routes.newWorkout}
+              className={getButtonClassName({ variant: 'primary', size: 'md' })}
+            >
+              Utwórz plan
+            </Link>
+          }
+        />
+      )
+    }
+
+    if (filteredPlans.length === 0) {
+      return (
+        <>
+          {createWorkoutLink}
+          <WorkoutsEmptyState variant="no-results" />
+        </>
+      )
+    }
+
+    return (
+      <>
+        {createWorkoutLink}
+        <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+          {filteredPlans.map((plan) => (
+            <WorkoutPlanCard key={plan.id} plan={plan} />
+          ))}
+        </div>
+      </>
+    )
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -76,35 +158,14 @@ export function WorkoutsView({ data }: WorkoutsViewProps) {
               <h2 id="workouts-plans-heading" className="sr-only">
                 Plany treningowe
               </h2>
-              {data.plans.length > 0 ? createWorkoutLink : null}
-              {data.plans.length === 0 ? (
-                <WorkoutsEmptyState
-                  variant="no-plans"
-                  action={
-                    <Link
-                      to={routes.newWorkout}
-                      className={getButtonClassName({ variant: 'primary', size: 'md' })}
-                    >
-                      Utwórz nowy trening
-                    </Link>
-                  }
-                />
-              ) : filteredPlans.length === 0 ? (
-                <WorkoutsEmptyState variant="no-results" />
-              ) : (
-                <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
-                  {filteredPlans.map((plan) => (
-                    <WorkoutPlanCard key={plan.id} plan={plan} />
-                  ))}
-                </div>
-              )}
+              {renderPlansContent()}
             </section>
           ) : (
             <section aria-labelledby="workouts-history-heading" className="space-y-3">
               <h2 id="workouts-history-heading" className="sr-only">
                 Historia treningów
               </h2>
-              {data.history.length === 0 ? (
+              {history.length === 0 ? (
                 <WorkoutsEmptyState variant="no-history" />
               ) : filteredHistory.length === 0 ? (
                 <WorkoutsEmptyState variant="no-results" />
