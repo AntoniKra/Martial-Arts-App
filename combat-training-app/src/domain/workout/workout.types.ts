@@ -1,75 +1,72 @@
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 
-export type WorkoutStatus = 'draft' | 'planned' | 'in_progress' | 'completed'
-
 export type WorkoutBlockType =
-  | 'warm_up'
+  | 'warmup'
   | 'technique'
   | 'pads'
-  | 'heavy_bag'
+  | 'bag'
   | 'sparring'
   | 'conditioning'
-  | 'strength_athletic'
+  | 'strengthAndConditioning'
 
 export type ExerciseMode = 'rounds' | 'continuous' | 'strength'
-export type WorkoutItemType = 'exercise' | 'break'
 
-export interface RoundExerciseConfig {
+export interface RoundExerciseConfiguration {
   mode: 'rounds'
-  rounds: number
+  roundCount: number
   roundDurationSeconds: number
   restBetweenRoundsSeconds: number
 }
 
-export interface ContinuousExerciseConfig {
+export interface ContinuousExerciseConfiguration {
   mode: 'continuous'
   durationSeconds: number
 }
 
-export interface StrengthExerciseConfig {
-  mode: 'strength'
-  restBetweenSetsSeconds: number
-}
-
-export type ExerciseConfig = RoundExerciseConfig | ContinuousExerciseConfig | StrengthExerciseConfig
+// Strength configuration will join this union after sets, repetitions, and weight are modeled.
+export type ExerciseConfiguration =
+  | RoundExerciseConfiguration
+  | ContinuousExerciseConfiguration
 
 export interface WorkoutExercise {
   id: string
   type: 'exercise'
-  position: number
   combinationId: string | null
-  exerciseKey: string | null
   exerciseNameSnapshot: string
   instruction: string | null
-  config: ExerciseConfig
-  executionRating: number | null
+  configuration: ExerciseConfiguration
 }
 
 export interface WorkoutBreak {
   id: string
   type: 'break'
-  position: number
   durationSeconds: number
+  instruction: string | null
 }
 
 export type WorkoutItem = WorkoutExercise | WorkoutBreak
 
 export interface WorkoutBlock {
   id: string
-  type: WorkoutBlockType
-  position: number
+  blockType: WorkoutBlockType
   items: WorkoutItem[]
 }
 
-export interface Workout {
+interface WorkoutPlanSharedFields {
   id: string
-  status: WorkoutStatus
-  disciplineKey: DisciplineKey
   customName: string | null
-  nameSnapshot: string
   mainGoal: string | null
-  createdAt: string
-  startedAt: string | null
-  completedAt: string | null
   blocks: WorkoutBlock[]
+  createdAt: string
+}
+
+/** Editable builder state before an explicit save action. */
+export interface WorkoutPlanDraft extends WorkoutPlanSharedFields {
+  disciplineKey: DisciplineKey | null
+}
+
+/** Persisted, approved workout plan without execution/session fields. */
+export interface WorkoutPlan extends WorkoutPlanSharedFields {
+  disciplineKey: DisciplineKey
+  nameSnapshot: string
 }

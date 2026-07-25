@@ -3,7 +3,7 @@ import type { WorkoutBlockType } from '@/domain/workout/workout.types'
 
 export interface Combination {
   id: string
-  key: string
+  combinationKey: string
   namePl: string
   nameEn: string | null
   disciplineKeys: DisciplineKey[]
