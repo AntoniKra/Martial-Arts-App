@@ -5,6 +5,7 @@ import { routes } from '@/app/routes'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { WorkoutMetadataForm } from '@/features/workout-builder/components/WorkoutMetadataForm'
+import { WorkoutTimeline } from '@/features/workout-builder/components/WorkoutTimeline'
 import type {
   WorkoutBuilderAction,
   WorkoutBuilderState,
@@ -58,17 +59,7 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
 
           <RedAccent className="mt-8" />
 
-          <section aria-labelledby="workout-builder-timeline-heading" className="mt-8">
-            <h2
-              id="workout-builder-timeline-heading"
-              className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint"
-            >
-              Oś treningu
-            </h2>
-            <p className="mt-3 border border-bd bg-surface px-4 py-4 text-[13px] leading-relaxed text-muted">
-              Bloki i ćwiczenia dodasz w kolejnym kroku.
-            </p>
-          </section>
+          <WorkoutTimeline state={state} dispatch={dispatch} />
         </div>
       </div>
     </div>

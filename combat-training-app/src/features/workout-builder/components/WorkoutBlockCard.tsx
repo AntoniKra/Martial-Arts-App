@@ -1,0 +1,201 @@
+import type { Dispatch } from 'react'
+
+import { Button } from '@/components/ui/Button'
+import type { WorkoutBlock } from '@/domain/workout/workout.types'
+import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  MoveIconButton,
+  PlusIcon,
+} from '@/features/workout-builder/components/MoveIcons'
+import { WorkoutBreakCard } from '@/features/workout-builder/components/WorkoutBreakCard'
+import { WorkoutBreakForm } from '@/features/workout-builder/components/WorkoutBreakForm'
+import type {
+  ActiveInlinePanel,
+  FocusRestoreTarget,
+} from '@/features/workout-builder/components/workoutBuilderUi.types'
+import { createWorkoutBreak } from '@/features/workout-builder/state/workoutBuilder.factories'
+import type { WorkoutBuilderAction } from '@/features/workout-builder/state/workoutBuilder.types'
+import {
+  canMoveBlockDown,
+  canMoveBlockUp,
+} from '@/features/workout-builder/state/workoutBuilder.selectors'
+
+interface WorkoutBlockCardProps {
+  block: WorkoutBlock
+  position: number
+  allBlocks: readonly WorkoutBlock[]
+  dispatch: Dispatch<WorkoutBuilderAction>
+  activeInlinePanel: ActiveInlinePanel
+  onOpenInlinePanel: (panel: Exclude<ActiveInlinePanel, null>) => void
+  onCloseInlinePanel: (focusTarget?: FocusRestoreTarget) => void
+  onScheduleFocusRestore: (focusTarget: FocusRestoreTarget) => void
+  registerAddBreakButtonRef: (element: HTMLButtonElement | null) => void
+  registerEditBreakButtonRef: (itemId: string) => (element: HTMLButtonElement | null) => void
+}
+
+function formatBlockDescriptor(position: number, blockLabel: string): string {
+  return `blok ${position} — ${blockLabel}`
+}
+
+export function WorkoutBlockCard({
+  block,
+  position,
+  allBlocks,
+  dispatch,
+  activeInlinePanel,
+  onOpenInlinePanel,
+  onCloseInlinePanel,
+  onScheduleFocusRestore,
+  registerAddBreakButtonRef,
+  registerEditBreakButtonRef,
+}: WorkoutBlockCardProps) {
+  const blockLabel = getWorkoutBlockLabelPl(block.blockType)
+  const blockDescriptor = formatBlockDescriptor(position, blockLabel)
+  const canMoveUp = canMoveBlockUp(allBlocks, block.id)
+  const canMoveDown = canMoveBlockDown(allBlocks, block.id)
+  const isEmpty = block.items.length === 0
+  const addBreakFocusTarget: FocusRestoreTarget = { type: 'addBreak', blockId: block.id }
+
+  const isAddingBreak =
+    activeInlinePanel?.type === 'addBreak' && activeInlinePanel.blockId === block.id
+  const isConfirmingDelete =
+    activeInlinePanel?.type === 'confirmBlockDelete' && activeInlinePanel.blockId === block.id
+
+  function handleDelete() {
+    if (isEmpty) {
+      dispatch({ type: 'removeBlock', blockId: block.id })
+      onScheduleFocusRestore({ type: 'addBlock' })
+      return
+    }
+
+    onOpenInlinePanel({
+      type: 'confirmBlockDelete',
+      blockId: block.id,
+      itemCountAtOpen: block.items.length,
+    })
+  }
+
+  return (
+    <li className="overflow-hidden border border-bd bg-surface">
+      <div className="flex flex-col gap-3 border-b border-bd bg-elevated px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
+            Blok {position}
+          </p>
+          <p className="mt-1 font-display text-[14px] font-semibold text-ink">{blockLabel}</p>
+          <p className="mt-0.5 text-[12px] text-muted">
+            {block.items.length === 1 ? '1 element' : `${block.items.length} elementów`}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-0.5">
+          <MoveIconButton
+            label={`Przenieś ${blockDescriptor} w górę`}
+            disabled={!canMoveUp}
+            onClick={() => dispatch({ type: 'moveBlock', blockId: block.id, direction: 'up' })}
+          >
+            <ArrowUpIcon />
+          </MoveIconButton>
+          <MoveIconButton
+            label={`Przenieś ${blockDescriptor} w dół`}
+            disabled={!canMoveDown}
+            onClick={() => dispatch({ type: 'moveBlock', blockId: block.id, direction: 'down' })}
+          >
+            <ArrowDownIcon />
+          </MoveIconButton>
+          {!isConfirmingDelete ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="min-h-touch px-2 text-crimson hover:text-crimson"
+              aria-label={`Usuń ${blockDescriptor}`}
+              onClick={handleDelete}
+            >
+              {isEmpty ? 'Usuń blok' : 'Usuń'}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
+      {isConfirmingDelete ? (
+        <div className="border-b border-bd bg-bg/40 px-3 py-3">
+          <p className="text-[13px] leading-relaxed text-muted">
+            Usunięty zostanie blok wraz ze wszystkimi jego elementami.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button type="button" size="sm" variant="ghost" onClick={() => onCloseInlinePanel()}>
+              Anuluj
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="danger"
+              aria-label={`Potwierdź usunięcie ${blockDescriptor}`}
+              onClick={() => {
+                dispatch({ type: 'removeBlock', blockId: block.id })
+                onCloseInlinePanel({ type: 'addBlock' })
+              }}
+            >
+              Usuń blok
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {block.items.length > 0 ? (
+        <ul aria-label={`Elementy ${blockDescriptor}`}>
+          {block.items.map((item, itemIndex) =>
+            item.type === 'break' ? (
+              <WorkoutBreakCard
+                key={item.id}
+                blockId={block.id}
+                blockPosition={position}
+                blockLabel={blockLabel}
+                itemPosition={itemIndex + 1}
+                breakItem={item}
+                blockItems={block.items}
+                dispatch={dispatch}
+                activeInlinePanel={activeInlinePanel}
+                onOpenInlinePanel={onOpenInlinePanel}
+                onCloseInlinePanel={onCloseInlinePanel}
+                onScheduleFocusRestore={onScheduleFocusRestore}
+                registerEditBreakButtonRef={registerEditBreakButtonRef(item.id)}
+              />
+            ) : null,
+          )}
+        </ul>
+      ) : null}
+
+      {isAddingBreak ? (
+        <div className="border-t border-bd p-3">
+          <WorkoutBreakForm
+            mode="add"
+            onCancel={() => onCloseInlinePanel(addBreakFocusTarget)}
+            onSubmit={(durationSeconds, instruction) => {
+              dispatch({
+                type: 'addBreak',
+                blockId: block.id,
+                breakItem: createWorkoutBreak(durationSeconds, instruction),
+              })
+              onCloseInlinePanel(addBreakFocusTarget)
+            }}
+          />
+        </div>
+      ) : (
+        <button
+          ref={registerAddBreakButtonRef}
+          type="button"
+          aria-label={`Dodaj przerwę do ${blockDescriptor}`}
+          onClick={() => onOpenInlinePanel({ type: 'addBreak', blockId: block.id })}
+          className="flex min-h-touch w-full items-center justify-center gap-2 border-t border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:bg-elevated hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--app-focus-ring)]"
+        >
+          <PlusIcon />
+          Dodaj przerwę
+        </button>
+      )}
+    </li>
+  )
+}
