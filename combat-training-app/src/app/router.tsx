@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 
 import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
+import { NewWorkoutPage } from '@/pages/NewWorkoutPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { WorkoutsPage } from '@/pages/WorkoutsPage'
 
@@ -11,7 +12,7 @@ export const router = createBrowserRouter([
     children: [
       { path: '/', element: <HomePage /> },
       { path: '/workouts', element: <WorkoutsPage /> },
-      { path: '/workouts/new', element: <PlaceholderPage title="Nowy trening" description="Kreator bloków, ćwiczeń i przerw." /> },
+      { path: '/workouts/new', element: <NewWorkoutPage /> },
       { path: '/workouts/:workoutId', element: <PlaceholderPage title="Szczegóły planu" /> },
       { path: '/workouts/:workoutId/edit', element: <PlaceholderPage title="Edycja planu" /> },
       { path: '/workouts/:workoutId/preview', element: <PlaceholderPage title="Podgląd treningu" /> },
