@@ -3,13 +3,14 @@ import { createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
+import { WorkoutsPage } from '@/pages/WorkoutsPage'
 
 export const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
       { path: '/', element: <HomePage /> },
-      { path: '/workouts', element: <PlaceholderPage title="Treningi" description="Zakładki Plany i Historia." /> },
+      { path: '/workouts', element: <WorkoutsPage /> },
       { path: '/workouts/new', element: <PlaceholderPage title="Nowy trening" description="Kreator bloków, ćwiczeń i przerw." /> },
       { path: '/workouts/:workoutId', element: <PlaceholderPage title="Szczegóły planu" /> },
       { path: '/workouts/:workoutId/edit', element: <PlaceholderPage title="Edycja planu" /> },
