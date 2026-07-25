@@ -77,3 +77,6 @@ export type WorkoutBuilderScreen =
       blockId: string
       exerciseId: string
     }
+  | {
+      type: 'preview'
+    }

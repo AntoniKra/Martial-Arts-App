@@ -1,16 +1,20 @@
 import type { Dispatch } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
+import { getButtonClassName } from '@/components/ui/Button'
 import { RedAccent } from '@/components/ui/RedAccent'
 import type { ExerciseConfiguration } from '@/domain/workout/workout.types'
+import { validateWorkoutPlanDraft, type WorkoutPlanValidationIssue } from '@/domain/workout/workoutValidation'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { ExerciseConfigurationView } from '@/features/workout-builder/components/ExerciseConfigurationView'
 import { ExerciseLibraryView } from '@/features/workout-builder/components/ExerciseLibraryView'
 import { WorkoutMetadataForm } from '@/features/workout-builder/components/WorkoutMetadataForm'
+import { WorkoutPlanPreview } from '@/features/workout-builder/components/WorkoutPlanPreview'
 import { WorkoutTimeline } from '@/features/workout-builder/components/WorkoutTimeline'
+import { WorkoutValidationSummary } from '@/features/workout-builder/components/WorkoutValidationSummary'
 import type {
   ExerciseLibraryUiState,
   ExerciseSelection,
@@ -46,6 +50,14 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
   const [pendingAddedExerciseId, setPendingAddedExerciseId] = useState<string | null>(null)
   const [pendingAddExerciseBlockId, setPendingAddExerciseBlockId] = useState<string | null>(null)
   const [pendingEditExerciseId, setPendingEditExerciseId] = useState<string | null>(null)
+  const [validationIssues, setValidationIssues] = useState<WorkoutPlanValidationIssue[] | null>(null)
+  const [pendingPreviewHeadingFocus, setPendingPreviewHeadingFocus] = useState(false)
+  const [pendingPreviewButtonFocus, setPendingPreviewButtonFocus] = useState(false)
+  const [pendingValidationSummaryFocus, setPendingValidationSummaryFocus] = useState(false)
+
+  const previewButtonRef = useRef<HTMLButtonElement>(null)
+  const previewHeadingRef = useRef<HTMLHeadingElement>(null)
+  const validationSummaryRef = useRef<HTMLDivElement>(null)
 
   const displayPlanName = selectDisplayPlanName(state)
 
@@ -88,6 +100,29 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
     setPendingEditExerciseId(exerciseId)
   }
 
+  function handlePreviewPlan() {
+    const result = validateWorkoutPlanDraft(state.draft)
+
+    if (result.isValid) {
+      setValidationIssues(null)
+      setScreen({ type: 'preview' })
+      setPendingPreviewHeadingFocus(true)
+      return
+    }
+
+    setValidationIssues(result.issues)
+    setPendingValidationSummaryFocus(true)
+  }
+
+  function backToEditFromPreview() {
+    setScreen({ type: 'edit' })
+    setPendingPreviewButtonFocus(true)
+  }
+
+  useEffect(() => {
+    setValidationIssues(null)
+  }, [state.draft])
+
   useEffect(() => {
     if (
       screen.type !== 'library' &&
@@ -112,6 +147,45 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
       }
     }
   }, [screen, state.draft.blocks, state.draft.disciplineKey])
+
+  useEffect(() => {
+    if (!pendingPreviewHeadingFocus) {
+      return
+    }
+
+    const frame = requestAnimationFrame(() => {
+      previewHeadingRef.current?.focus()
+      setPendingPreviewHeadingFocus(false)
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [pendingPreviewHeadingFocus])
+
+  useEffect(() => {
+    if (!pendingPreviewButtonFocus) {
+      return
+    }
+
+    const frame = requestAnimationFrame(() => {
+      previewButtonRef.current?.focus()
+      setPendingPreviewButtonFocus(false)
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [pendingPreviewButtonFocus])
+
+  useEffect(() => {
+    if (!pendingValidationSummaryFocus) {
+      return
+    }
+
+    const frame = requestAnimationFrame(() => {
+      validationSummaryRef.current?.focus()
+      setPendingValidationSummaryFocus(false)
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [pendingValidationSummaryFocus])
 
   function handleAddExercise(configuration: ExerciseConfiguration, instruction: string | null) {
     if (screen.type !== 'configureNew') {
@@ -144,6 +218,17 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
     })
     setPendingAddedExerciseId(screen.exerciseId)
     setScreen({ type: 'edit' })
+  }
+
+  if (screen.type === 'preview') {
+    return (
+      <WorkoutPlanPreview
+        ref={previewHeadingRef}
+        state={state}
+        displayPlanName={displayPlanName}
+        onBack={backToEditFromPreview}
+      />
+    )
   }
 
   if (screen.type === 'library' || screen.type === 'configureNew' || screen.type === 'configureExisting') {
@@ -253,6 +338,27 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
             pendingEditExerciseId={pendingEditExerciseId}
             onPendingEditExerciseFocusHandled={() => setPendingEditExerciseId(null)}
           />
+
+          {validationIssues && validationIssues.length > 0 ? (
+            <div className="mt-8">
+              <WorkoutValidationSummary ref={validationSummaryRef} issues={validationIssues} />
+            </div>
+          ) : null}
+
+          <div className="mt-8 pb-2">
+            <button
+              ref={previewButtonRef}
+              type="button"
+              onClick={handlePreviewPlan}
+              className={getButtonClassName({
+                variant: 'secondary',
+                className:
+                  'w-full focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--app-focus-ring)]',
+              })}
+            >
+              Podgląd planu
+            </button>
+          </div>
         </div>
       </div>
     </div>

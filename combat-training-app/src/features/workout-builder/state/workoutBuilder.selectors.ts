@@ -1,4 +1,4 @@
-import { getDisciplineLabelPl } from '@/domain/discipline/disciplineLabels'
+import { resolveWorkoutPlanDisplayName } from '@/domain/workout/workoutPlanDisplayName'
 import type {
   ExerciseConfiguration,
   WorkoutBlock,
@@ -9,17 +9,7 @@ import { DEFAULT_ROUND_EXERCISE_CONFIGURATION } from '@/features/workout-builder
 import type { WorkoutBuilderState } from '@/features/workout-builder/state/workoutBuilder.types'
 
 export function selectDisplayPlanName(state: WorkoutBuilderState): string {
-  const trimmedCustomName = state.draft.customName?.trim() ?? ''
-
-  if (trimmedCustomName.length > 0) {
-    return trimmedCustomName
-  }
-
-  if (state.draft.disciplineKey !== null) {
-    return `${getDisciplineLabelPl(state.draft.disciplineKey)} — plan treningu`
-  }
-
-  return 'Nowy plan treningowy'
+  return resolveWorkoutPlanDisplayName(state.draft)
 }
 
 export function selectCanEditDiscipline(state: WorkoutBuilderState): boolean {
