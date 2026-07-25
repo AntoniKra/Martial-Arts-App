@@ -6,6 +6,7 @@ import type {
 } from '@/domain/workout/workout.types'
 
 export interface WorkoutPlanSummary {
+  blockCount: number
   exerciseCount: number
   plannedRoundCount: number
   activeWorkSeconds: number
@@ -28,6 +29,10 @@ function forEachItem(blocks: readonly WorkoutBlock[], visit: (item: WorkoutItem)
       visit(item)
     }
   }
+}
+
+export function calculateBlockCount(plan: WorkoutPlanCalculable): number {
+  return plan.blocks.length
 }
 
 export function calculateExerciseCount(plan: WorkoutPlanCalculable): number {
@@ -120,6 +125,7 @@ export function calculateWorkoutPlanSummary(plan: WorkoutPlanCalculable): Workou
   const totalRestSeconds = roundRestSeconds + standaloneBreakSeconds
 
   return {
+    blockCount: calculateBlockCount(plan),
     exerciseCount: calculateExerciseCount(plan),
     plannedRoundCount: calculatePlannedRoundCount(plan),
     activeWorkSeconds,

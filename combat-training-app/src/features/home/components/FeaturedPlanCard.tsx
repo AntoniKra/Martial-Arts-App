@@ -6,6 +6,7 @@ import { getButtonClassName } from '@/components/ui/Button'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { HomeSectionLabel } from '@/features/home/components/HomeSectionLabel'
 import type { HomeFeaturedPlan } from '@/features/home/types/homeView.types'
+import { formatPolishCount } from '@/features/workout-builder/utils/polishPlural'
 
 interface FeaturedPlanCardProps {
   plan: HomeFeaturedPlan
@@ -13,30 +14,26 @@ interface FeaturedPlanCardProps {
 
 const statItems = [
   {
+    key: 'blocks',
+    label: 'Bloki',
+    value: (plan: HomeFeaturedPlan) => formatPolishCount(plan.blockCount, 'blok', 'bloki', 'bloków'),
+  },
+  {
     key: 'exercises',
     label: 'Ćwiczenia',
-    alignment: 'start',
     value: (plan: HomeFeaturedPlan) => plan.exerciseCount,
   },
   {
     key: 'rounds',
     label: 'Rundy',
-    alignment: 'center',
     value: (plan: HomeFeaturedPlan) => plan.roundCount,
   },
   {
     key: 'minutes',
     label: '~Min',
-    alignment: 'end',
     value: (plan: HomeFeaturedPlan) => plan.estimatedMinutes,
   },
 ] as const
-
-const statAlignmentClasses = {
-  start: 'justify-self-start text-left',
-  center: 'justify-self-center text-center',
-  end: 'justify-self-end text-right',
-} as const
 
 export function FeaturedPlanCard({ plan }: FeaturedPlanCardProps) {
   return (
@@ -52,12 +49,9 @@ export function FeaturedPlanCard({ plan }: FeaturedPlanCardProps) {
             {plan.name}
           </h2>
           <p className="mt-1 text-[12px] leading-snug text-muted">{plan.goal}</p>
-          <dl className="mt-3 grid grid-cols-3 gap-x-3 pb-3">
+          <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-3 pb-3 sm:grid-cols-4">
             {statItems.map((item) => (
-              <div
-                key={item.key}
-                className={`min-w-0 ${statAlignmentClasses[item.alignment]}`}
-              >
+              <div key={item.key} className="min-w-0">
                 <dt className="font-display text-[10px] uppercase tracking-[0.06em] text-muted">
                   {item.label}
                 </dt>
