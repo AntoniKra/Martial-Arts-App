@@ -47,14 +47,14 @@ export function WorkoutPlanCard({ plan }: WorkoutPlanCardProps) {
         </dl>
       </div>
       <Link
-        to={routes.workoutActive(plan.id)}
+        to={routes.workoutDetails(plan.id)}
         className={getButtonClassName({
           variant: 'secondary',
           size: 'md',
           className: 'mt-auto w-full shrink-0 rounded-none border-t border-bd uppercase tracking-[0.08em]',
         })}
       >
-        Rozpocznij
+        Zobacz plan
       </Link>
     </article>
   )

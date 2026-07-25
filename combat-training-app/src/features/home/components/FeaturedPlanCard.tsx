@@ -64,14 +64,14 @@ export function FeaturedPlanCard({ plan }: FeaturedPlanCardProps) {
         </div>
         <RedAccent />
         <Link
-          to={routes.workoutActive(plan.id)}
+          to={routes.workoutDetails(plan.id)}
           className={getButtonClassName({
             variant: 'primary',
             size: 'lg',
             className: 'w-full rounded-none uppercase tracking-[0.1em]',
           })}
         >
-          Rozpocznij trening
+          Zobacz plan
         </Link>
       </div>
     </section>
