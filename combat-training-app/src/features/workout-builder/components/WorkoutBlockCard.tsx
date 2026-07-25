@@ -1,4 +1,5 @@
 import type { Dispatch } from 'react'
+import { useId } from 'react'
 
 import { Button } from '@/components/ui/Button'
 import type { WorkoutBlock } from '@/domain/workout/workout.types'
@@ -11,6 +12,7 @@ import {
 } from '@/features/workout-builder/components/MoveIcons'
 import { WorkoutBreakCard } from '@/features/workout-builder/components/WorkoutBreakCard'
 import { WorkoutBreakForm } from '@/features/workout-builder/components/WorkoutBreakForm'
+import { WorkoutExerciseCard } from '@/features/workout-builder/components/WorkoutExerciseCard'
 import type {
   ActiveInlinePanel,
   FocusRestoreTarget,
@@ -21,18 +23,23 @@ import {
   canMoveBlockDown,
   canMoveBlockUp,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
+import { formatPolishCount } from '@/features/workout-builder/utils/polishPlural'
 
 interface WorkoutBlockCardProps {
   block: WorkoutBlock
   position: number
   allBlocks: readonly WorkoutBlock[]
   dispatch: Dispatch<WorkoutBuilderAction>
+  canAddExercise: boolean
   activeInlinePanel: ActiveInlinePanel
   onOpenInlinePanel: (panel: Exclude<ActiveInlinePanel, null>) => void
   onCloseInlinePanel: (focusTarget?: FocusRestoreTarget) => void
   onScheduleFocusRestore: (focusTarget: FocusRestoreTarget) => void
+  onOpenExerciseLibrary: (blockId: string) => void
   registerAddBreakButtonRef: (element: HTMLButtonElement | null) => void
+  registerAddExerciseButtonRef: (element: HTMLButtonElement | null) => void
   registerEditBreakButtonRef: (itemId: string) => (element: HTMLButtonElement | null) => void
+  registerExerciseHeadingRef: (exerciseId: string) => (element: HTMLHeadingElement | null) => void
 }
 
 function formatBlockDescriptor(position: number, blockLabel: string): string {
@@ -44,13 +51,18 @@ export function WorkoutBlockCard({
   position,
   allBlocks,
   dispatch,
+  canAddExercise,
   activeInlinePanel,
   onOpenInlinePanel,
   onCloseInlinePanel,
   onScheduleFocusRestore,
+  onOpenExerciseLibrary,
   registerAddBreakButtonRef,
+  registerAddExerciseButtonRef,
   registerEditBreakButtonRef,
+  registerExerciseHeadingRef,
 }: WorkoutBlockCardProps) {
+  const addExerciseHintId = useId()
   const blockLabel = getWorkoutBlockLabelPl(block.blockType)
   const blockDescriptor = formatBlockDescriptor(position, blockLabel)
   const canMoveUp = canMoveBlockUp(allBlocks, block.id)
@@ -86,7 +98,7 @@ export function WorkoutBlockCard({
           </p>
           <p className="mt-1 font-display text-[14px] font-semibold text-ink">{blockLabel}</p>
           <p className="mt-0.5 text-[12px] text-muted">
-            {block.items.length === 1 ? '1 element' : `${block.items.length} elementów`}
+            {formatPolishCount(block.items.length, 'element', 'elementy', 'elementów')}
           </p>
         </div>
 
@@ -147,55 +159,92 @@ export function WorkoutBlockCard({
 
       {block.items.length > 0 ? (
         <ul aria-label={`Elementy ${blockDescriptor}`}>
-          {block.items.map((item, itemIndex) =>
-            item.type === 'break' ? (
-              <WorkoutBreakCard
+          {block.items.map((item, itemIndex) => {
+            if (item.type === 'break') {
+              return (
+                <WorkoutBreakCard
+                  key={item.id}
+                  blockId={block.id}
+                  blockPosition={position}
+                  blockLabel={blockLabel}
+                  itemPosition={itemIndex + 1}
+                  breakItem={item}
+                  blockItems={block.items}
+                  dispatch={dispatch}
+                  activeInlinePanel={activeInlinePanel}
+                  onOpenInlinePanel={onOpenInlinePanel}
+                  onCloseInlinePanel={onCloseInlinePanel}
+                  onScheduleFocusRestore={onScheduleFocusRestore}
+                  registerEditBreakButtonRef={registerEditBreakButtonRef(item.id)}
+                />
+              )
+            }
+
+            return (
+              <WorkoutExerciseCard
                 key={item.id}
                 blockId={block.id}
                 blockPosition={position}
                 blockLabel={blockLabel}
                 itemPosition={itemIndex + 1}
-                breakItem={item}
+                exercise={item}
                 blockItems={block.items}
                 dispatch={dispatch}
-                activeInlinePanel={activeInlinePanel}
-                onOpenInlinePanel={onOpenInlinePanel}
-                onCloseInlinePanel={onCloseInlinePanel}
                 onScheduleFocusRestore={onScheduleFocusRestore}
-                registerEditBreakButtonRef={registerEditBreakButtonRef(item.id)}
+                registerExerciseHeadingRef={registerExerciseHeadingRef(item.id)}
               />
-            ) : null,
-          )}
+            )
+          })}
         </ul>
       ) : null}
 
-      {isAddingBreak ? (
-        <div className="border-t border-bd p-3">
-          <WorkoutBreakForm
-            mode="add"
-            onCancel={() => onCloseInlinePanel(addBreakFocusTarget)}
-            onSubmit={(durationSeconds, instruction) => {
-              dispatch({
-                type: 'addBreak',
-                blockId: block.id,
-                breakItem: createWorkoutBreak(durationSeconds, instruction),
-              })
-              onCloseInlinePanel(addBreakFocusTarget)
-            }}
-          />
-        </div>
-      ) : (
+      <div className="border-t border-bd">
         <button
-          ref={registerAddBreakButtonRef}
+          ref={registerAddExerciseButtonRef}
           type="button"
-          aria-label={`Dodaj przerwę do ${blockDescriptor}`}
-          onClick={() => onOpenInlinePanel({ type: 'addBreak', blockId: block.id })}
-          className="flex min-h-touch w-full items-center justify-center gap-2 border-t border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:bg-elevated hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--app-focus-ring)]"
+          disabled={!canAddExercise}
+          aria-label={`Dodaj ćwiczenie do ${blockDescriptor}`}
+          aria-describedby={canAddExercise ? undefined : addExerciseHintId}
+          onClick={() => onOpenExerciseLibrary(block.id)}
+          className="flex min-h-touch w-full items-center justify-center gap-2 px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:bg-elevated hover:text-ink disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent disabled:hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--app-focus-ring)]"
         >
           <PlusIcon />
-          Dodaj przerwę
+          Dodaj ćwiczenie
         </button>
-      )}
+        {!canAddExercise ? (
+          <p id={addExerciseHintId} className="border-t border-bd px-4 py-2 text-[12px] text-muted">
+            Najpierw wybierz dyscyplinę.
+          </p>
+        ) : null}
+
+        {isAddingBreak ? (
+          <div className="border-t border-bd p-3">
+            <WorkoutBreakForm
+              mode="add"
+              onCancel={() => onCloseInlinePanel(addBreakFocusTarget)}
+              onSubmit={(durationSeconds, instruction) => {
+                dispatch({
+                  type: 'addBreak',
+                  blockId: block.id,
+                  breakItem: createWorkoutBreak(durationSeconds, instruction),
+                })
+                onCloseInlinePanel(addBreakFocusTarget)
+              }}
+            />
+          </div>
+        ) : (
+          <button
+            ref={registerAddBreakButtonRef}
+            type="button"
+            aria-label={`Dodaj przerwę do ${blockDescriptor}`}
+            onClick={() => onOpenInlinePanel({ type: 'addBreak', blockId: block.id })}
+            className="flex min-h-touch w-full items-center justify-center gap-2 border-t border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:bg-elevated hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--app-focus-ring)]"
+          >
+            <PlusIcon />
+            Dodaj przerwę
+          </button>
+        )}
+      </div>
     </li>
   )
 }

@@ -1,7 +1,8 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useId, useRef, useState, type FormEvent } from 'react'
 
 import { Button } from '@/components/ui/Button'
 import { BREAK_INSTRUCTION_MAX_LENGTH } from '@/features/workout-builder/state/workoutBuilder.types'
+import { computeDurationSeconds } from '@/features/workout-builder/utils/durationInput'
 
 interface WorkoutBreakFormProps {
   mode: 'add' | 'edit'
@@ -16,18 +17,6 @@ const fieldClassName =
 
 const labelClassName =
   'mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint'
-
-function parseNonNegativeInteger(value: string): number | null {
-  if (value.trim() === '') {
-    return 0
-  }
-
-  if (!/^\d+$/.test(value)) {
-    return null
-  }
-
-  return Number.parseInt(value, 10)
-}
 
 function normalizeInstruction(value: string): string | null {
   const trimmed = value.trim()
@@ -53,37 +42,25 @@ export function WorkoutBreakForm({
   const [instructionInput, setInstructionInput] = useState(initialInstruction ?? '')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (errorMessage) {
-      minutesRef.current?.focus()
-    }
-  }, [errorMessage])
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const minutes = parseNonNegativeInteger(minutesInput)
-    const seconds = parseNonNegativeInteger(secondsInput)
+    const result = computeDurationSeconds(minutesInput, secondsInput, false)
 
-    if (minutes === null || seconds === null) {
-      setErrorMessage('Minuty i sekundy muszą być liczbami całkowitymi od 0.')
-      return
-    }
-
-    if (seconds > 59) {
-      setErrorMessage('Sekundy muszą być w zakresie od 0 do 59.')
-      return
-    }
-
-    const durationSeconds = minutes * 60 + seconds
-
-    if (durationSeconds <= 0) {
-      setErrorMessage('Łączny czas przerwy musi być większy od 0.')
+    if (result.error) {
+      setErrorMessage(
+        result.seconds === null && result.error === 'Łączny czas musi być większy od 0.'
+          ? 'Łączny czas przerwy musi być większy od 0.'
+          : result.error,
+      )
+      requestAnimationFrame(() => {
+        minutesRef.current?.focus()
+      })
       return
     }
 
     setErrorMessage(null)
-    onSubmit(durationSeconds, normalizeInstruction(instructionInput))
+    onSubmit(result.seconds ?? 0, normalizeInstruction(instructionInput))
   }
 
   return (

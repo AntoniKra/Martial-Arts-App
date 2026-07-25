@@ -1,7 +1,7 @@
 import type { Dispatch } from 'react'
 import { useEffect, useRef, useState } from 'react'
 
-import type { WorkoutBlock } from '@/domain/workout/workout.types'
+import { calculateWorkoutPlanSummary } from '@/domain/workout/workoutCalculations'
 import { AddBlockPicker } from '@/features/workout-builder/components/AddBlockPicker'
 import { PlusIcon } from '@/features/workout-builder/components/MoveIcons'
 import type {
@@ -13,10 +13,18 @@ import type {
   WorkoutBuilderAction,
   WorkoutBuilderState,
 } from '@/features/workout-builder/state/workoutBuilder.types'
+import { formatEstimatedDuration } from '@/features/workout-builder/utils/formatDuration'
+import { polishPlural } from '@/features/workout-builder/utils/polishPlural'
+import type { WorkoutBlock } from '@/domain/workout/workout.types'
 
 interface WorkoutTimelineProps {
   state: WorkoutBuilderState
   dispatch: Dispatch<WorkoutBuilderAction>
+  onOpenExerciseLibrary: (blockId: string) => void
+  pendingAddedExerciseId: string | null
+  onPendingAddedExerciseFocusHandled: () => void
+  pendingAddExerciseBlockId: string | null
+  onPendingAddExerciseFocusHandled: () => void
 }
 
 function resolveActiveInlinePanel(blocks: readonly WorkoutBlock[], panel: ActiveInlinePanel): ActiveInlinePanel {
@@ -45,14 +53,26 @@ function resolveActiveInlinePanel(blocks: readonly WorkoutBlock[], panel: Active
   return panel
 }
 
-export function WorkoutTimeline({ state, dispatch }: WorkoutTimelineProps) {
+export function WorkoutTimeline({
+  state,
+  dispatch,
+  onOpenExerciseLibrary,
+  pendingAddedExerciseId,
+  onPendingAddedExerciseFocusHandled,
+  pendingAddExerciseBlockId,
+  onPendingAddExerciseFocusHandled,
+}: WorkoutTimelineProps) {
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [activeInlinePanel, setActiveInlinePanel] = useState<ActiveInlinePanel>(null)
   const [pendingFocus, setPendingFocus] = useState<FocusRestoreTarget | null>(null)
   const addBlockButtonRef = useRef<HTMLButtonElement>(null)
   const addBreakButtonRefs = useRef(new Map<string, HTMLButtonElement>())
+  const addExerciseButtonRefs = useRef(new Map<string, HTMLButtonElement>())
   const editBreakButtonRefs = useRef(new Map<string, HTMLButtonElement>())
+  const exerciseHeadingRefs = useRef(new Map<string, HTMLHeadingElement>())
   const { blocks } = state.draft
+  const summary = calculateWorkoutPlanSummary(state.draft)
+  const canAddExercise = state.draft.disciplineKey !== null
 
   useEffect(() => {
     setActiveInlinePanel((currentPanel) => resolveActiveInlinePanel(blocks, currentPanel))
@@ -71,8 +91,14 @@ export function WorkoutTimeline({ state, dispatch }: WorkoutTimelineProps) {
         case 'addBreak':
           addBreakButtonRefs.current.get(pendingFocus.blockId)?.focus()
           break
+        case 'addExercise':
+          addExerciseButtonRefs.current.get(pendingFocus.blockId)?.focus()
+          break
         case 'editBreak':
           editBreakButtonRefs.current.get(pendingFocus.itemId)?.focus()
+          break
+        case 'addedExercise':
+          exerciseHeadingRefs.current.get(pendingFocus.exerciseId)?.focus()
           break
       }
 
@@ -81,6 +107,24 @@ export function WorkoutTimeline({ state, dispatch }: WorkoutTimelineProps) {
 
     return () => cancelAnimationFrame(frame)
   }, [pendingFocus])
+
+  useEffect(() => {
+    if (!pendingAddedExerciseId) {
+      return
+    }
+
+    scheduleFocusRestore({ type: 'addedExercise', exerciseId: pendingAddedExerciseId })
+    onPendingAddedExerciseFocusHandled()
+  }, [pendingAddedExerciseId, onPendingAddedExerciseFocusHandled])
+
+  useEffect(() => {
+    if (!pendingAddExerciseBlockId) {
+      return
+    }
+
+    scheduleFocusRestore({ type: 'addExercise', blockId: pendingAddExerciseBlockId })
+    onPendingAddExerciseFocusHandled()
+  }, [pendingAddExerciseBlockId, onPendingAddExerciseFocusHandled])
 
   function scheduleFocusRestore(focusTarget: FocusRestoreTarget) {
     setPendingFocus(focusTarget)
@@ -97,6 +141,17 @@ export function WorkoutTimeline({ state, dispatch }: WorkoutTimelineProps) {
     }
   }
 
+  function registerAddExerciseButtonRef(blockId: string) {
+    return (element: HTMLButtonElement | null) => {
+      if (element) {
+        addExerciseButtonRefs.current.set(blockId, element)
+        return
+      }
+
+      addExerciseButtonRefs.current.delete(blockId)
+    }
+  }
+
   function registerEditBreakButtonRef(itemId: string) {
     return (element: HTMLButtonElement | null) => {
       if (element) {
@@ -105,6 +160,17 @@ export function WorkoutTimeline({ state, dispatch }: WorkoutTimelineProps) {
       }
 
       editBreakButtonRefs.current.delete(itemId)
+    }
+  }
+
+  function registerExerciseHeadingRef(exerciseId: string) {
+    return (element: HTMLHeadingElement | null) => {
+      if (element) {
+        exerciseHeadingRefs.current.set(exerciseId, element)
+        return
+      }
+
+      exerciseHeadingRefs.current.delete(exerciseId)
     }
   }
 
@@ -133,12 +199,25 @@ export function WorkoutTimeline({ state, dispatch }: WorkoutTimelineProps) {
 
   return (
     <section aria-labelledby="workout-builder-timeline-heading" className="mt-8 space-y-4">
-      <h2
-        id="workout-builder-timeline-heading"
-        className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint"
-      >
-        Oś treningu
-      </h2>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <h2
+          id="workout-builder-timeline-heading"
+          className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint"
+        >
+          Oś treningu
+        </h2>
+        {summary.exerciseCount > 0 ? (
+          <p className="text-[12px] text-muted">
+            <span className="tabular-nums">{summary.exerciseCount}</span>{' '}
+            {polishPlural(summary.exerciseCount, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}
+            {' · '}
+            <span className="tabular-nums">{summary.plannedRoundCount}</span>{' '}
+            {polishPlural(summary.plannedRoundCount, 'runda', 'rundy', 'rund')}
+            {' · '}
+            ok. <span className="tabular-nums">{formatEstimatedDuration(summary.estimatedTotalSeconds)}</span>
+          </p>
+        ) : null}
+      </div>
 
       {blocks.length === 0 ? (
         <p className="border border-bd bg-surface px-4 py-4 text-[13px] leading-relaxed text-muted">
@@ -153,12 +232,16 @@ export function WorkoutTimeline({ state, dispatch }: WorkoutTimelineProps) {
               position={index + 1}
               allBlocks={blocks}
               dispatch={dispatch}
+              canAddExercise={canAddExercise}
               activeInlinePanel={activeInlinePanel}
               onOpenInlinePanel={openInlinePanel}
               onCloseInlinePanel={closeInlinePanel}
               onScheduleFocusRestore={scheduleFocusRestore}
+              onOpenExerciseLibrary={onOpenExerciseLibrary}
               registerAddBreakButtonRef={registerAddBreakButtonRef(block.id)}
+              registerAddExerciseButtonRef={registerAddExerciseButtonRef(block.id)}
               registerEditBreakButtonRef={registerEditBreakButtonRef}
+              registerExerciseHeadingRef={registerExerciseHeadingRef}
             />
           ))}
         </ol>

@@ -162,6 +162,32 @@ export function workoutBuilderReducer(
         isDirty: true,
       }
     }
+    case 'addExercise': {
+      if (state.draft.disciplineKey === null) {
+        return state
+      }
+
+      const blockIndex = findBlockIndex(state.draft.blocks, action.blockId)
+
+      if (blockIndex === -1) {
+        return state
+      }
+
+      const block = state.draft.blocks[blockIndex]
+
+      return {
+        ...state,
+        draft: {
+          ...state.draft,
+          blocks: updateBlockAtIndex(state.draft.blocks, blockIndex, {
+            ...block,
+            items: [...block.items, action.exercise],
+          }),
+        },
+        disciplineLocked: true,
+        isDirty: true,
+      }
+    }
     case 'updateBreak': {
       const blockIndex = findBlockIndex(state.draft.blocks, action.blockId)
 

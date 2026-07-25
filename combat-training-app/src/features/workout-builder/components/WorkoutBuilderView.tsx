@@ -1,24 +1,142 @@
 import type { Dispatch } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { RedAccent } from '@/components/ui/RedAccent'
+import type { ExerciseConfiguration } from '@/domain/workout/workout.types'
+import { ExerciseConfigurationView } from '@/features/workout-builder/components/ExerciseConfigurationView'
+import { ExerciseLibraryView } from '@/features/workout-builder/components/ExerciseLibraryView'
 import { WorkoutMetadataForm } from '@/features/workout-builder/components/WorkoutMetadataForm'
 import { WorkoutTimeline } from '@/features/workout-builder/components/WorkoutTimeline'
+import type {
+  ExerciseLibraryUiState,
+  ExerciseSelection,
+  WorkoutBuilderScreen,
+} from '@/features/workout-builder/components/workoutBuilderUi.types'
+import { createWorkoutExercise } from '@/features/workout-builder/state/workoutBuilder.factories'
 import type {
   WorkoutBuilderAction,
   WorkoutBuilderState,
 } from '@/features/workout-builder/state/workoutBuilder.types'
-import { selectDisplayPlanName } from '@/features/workout-builder/state/workoutBuilder.selectors'
+import {
+  selectBlockById,
+  selectDisplayPlanName,
+  selectInheritedExerciseConfiguration,
+} from '@/features/workout-builder/state/workoutBuilder.selectors'
 
 interface WorkoutBuilderViewProps {
   state: WorkoutBuilderState
   dispatch: Dispatch<WorkoutBuilderAction>
 }
 
+const initialLibraryUiState: ExerciseLibraryUiState = {
+  tab: 'library',
+  searchQuery: '',
+  customName: '',
+}
+
 export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps) {
+  const [screen, setScreen] = useState<WorkoutBuilderScreen>({ type: 'edit' })
+  const [libraryUiState, setLibraryUiState] = useState<ExerciseLibraryUiState>(initialLibraryUiState)
+  const [pendingAddedExerciseId, setPendingAddedExerciseId] = useState<string | null>(null)
+  const [pendingAddExerciseBlockId, setPendingAddExerciseBlockId] = useState<string | null>(null)
+
   const displayPlanName = selectDisplayPlanName(state)
+
+  function openExerciseLibrary(blockId: string) {
+    setLibraryUiState(initialLibraryUiState)
+    setScreen({ type: 'library', blockId })
+  }
+
+  function cancelExerciseLibrary(blockId: string) {
+    setScreen({ type: 'edit' })
+    setPendingAddExerciseBlockId(blockId)
+  }
+
+  function openExerciseConfiguration(selection: ExerciseSelection) {
+    if (screen.type !== 'library') {
+      return
+    }
+
+    setScreen({
+      type: 'configure',
+      blockId: screen.blockId,
+      selection,
+    })
+  }
+
+  function backToLibraryFromConfigure() {
+    if (screen.type !== 'configure') {
+      return
+    }
+
+    setScreen({ type: 'library', blockId: screen.blockId })
+  }
+
+  useEffect(() => {
+    if (screen.type !== 'library' && screen.type !== 'configure') {
+      return
+    }
+
+    const block = selectBlockById(state.draft.blocks, screen.blockId)
+
+    if (!block || state.draft.disciplineKey === null) {
+      setScreen({ type: 'edit' })
+    }
+  }, [screen, state.draft.blocks, state.draft.disciplineKey])
+
+  function handleAddExercise(configuration: ExerciseConfiguration, instruction: string | null) {
+    if (screen.type !== 'configure') {
+      return
+    }
+
+    const exercise = createWorkoutExercise(
+      screen.selection.type === 'library' ? screen.selection.combinationId : null,
+      screen.selection.exerciseNameSnapshot,
+      instruction,
+      configuration,
+    )
+
+    dispatch({ type: 'addExercise', blockId: screen.blockId, exercise })
+    setPendingAddedExerciseId(exercise.id)
+    setScreen({ type: 'edit' })
+  }
+
+  if (screen.type === 'library' || screen.type === 'configure') {
+    const targetBlock = selectBlockById(state.draft.blocks, screen.blockId)
+    const disciplineKey = state.draft.disciplineKey
+
+    if (targetBlock && disciplineKey !== null) {
+      if (screen.type === 'library') {
+        return (
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <ExerciseLibraryView
+              blockType={targetBlock.blockType}
+              disciplineKey={disciplineKey}
+              libraryUiState={libraryUiState}
+              onLibraryUiStateChange={setLibraryUiState}
+              onBack={() => cancelExerciseLibrary(screen.blockId)}
+              onConfigure={openExerciseConfiguration}
+            />
+          </div>
+        )
+      }
+
+      return (
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <ExerciseConfigurationView
+            blockType={targetBlock.blockType}
+            selection={screen.selection}
+            inheritedConfiguration={selectInheritedExerciseConfiguration(targetBlock)}
+            onBack={backToLibraryFromConfigure}
+            onAdd={handleAddExercise}
+          />
+        </div>
+      )
+    }
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -37,8 +155,8 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
           </p>
           <h1 className="mt-2 font-display text-[24px] font-bold text-ink md:text-[28px]">Nowy trening</h1>
           <p className="mt-2 max-w-prose text-[14px] leading-relaxed text-muted">
-            Ustal dyscyplinę i podstawowe informacje planu. Bloki, ćwiczenia i przerwy dodasz w kolejnych
-            krokach kreatora.
+            Ustal dyscyplinę i podstawowe informacje planu, a następnie buduj bloki, ćwiczenia i przerwy na osi
+            treningu.
           </p>
 
           <div className="mt-8">
@@ -59,7 +177,15 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
 
           <RedAccent className="mt-8" />
 
-          <WorkoutTimeline state={state} dispatch={dispatch} />
+          <WorkoutTimeline
+            state={state}
+            dispatch={dispatch}
+            onOpenExerciseLibrary={openExerciseLibrary}
+            pendingAddedExerciseId={pendingAddedExerciseId}
+            onPendingAddedExerciseFocusHandled={() => setPendingAddedExerciseId(null)}
+            pendingAddExerciseBlockId={pendingAddExerciseBlockId}
+            onPendingAddExerciseFocusHandled={() => setPendingAddExerciseBlockId(null)}
+          />
         </div>
       </div>
     </div>

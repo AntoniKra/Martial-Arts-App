@@ -1,5 +1,11 @@
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
-import type { WorkoutBlock, WorkoutBreak, WorkoutPlanDraft } from '@/domain/workout/workout.types'
+import type {
+  ExerciseConfiguration,
+  WorkoutBlock,
+  WorkoutBreak,
+  WorkoutExercise,
+  WorkoutPlanDraft,
+} from '@/domain/workout/workout.types'
 
 export interface WorkoutBuilderState {
   draft: WorkoutPlanDraft
@@ -22,12 +28,23 @@ export type WorkoutBuilderAction =
       durationSeconds: number
       instruction: string | null
     }
+  | { type: 'addExercise'; blockId: string; exercise: WorkoutExercise }
   | { type: 'removeItem'; blockId: string; itemId: string }
   | { type: 'moveItem'; blockId: string; itemId: string; direction: 'up' | 'down' }
 
 export const CUSTOM_NAME_MAX_LENGTH = 80
 export const MAIN_GOAL_MAX_LENGTH = 240
 export const BREAK_INSTRUCTION_MAX_LENGTH = 120
+export const EXERCISE_NAME_MAX_LENGTH = 100
+export const EXERCISE_INSTRUCTION_MAX_LENGTH = 240
+export const ROUND_COUNT_MAX = 99
+
+export const DEFAULT_ROUND_EXERCISE_CONFIGURATION = {
+  mode: 'rounds',
+  roundCount: 3,
+  roundDurationSeconds: 180,
+  restBetweenRoundsSeconds: 60,
+} as const satisfies ExerciseConfiguration
 
 export const WORKOUT_BUILDER_DISCIPLINE_KEYS = [
   'boxing',
