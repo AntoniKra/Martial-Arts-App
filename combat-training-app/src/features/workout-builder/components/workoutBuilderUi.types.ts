@@ -35,6 +35,10 @@ export type FocusRestoreTarget =
       type: 'addedExercise'
       exerciseId: string
     }
+  | {
+      type: 'editExercise'
+      exerciseId: string
+    }
 
 export type ExerciseLibraryTab = 'library' | 'custom'
 
@@ -64,7 +68,12 @@ export type WorkoutBuilderScreen =
       blockId: string
     }
   | {
-      type: 'configure'
+      type: 'configureNew'
       blockId: string
       selection: ExerciseSelection
+    }
+  | {
+      type: 'configureExisting'
+      blockId: string
+      exerciseId: string
     }

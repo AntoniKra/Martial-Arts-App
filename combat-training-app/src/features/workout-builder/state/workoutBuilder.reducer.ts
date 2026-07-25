@@ -1,5 +1,6 @@
-import type { WorkoutBlock, WorkoutBreak } from '@/domain/workout/workout.types'
+import type { WorkoutBlock, WorkoutBreak, WorkoutExercise } from '@/domain/workout/workout.types'
 import type { WorkoutBuilderAction, WorkoutBuilderState } from '@/features/workout-builder/state/workoutBuilder.types'
+import { areExerciseConfigurationsEqual } from '@/features/workout-builder/utils/exerciseConfigurationCompare'
 
 export function createInitialWorkoutBuilderState(): WorkoutBuilderState {
   return {
@@ -185,6 +186,54 @@ export function workoutBuilderReducer(
           }),
         },
         disciplineLocked: true,
+        isDirty: true,
+      }
+    }
+    case 'updateExercise': {
+      const blockIndex = findBlockIndex(state.draft.blocks, action.blockId)
+
+      if (blockIndex === -1) {
+        return state
+      }
+
+      const block = state.draft.blocks[blockIndex]
+      const itemIndex = block.items.findIndex(
+        (item): item is WorkoutExercise => item.id === action.exerciseId && item.type === 'exercise',
+      )
+
+      if (itemIndex === -1) {
+        return state
+      }
+
+      const currentItem = block.items[itemIndex]
+
+      if (currentItem.type !== 'exercise') {
+        return state
+      }
+
+      if (
+        areExerciseConfigurationsEqual(currentItem.configuration, action.configuration) &&
+        currentItem.instruction === action.instruction
+      ) {
+        return state
+      }
+
+      const nextItems = [...block.items]
+      nextItems[itemIndex] = {
+        ...currentItem,
+        configuration: action.configuration,
+        instruction: action.instruction,
+      }
+
+      return {
+        ...state,
+        draft: {
+          ...state.draft,
+          blocks: updateBlockAtIndex(state.draft.blocks, blockIndex, {
+            ...block,
+            items: nextItems,
+          }),
+        },
         isDirty: true,
       }
     }

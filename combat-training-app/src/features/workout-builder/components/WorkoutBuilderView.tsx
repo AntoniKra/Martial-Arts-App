@@ -6,6 +6,7 @@ import { routes } from '@/app/routes'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { RedAccent } from '@/components/ui/RedAccent'
 import type { ExerciseConfiguration } from '@/domain/workout/workout.types'
+import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { ExerciseConfigurationView } from '@/features/workout-builder/components/ExerciseConfigurationView'
 import { ExerciseLibraryView } from '@/features/workout-builder/components/ExerciseLibraryView'
 import { WorkoutMetadataForm } from '@/features/workout-builder/components/WorkoutMetadataForm'
@@ -23,8 +24,10 @@ import type {
 import {
   selectBlockById,
   selectDisplayPlanName,
+  selectExerciseById,
   selectInheritedExerciseConfiguration,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
+import { copyExerciseConfiguration } from '@/features/workout-builder/utils/exerciseConfigurationCompare'
 
 interface WorkoutBuilderViewProps {
   state: WorkoutBuilderState
@@ -42,6 +45,7 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
   const [libraryUiState, setLibraryUiState] = useState<ExerciseLibraryUiState>(initialLibraryUiState)
   const [pendingAddedExerciseId, setPendingAddedExerciseId] = useState<string | null>(null)
   const [pendingAddExerciseBlockId, setPendingAddExerciseBlockId] = useState<string | null>(null)
+  const [pendingEditExerciseId, setPendingEditExerciseId] = useState<string | null>(null)
 
   const displayPlanName = selectDisplayPlanName(state)
 
@@ -61,22 +65,35 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
     }
 
     setScreen({
-      type: 'configure',
+      type: 'configureNew',
       blockId: screen.blockId,
       selection,
     })
   }
 
-  function backToLibraryFromConfigure() {
-    if (screen.type !== 'configure') {
+  function openExerciseEdit(blockId: string, exerciseId: string) {
+    setScreen({ type: 'configureExisting', blockId, exerciseId })
+  }
+
+  function backToLibraryFromConfigureNew() {
+    if (screen.type !== 'configureNew') {
       return
     }
 
     setScreen({ type: 'library', blockId: screen.blockId })
   }
 
+  function cancelExerciseEdit(exerciseId: string) {
+    setScreen({ type: 'edit' })
+    setPendingEditExerciseId(exerciseId)
+  }
+
   useEffect(() => {
-    if (screen.type !== 'library' && screen.type !== 'configure') {
+    if (
+      screen.type !== 'library' &&
+      screen.type !== 'configureNew' &&
+      screen.type !== 'configureExisting'
+    ) {
       return
     }
 
@@ -84,11 +101,20 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
 
     if (!block || state.draft.disciplineKey === null) {
       setScreen({ type: 'edit' })
+      return
+    }
+
+    if (screen.type === 'configureExisting') {
+      const exercise = selectExerciseById(block, screen.exerciseId)
+
+      if (!exercise) {
+        setScreen({ type: 'edit' })
+      }
     }
   }, [screen, state.draft.blocks, state.draft.disciplineKey])
 
   function handleAddExercise(configuration: ExerciseConfiguration, instruction: string | null) {
-    if (screen.type !== 'configure') {
+    if (screen.type !== 'configureNew') {
       return
     }
 
@@ -104,7 +130,23 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
     setScreen({ type: 'edit' })
   }
 
-  if (screen.type === 'library' || screen.type === 'configure') {
+  function handleUpdateExercise(configuration: ExerciseConfiguration, instruction: string | null) {
+    if (screen.type !== 'configureExisting') {
+      return
+    }
+
+    dispatch({
+      type: 'updateExercise',
+      blockId: screen.blockId,
+      exerciseId: screen.exerciseId,
+      configuration,
+      instruction,
+    })
+    setPendingAddedExerciseId(screen.exerciseId)
+    setScreen({ type: 'edit' })
+  }
+
+  if (screen.type === 'library' || screen.type === 'configureNew' || screen.type === 'configureExisting') {
     const targetBlock = selectBlockById(state.draft.blocks, screen.blockId)
     const disciplineKey = state.draft.disciplineKey
 
@@ -124,17 +166,39 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
         )
       }
 
-      return (
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <ExerciseConfigurationView
-            blockType={targetBlock.blockType}
-            selection={screen.selection}
-            inheritedConfiguration={selectInheritedExerciseConfiguration(targetBlock)}
-            onBack={backToLibraryFromConfigure}
-            onAdd={handleAddExercise}
-          />
-        </div>
-      )
+      if (screen.type === 'configureNew') {
+        return (
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <ExerciseConfigurationView
+              blockLabel={getWorkoutBlockLabelPl(targetBlock.blockType)}
+              exerciseName={screen.selection.exerciseNameSnapshot}
+              initialConfiguration={selectInheritedExerciseConfiguration(targetBlock)}
+              initialInstruction={null}
+              variant="new"
+              onBack={backToLibraryFromConfigureNew}
+              onSubmit={handleAddExercise}
+            />
+          </div>
+        )
+      }
+
+      const exercise = selectExerciseById(targetBlock, screen.exerciseId)
+
+      if (exercise) {
+        return (
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <ExerciseConfigurationView
+              blockLabel={getWorkoutBlockLabelPl(targetBlock.blockType)}
+              exerciseName={exercise.exerciseNameSnapshot}
+              initialConfiguration={copyExerciseConfiguration(exercise.configuration)}
+              initialInstruction={exercise.instruction}
+              variant="existing"
+              onBack={() => cancelExerciseEdit(screen.exerciseId)}
+              onSubmit={handleUpdateExercise}
+            />
+          </div>
+        )
+      }
     }
   }
 
@@ -181,10 +245,13 @@ export function WorkoutBuilderView({ state, dispatch }: WorkoutBuilderViewProps)
             state={state}
             dispatch={dispatch}
             onOpenExerciseLibrary={openExerciseLibrary}
+            onOpenExerciseEdit={openExerciseEdit}
             pendingAddedExerciseId={pendingAddedExerciseId}
             onPendingAddedExerciseFocusHandled={() => setPendingAddedExerciseId(null)}
             pendingAddExerciseBlockId={pendingAddExerciseBlockId}
             onPendingAddExerciseFocusHandled={() => setPendingAddExerciseBlockId(null)}
+            pendingEditExerciseId={pendingEditExerciseId}
+            onPendingEditExerciseFocusHandled={() => setPendingEditExerciseId(null)}
           />
         </div>
       </div>

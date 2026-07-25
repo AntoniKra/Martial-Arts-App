@@ -9,6 +9,7 @@ import {
   ArrowUpIcon,
   MoveIconButton,
   PlusIcon,
+  TrashIcon,
 } from '@/features/workout-builder/components/MoveIcons'
 import { WorkoutBreakCard } from '@/features/workout-builder/components/WorkoutBreakCard'
 import { WorkoutBreakForm } from '@/features/workout-builder/components/WorkoutBreakForm'
@@ -36,10 +37,12 @@ interface WorkoutBlockCardProps {
   onCloseInlinePanel: (focusTarget?: FocusRestoreTarget) => void
   onScheduleFocusRestore: (focusTarget: FocusRestoreTarget) => void
   onOpenExerciseLibrary: (blockId: string) => void
+  onOpenExerciseEdit: (blockId: string, exerciseId: string) => void
   registerAddBreakButtonRef: (element: HTMLButtonElement | null) => void
   registerAddExerciseButtonRef: (element: HTMLButtonElement | null) => void
   registerEditBreakButtonRef: (itemId: string) => (element: HTMLButtonElement | null) => void
   registerExerciseHeadingRef: (exerciseId: string) => (element: HTMLHeadingElement | null) => void
+  registerEditExerciseButtonRef: (exerciseId: string) => (element: HTMLButtonElement | null) => void
 }
 
 function formatBlockDescriptor(position: number, blockLabel: string): string {
@@ -57,10 +60,12 @@ export function WorkoutBlockCard({
   onCloseInlinePanel,
   onScheduleFocusRestore,
   onOpenExerciseLibrary,
+  onOpenExerciseEdit,
   registerAddBreakButtonRef,
   registerAddExerciseButtonRef,
   registerEditBreakButtonRef,
   registerExerciseHeadingRef,
+  registerEditExerciseButtonRef,
 }: WorkoutBlockCardProps) {
   const addExerciseHintId = useId()
   const blockLabel = getWorkoutBlockLabelPl(block.blockType)
@@ -102,7 +107,7 @@ export function WorkoutBlockCard({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-0.5">
+        <div className="flex shrink-0 flex-wrap items-center gap-0.5">
           <MoveIconButton
             label={`Przenieś ${blockDescriptor} w górę`}
             disabled={!canMoveUp}
@@ -118,16 +123,13 @@ export function WorkoutBlockCard({
             <ArrowDownIcon />
           </MoveIconButton>
           {!isConfirmingDelete ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="min-h-touch px-2 text-crimson hover:text-crimson"
-              aria-label={`Usuń ${blockDescriptor}`}
+            <MoveIconButton
+              label={`Usuń blok ${position} — ${blockLabel}`}
+              className="hover:text-crimson"
               onClick={handleDelete}
             >
-              {isEmpty ? 'Usuń blok' : 'Usuń'}
-            </Button>
+              <TrashIcon />
+            </MoveIconButton>
           ) : null}
         </div>
       </div>
@@ -190,8 +192,10 @@ export function WorkoutBlockCard({
                 exercise={item}
                 blockItems={block.items}
                 dispatch={dispatch}
+                onOpenExerciseEdit={onOpenExerciseEdit}
                 onScheduleFocusRestore={onScheduleFocusRestore}
                 registerExerciseHeadingRef={registerExerciseHeadingRef(item.id)}
+                registerEditExerciseButtonRef={registerEditExerciseButtonRef(item.id)}
               />
             )
           })}

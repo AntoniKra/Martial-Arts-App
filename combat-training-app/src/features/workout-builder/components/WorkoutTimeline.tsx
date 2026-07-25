@@ -21,10 +21,13 @@ interface WorkoutTimelineProps {
   state: WorkoutBuilderState
   dispatch: Dispatch<WorkoutBuilderAction>
   onOpenExerciseLibrary: (blockId: string) => void
+  onOpenExerciseEdit: (blockId: string, exerciseId: string) => void
   pendingAddedExerciseId: string | null
   onPendingAddedExerciseFocusHandled: () => void
   pendingAddExerciseBlockId: string | null
   onPendingAddExerciseFocusHandled: () => void
+  pendingEditExerciseId: string | null
+  onPendingEditExerciseFocusHandled: () => void
 }
 
 function resolveActiveInlinePanel(blocks: readonly WorkoutBlock[], panel: ActiveInlinePanel): ActiveInlinePanel {
@@ -57,10 +60,13 @@ export function WorkoutTimeline({
   state,
   dispatch,
   onOpenExerciseLibrary,
+  onOpenExerciseEdit,
   pendingAddedExerciseId,
   onPendingAddedExerciseFocusHandled,
   pendingAddExerciseBlockId,
   onPendingAddExerciseFocusHandled,
+  pendingEditExerciseId,
+  onPendingEditExerciseFocusHandled,
 }: WorkoutTimelineProps) {
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [activeInlinePanel, setActiveInlinePanel] = useState<ActiveInlinePanel>(null)
@@ -70,6 +76,7 @@ export function WorkoutTimeline({
   const addExerciseButtonRefs = useRef(new Map<string, HTMLButtonElement>())
   const editBreakButtonRefs = useRef(new Map<string, HTMLButtonElement>())
   const exerciseHeadingRefs = useRef(new Map<string, HTMLHeadingElement>())
+  const editExerciseButtonRefs = useRef(new Map<string, HTMLButtonElement>())
   const { blocks } = state.draft
   const summary = calculateWorkoutPlanSummary(state.draft)
   const canAddExercise = state.draft.disciplineKey !== null
@@ -100,6 +107,9 @@ export function WorkoutTimeline({
         case 'addedExercise':
           exerciseHeadingRefs.current.get(pendingFocus.exerciseId)?.focus()
           break
+        case 'editExercise':
+          editExerciseButtonRefs.current.get(pendingFocus.exerciseId)?.focus()
+          break
       }
 
       setPendingFocus(null)
@@ -125,6 +135,15 @@ export function WorkoutTimeline({
     scheduleFocusRestore({ type: 'addExercise', blockId: pendingAddExerciseBlockId })
     onPendingAddExerciseFocusHandled()
   }, [pendingAddExerciseBlockId, onPendingAddExerciseFocusHandled])
+
+  useEffect(() => {
+    if (!pendingEditExerciseId) {
+      return
+    }
+
+    scheduleFocusRestore({ type: 'editExercise', exerciseId: pendingEditExerciseId })
+    onPendingEditExerciseFocusHandled()
+  }, [pendingEditExerciseId, onPendingEditExerciseFocusHandled])
 
   function scheduleFocusRestore(focusTarget: FocusRestoreTarget) {
     setPendingFocus(focusTarget)
@@ -171,6 +190,17 @@ export function WorkoutTimeline({
       }
 
       exerciseHeadingRefs.current.delete(exerciseId)
+    }
+  }
+
+  function registerEditExerciseButtonRef(exerciseId: string) {
+    return (element: HTMLButtonElement | null) => {
+      if (element) {
+        editExerciseButtonRefs.current.set(exerciseId, element)
+        return
+      }
+
+      editExerciseButtonRefs.current.delete(exerciseId)
     }
   }
 
@@ -238,10 +268,12 @@ export function WorkoutTimeline({
               onCloseInlinePanel={closeInlinePanel}
               onScheduleFocusRestore={scheduleFocusRestore}
               onOpenExerciseLibrary={onOpenExerciseLibrary}
+              onOpenExerciseEdit={onOpenExerciseEdit}
               registerAddBreakButtonRef={registerAddBreakButtonRef(block.id)}
               registerAddExerciseButtonRef={registerAddExerciseButtonRef(block.id)}
               registerEditBreakButtonRef={registerEditBreakButtonRef}
               registerExerciseHeadingRef={registerExerciseHeadingRef}
+              registerEditExerciseButtonRef={registerEditExerciseButtonRef}
             />
           ))}
         </ol>

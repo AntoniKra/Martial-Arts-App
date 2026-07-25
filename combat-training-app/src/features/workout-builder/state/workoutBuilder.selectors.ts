@@ -1,5 +1,10 @@
 import { getDisciplineLabelPl } from '@/domain/discipline/disciplineLabels'
-import type { ExerciseConfiguration, WorkoutBlock, WorkoutItem } from '@/domain/workout/workout.types'
+import type {
+  ExerciseConfiguration,
+  WorkoutBlock,
+  WorkoutExercise,
+  WorkoutItem,
+} from '@/domain/workout/workout.types'
 import { DEFAULT_ROUND_EXERCISE_CONFIGURATION } from '@/features/workout-builder/state/workoutBuilder.types'
 import type { WorkoutBuilderState } from '@/features/workout-builder/state/workoutBuilder.types'
 
@@ -46,6 +51,19 @@ export function selectBlockById(
   blockId: string,
 ): WorkoutBlock | null {
   return blocks.find((block) => block.id === blockId) ?? null
+}
+
+export function selectExerciseById(
+  block: WorkoutBlock,
+  exerciseId: string,
+): WorkoutExercise | null {
+  const item = block.items.find((candidate) => candidate.id === exerciseId)
+
+  if (!item || item.type !== 'exercise') {
+    return null
+  }
+
+  return item
 }
 
 export function selectInheritedExerciseConfiguration(block: WorkoutBlock): ExerciseConfiguration {

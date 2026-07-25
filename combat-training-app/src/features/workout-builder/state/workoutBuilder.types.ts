@@ -29,6 +29,13 @@ export type WorkoutBuilderAction =
       instruction: string | null
     }
   | { type: 'addExercise'; blockId: string; exercise: WorkoutExercise }
+  | {
+      type: 'updateExercise'
+      blockId: string
+      exerciseId: string
+      configuration: ExerciseConfiguration
+      instruction: string | null
+    }
   | { type: 'removeItem'; blockId: string; itemId: string }
   | { type: 'moveItem'; blockId: string; itemId: string; direction: 'up' | 'down' }
 

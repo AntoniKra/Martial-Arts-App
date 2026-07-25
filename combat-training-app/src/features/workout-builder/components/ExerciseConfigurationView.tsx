@@ -1,12 +1,10 @@
-import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { Button } from '@/components/ui/Button'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
-import type { ExerciseConfiguration, ExerciseMode, WorkoutBlockType } from '@/domain/workout/workout.types'
-import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
-import type { ExerciseSelection } from '@/features/workout-builder/components/workoutBuilderUi.types'
+import type { ExerciseConfiguration, ExerciseMode } from '@/domain/workout/workout.types'
 import {
   EXERCISE_INSTRUCTION_MAX_LENGTH,
   ROUND_COUNT_MAX,
@@ -18,11 +16,13 @@ import {
 import { formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
 
 interface ExerciseConfigurationViewProps {
-  blockType: WorkoutBlockType
-  selection: ExerciseSelection
-  inheritedConfiguration: ExerciseConfiguration
+  blockLabel: string
+  exerciseName: string
+  initialConfiguration: ExerciseConfiguration
+  initialInstruction: string | null
+  variant: 'new' | 'existing'
   onBack: () => void
-  onAdd: (configuration: ExerciseConfiguration, instruction: string | null) => void
+  onSubmit: (configuration: ExerciseConfiguration, instruction: string | null) => void
 }
 
 type DurationPresetValue = number | 'custom'
@@ -216,12 +216,38 @@ function createInitialMode(configuration: ExerciseConfiguration): Exclude<Exerci
   return configuration.mode === 'continuous' ? 'continuous' : 'rounds'
 }
 
+function createFormStateFromConfiguration(
+  configuration: ExerciseConfiguration,
+  instruction: string | null,
+) {
+  const roundsConfiguration =
+    configuration.mode === 'rounds'
+      ? configuration
+      : { roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 }
+  const continuousSeconds =
+    configuration.mode === 'continuous' ? configuration.durationSeconds : 300
+
+  return {
+    mode: createInitialMode(configuration),
+    roundCountInput: String(roundsConfiguration.roundCount),
+    roundDurationPreset: resolvePreset(roundsConfiguration.roundDurationSeconds, ROUND_DURATION_PRESETS),
+    roundDurationCustom: secondsToCustomFields(roundsConfiguration.roundDurationSeconds),
+    restPreset: resolvePreset(roundsConfiguration.restBetweenRoundsSeconds, REST_PRESETS),
+    restCustom: secondsToCustomFields(roundsConfiguration.restBetweenRoundsSeconds),
+    continuousMinutesInput: String(Math.floor(continuousSeconds / 60)),
+    continuousSecondsInput: String(continuousSeconds % 60),
+    instructionInput: instruction ?? '',
+  }
+}
+
 export function ExerciseConfigurationView({
-  blockType,
-  selection,
-  inheritedConfiguration,
+  blockLabel,
+  exerciseName,
+  initialConfiguration,
+  initialInstruction,
+  variant,
   onBack,
-  onAdd,
+  onSubmit,
 }: ExerciseConfigurationViewProps) {
   const instructionId = useId()
   const roundCountId = useId()
@@ -241,41 +267,42 @@ export function ExerciseConfigurationView({
   const restCustomMinutesRef = useRef<HTMLInputElement>(null)
   const continuousMinutesRef = useRef<HTMLInputElement>(null)
 
-  const inheritedRounds =
-    inheritedConfiguration.mode === 'rounds'
-      ? inheritedConfiguration
-      : { roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 }
-  const inheritedContinuousSeconds =
-    inheritedConfiguration.mode === 'continuous' ? inheritedConfiguration.durationSeconds : 300
+  const initialFormState = createFormStateFromConfiguration(initialConfiguration, initialInstruction)
 
-  const [mode, setMode] = useState<Exclude<ExerciseMode, 'strength'>>(createInitialMode(inheritedConfiguration))
-  const [roundCountInput, setRoundCountInput] = useState(String(inheritedRounds.roundCount))
+  const [mode, setMode] = useState<Exclude<ExerciseMode, 'strength'>>(initialFormState.mode)
+  const [roundCountInput, setRoundCountInput] = useState(initialFormState.roundCountInput)
   const [roundDurationPreset, setRoundDurationPreset] = useState<DurationPresetValue>(
-    resolvePreset(inheritedRounds.roundDurationSeconds, ROUND_DURATION_PRESETS),
+    initialFormState.roundDurationPreset,
   )
-  const [roundDurationCustom, setRoundDurationCustom] = useState(() =>
-    secondsToCustomFields(inheritedRounds.roundDurationSeconds),
-  )
-  const [restPreset, setRestPreset] = useState<DurationPresetValue>(
-    resolvePreset(inheritedRounds.restBetweenRoundsSeconds, REST_PRESETS),
-  )
-  const [restCustom, setRestCustom] = useState(() =>
-    secondsToCustomFields(inheritedRounds.restBetweenRoundsSeconds),
-  )
-  const [continuousMinutesInput, setContinuousMinutesInput] = useState(
-    String(Math.floor(inheritedContinuousSeconds / 60)),
-  )
-  const [continuousSecondsInput, setContinuousSecondsInput] = useState(
-    String(inheritedContinuousSeconds % 60),
-  )
-  const [instructionInput, setInstructionInput] = useState('')
+  const [roundDurationCustom, setRoundDurationCustom] = useState(initialFormState.roundDurationCustom)
+  const [restPreset, setRestPreset] = useState<DurationPresetValue>(initialFormState.restPreset)
+  const [restCustom, setRestCustom] = useState(initialFormState.restCustom)
+  const [continuousMinutesInput, setContinuousMinutesInput] = useState(initialFormState.continuousMinutesInput)
+  const [continuousSecondsInput, setContinuousSecondsInput] = useState(initialFormState.continuousSecondsInput)
+  const [instructionInput, setInstructionInput] = useState(initialFormState.instructionInput)
   const [roundCountError, setRoundCountError] = useState<string | null>(null)
   const [roundDurationCustomError, setRoundDurationCustomError] = useState<string | null>(null)
   const [restCustomError, setRestCustomError] = useState<string | null>(null)
   const [continuousError, setContinuousError] = useState<string | null>(null)
 
-  const blockLabel = getWorkoutBlockLabelPl(blockType)
-  const exerciseName = selection.exerciseNameSnapshot
+  const backLabel = variant === 'new' ? 'Wróć do biblioteki' : 'Wróć do osi treningu'
+  const heading = variant === 'new' ? 'Konfiguracja ćwiczenia' : 'Edycja ćwiczenia'
+  const submitLabel = variant === 'new' ? 'Dodaj ćwiczenie' : 'Zapisz zmiany'
+
+  useEffect(() => {
+    if (variant !== 'existing') {
+      return
+    }
+
+    requestAnimationFrame(() => {
+      if (initialConfiguration.mode === 'continuous') {
+        continuousMinutesRef.current?.focus()
+        return
+      }
+
+      roundCountRef.current?.focus()
+    })
+  }, [variant, initialConfiguration.mode])
 
   function handleSelectRoundDurationPreset(value: DurationPresetValue) {
     setRoundDurationPreset(value)
@@ -325,7 +352,7 @@ export function ExerciseConfigurationView({
         return
       }
 
-      onAdd({ mode: 'continuous', durationSeconds: result.seconds ?? 0 }, normalizeInstruction(instructionInput))
+      onSubmit({ mode: 'continuous', durationSeconds: result.seconds ?? 0 }, normalizeInstruction(instructionInput))
       return
     }
 
@@ -353,7 +380,7 @@ export function ExerciseConfigurationView({
       return
     }
 
-    onAdd(
+    onSubmit(
       {
         mode: 'rounds',
         roundCount,
@@ -374,14 +401,19 @@ export function ExerciseConfigurationView({
             className="mb-4 inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             <ChevronRightIcon className="rotate-180" />
-            Wróć do biblioteki
+            {backLabel}
           </button>
 
           <p className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
             Blok · {blockLabel}
           </p>
-          <h1 className="mt-3 font-display text-[24px] font-bold text-ink md:text-[28px]">Konfiguracja ćwiczenia</h1>
+          <h1 className="mt-3 font-display text-[24px] font-bold text-ink md:text-[28px]">{heading}</h1>
           <p className="mt-2 font-display text-[16px] font-semibold leading-snug text-ink">{exerciseName}</p>
+          {variant === 'existing' ? (
+            <p className="mt-2 text-[13px] leading-relaxed text-muted">
+              Aby zmienić samo ćwiczenie, usuń ten element i dodaj nowe.
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -513,7 +545,7 @@ export function ExerciseConfigurationView({
         <div className="border-t border-bd bg-surface">
           <div className={`${contentContainerClass} py-4`}>
             <Button type="submit" variant="secondary" className="w-full">
-              Dodaj ćwiczenie
+              {submitLabel}
             </Button>
           </div>
         </div>
