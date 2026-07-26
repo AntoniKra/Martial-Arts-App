@@ -16,8 +16,8 @@ const emptyStateCopy: Record<
     description: 'Utwórz pierwszy plan treningowy, aby rozpocząć pracę nad techniką.',
   },
   'no-history': {
-    title: 'Brak zakończonych treningów',
-    description: 'Po ukończeniu sesji pojawi się tutaj historia z czasem, rundami i oceną wykonania.',
+    title: 'Brak ukończonych treningów',
+    description: 'Ukończ pierwszy trening, aby pojawił się w historii.',
   },
   'no-results': {
     title: 'Brak wyników dla filtrów',

@@ -11,7 +11,7 @@ import { WorkoutPlanCard } from '@/features/workouts/components/WorkoutPlanCard'
 import { WorkoutsEmptyState } from '@/features/workouts/components/WorkoutsEmptyState'
 import { WorkoutsFilters } from '@/features/workouts/components/WorkoutsFilters'
 import type {
-  WorkoutHistoryListItem,
+  WorkoutHistoryLoadState,
   WorkoutPlansLoadState,
   WorkoutsTab,
 } from '@/features/workouts/types/workoutsView.types'
@@ -23,8 +23,10 @@ import {
 
 interface WorkoutsViewProps {
   plansLoadState: WorkoutPlansLoadState
-  history: WorkoutHistoryListItem[]
+  historyLoadState: WorkoutHistoryLoadState
   onRetryLoadPlans: () => void
+  onRetryLoadHistory: () => void
+  onHistoryActivated: () => void
 }
 
 const tabOptions = [
@@ -61,11 +63,57 @@ function WorkoutPlansErrorState({ message, onRetry }: WorkoutPlansErrorStateProp
   )
 }
 
-export function WorkoutsView({ plansLoadState, history, onRetryLoadPlans }: WorkoutsViewProps) {
+function WorkoutHistoryLoadingState() {
+  return (
+    <p className="border border-bd bg-surface px-6 py-12 text-center text-[13px] text-muted" role="status">
+      Ładowanie historii…
+    </p>
+  )
+}
+
+interface WorkoutHistoryErrorStateProps {
+  message: string
+  onRetry: () => void
+}
+
+function WorkoutHistoryErrorState({ message, onRetry }: WorkoutHistoryErrorStateProps) {
+  return (
+    <div className="flex flex-col items-center border border-bd bg-surface px-6 py-12 text-center">
+      <h3 className="font-display text-[15px] font-semibold text-ink">
+        Nie udało się wczytać historii treningów.
+      </h3>
+      <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted">{message}</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className={getButtonClassName({ variant: 'primary', size: 'md', className: 'mt-5' })}
+      >
+        Spróbuj ponownie
+      </button>
+    </div>
+  )
+}
+
+export function WorkoutsView({
+  plansLoadState,
+  historyLoadState,
+  onRetryLoadPlans,
+  onRetryLoadHistory,
+  onHistoryActivated,
+}: WorkoutsViewProps) {
   const [tab, setTab] = useState<WorkoutsTab>('plans')
   const [filters, setFilters] = useState(DEFAULT_WORKOUTS_FILTERS)
 
+  function handleTabChange(nextTab: WorkoutsTab): void {
+    if (nextTab === 'history' && tab !== 'history') {
+      onHistoryActivated()
+    }
+
+    setTab(nextTab)
+  }
+
   const plans = plansLoadState.status === 'success' ? plansLoadState.plans : []
+  const history = historyLoadState.status === 'success' ? historyLoadState.sessions : []
 
   const filteredPlans = useMemo(() => filterWorkoutPlans(plans, filters), [plans, filters])
   const filteredHistory = useMemo(
@@ -133,6 +181,34 @@ export function WorkoutsView({ plansLoadState, history, onRetryLoadPlans }: Work
     )
   }
 
+  function renderHistoryContent() {
+    if (historyLoadState.status === 'loading') {
+      return <WorkoutHistoryLoadingState />
+    }
+
+    if (historyLoadState.status === 'error') {
+      return (
+        <WorkoutHistoryErrorState message={historyLoadState.message} onRetry={onRetryLoadHistory} />
+      )
+    }
+
+    if (history.length === 0) {
+      return <WorkoutsEmptyState variant="no-history" />
+    }
+
+    if (filteredHistory.length === 0) {
+      return <WorkoutsEmptyState variant="no-results" />
+    }
+
+    return (
+      <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+        {filteredHistory.map((session) => (
+          <WorkoutHistoryCard key={session.id} session={session} />
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="mx-auto w-full max-w-lg shrink-0 px-4 pt-6 md:max-w-4xl md:pt-2">
@@ -142,7 +218,7 @@ export function WorkoutsView({ plansLoadState, history, onRetryLoadPlans }: Work
             ariaLabel="Zakładki ekranu treningów"
             options={tabOptions}
             value={tab}
-            onChange={setTab}
+            onChange={handleTabChange}
           />
         </div>
         <RedAccent className="mt-4" />
@@ -165,17 +241,7 @@ export function WorkoutsView({ plansLoadState, history, onRetryLoadPlans }: Work
               <h2 id="workouts-history-heading" className="sr-only">
                 Historia treningów
               </h2>
-              {history.length === 0 ? (
-                <WorkoutsEmptyState variant="no-history" />
-              ) : filteredHistory.length === 0 ? (
-                <WorkoutsEmptyState variant="no-results" />
-              ) : (
-                <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
-                  {filteredHistory.map((session) => (
-                    <WorkoutHistoryCard key={session.id} session={session} />
-                  ))}
-                </div>
-              )}
+              {renderHistoryContent()}
             </section>
           )}
         </div>

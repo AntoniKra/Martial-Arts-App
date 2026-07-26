@@ -28,13 +28,14 @@ export interface WorkoutHistoryListItem {
   name: string
   disciplineKey: DisciplineKey
   dateLabelPl: string
+  timeLabelPl: string
   completedAt: string
   durationLabelPl: string
-  completedRounds: number
-  plannedRounds: number
+  completedExercises: number
+  plannedExercises: number
   exerciseCompletionPercent: number
-  rpe: number | null
-  averageRatingLabel: string | null
+  completedRounds: number | null
+  plannedRounds: number | null
 }
 
 export type WorkoutPlansLoadState =
@@ -42,7 +43,11 @@ export type WorkoutPlansLoadState =
   | { status: 'error'; message: string }
   | { status: 'success'; plans: WorkoutPlanListItem[] }
 
+export type WorkoutHistoryLoadState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'success'; sessions: WorkoutHistoryListItem[] }
+
 export interface WorkoutsViewData {
   plans: WorkoutPlanListItem[]
-  history: WorkoutHistoryListItem[]
 }
