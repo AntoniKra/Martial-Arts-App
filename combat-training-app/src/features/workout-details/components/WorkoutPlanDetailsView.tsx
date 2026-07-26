@@ -17,6 +17,7 @@ interface WorkoutPlanDetailsViewProps {
   loadState: WorkoutPlanDetailsLoadState
   workoutsListPath: string
   newWorkoutPath: string
+  workoutActivePath: string
   onRetry: () => void
 }
 
@@ -146,9 +147,11 @@ function DetailsBreakItem({ breakItem }: { breakItem: Extract<WorkoutItem, { typ
 function WorkoutPlanDetailsSuccessView({
   plan,
   workoutsListPath,
+  workoutActivePath,
 }: {
   plan: WorkoutPlan
   workoutsListPath: string
+  workoutActivePath: string
 }) {
   const summary = calculateWorkoutPlanSummary(plan)
 
@@ -166,6 +169,17 @@ function WorkoutPlanDetailsSuccessView({
       ) : null}
 
       <RedAccent className="mt-8" />
+
+      <Link
+        to={workoutActivePath}
+        className={getButtonClassName({
+          variant: 'primary',
+          size: 'lg',
+          className: 'mt-8 w-full uppercase tracking-[0.1em]',
+        })}
+      >
+        Rozpocznij trening
+      </Link>
 
       <section aria-labelledby="workout-details-summary-heading" className="mt-8">
         <h2
@@ -239,6 +253,7 @@ export function WorkoutPlanDetailsView({
   loadState,
   workoutsListPath,
   newWorkoutPath,
+  workoutActivePath,
   onRetry,
 }: WorkoutPlanDetailsViewProps) {
   function renderContent() {
@@ -265,7 +280,13 @@ export function WorkoutPlanDetailsView({
       )
     }
 
-    return <WorkoutPlanDetailsSuccessView plan={loadState.plan} workoutsListPath={workoutsListPath} />
+    return (
+      <WorkoutPlanDetailsSuccessView
+        plan={loadState.plan}
+        workoutsListPath={workoutsListPath}
+        workoutActivePath={workoutActivePath}
+      />
+    )
   }
 
   return (

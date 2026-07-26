@@ -4,14 +4,14 @@ import { useParams } from 'react-router-dom'
 import { createWorkoutPlanRepository } from '@/app/createWorkoutPlanRepository'
 import { mapWorkoutPlanReadError } from '@/app/mapWorkoutPlanReadError'
 import { routes } from '@/app/routes'
-import { WorkoutPlanDetailsView } from '@/features/workout-details/components/WorkoutPlanDetailsView'
-import type { WorkoutPlanDetailsLoadState } from '@/features/workout-details/types/workoutPlanDetails.types'
+import { WorkoutPlayerView } from '@/features/workout-player/components/WorkoutPlayerView'
+import type { WorkoutPlayerLoadState } from '@/features/workout-player/types/workoutPlayback.types'
 
-export function WorkoutDetailsPage() {
+export function WorkoutPlayerPage() {
   const { workoutId } = useParams()
   const resolvedWorkoutId = workoutId?.trim() ?? ''
   const [workoutPlanRepository] = useState(createWorkoutPlanRepository)
-  const [loadState, setLoadState] = useState<WorkoutPlanDetailsLoadState>({ status: 'loading' })
+  const [loadState, setLoadState] = useState<WorkoutPlayerLoadState>({ status: 'loading' })
   const [reloadCounter, setReloadCounter] = useState(0)
 
   const loadWorkoutPlan = useCallback(
@@ -65,11 +65,10 @@ export function WorkoutDetailsPage() {
   }
 
   return (
-    <WorkoutPlanDetailsView
+    <WorkoutPlayerView
       loadState={loadState}
       workoutsListPath={routes.workouts}
-      newWorkoutPath={routes.newWorkout}
-      workoutActivePath={routes.workoutActive(resolvedWorkoutId)}
+      workoutDetailsPath={routes.workoutDetails(resolvedWorkoutId)}
       onRetry={handleRetry}
     />
   )

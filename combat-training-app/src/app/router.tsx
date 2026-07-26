@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
 import { NewWorkoutPage } from '@/pages/NewWorkoutPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
+import { WorkoutPlayerPage } from '@/pages/WorkoutPlayerPage'
 import { WorkoutDetailsPage } from '@/pages/WorkoutDetailsPage'
 import { WorkoutsPage } from '@/pages/WorkoutsPage'
 
@@ -20,6 +21,6 @@ export const router = createBrowserRouter([
       { path: '/workouts/:workoutId/report', element: <PlaceholderPage title="Raport treningu" /> },
     ],
   },
-  { path: '/workouts/:workoutId/active', element: <PlaceholderPage title="Aktywny trening" fullscreen /> },
+  { path: '/workouts/:workoutId/active', element: <WorkoutPlayerPage /> },
   { path: '/workouts/:workoutId/feedback', element: <PlaceholderPage title="Podsumowanie treningu" fullscreen /> },
 ])
