@@ -12,6 +12,7 @@ import { WorkoutsEmptyState } from '@/features/workouts/components/WorkoutsEmpty
 import { WorkoutsFilters } from '@/features/workouts/components/WorkoutsFilters'
 import type {
   WorkoutHistoryLoadState,
+  WorkoutHistoryMutationResult,
   WorkoutPlansLoadState,
   WorkoutsTab,
 } from '@/features/workouts/types/workoutsView.types'
@@ -27,6 +28,8 @@ interface WorkoutsViewProps {
   onRetryLoadPlans: () => void
   onRetryLoadHistory: () => void
   onHistoryActivated: () => void
+  onUpdateSessionNote: (sessionId: string, note: string) => Promise<WorkoutHistoryMutationResult>
+  onDeleteSession: (sessionId: string) => Promise<WorkoutHistoryMutationResult>
 }
 
 const tabOptions = [
@@ -100,6 +103,8 @@ export function WorkoutsView({
   onRetryLoadPlans,
   onRetryLoadHistory,
   onHistoryActivated,
+  onUpdateSessionNote,
+  onDeleteSession,
 }: WorkoutsViewProps) {
   const [tab, setTab] = useState<WorkoutsTab>('plans')
   const [filters, setFilters] = useState(DEFAULT_WORKOUTS_FILTERS)
@@ -203,7 +208,12 @@ export function WorkoutsView({
     return (
       <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
         {filteredHistory.map((session) => (
-          <WorkoutHistoryCard key={session.id} session={session} />
+          <WorkoutHistoryCard
+            key={session.id}
+            session={session}
+            onUpdateNote={onUpdateSessionNote}
+            onDelete={onDeleteSession}
+          />
         ))}
       </div>
     )

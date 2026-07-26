@@ -23,6 +23,10 @@ export interface WorkoutPlanListItem {
   createdAt: string
 }
 
+export type WorkoutHistoryMutationResult = 'applied' | 'stale'
+
+export const WORKOUT_HISTORY_NOTE_MAX_LENGTH = 1000
+
 export interface WorkoutHistoryListItem {
   id: string
   name: string
@@ -36,6 +40,7 @@ export interface WorkoutHistoryListItem {
   exerciseCompletionPercent: number
   completedRounds: number | null
   plannedRounds: number | null
+  note: string | null
 }
 
 export type WorkoutPlansLoadState =

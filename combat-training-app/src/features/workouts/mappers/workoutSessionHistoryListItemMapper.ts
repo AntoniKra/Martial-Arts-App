@@ -29,6 +29,7 @@ export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession): Wor
     exerciseCompletionPercent,
     completedRounds: hasRounds ? summary.completedRoundCount : null,
     plannedRounds: hasRounds ? summary.plannedRoundCount : null,
+    note: session.note,
   }
 }
 
