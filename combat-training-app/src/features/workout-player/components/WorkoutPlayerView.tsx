@@ -6,9 +6,12 @@ import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { getButtonClassName } from '@/components/ui/Button'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
+import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { WorkoutCircularTimer } from '@/features/workout-player/components/WorkoutCircularTimer'
 import { WorkoutPlayerControls } from '@/features/workout-player/components/WorkoutPlayerControls'
 import { WorkoutPlayerNextPreview } from '@/features/workout-player/components/WorkoutPlayerNextPreview'
+import { useWorkoutSessionAutoSave, type WorkoutSessionSaveState } from '@/features/workout-player/hooks/useWorkoutSessionAutoSave'
+import { useWorkoutSessionRecorder, WORKOUT_SESSION_RECORDER_ERROR_MESSAGE } from '@/features/workout-player/hooks/useWorkoutSessionRecorder'
 import { useWorkoutPlayback } from '@/features/workout-player/hooks/useWorkoutPlayback'
 import type {
   WorkoutPlaybackStep,
@@ -24,6 +27,7 @@ interface WorkoutPlayerViewProps {
   workoutsListPath: string
   workoutDetailsPath: string
   onRetry: () => void
+  saveWorkoutSession: (session: WorkoutSession) => Promise<void>
 }
 
 function BackToWorkoutsLink({ to }: { to: string }) {
@@ -127,23 +131,45 @@ function buildStepAnnouncement(step: WorkoutPlaybackStep, stepIndex: number, tot
 interface WorkoutPlayerActiveContentProps {
   plan: WorkoutPlan
   workoutDetailsPath: string
+  saveWorkoutSession: (session: WorkoutSession) => Promise<void>
 }
 
 interface WorkoutPlayerRuntimeProps {
   plan: WorkoutPlan
   timeline: WorkoutPlaybackTimeline
   workoutDetailsPath: string
+  saveWorkoutSession: (session: WorkoutSession) => Promise<void>
 }
 
 function WorkoutPlayerCompletedPanel({
   planName,
   workoutDetailsPath,
+  saveState,
+  hasRecorderError,
   onRestart,
+  onRetrySave,
+  isRestartDisabled,
 }: {
   planName: string
   workoutDetailsPath: string
+  saveState: WorkoutSessionSaveState
+  hasRecorderError: boolean
   onRestart: () => void
+  onRetrySave: () => void
+  isRestartDisabled: boolean
 }) {
+  const statusMessage = hasRecorderError
+    ? WORKOUT_SESSION_RECORDER_ERROR_MESSAGE
+    : saveState.status === 'saving'
+      ? 'Zapisywanie treningu…'
+      : saveState.status === 'saved'
+        ? 'Trening został zapisany.'
+        : saveState.status === 'error'
+          ? saveState.message
+          : 'Trening został ukończony.'
+
+  const showBackWithoutSave = hasRecorderError || saveState.status === 'error'
+
   return (
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-5 safe-area-pt pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
       <div className="shrink-0 border-b border-bd bg-surface px-4 py-3">
@@ -155,22 +181,56 @@ function WorkoutPlayerCompletedPanel({
 
       <div className="flex flex-1 flex-col px-1 pt-5">
         <p className="font-display text-[15px] font-semibold text-ink">{planName}</p>
-        <p className="mt-3 max-w-prose text-[14px] leading-relaxed text-muted">
-          Trening został ukończony. Postęp nie został zapisany.
+        <p
+          className="mt-3 max-w-prose text-[14px] leading-relaxed text-muted"
+          role="status"
+          aria-live="polite"
+        >
+          {statusMessage}
         </p>
 
+        {saveState.status === 'error' && !hasRecorderError ? (
+          <p className="mt-2 font-display text-[13px] font-semibold text-ink">
+            Nie udało się zapisać treningu.
+          </p>
+        ) : null}
+
         <div className="mt-8 flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={onRestart}
-            className={getButtonClassName({
-              variant: 'primary',
-              size: 'lg',
-              className: 'w-full uppercase tracking-[0.08em]',
-            })}
-          >
-            Uruchom ponownie
-          </button>
+          {saveState.status === 'error' && !hasRecorderError ? (
+            <button
+              type="button"
+              onClick={onRetrySave}
+              className={getButtonClassName({
+                variant: 'primary',
+                size: 'lg',
+                className: 'w-full uppercase tracking-[0.08em]',
+              })}
+            >
+              Spróbuj ponownie
+            </button>
+          ) : null}
+
+          {!hasRecorderError ? (
+            <button
+              type="button"
+              onClick={onRestart}
+              disabled={isRestartDisabled}
+              className={getButtonClassName({
+                variant: saveState.status === 'error' ? 'secondary' : 'primary',
+                size: 'lg',
+                disabled: isRestartDisabled,
+                className: [
+                  'w-full uppercase tracking-[0.08em]',
+                  isRestartDisabled ? 'pointer-events-none' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' '),
+              })}
+            >
+              Uruchom ponownie
+            </button>
+          ) : null}
+
           <Link
             to={workoutDetailsPath}
             className={getButtonClassName({
@@ -179,7 +239,7 @@ function WorkoutPlayerCompletedPanel({
               className: 'w-full uppercase tracking-[0.06em]',
             })}
           >
-            Wróć do planu
+            {showBackWithoutSave ? 'Wróć bez zapisu' : 'Wróć do planu'}
           </Link>
         </div>
       </div>
@@ -187,7 +247,19 @@ function WorkoutPlayerCompletedPanel({
   )
 }
 
-function WorkoutPlayerRuntime({ plan, timeline, workoutDetailsPath }: WorkoutPlayerRuntimeProps) {
+function WorkoutPlayerRuntime({
+  plan,
+  timeline,
+  workoutDetailsPath,
+  saveWorkoutSession,
+}: WorkoutPlayerRuntimeProps) {
+  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError } = useWorkoutSessionRecorder(plan, timeline)
+  const { saveState, retrySave } = useWorkoutSessionAutoSave({
+    completedSession,
+    runGeneration,
+    saveWorkoutSession,
+  })
+
   const {
     playback,
     currentStep,
@@ -199,7 +271,7 @@ function WorkoutPlayerRuntime({ plan, timeline, workoutDetailsPath }: WorkoutPla
     goToPreviousStep,
     goToNextStep,
     restart,
-  } = useWorkoutPlayback(timeline)
+  } = useWorkoutPlayback(timeline, { onPlaybackEvent })
 
   const [stepAnnouncement, setStepAnnouncement] = useState('')
 
@@ -223,7 +295,11 @@ function WorkoutPlayerRuntime({ plan, timeline, workoutDetailsPath }: WorkoutPla
         <WorkoutPlayerCompletedPanel
           planName={plan.nameSnapshot}
           workoutDetailsPath={workoutDetailsPath}
+          saveState={saveState}
+          hasRecorderError={hasRecorderError}
           onRestart={restart}
+          onRetrySave={retrySave}
+          isRestartDisabled={hasRecorderError || saveState.status !== 'saved'}
         />
       </div>
     )
@@ -316,7 +392,11 @@ function WorkoutPlayerRuntime({ plan, timeline, workoutDetailsPath }: WorkoutPla
   )
 }
 
-function WorkoutPlayerActiveContent({ plan, workoutDetailsPath }: WorkoutPlayerActiveContentProps) {
+function WorkoutPlayerActiveContent({
+  plan,
+  workoutDetailsPath,
+  saveWorkoutSession,
+}: WorkoutPlayerActiveContentProps) {
   const timeline = useMemo(() => createWorkoutPlaybackTimeline(plan), [plan])
 
   return (
@@ -325,6 +405,7 @@ function WorkoutPlayerActiveContent({ plan, workoutDetailsPath }: WorkoutPlayerA
       plan={plan}
       timeline={timeline}
       workoutDetailsPath={workoutDetailsPath}
+      saveWorkoutSession={saveWorkoutSession}
     />
   )
 }
@@ -334,6 +415,7 @@ export function WorkoutPlayerView({
   workoutsListPath,
   workoutDetailsPath,
   onRetry,
+  saveWorkoutSession,
 }: WorkoutPlayerViewProps) {
   function renderContent() {
     if (loadState.status === 'loading') {
@@ -354,7 +436,13 @@ export function WorkoutPlayerView({
       return <WorkoutPlayerNotFoundState workoutsListPath={workoutsListPath} />
     }
 
-    return <WorkoutPlayerActiveContent plan={loadState.plan} workoutDetailsPath={workoutDetailsPath} />
+    return (
+      <WorkoutPlayerActiveContent
+        plan={loadState.plan}
+        workoutDetailsPath={workoutDetailsPath}
+        saveWorkoutSession={saveWorkoutSession}
+      />
+    )
   }
 
   if (loadState.status === 'success') {

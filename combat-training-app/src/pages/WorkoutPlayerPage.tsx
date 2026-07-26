@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { createWorkoutPlanRepository } from '@/app/createWorkoutPlanRepository'
+import { createWorkoutSessionRepository } from '@/app/createWorkoutSessionRepository'
 import { mapWorkoutPlanReadError } from '@/app/mapWorkoutPlanReadError'
 import { routes } from '@/app/routes'
+import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { WorkoutPlayerView } from '@/features/workout-player/components/WorkoutPlayerView'
 import type { WorkoutPlayerLoadState } from '@/features/workout-player/types/workoutPlayback.types'
 
@@ -11,8 +13,14 @@ export function WorkoutPlayerPage() {
   const { workoutId } = useParams()
   const resolvedWorkoutId = workoutId?.trim() ?? ''
   const [workoutPlanRepository] = useState(createWorkoutPlanRepository)
+  const [workoutSessionRepository] = useState(createWorkoutSessionRepository)
   const [loadState, setLoadState] = useState<WorkoutPlayerLoadState>({ status: 'loading' })
   const [reloadCounter, setReloadCounter] = useState(0)
+
+  const saveWorkoutSession = useCallback(
+    (session: WorkoutSession) => workoutSessionRepository.save(session),
+    [workoutSessionRepository],
+  )
 
   const loadWorkoutPlan = useCallback(
     async (isCancelled: () => boolean) => {
@@ -70,6 +78,7 @@ export function WorkoutPlayerPage() {
       workoutsListPath={routes.workouts}
       workoutDetailsPath={routes.workoutDetails(resolvedWorkoutId)}
       onRetry={handleRetry}
+      saveWorkoutSession={saveWorkoutSession}
     />
   )
 }

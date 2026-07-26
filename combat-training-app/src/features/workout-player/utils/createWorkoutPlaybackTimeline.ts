@@ -20,6 +20,7 @@ export function createWorkoutPlaybackTimeline(plan: WorkoutPlan): WorkoutPlaybac
               kind: 'exercise',
               durationSeconds: roundDurationSeconds,
               blockIndex,
+              blockId: block.id,
               blockType: block.blockType,
               itemId: item.id,
               name: item.exerciseNameSnapshot,
@@ -34,12 +35,13 @@ export function createWorkoutPlaybackTimeline(plan: WorkoutPlan): WorkoutPlaybac
                 kind: 'roundRest',
                 durationSeconds: restBetweenRoundsSeconds,
                 blockIndex,
+                blockId: block.id,
                 blockType: block.blockType,
                 itemId: item.id,
                 name: item.exerciseNameSnapshot,
                 instruction: item.instruction,
                 roundNumber: null,
-                roundCount,
+                roundCount: null,
               })
             }
           }
@@ -52,6 +54,7 @@ export function createWorkoutPlaybackTimeline(plan: WorkoutPlan): WorkoutPlaybac
           kind: 'exercise',
           durationSeconds: item.configuration.durationSeconds,
           blockIndex,
+          blockId: block.id,
           blockType: block.blockType,
           itemId: item.id,
           name: item.exerciseNameSnapshot,
@@ -68,6 +71,7 @@ export function createWorkoutPlaybackTimeline(plan: WorkoutPlan): WorkoutPlaybac
         kind: 'break',
         durationSeconds: item.durationSeconds,
         blockIndex,
+        blockId: block.id,
         blockType: block.blockType,
         itemId: item.id,
         name: 'Przerwa',

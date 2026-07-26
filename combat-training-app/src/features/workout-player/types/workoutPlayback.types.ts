@@ -9,6 +9,7 @@ export interface WorkoutPlaybackStep {
   kind: WorkoutPlaybackStepKind
   durationSeconds: number
   blockIndex: number
+  blockId: string
   blockType: WorkoutBlockType
   itemId: string
   name: string
