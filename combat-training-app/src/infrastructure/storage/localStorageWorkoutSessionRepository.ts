@@ -2,11 +2,14 @@ import type { WorkoutSessionRepository } from '@/application/workout-session/wor
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import {
   createEmptyWorkoutSessionStorageEnvelope,
+  normalizeWorkoutSessionNote,
   parseStoredWorkoutSession,
   parseWorkoutSessionStorageEnvelope,
   serializeWorkoutSessionStorageEnvelope,
   WorkoutSessionStorageError,
-  type WorkoutSessionStorageEnvelopeV1,
+  WORKOUT_SESSION_STORAGE_SCHEMA_VERSION,
+  type WorkoutSessionStorageEnvelopeRead,
+  type WorkoutSessionStorageEnvelopeV2,
 } from '@/infrastructure/storage/workoutSessionStorageSchema'
 
 export const DEFAULT_WORKOUT_SESSION_STORAGE_KEY = 'combat-training.workout-sessions'
@@ -52,7 +55,7 @@ export class LocalStorageWorkoutSessionRepository implements WorkoutSessionRepos
     }
 
     this.writeEnvelope({
-      schemaVersion: 1,
+      schemaVersion: WORKOUT_SESSION_STORAGE_SCHEMA_VERSION,
       sessions,
     })
   }
@@ -69,7 +72,50 @@ export class LocalStorageWorkoutSessionRepository implements WorkoutSessionRepos
     return session ? cloneWorkoutSession(session) : null
   }
 
-  private readEnvelope(): WorkoutSessionStorageEnvelopeV1 {
+  async updateNote(id: string, note: string | null): Promise<boolean> {
+    const normalizedNote = normalizeWorkoutSessionNote(note)
+    const envelope = this.readEnvelope()
+    const sessions = envelope.sessions.map(cloneWorkoutSessionForWrite)
+    const existingIndex = sessions.findIndex((candidate) => candidate.id === id)
+
+    if (existingIndex === -1) {
+      return false
+    }
+
+    sessions[existingIndex] = {
+      ...sessions[existingIndex],
+      note: normalizedNote,
+    }
+
+    this.writeEnvelope({
+      schemaVersion: WORKOUT_SESSION_STORAGE_SCHEMA_VERSION,
+      sessions,
+    })
+
+    return true
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const envelope = this.readEnvelope()
+    const existingIndex = envelope.sessions.findIndex((candidate) => candidate.id === id)
+
+    if (existingIndex === -1) {
+      return false
+    }
+
+    const sessions = envelope.sessions
+      .filter((candidate) => candidate.id !== id)
+      .map(cloneWorkoutSessionForWrite)
+
+    this.writeEnvelope({
+      schemaVersion: WORKOUT_SESSION_STORAGE_SCHEMA_VERSION,
+      sessions,
+    })
+
+    return true
+  }
+
+  private readEnvelope(): WorkoutSessionStorageEnvelopeRead {
     let rawValue: string | null
 
     try {
@@ -107,7 +153,7 @@ export class LocalStorageWorkoutSessionRepository implements WorkoutSessionRepos
     }
   }
 
-  private writeEnvelope(envelope: WorkoutSessionStorageEnvelopeV1): void {
+  private writeEnvelope(envelope: WorkoutSessionStorageEnvelopeV2): void {
     let serialized: string
 
     try {

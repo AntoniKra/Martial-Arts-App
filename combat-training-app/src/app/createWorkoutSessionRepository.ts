@@ -20,6 +20,14 @@ class UnavailableStorageWorkoutSessionRepository implements WorkoutSessionReposi
   getById(_id: string): Promise<WorkoutSession | null> {
     return Promise.reject(this.error)
   }
+
+  updateNote(_id: string, _note: string | null): Promise<boolean> {
+    return Promise.reject(this.error)
+  }
+
+  delete(_id: string): Promise<boolean> {
+    return Promise.reject(this.error)
+  }
 }
 
 export function createWorkoutSessionRepository(): WorkoutSessionRepository {

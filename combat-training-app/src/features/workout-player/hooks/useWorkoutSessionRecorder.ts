@@ -101,6 +101,7 @@ export function useWorkoutSessionRecorder(
         startedAt,
         completedAt: new Date(completedAtMs).toISOString(),
         stepResults,
+        note: null,
       }
     },
     [plan, timeline.steps],

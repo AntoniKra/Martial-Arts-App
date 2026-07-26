@@ -2,15 +2,27 @@
 
 Dokument opisuje kierunek. Ostateczne migracje tworzymy dopiero po zatwierdzeniu modelu w kodzie domenowym.
 
-## Lokalny storage v1 — WorkoutSession
+## Lokalny storage — WorkoutSession
 
 W aplikacji lokalny envelope sesji jest oddzielony od planów:
 
 - klucz namespaced, niezależny od `workout-plans`;
-- `schemaVersion: 1`;
+- `schemaVersion: 1` lub `schemaVersion: 2`;
 - `sessions: WorkoutSession[]`.
 
-Storage v1 przechowuje wyłącznie ukończone sesje. Brak draftów, porzuconych treningów, RPE, ocen i feedbacku.
+### v1
+
+- przechowuje wyłącznie ukończone sesje bez pola `note`;
+- odczyt normalizuje każdą sesję do `note: null` w pamięci;
+- sam odczyt nie migruje dokumentu do v2.
+
+### v2
+
+- wymaga pola `note: string | null` w każdej sesji;
+- nowe zapisy, `updateNote` i `delete` zapisują envelope `schemaVersion: 2`;
+- notatka jest normalizowana: trim, pusty tekst → `null`, maksymalnie 1000 znaków.
+
+Storage przechowuje wyłącznie ukończone sesje. Brak draftów, porzuconych treningów, RPE, ocen i feedbacku.
 
 Każda sesja zawiera snapshot planu i wyniki kroków (`stepResults`) z outcome `completed`, `partial` lub `skipped`.
 

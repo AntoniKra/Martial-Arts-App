@@ -103,7 +103,23 @@ Jedno ćwiczenie zawiera jedną kombinację lub jedną instrukcję.
 - `completedAt`;
 - `stepResults`.
 
-Nie zapisujemy w v1: statusu `abandoned`, draftu sesji, `pausedAt`, RPE, ocen, feedbacku, kalorii, notatek ani etykiet UI.
+Nie zapisujemy w v1: statusu `abandoned`, draftu sesji, `pausedAt`, RPE, ocen, feedbacku, kalorii ani etykiet UI.
+
+## WorkoutSession — model v2
+
+Model v2 rozszerza v1 o:
+
+- `note: string | null` — opcjonalna notatka użytkownika do ukończonej sesji.
+
+Zasady notatki:
+
+- `null` oznacza brak notatki;
+- pusty string lub sam whitespace są normalizowane do `null`;
+- zapisujemy wartość po trimie;
+- maksymalna długość: 1000 znaków;
+- notatka nie ma osobnego statusu ani encji.
+
+Lokalny storage v2 zachowuje kompatybilność wsteczną: dokumenty `schemaVersion: 1` są odczytywane z `note: null` w pamięci, ale nie są migrowane automatycznie podczas samego `list()` ani `getById()`. Kolejny zapis, `updateNote` lub `delete` zapisuje pełny envelope v2.
 
 ## WorkoutSessionStepResult
 

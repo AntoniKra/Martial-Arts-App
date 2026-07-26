@@ -7,10 +7,20 @@ import type {
   WorkoutSessionStepResult,
 } from '@/domain/workout-session/workoutSession.types'
 
-export const WORKOUT_SESSION_STORAGE_SCHEMA_VERSION = 1 as const
+export const WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V1 = 1 as const
+export const WORKOUT_SESSION_STORAGE_SCHEMA_VERSION = 2 as const
 
-export interface WorkoutSessionStorageEnvelopeV1 {
+export type WorkoutSessionStorageSchemaVersion =
+  | typeof WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V1
+  | typeof WORKOUT_SESSION_STORAGE_SCHEMA_VERSION
+
+export interface WorkoutSessionStorageEnvelopeV2 {
   schemaVersion: typeof WORKOUT_SESSION_STORAGE_SCHEMA_VERSION
+  sessions: WorkoutSession[]
+}
+
+export interface WorkoutSessionStorageEnvelopeRead {
+  schemaVersion: WorkoutSessionStorageSchemaVersion
   sessions: WorkoutSession[]
 }
 
@@ -30,6 +40,8 @@ export class WorkoutSessionStorageError extends Error {
     this.code = code
   }
 }
+
+export const WORKOUT_SESSION_NOTE_MAX_LENGTH = 1000
 
 const DISCIPLINE_KEYS = new Set<DisciplineKey>([
   'boxing',
@@ -55,7 +67,7 @@ const STEP_OUTCOMES = new Set<WorkoutSessionStepOutcome>(['completed', 'partial'
 
 const ENVELOPE_KEYS = ['schemaVersion', 'sessions'] as const
 
-const SESSION_KEYS = [
+const SESSION_KEYS_V1 = [
   'id',
   'workoutPlanId',
   'workoutPlanNameSnapshot',
@@ -65,18 +77,15 @@ const SESSION_KEYS = [
   'stepResults',
 ] as const
 
-const STEP_RESULT_KEYS = [
-  'playbackStepId',
-  'workoutItemId',
-  'blockId',
-  'blockType',
-  'kind',
-  'nameSnapshot',
-  'roundNumber',
-  'roundCount',
-  'plannedDurationSeconds',
-  'performedDurationSeconds',
-  'outcome',
+const SESSION_KEYS_V2 = [
+  'id',
+  'workoutPlanId',
+  'workoutPlanNameSnapshot',
+  'disciplineKey',
+  'startedAt',
+  'completedAt',
+  'stepResults',
+  'note',
 ] as const
 
 const ISO_TIMESTAMP_PATTERN =
@@ -215,6 +224,31 @@ function isNullablePositiveSafeInteger(value: unknown): value is number | null {
   return value === null || isPositiveSafeInteger(value)
 }
 
+export function normalizeWorkoutSessionNote(value: unknown): string | null {
+  if (value === null) {
+    return null
+  }
+
+  if (typeof value !== 'string') {
+    throw new WorkoutSessionStorageError('invalid_data', 'Workout session note must be a string or null.')
+  }
+
+  const trimmed = value.trim()
+
+  if (trimmed.length === 0) {
+    return null
+  }
+
+  if (trimmed.length > WORKOUT_SESSION_NOTE_MAX_LENGTH) {
+    throw new WorkoutSessionStorageError(
+      'invalid_data',
+      `Workout session note cannot exceed ${WORKOUT_SESSION_NOTE_MAX_LENGTH} characters.`,
+    )
+  }
+
+  return trimmed
+}
+
 function assertOutcomeMatchesDurations(
   outcome: WorkoutSessionStepOutcome,
   plannedDurationSeconds: number,
@@ -279,6 +313,20 @@ function assertRoundDataForKind(
     )
   }
 }
+
+const STEP_RESULT_KEYS = [
+  'playbackStepId',
+  'workoutItemId',
+  'blockId',
+  'blockType',
+  'kind',
+  'nameSnapshot',
+  'roundNumber',
+  'roundCount',
+  'plannedDurationSeconds',
+  'performedDurationSeconds',
+  'outcome',
+] as const
 
 function parseWorkoutSessionStepResult(value: unknown): WorkoutSessionStepResult {
   if (!isRecord(value)) {
@@ -369,13 +417,15 @@ function assertSessionTimestamps(startedAt: string, completedAt: string): void {
   }
 }
 
-function parseWorkoutSessionShape(value: unknown): WorkoutSession {
-  if (!isRecord(value)) {
-    throw new WorkoutSessionStorageError('invalid_data', 'Workout session must be an object.')
-  }
-
-  assertExactKeys(value, SESSION_KEYS, 'Workout session contains unexpected or missing fields.')
-
+function parseWorkoutSessionCoreFields(value: Record<string, unknown>): {
+  id: string
+  workoutPlanId: string
+  workoutPlanNameSnapshot: string
+  disciplineKey: DisciplineKey
+  startedAt: string
+  completedAt: string
+  stepResults: WorkoutSessionStepResult[]
+} {
   if (
     !isNonEmptyTrimmedString(value.id) ||
     !isNonEmptyTrimmedString(value.workoutPlanId) ||
@@ -412,18 +462,44 @@ function parseWorkoutSessionShape(value: unknown): WorkoutSession {
   }
 }
 
-export function parseStoredWorkoutSession(value: unknown): WorkoutSession {
-  return parseWorkoutSessionShape(value)
+function parseWorkoutSessionShapeV1(value: unknown): WorkoutSession {
+  if (!isRecord(value)) {
+    throw new WorkoutSessionStorageError('invalid_data', 'Workout session must be an object.')
+  }
+
+  assertExactKeys(value, SESSION_KEYS_V1, 'Workout session contains unexpected or missing fields.')
+
+  return {
+    ...parseWorkoutSessionCoreFields(value),
+    note: null,
+  }
 }
 
-export function createEmptyWorkoutSessionStorageEnvelope(): WorkoutSessionStorageEnvelopeV1 {
+function parseWorkoutSessionShapeV2(value: unknown): WorkoutSession {
+  if (!isRecord(value)) {
+    throw new WorkoutSessionStorageError('invalid_data', 'Workout session must be an object.')
+  }
+
+  assertExactKeys(value, SESSION_KEYS_V2, 'Workout session contains unexpected or missing fields.')
+
+  return {
+    ...parseWorkoutSessionCoreFields(value),
+    note: normalizeWorkoutSessionNote(value.note),
+  }
+}
+
+export function parseStoredWorkoutSession(value: unknown): WorkoutSession {
+  return parseWorkoutSessionShapeV2(value)
+}
+
+export function createEmptyWorkoutSessionStorageEnvelope(): WorkoutSessionStorageEnvelopeV2 {
   return {
     schemaVersion: WORKOUT_SESSION_STORAGE_SCHEMA_VERSION,
     sessions: [],
   }
 }
 
-function assertSchemaVersion(raw: Record<string, unknown>): void {
+function assertReadableSchemaVersion(raw: Record<string, unknown>): WorkoutSessionStorageSchemaVersion {
   if (!('schemaVersion' in raw)) {
     throw new WorkoutSessionStorageError(
       'invalid_data',
@@ -438,20 +514,25 @@ function assertSchemaVersion(raw: Record<string, unknown>): void {
     )
   }
 
-  if (raw.schemaVersion !== WORKOUT_SESSION_STORAGE_SCHEMA_VERSION) {
+  if (
+    raw.schemaVersion !== WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V1 &&
+    raw.schemaVersion !== WORKOUT_SESSION_STORAGE_SCHEMA_VERSION
+  ) {
     throw new WorkoutSessionStorageError(
       'unsupported_schema_version',
       `Unsupported workout session storage schema version: ${String(raw.schemaVersion)}.`,
     )
   }
+
+  return raw.schemaVersion
 }
 
-export function parseWorkoutSessionStorageEnvelope(raw: unknown): WorkoutSessionStorageEnvelopeV1 {
+export function parseWorkoutSessionStorageEnvelope(raw: unknown): WorkoutSessionStorageEnvelopeRead {
   if (!isRecord(raw)) {
     throw new WorkoutSessionStorageError('invalid_data', 'Workout session storage envelope must be an object.')
   }
 
-  assertSchemaVersion(raw)
+  const schemaVersion = assertReadableSchemaVersion(raw)
 
   assertExactKeys(
     raw,
@@ -463,11 +544,16 @@ export function parseWorkoutSessionStorageEnvelope(raw: unknown): WorkoutSession
     throw new WorkoutSessionStorageError('invalid_data', 'Workout session storage envelope sessions must be an array.')
   }
 
+  const parseSession =
+    schemaVersion === WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V1
+      ? parseWorkoutSessionShapeV1
+      : parseWorkoutSessionShapeV2
+
   const sessions: WorkoutSession[] = []
   const sessionIds = new Set<string>()
 
   for (const session of raw.sessions) {
-    const parsedSession = parseWorkoutSessionShape(session)
+    const parsedSession = parseSession(session)
 
     if (sessionIds.has(parsedSession.id)) {
       throw new WorkoutSessionStorageError(
@@ -481,11 +567,11 @@ export function parseWorkoutSessionStorageEnvelope(raw: unknown): WorkoutSession
   }
 
   return {
-    schemaVersion: WORKOUT_SESSION_STORAGE_SCHEMA_VERSION,
+    schemaVersion,
     sessions,
   }
 }
 
-export function serializeWorkoutSessionStorageEnvelope(envelope: WorkoutSessionStorageEnvelopeV1): string {
+export function serializeWorkoutSessionStorageEnvelope(envelope: WorkoutSessionStorageEnvelopeV2): string {
   return JSON.stringify(envelope)
 }

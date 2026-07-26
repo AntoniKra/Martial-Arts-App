@@ -28,4 +28,5 @@ export interface WorkoutSession {
   startedAt: string
   completedAt: string
   stepResults: WorkoutSessionStepResult[]
+  note: string | null
 }
