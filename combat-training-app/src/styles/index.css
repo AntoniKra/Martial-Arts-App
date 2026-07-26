@@ -95,8 +95,17 @@ select {
   font-feature-settings: 'tnum' 1;
 }
 
+/* Inset-only bottom padding. Pair with explicit base padding where needed (see player footer). */
 .safe-area-pb {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-pt {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.timer-ring {
+  transition: stroke-dashoffset 0.95s linear;
 }
 
 @media (prefers-reduced-motion: reduce) {

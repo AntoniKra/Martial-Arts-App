@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { getButtonClassName } from '@/components/ui/Button'
-import { RedAccent } from '@/components/ui/RedAccent'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { calculateWorkoutPlanSummary } from '@/domain/workout/workoutCalculations'
 import type { WorkoutExercise, WorkoutItem, WorkoutPlan } from '@/domain/workout/workout.types'
@@ -25,7 +24,7 @@ function BackToWorkoutsLink({ to }: { to: string }) {
   return (
     <Link
       to={to}
-      className="mb-6 inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+      className="flex min-h-touch w-full items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
     >
       <ChevronRightIcon className="rotate-180" />
       Wróć do planów
@@ -156,32 +155,20 @@ function WorkoutPlanDetailsSuccessView({
   const summary = calculateWorkoutPlanSummary(plan)
 
   return (
-    <>
+    <div className="flex flex-col items-start gap-3">
       <BackToWorkoutsLink to={workoutsListPath} />
 
       <DisciplineBadge disciplineKey={plan.disciplineKey} className="text-[11px]" />
-      <h1 className="mt-3 break-words font-display text-[24px] font-bold text-ink md:text-[28px]">
+
+      <h1 className="break-words font-display text-[24px] font-bold text-ink md:text-[28px]">
         {plan.nameSnapshot}
       </h1>
 
       {plan.mainGoal ? (
-        <p className="mt-3 max-w-prose break-words text-[14px] leading-relaxed text-muted">{plan.mainGoal}</p>
+        <p className="max-w-prose break-words text-[14px] leading-relaxed text-muted">{plan.mainGoal}</p>
       ) : null}
 
-      <RedAccent className="mt-8" />
-
-      <Link
-        to={workoutActivePath}
-        className={getButtonClassName({
-          variant: 'primary',
-          size: 'lg',
-          className: 'mt-8 w-full uppercase tracking-[0.1em]',
-        })}
-      >
-        Rozpocznij trening
-      </Link>
-
-      <section aria-labelledby="workout-details-summary-heading" className="mt-8">
+      <section aria-labelledby="workout-details-summary-heading" className="w-full">
         <h2
           id="workout-details-summary-heading"
           className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint"
@@ -202,7 +189,18 @@ function WorkoutPlanDetailsSuccessView({
         </p>
       </section>
 
-      <section aria-labelledby="workout-details-blocks-heading" className="mt-8 space-y-4">
+      <Link
+        to={workoutActivePath}
+        className={getButtonClassName({
+          variant: 'primary',
+          size: 'lg',
+          className: 'w-full uppercase tracking-[0.1em]',
+        })}
+      >
+        Rozpocznij trening
+      </Link>
+
+      <section aria-labelledby="workout-details-blocks-heading" className="w-full space-y-4">
         <h2
           id="workout-details-blocks-heading"
           className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint"
@@ -245,7 +243,7 @@ function WorkoutPlanDetailsSuccessView({
           })}
         </ol>
       </section>
-    </>
+    </div>
   )
 }
 
