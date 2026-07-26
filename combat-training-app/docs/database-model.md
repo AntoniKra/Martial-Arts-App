@@ -2,6 +2,22 @@
 
 Dokument opisuje kierunek. Ostateczne migracje tworzymy dopiero po zatwierdzeniu modelu w kodzie domenowym.
 
+## Lokalny storage v1 — WorkoutSession
+
+W aplikacji lokalny envelope sesji jest oddzielony od planów:
+
+- klucz namespaced, niezależny od `workout-plans`;
+- `schemaVersion: 1`;
+- `sessions: WorkoutSession[]`.
+
+Storage v1 przechowuje wyłącznie ukończone sesje. Brak draftów, porzuconych treningów, RPE, ocen i feedbacku.
+
+Każda sesja zawiera snapshot planu i wyniki kroków (`stepResults`) z outcome `completed`, `partial` lub `skipped`.
+
+`activeDurationSeconds` nie jest zapisywany — jest wyliczany w domenie jako suma `performedDurationSeconds`.
+
+Instrukcje ćwiczeń nie są zapisywane w storage v1, jeżeli nie są potrzebne do historii i podsumowania.
+
 ## `workouts`
 
 - `id uuid`;
