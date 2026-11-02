@@ -18,7 +18,7 @@ interface WorkoutMetadataFormProps {
 }
 
 const fieldClassName =
-  'min-h-touch w-full border border-bd bg-elevated px-3 py-2 font-display text-[13px] text-ink placeholder:text-faint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:cursor-not-allowed disabled:opacity-60'
+  'min-h-touch w-full border border-bd bg-input px-3 py-2 font-display text-[13px] text-ink placeholder:text-faint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:cursor-not-allowed disabled:opacity-60'
 
 const labelClassName =
   'mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint'

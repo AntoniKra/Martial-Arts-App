@@ -2,11 +2,11 @@ import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import { getDisciplineLabelPl } from '@/domain/discipline/disciplineLabels'
 
 const disciplineColors: Record<DisciplineKey, string> = {
-  boxing: 'text-[#E8A030]',
-  kickboxing: 'text-[#6BAF8A]',
-  muay_thai: 'text-crimson',
-  k1: 'text-[#7B9FD4]',
-  mma_striking: 'text-muted',
+  boxing: 'text-discipline-boxing',
+  kickboxing: 'text-discipline-kickboxing',
+  muay_thai: 'text-discipline-muay-thai',
+  k1: 'text-discipline-k1',
+  mma_striking: 'text-discipline-mma-striking',
 }
 
 interface DisciplineBadgeProps {
