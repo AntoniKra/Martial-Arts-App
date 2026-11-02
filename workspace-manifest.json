@@ -5,7 +5,7 @@
   "interface_language": "pl",
   "code_language": "en",
   "backend": "Supabase",
-  "auth_mvp": "anonymous",
+  "auth": "email_password_and_google",
   "reference_app_tsx_lines": 2372,
   "strategy": "clean production architecture with controlled visual migration"
 }

@@ -1,16 +1,14 @@
 # Combat Training Workspace
 
+Repozytorium aplikacji do pracy inżynierskiej: PWA do ewidencji i analizy treningów sportów walki w architekturze chmurowej.
+
 ## Katalogi
 
-- `_DO_NOT_EDIT_figma-reference` — oryginalny kod wygenerowany przez Figma Make. Traktuj jako read-only.
-- `combat-training-app` — czysty projekt produkcyjny i jedyne miejsce zmian.
+- `combat-training-app` — właściwa aplikacja i jedyne miejsce zmian.
+- `_DO_NOT_EDIT_figma-reference` — oryginalny prototyp z Figma Make, tylko do odczytu.
 
-## Bezpieczny start
+## Start
 
-1. Zachowaj oryginalny ZIP Figmy jako dodatkową kopię.
-2. Otwórz ten folder nadrzędny w Cursorze.
-3. Pracuj z terminalem ustawionym w `combat-training-app`.
-4. Pierwsze zadanie rozpocznij od `combat-training-app/docs/cursor-first-prompts.md`.
-5. Po każdej działającej zmianie wykonaj commit Git.
-
-Nie uruchamiaj formatowania ani automatycznych zmian w folderze referencyjnym.
+1. Przeczytaj `AGENTS.md`: zasady pracy dla agentów (Claude Code, Codex, Cursor, Antigravity) i ludzi.
+2. Uruchom aplikację według `combat-training-app/README.md`.
+3. Każde zadanie to osobna gałąź i pull request. `main` zmienia się tylko przez scalenie pull requesta.

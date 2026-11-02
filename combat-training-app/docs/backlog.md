@@ -1,44 +1,29 @@
 # Backlog
 
-## P0 — wymagane MVP
+Kolejność odpowiada priorytetom z `mvp-scope.md`. Każda pozycja to osobna gałąź i pull request.
 
-- migracja zatwierdzonego designu;
-- polski interfejs;
-- model workout/block/item;
-- Supabase anonymous auth i RLS;
-- CRUD planów;
-- biblioteka filtrowana po dyscyplinie i bloku;
-- tryb rundowy i ciągły;
-- osobne przerwy;
-- prawidłowy timer;
-- gong;
-- Wake Lock;
-- oceny i raport;
-- Plany/Historia;
-- PWA i wdrożenie.
+## P0: rdzeń
 
-## P1 — gdy rdzeń jest stabilny
+1. Strona główna z prawdziwą historią zamiast danych przykładowych i poprawny licznik ćwiczeń w historii.
+2. Supabase: schemat, migracje, RLS i repozytoria zamiast localStorage.
+3. Rejestracja, logowanie, reset hasła i logowanie kontem Google.
+4. Dziennik: ręczny wpis treningu i edycja wpisu.
+5. Cele z paskiem postępu.
+6. Profil zawodnika: waga i statystyki.
+7. Szybki stoper, gong i Wake Lock.
+8. Jasny motyw z przełącznikiem.
+9. PWA i wdrożenie z publicznym linkiem.
+10. Testy E2E na trzech rozdzielczościach.
+11. Testy do rozdziału 5: Lighthouse, SUS, dokładność timera, RLS.
 
-- duplikowanie;
-- filtrowanie historii;
-- szkic lokalny;
-- statystyki tygodniowe;
-- podstawowy strength mode.
+## P1: ważne
 
-## P2 — po MVP
+1. Ocena ćwiczeń, RPE i notatka po treningu.
+2. Edycja i usuwanie planu.
+3. Ochrona przed utratą treningu przy błędzie zapisu.
+4. ±15 s i menu zakończenia z potwierdzeniem.
+5. README ze zrzutami ekranu i instrukcją uruchomienia.
 
-- katalog technik i kreator kombinacji;
-- prywatne kombinacje;
-- cele i progres;
-- profil, waga i wykresy;
-- porównywanie podobnych ćwiczeń;
-- check-in przed treningiem.
+## P2: kierunki rozwoju
 
-## Nie dodawać bez osobnej decyzji
-
-- offline sync;
-- AI;
-- social;
-- voice coaching;
-- wearables;
-- płatności.
+Pozycje z sekcji „Kierunki rozwoju” w `mvp-scope.md`. Nie dodawać bez osobnej decyzji.

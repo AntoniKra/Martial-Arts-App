@@ -2,6 +2,8 @@
 
 Dokument opisuje kierunek. Ostateczne migracje tworzymy dopiero po zatwierdzeniu modelu w kodzie domenowym.
 
+> **Do przeprojektowania (listopad 2026).** Model powstał przed kartą tematu. Wersja finalna zakłada jeden typ wpisu w dzienniku dla trzech źródeł treningu (szybki stoper, plan, ręczny wpis), cele, profil z historią wagi oraz logowanie e-mailem, hasłem i kontem Google zamiast anonimowego konta (`adr/0002-email-password-and-google-auth.md`). Schemat zaprojektujemy w drugiej rundzie ustaleń i zapiszemy w ADR. Do tego czasu traktuj tabele poniżej jako punkt wyjścia.
+
 ## Lokalny storage — WorkoutSession
 
 W aplikacji lokalny envelope sesji jest oddzielony od planów:
@@ -110,7 +112,7 @@ Wspólna oś elementów bloku:
 ## Bezpieczeństwo
 
 - wszystkie dane użytkownika mają `user_id` pośrednio lub bezpośrednio;
-- anonimowy użytkownik Supabase otrzymuje własne UUID;
+- użytkownik zakłada konto e-mailem i hasłem albo loguje się kontem Google (`adr/0002-email-password-and-google-auth.md`) i otrzymuje własne UUID z Supabase Auth;
 - RLS musi uniemożliwić odczyt i zapis cudzych danych;
 - schemat jest zarządzany przez migracje SQL;
 - komponenty React nie wykonują surowych zapytań Supabase bezpośrednio.
