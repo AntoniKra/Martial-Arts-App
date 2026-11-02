@@ -117,8 +117,14 @@ export function WorkoutsView({
     setTab(nextTab)
   }
 
-  const plans = plansLoadState.status === 'success' ? plansLoadState.plans : []
-  const history = historyLoadState.status === 'success' ? historyLoadState.sessions : []
+  const plans = useMemo(
+    () => (plansLoadState.status === 'success' ? plansLoadState.plans : []),
+    [plansLoadState],
+  )
+  const history = useMemo(
+    () => (historyLoadState.status === 'success' ? historyLoadState.sessions : []),
+    [historyLoadState],
+  )
 
   const filteredPlans = useMemo(() => filterWorkoutPlans(plans, filters), [plans, filters])
   const filteredHistory = useMemo(
