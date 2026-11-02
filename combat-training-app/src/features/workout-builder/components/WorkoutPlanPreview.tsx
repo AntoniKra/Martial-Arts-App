@@ -10,7 +10,7 @@ import type { WorkoutExercise, WorkoutItem } from '@/domain/workout/workout.type
 import type { WorkoutPlanSaveState } from '@/features/workout-builder/components/workoutBuilderUi.types'
 import type { WorkoutBuilderState } from '@/features/workout-builder/state/workoutBuilder.types'
 import { formatEstimatedDuration, formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
-import { formatPolishCount, polishPlural } from '@/features/workout-builder/utils/polishPlural'
+import { formatPolishCount, polishPlural } from '@/domain/language/polishPlural'
 
 interface WorkoutPlanPreviewProps {
   state: WorkoutBuilderState

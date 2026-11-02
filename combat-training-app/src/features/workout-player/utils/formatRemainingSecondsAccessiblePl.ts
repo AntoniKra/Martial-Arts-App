@@ -1,4 +1,4 @@
-import { formatPolishCount } from '@/features/workout-builder/utils/polishPlural'
+import { formatPolishCount } from '@/domain/language/polishPlural'
 
 export function formatRemainingSecondsAccessiblePl(totalSeconds: number): string {
   const seconds = Math.max(0, Math.floor(totalSeconds))

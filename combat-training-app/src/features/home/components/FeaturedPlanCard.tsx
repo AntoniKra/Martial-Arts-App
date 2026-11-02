@@ -6,7 +6,7 @@ import { getButtonClassName } from '@/components/ui/Button'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { HomeSectionLabel } from '@/features/home/components/HomeSectionLabel'
 import type { HomeFeaturedPlan } from '@/features/home/types/homeView.types'
-import { formatPolishCount } from '@/features/workout-builder/utils/polishPlural'
+import { formatPolishCount } from '@/domain/language/polishPlural'
 
 interface FeaturedPlanCardProps {
   plan: HomeFeaturedPlan

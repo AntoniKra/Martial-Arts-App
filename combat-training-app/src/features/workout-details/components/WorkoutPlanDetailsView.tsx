@@ -10,7 +10,7 @@ import type { WorkoutExercise, WorkoutItem, WorkoutPlan } from '@/domain/workout
 import type { WorkoutPlanDetailsLoadState } from '@/features/workout-details/types/workoutPlanDetails.types'
 import { formatExerciseConfigurationSummary } from '@/features/workout-details/utils/formatExerciseConfiguration'
 import { formatEstimatedDuration, formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
-import { polishPlural } from '@/features/workout-builder/utils/polishPlural'
+import { polishPlural } from '@/domain/language/polishPlural'
 
 interface WorkoutPlanDetailsViewProps {
   loadState: WorkoutPlanDetailsLoadState
