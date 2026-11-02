@@ -1,11 +1,27 @@
 <!doctype html>
-<html lang="pl">
+<html lang="pl" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0B0B0D" />
     <meta name="description" content="Planowanie i analiza treningów sportów walki" />
     <title>Combat Training App</title>
+    <script>
+      ;(function () {
+        try {
+          var storedTheme = localStorage.getItem('combat-training.theme')
+          if (storedTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light')
+            var themeColorMeta = document.querySelector('meta[name="theme-color"]')
+            if (themeColorMeta) {
+              themeColorMeta.setAttribute('content', '#F1F1EF')
+            }
+          }
+        } catch (error) {
+          // Ignore storage access errors and keep the default dark theme.
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
