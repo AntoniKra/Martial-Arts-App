@@ -9,12 +9,7 @@ import {
 
 export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession): WorkoutHistoryListItem {
   const summary = calculateWorkoutSessionSummary(session)
-  const plannedExercises = summary.plannedExerciseStepCount
-  const completedExercises = summary.completedExerciseStepCount
   const hasRounds = summary.plannedRoundCount > 0
-
-  const exerciseCompletionPercent =
-    plannedExercises > 0 ? Math.round((completedExercises / plannedExercises) * 100) : 0
 
   return {
     id: session.id,
@@ -24,9 +19,9 @@ export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession): Wor
     timeLabelPl: formatWorkoutSessionTimePl(session.completedAt),
     completedAt: session.completedAt,
     durationLabelPl: formatActiveDurationSecondsPl(summary.activeDurationSeconds),
-    completedExercises,
-    plannedExercises,
-    exerciseCompletionPercent,
+    completedExercises: summary.completedExerciseCount,
+    plannedExercises: summary.plannedExerciseCount,
+    exerciseCompletionPercent: summary.exerciseCompletionPercent,
     completedRounds: hasRounds ? summary.completedRoundCount : null,
     plannedRounds: hasRounds ? summary.plannedRoundCount : null,
     note: session.note,

@@ -27,7 +27,7 @@ export type FeaturedWorkoutPlanLoadState =
   | { status: 'success'; plan: HomeFeaturedPlan | null }
   | { status: 'error'; message: string }
 
-export interface HomeViewData {
-  sessionLabelPl: string
-  recentSessions: HomeRecentSession[]
-}
+export type RecentWorkoutSessionsLoadState =
+  | { status: 'loading' }
+  | { status: 'success'; sessions: HomeRecentSession[] }
+  | { status: 'error'; message: string }
