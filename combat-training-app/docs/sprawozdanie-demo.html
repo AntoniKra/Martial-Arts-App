@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Combat Training App — sprawozdanie z dema</title>
+  <style>
+    :root {
+      --bg: #f7f6f3;
+      --paper: #ffffff;
+      --ink: #161618;
+      --muted: #5c5c62;
+      --faint: #8a8a90;
+      --line: #d8d7d2;
+      --crimson: #b5122b;
+      --surface: #efeee9;
+      --ok: #2f6b3c;
+      --wait: #8a6418;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .page {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    .sheet {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 40px rgb(22 22 24 / 8%);
+      padding: 2.5rem 2rem;
+    }
+
+    @media (min-width: 720px) {
+      .sheet { padding: 3rem 3.25rem; }
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--crimson);
+      margin-bottom: 0.75rem;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.75rem, 4vw, 2.35rem);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      margin: 2.25rem 0 0.85rem;
+      font-size: 1.2rem;
+      letter-spacing: -0.01em;
+      border-bottom: 2px solid var(--crimson);
+      padding-bottom: 0.35rem;
+      display: inline-block;
+      min-width: 40%;
+    }
+
+    h3 {
+      margin: 1.4rem 0 0.5rem;
+      font-size: 1rem;
+    }
+
+    p { margin: 0.55rem 0; color: var(--ink); }
+    .muted { color: var(--muted); }
+    .meta { color: var(--muted); font-size: 0.95rem; }
+
+    .meta-grid {
+      display: grid;
+      gap: 0.4rem 1.5rem;
+      margin: 1.25rem 0 0;
+      padding: 1rem 1.1rem;
+      background: var(--surface);
+      border-left: 3px solid var(--crimson);
+    }
+
+    @media (min-width: 640px) {
+      .meta-grid { grid-template-columns: 140px 1fr; }
+      .meta-grid .label { color: var(--faint); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    }
+
+    ul, ol { margin: 0.5rem 0 0.5rem 1.2rem; padding: 0; }
+    li { margin: 0.35rem 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.75rem 0 0.25rem;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 0.55rem 0.7rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: var(--surface); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 2px;
+    }
+
+    .badge-ok { background: #e5f2e8; color: var(--ok); }
+    .badge-wait { background: #f5edd9; color: var(--wait); }
+
+    .phases {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+    }
+
+    @media (min-width: 700px) {
+      .phases { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .phase {
+      border: 1px solid var(--line);
+      padding: 1rem;
+      background: var(--paper);
+    }
+
+    .phase strong {
+      display: block;
+      color: var(--crimson);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+
+    pre, code {
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: 0.86rem;
+    }
+
+    pre {
+      background: #161618;
+      color: #f4f4f1;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+      border: 0;
+    }
+
+    .shot {
+      margin: 0.75rem 0 1.25rem;
+      border: 1px dashed var(--line);
+      background: var(--surface);
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .shot img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--line);
+    }
+
+    .shot .hint {
+      font-size: 0.85rem;
+      max-width: 28rem;
+    }
+
+    .shot-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 0.5rem;
+    }
+
+    .arch {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 1rem 1.1rem;
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .footer-note {
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .print-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.25rem;
+      background: #161618;
+      color: #f4f4f1;
+      font-size: 0.9rem;
+    }
+
+    .print-bar button {
+      appearance: none;
+      border: 0;
+      background: var(--crimson);
+      color: #fff;
+      font-weight: 700;
+      padding: 0.55rem 0.9rem;
+      cursor: pointer;
+    }
+
+    .print-bar button:hover { filter: brightness(1.08); }
+
+    @media print {
+      .print-bar { display: none !important; }
+      body { background: #fff; }
+      .page { padding: 0; max-width: none; }
+      .sheet {
+        border: 0;
+        box-shadow: none;
+        padding: 0;
+      }
+      h2 { break-after: avoid; }
+      .shot, table, .phase { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-bar">
+    <span>Sprawozdanie demo · Combat Training App — otwórz w przeglądarce i zapisz jako PDF</span>
+    <button type="button" onclick="window.print()">Drukuj / PDF</button>
+  </div>
+
+  <div class="page">
+    <article class="sheet">
+      <div class="eyebrow">Sprawozdanie / prezentacja dema</div>
+      <h1>Combat Training App</h1>
+      <p class="muted">Aplikacja webowa do planowania, prowadzenia i ewidencjonowania treningów sportów walki</p>
+
+      <div class="meta-grid">
+        <div class="label">Autor</div>
+        <div><strong>[Imię i nazwisko]</strong> · nr albumu: <strong>[……]</strong></div>
+        <div class="label">Uczelnia / przedmiot</div>
+        <div>[uzupełnij]</div>
+        <div class="label">Data</div>
+        <div>26 lipca 2026</div>
+        <div class="label">Status</div>
+        <div>Działające demo MVP (dane lokalne w przeglądarce)</div>
+        <div class="label">Stack</div>
+        <div>React 19 · TypeScript · Vite · Tailwind CSS · React Router</div>
+        <div class="label">Język UI</div>
+        <div>polski</div>
+      </div>
+
+      <h2>1. Cel projektu</h2>
+      <p>
+        Produkt ma być narzędziem treningowym — nie zwykłą listą notatek.
+        Priorytetem jest szybkość obsługi na telefonie, czytelność podczas wysiłku
+        oraz wiarygodna historia wykonania.
+      </p>
+
+      <div class="phases">
+        <div class="phase">
+          <strong>Faza 1</strong>
+          <p><strong>Planowanie</strong> — dyscyplina, cel, bloki, ćwiczenia, rundy i przerwy.</p>
+        </div>
+        <div class="phase">
+          <strong>Faza 2</strong>
+          <p><strong>Wykonanie</strong> — guided player z okrągłym timerem i kontrolą przebiegu.</p>
+        </div>
+        <div class="phase">
+          <strong>Faza 3</strong>
+          <p><strong>Ewidencja</strong> — zapis sesji w Historii, notatki, zarządzanie wpisami.</p>
+        </div>
+      </div>
+
+      <p class="muted" style="margin-top:1rem">
+        Dyscypliny MVP: Boks, Kickboxing, Muay Thai, K-1, MMA stójka.
+      </p>
+
+      <h2>2. Zakres działającego dema</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Obszar</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Strona główna (Home)</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Lista planów + filtry</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Historia treningów</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Notatki do sesji + usuwanie</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Kreator planu treningowego</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Podgląd przed zapisem (w kreatorze)</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Szczegóły planu + start treningu</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Player (timer, pauza, poprzedni / następny)</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Zapis sesji po ukończeniu</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Dark / Light mode + persystencja</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Responsywność mobile + desktop</td><td><span class="badge badge-ok">działa</span></td></tr>
+          <tr><td>Edycja planu (osobna trasa)</td><td><span class="badge badge-wait">placeholder</span></td></tr>
+          <tr><td>Pełne feedback / raport treningu</td><td><span class="badge badge-wait">w planie MVP</span></td></tr>
+          <tr><td>Backend Supabase</td><td><span class="badge badge-wait">planowane</span></td></tr>
+        </tbody>
+      </table>
+      <p class="muted">Obecnie dane trzymane są w <code>localStorage</code> — to świadomy etap przed podłączeniem backendu.</p>
+
+      <h2>3. Uruchomienie dema</h2>
+      <pre>cd combat-training-app
+npm install
+npm run dev</pre>
+      <p class="muted">Adres lokalny zwykle: <code>http://localhost:5173</code></p>
+
+      <h2>4. Scenariusz prezentacji (3–5 min)</h2>
+      <ol>
+        <li>Home — przełącz motyw ciemny / jasny.</li>
+        <li>Treningi → Plany — pokaż listę i filtry.</li>
+        <li>Utwórz plan w kreatorze (dyscyplina, bloki, ćwiczenia).</li>
+        <li>Zapisz → otwórz szczegóły → uruchom trening.</li>
+        <li>Player: PRACA / ODPOCZYNEK / pauza / ukończenie.</li>
+        <li>Historia: zapisana sesja, notatka, usuwanie.</li>
+      </ol>
+
+      <h2>5. Zrzuty ekranu</h2>
+      <p class="muted">
+        Wrzuć pliki PNG do folderu <code>docs/screenshots/</code> z nazwami jak poniżej
+        albo wklej obrazki bezpośrednio do tego HTML przed eksportem PDF.
+      </p>
+
+      <h3>5.1 Home</h3>
+      <div class="shot">
+        <div class="shot-label">01-home.png</div>
+        <img src="./screenshots/01-home.png" alt="Ekran Home" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" />
+        <p class="hint" style="display:none">Tu wklej screen Home (dark lub light).</p>
+      </div>
+
+      <h3>5.2 Plany</h3>
+      <div class="shot">
+        <div class="shot-label">02-plany.png</div>
+        <img src="./screenshots/02-plany.png" alt="Lista planów" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" />
+        <p class="hint" style="display:none">Tu wklej screen listy planów.</p>
+      </div>
+
+      <h3>5.3 Historia</h3>
+      <div class="shot">
+        <div class="shot-label">03-historia.png</div>
+        <img src="./screenshots/03-historia.png" alt="Historia treningów" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" />
+        <p class="hint" style="display:none">Tu wklej screen Historii (najlepiej z notatką).</p>
+      </div>
+
+      <h3>5.4 Kreator</h3>
+      <div class="shot">
+        <div class="shot-label">04-kreator.png</div>
+        <img src="./screenshots/04-kreator.png" alt="Kreator planu" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" />
+        <p class="hint" style="display:none">Tu wklej screen kreatora planu.</p>
+      </div>
+
+      <h3>5.5 Szczegóły planu</h3>
+      <div class="shot">
+        <div class="shot-label">05-szczegoly.png</div>
+        <img src="./screenshots/05-szczegoly.png" alt="Szczegóły planu" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" />
+        <p class="hint" style="display:none">Tu wklej screen szczegółów planu.</p>
+      </div>
+
+      <h3>5.6 Player — PRACA</h3>
+      <div class="shot">
+        <div class="shot-label">06-player-praca.png</div>
+        <img src="./screenshots/06-player-praca.png" alt="Player — praca" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" />
+        <p class="hint" style="display:none">Tu wklej screen timera w trybie PRACA.</p>
+      </div>
+
+      <h3>5.7 Player — ODPOCZYNEK / PRZERWA</h3>
+      <div class="shot">
+        <div class="shot-label">07-player-rest.png</div>
+        <img src="./screenshots/07-player-rest.png" alt="Player — odpoczynek" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" />
+        <p class="hint" style="display:none">Tu wklej screen ODPOCZYNEK lub PRZERWA.</p>
+      </div>
+
+      <h3>5.8 Trening ukończony</h3>
+      <div class="shot">
+        <div class="shot-label">08-completed.png</div>
+        <img src="./screenshots/08-completed.png" alt="Trening ukończony" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" />
+        <p class="hint" style="display:none">Tu wklej screen ekranu ukończenia.</p>
+      </div>
+
+      <h3>5.9 Light mode</h3>
+      <div class="shot">
+        <div class="shot-label">09-light-mode.png</div>
+        <img src="./screenshots/09-light-mode.png" alt="Light mode" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" />
+        <p class="hint" style="display:none">Tu wklej ten sam ekran w jasnym motywie.</p>
+      </div>
+
+      <h2>6. Architektura (skrót)</h2>
+      <div class="arch">src/
+├── app/              router, providery
+├── components/       layout, UI, ikony
+├── domain/           typy i reguły domenowe
+├── features/         home, workouts, builder, player, theme
+├── infrastructure/   localStorage (plany i sesje)
+└── pages/            strony tras</div>
+      <ul>
+        <li>UI nie zawiera logiki czasu ani reguł domenowych w JSX „na sztywno”.</li>
+        <li>Storage implementuje interfejsy repozytoriów.</li>
+        <li>Player ma osobny moduł stanu (nie globalny store).</li>
+        <li>Motywy: tokeny semantyczne CSS + <code>data-theme</code>.</li>
+      </ul>
+
+      <h2>7. Design</h2>
+      <ul>
+        <li>domyślny motyw: ciemny; pełny light mode z persystencją wyboru,</li>
+        <li>akcent marki: crimson,</li>
+        <li>typografia: Inter + Archivo,</li>
+        <li>układ zoptymalizowany pod smartfon, z wersją desktopową.</li>
+      </ul>
+
+      <h2>8. Kolejne etapy</h2>
+      <ul>
+        <li>pełne podsumowanie / feedback po treningu,</li>
+        <li>raport historii,</li>
+        <li>edycja zapisanego planu,</li>
+        <li>Supabase + anonimowa sesja,</li>
+        <li>PWA, gong, Wake Lock (zgodnie ze specyfikacją produktu).</li>
+      </ul>
+
+      <h2>9. Podsumowanie</h2>
+      <p>
+        Demo pokazuje działający rdzeń produktu:
+        <strong>utwórz plan → poprowadź trening timerem → zapisz i przeglądaj historię</strong>,
+        z motywami dark/light oraz interfejsem przygotowanym pod użycie mobilne.
+      </p>
+
+      <div class="footer-note">
+        Pliki: <code>docs/sprawozdanie-demo.html</code> (ta wersja do PDF) ·
+        <code>docs/sprawozdanie-demo.md</code> (wersja tekstowa) ·
+        screeny: <code>docs/screenshots/</code>
+      </div>
+    </article>
+  </div>
+</body>
+</html>
