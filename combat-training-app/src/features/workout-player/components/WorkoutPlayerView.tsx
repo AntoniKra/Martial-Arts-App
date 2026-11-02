@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
@@ -13,6 +13,9 @@ import { WorkoutPlayerNextPreview } from '@/features/workout-player/components/W
 import { useWorkoutSessionAutoSave, type WorkoutSessionSaveState } from '@/features/workout-player/hooks/useWorkoutSessionAutoSave'
 import { useWorkoutSessionRecorder, WORKOUT_SESSION_RECORDER_ERROR_MESSAGE } from '@/features/workout-player/hooks/useWorkoutSessionRecorder'
 import { useWorkoutPlayback } from '@/features/workout-player/hooks/useWorkoutPlayback'
+import { useWorkoutGong } from '@/features/workout-player/hooks/useWorkoutGong'
+import { useWorkoutScreenWakeLock } from '@/features/workout-player/hooks/useWorkoutScreenWakeLock'
+import type { WorkoutPlaybackEvent } from '@/features/workout-player/types/workoutPlaybackEvents.types'
 import type {
   WorkoutPlaybackStep,
   WorkoutPlaybackStepKind,
@@ -254,6 +257,11 @@ function WorkoutPlayerRuntime({
   saveWorkoutSession,
 }: WorkoutPlayerRuntimeProps) {
   const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError } = useWorkoutSessionRecorder(plan, timeline)
+  const { unlockGong, onGongPlaybackEvent } = useWorkoutGong(timeline)
+  const handlePlaybackEvent = useCallback((event: WorkoutPlaybackEvent) => {
+    onPlaybackEvent(event)
+    onGongPlaybackEvent(event)
+  }, [onPlaybackEvent, onGongPlaybackEvent])
   const { saveState, retrySave } = useWorkoutSessionAutoSave({
     completedSession,
     runGeneration,
@@ -271,7 +279,9 @@ function WorkoutPlayerRuntime({
     goToPreviousStep,
     goToNextStep,
     restart,
-  } = useWorkoutPlayback(timeline, { onPlaybackEvent })
+  } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent })
+
+  useWorkoutScreenWakeLock(playback.status !== 'completed')
 
   const [stepAnnouncement, setStepAnnouncement] = useState('')
 
@@ -369,9 +379,15 @@ function WorkoutPlayerRuntime({
           status={playback.status}
           canGoPrevious={canGoPrevious}
           canGoNext={canGoNext}
-          onStart={start}
+          onStart={() => {
+            unlockGong()
+            start()
+          }}
           onPause={pause}
-          onResume={resume}
+          onResume={() => {
+            unlockGong()
+            resume()
+          }}
           onPrevious={() =>
             goToPreviousStep({
               expectedStepIndex: playback.currentStepIndex,
