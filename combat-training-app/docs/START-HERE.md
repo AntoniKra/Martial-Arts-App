@@ -1,39 +1,24 @@
 # START HERE
 
-## Cel tego pakietu
+## Gdzie co jest
 
-Pakiet oddziela zaakceptowany prototyp wizualny od właściwego kodu pracy dyplomowej:
+- `../../AGENTS.md` — zasady pracy dla wszystkich agentów i ludzi. Przeczytaj najpierw.
+- `thesis-card.md` — karta tematu pracy, dokument nadrzędny.
+- `mvp-scope.md` i `backlog.md` — zakres wersji finalnej i priorytety.
+- `adr/` — decyzje architektoniczne z uzasadnieniem.
+- `../../_DO_NOT_EDIT_figma-reference` — wzorzec wizualny, tylko do odczytu.
 
-- `../_DO_NOT_EDIT_figma-reference` — tylko do odczytu;
-- `combat-training-app` — jedyne miejsce implementacji;
-- `docs` — źródło prawdy o produkcie;
-- `.cursor/rules` — krótkie instrukcje operacyjne dla Agenta.
+## Etap projektu
 
-## Kolejność pracy
-
-1. Zweryfikuj audyt prototypu w `figma-audit.md`.
-2. Uruchom czysty projekt i sprawdź `typecheck` oraz `build`.
-3. Przenieś design system i podstawowe komponenty UI.
-4. Migrację wykonuj ekran po ekranie z danymi demonstracyjnymi.
-5. Dopiero po zatwierdzeniu wyglądu dodawaj Supabase i logikę domenową.
-6. Timer, gong, Wake Lock i zapis wykonania implementuj od nowa.
+Migracja ekranów z prototypu Figmy jest zakończona (MVP, lipiec 2026). Teraz budujemy wersję finalną zgodną z kartą tematu: Supabase z logowaniem, dziennik z trzema sposobami dodania treningu, cele, profil zawodnika, jasny motyw, PWA, wdrożenie i testy do rozdziału 5 pracy.
 
 ## Dokumenty obowiązkowe przed zmianą danego obszaru
 
 - zakres: `mvp-scope.md`;
-- model treningu: `domain-model.md`;
+- model treningu: `domain-model.md` i `domain-glossary.md`;
 - kreator: `workout-builder-spec.md`;
 - odtwarzacz: `workout-player-spec.md`;
 - oceny: `feedback-system.md`;
 - design: `design-system.md`;
-- baza: `database-model.md`;
+- baza: `database-model.md` i `adr/`;
 - architektura: `architecture.md`.
-
-## Decyzje nieblokujące, pozostawione na później
-
-- nazwa i logotyp aplikacji;
-- pełny light mode po ustabilizowaniu dark mode;
-- trening siłowy z seriami, ciężarem i powtórzeniami;
-- kreator kombinacji z pojedynczych technik;
-- cele, profil, waga i wykresy;
-- zaawansowane porównywanie postępów.

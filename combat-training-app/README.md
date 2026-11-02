@@ -1,28 +1,31 @@
-# Combat Training App — czysty projekt produkcyjny
+# Combat Training App
 
-Ten katalog jest właściwą aplikacją MVP. Folder `../_DO_NOT_EDIT_figma-reference` jest wyłącznie wzorcem wizualnym i behawioralnym.
+Progresywna aplikacja internetowa (PWA) do ewidencji i analizy treningów sportów walki: boks, kickboxing, Muay Thai, K-1 i MMA w stójce. Aplikacja powstaje w ramach pracy inżynierskiej. Temat i wymagania opisuje `docs/thesis-card.md`.
 
-## Najważniejsze zasady
-
-- Nie modyfikuj folderu referencyjnego Figmy.
-- Najpierw odwzoruj zaakceptowany wygląd, później wymieniaj logikę prototypową.
-- Kod, nazwy plików i baza danych są po angielsku.
-- Interfejs MVP jest po polsku.
-- Dokumentacja decyzji produktowych znajduje się w `docs/`.
-- Reguły pracy Cursora znajdują się w `.cursor/rules/`.
+Stos: React, TypeScript, Vite, Tailwind CSS, docelowo Supabase.
 
 ## Uruchomienie
 
+Wymagany Node.js 22 i npm.
+
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-W projekcie produkcyjnym stosuj konsekwentnie npm. Plik `pnpm-lock.yaml` znajdujący się w folderze referencyjnym należy do prototypu Figmy.
+## Sprawdzanie jakości
 
-## Pierwsze kroki w Cursorze
+```bash
+npm run typecheck   # TypeScript
+npm run lint        # ESLint
+npm test            # testy jednostkowe (Vitest)
+npm run build       # build produkcyjny
+```
 
-1. Otwórz folder nadrzędny `combat-training-workspace`.
-2. Poproś Cursor o przeczytanie `combat-training-app/docs/START-HERE.md`.
-3. Użyj pierwszego promptu z `docs/cursor-first-prompts.md`.
-4. Nie pozwalaj na jednoczesną migrację wielu ekranów.
+Te same kroki uruchamia CI przy każdym pull requeście.
+
+## Zasady pracy
+
+- Zasady dla agentów i ludzi: `../AGENTS.md`.
+- Dokumentacja produktu i decyzje: `docs/` (zacznij od `docs/START-HERE.md`).
+- Kod, nazwy i baza danych są po angielsku, interfejs po polsku.
