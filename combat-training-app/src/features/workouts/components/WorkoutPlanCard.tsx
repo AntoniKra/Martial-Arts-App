@@ -3,21 +3,42 @@ import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { getButtonClassName } from '@/components/ui/Button'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
+import { polishPlural } from '@/domain/language/polishPlural'
 import type { WorkoutPlanListItem } from '@/features/workouts/types/workoutsView.types'
 
 interface WorkoutPlanCardProps {
   plan: WorkoutPlanListItem
 }
 
-const statItems = [
-  { key: 'exercises', label: 'ćwiczenia', value: (plan: WorkoutPlanListItem) => plan.exerciseCount },
-  { key: 'rounds', label: 'rundy', value: (plan: WorkoutPlanListItem) => plan.roundCount },
-  {
-    key: 'minutes',
-    label: 'min',
-    value: (plan: WorkoutPlanListItem) => `~${plan.estimatedMinutes} min`,
-  },
-] as const
+interface PlanStat {
+  key: string
+  termPl: string
+  value: string
+  unitPl: string | null
+}
+
+function getPlanStats(plan: WorkoutPlanListItem): PlanStat[] {
+  return [
+    {
+      key: 'exercises',
+      termPl: 'Liczba ćwiczeń',
+      value: String(plan.exerciseCount),
+      unitPl: polishPlural(plan.exerciseCount, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń'),
+    },
+    {
+      key: 'rounds',
+      termPl: 'Liczba rund',
+      value: String(plan.roundCount),
+      unitPl: polishPlural(plan.roundCount, 'runda', 'rundy', 'rund'),
+    },
+    {
+      key: 'minutes',
+      termPl: 'Szacowany czas',
+      value: `~${plan.estimatedMinutes} min`,
+      unitPl: null,
+    },
+  ]
+}
 
 export function WorkoutPlanCard({ plan }: WorkoutPlanCardProps) {
   return (
@@ -29,18 +50,12 @@ export function WorkoutPlanCard({ plan }: WorkoutPlanCardProps) {
           <p className="mt-0.5 text-[12px] leading-snug text-muted">{plan.goal}</p>
         ) : null}
         <dl className="mt-3 flex gap-4 font-display text-[11px] text-muted">
-          {statItems.map((item) => (
-            <div key={item.key}>
-              <dt className="sr-only">{item.label}</dt>
+          {getPlanStats(plan).map((stat) => (
+            <div key={stat.key}>
+              <dt className="sr-only">{stat.termPl}</dt>
               <dd>
-                {item.key === 'minutes' ? (
-                  <span className="font-semibold tabular-nums text-ink">{item.value(plan)}</span>
-                ) : (
-                  <>
-                    <span className="font-semibold tabular-nums text-ink">{item.value(plan)}</span>{' '}
-                    {item.label}
-                  </>
-                )}
+                <span className="font-semibold tabular-nums text-ink">{stat.value}</span>
+                {stat.unitPl ? ` ${stat.unitPl}` : null}
               </dd>
             </div>
           ))}

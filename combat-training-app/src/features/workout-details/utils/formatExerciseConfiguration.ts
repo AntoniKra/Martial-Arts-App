@@ -1,6 +1,6 @@
 import type { WorkoutExercise } from '@/domain/workout/workout.types'
 import { formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
-import { formatPolishCount } from '@/features/workout-builder/utils/polishPlural'
+import { formatPolishCount } from '@/domain/language/polishPlural'
 
 function formatRoundLabel(roundCount: number): string {
   return formatPolishCount(roundCount, 'runda', 'rundy', 'rund')

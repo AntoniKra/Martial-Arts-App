@@ -14,7 +14,7 @@ import type {
   WorkoutBuilderState,
 } from '@/features/workout-builder/state/workoutBuilder.types'
 import { formatEstimatedDuration } from '@/features/workout-builder/utils/formatDuration'
-import { polishPlural } from '@/features/workout-builder/utils/polishPlural'
+import { polishPlural } from '@/domain/language/polishPlural'
 import type { WorkoutBlock } from '@/domain/workout/workout.types'
 
 interface WorkoutTimelineProps {

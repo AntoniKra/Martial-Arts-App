@@ -15,7 +15,7 @@ import {
   canMoveItemUp,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
 import { formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
-import { formatPolishCount } from '@/features/workout-builder/utils/polishPlural'
+import { formatPolishCount } from '@/domain/language/polishPlural'
 
 interface WorkoutExerciseCardProps {
   blockId: string

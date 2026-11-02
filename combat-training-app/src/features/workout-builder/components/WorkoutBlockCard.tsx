@@ -24,7 +24,7 @@ import {
   canMoveBlockDown,
   canMoveBlockUp,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
-import { formatPolishCount } from '@/features/workout-builder/utils/polishPlural'
+import { formatPolishCount } from '@/domain/language/polishPlural'
 
 interface WorkoutBlockCardProps {
   block: WorkoutBlock
@@ -45,8 +45,14 @@ interface WorkoutBlockCardProps {
   registerEditExerciseButtonRef: (exerciseId: string) => (element: HTMLButtonElement | null) => void
 }
 
+/** "blok 1 — Technika" for accusative use ("Przenieś blok 1"). */
 function formatBlockDescriptor(position: number, blockLabel: string): string {
   return `blok ${position} — ${blockLabel}`
+}
+
+/** "bloku 1 — Technika" for genitive use ("Dodaj ćwiczenie do bloku 1"). */
+function formatBlockDescriptorGenitive(position: number, blockLabel: string): string {
+  return `bloku ${position} — ${blockLabel}`
 }
 
 export function WorkoutBlockCard({
@@ -70,6 +76,7 @@ export function WorkoutBlockCard({
   const addExerciseHintId = useId()
   const blockLabel = getWorkoutBlockLabelPl(block.blockType)
   const blockDescriptor = formatBlockDescriptor(position, blockLabel)
+  const blockDescriptorGenitive = formatBlockDescriptorGenitive(position, blockLabel)
   const canMoveUp = canMoveBlockUp(allBlocks, block.id)
   const canMoveDown = canMoveBlockDown(allBlocks, block.id)
   const isEmpty = block.items.length === 0
@@ -147,7 +154,7 @@ export function WorkoutBlockCard({
               type="button"
               size="sm"
               variant="danger"
-              aria-label={`Potwierdź usunięcie ${blockDescriptor}`}
+              aria-label={`Potwierdź usunięcie ${blockDescriptorGenitive}`}
               onClick={() => {
                 dispatch({ type: 'removeBlock', blockId: block.id })
                 onCloseInlinePanel({ type: 'addBlock' })
@@ -160,7 +167,7 @@ export function WorkoutBlockCard({
       ) : null}
 
       {block.items.length > 0 ? (
-        <ul aria-label={`Elementy ${blockDescriptor}`}>
+        <ul aria-label={`Elementy ${blockDescriptorGenitive}`}>
           {block.items.map((item, itemIndex) => {
             if (item.type === 'break') {
               return (
@@ -207,7 +214,7 @@ export function WorkoutBlockCard({
           ref={registerAddExerciseButtonRef}
           type="button"
           disabled={!canAddExercise}
-          aria-label={`Dodaj ćwiczenie do ${blockDescriptor}`}
+          aria-label={`Dodaj ćwiczenie do ${blockDescriptorGenitive}`}
           aria-describedby={canAddExercise ? undefined : addExerciseHintId}
           onClick={() => onOpenExerciseLibrary(block.id)}
           className="flex min-h-touch w-full items-center justify-center gap-2 px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:bg-elevated hover:text-ink disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent disabled:hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--app-focus-ring)]"
@@ -240,7 +247,7 @@ export function WorkoutBlockCard({
           <button
             ref={registerAddBreakButtonRef}
             type="button"
-            aria-label={`Dodaj przerwę do ${blockDescriptor}`}
+            aria-label={`Dodaj przerwę do ${blockDescriptorGenitive}`}
             onClick={() => onOpenInlinePanel({ type: 'addBreak', blockId: block.id })}
             className="flex min-h-touch w-full items-center justify-center gap-2 border-t border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:bg-elevated hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--app-focus-ring)]"
           >
