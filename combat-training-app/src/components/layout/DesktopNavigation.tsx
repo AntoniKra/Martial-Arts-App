@@ -1,11 +1,12 @@
 import { primaryNavigationItems } from '@/components/layout/navigationConfig'
 import { NavigationLink } from '@/components/layout/NavigationLink'
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
 
 export function DesktopNavigation() {
   return (
     <nav
       aria-label="Główna nawigacja"
-      className="hidden w-56 shrink-0 border-r border-bd bg-surface md:flex md:flex-col md:px-3 md:py-6"
+      className="hidden w-56 shrink-0 border-r border-bd bg-surface md:flex md:min-h-dvh md:flex-col md:px-3 md:py-6"
     >
       <p className="mb-4 px-3 font-display text-[10px] font-semibold uppercase tracking-[0.18em] text-faint">
         Nawigacja
@@ -14,6 +15,9 @@ export function DesktopNavigation() {
         {primaryNavigationItems.map((item) => (
           <NavigationLink key={item.id} item={item} variant="desktop" />
         ))}
+      </div>
+      <div className="mt-auto px-3 pt-6">
+        <ThemeToggle />
       </div>
     </nav>
   )
