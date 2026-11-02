@@ -9,14 +9,14 @@ import { HomeSectionLabel } from '@/features/home/components/HomeSectionLabel'
 import { RecentSessionCard } from '@/features/home/components/RecentSessionCard'
 import type {
   FeaturedWorkoutPlanLoadState,
-  HomeRecentSession,
+  RecentWorkoutSessionsLoadState,
 } from '@/features/home/types/homeView.types'
 
 interface HomeViewProps {
-  sessionLabelPl: string
   featuredPlanLoadState: FeaturedWorkoutPlanLoadState
-  recentSessions: HomeRecentSession[]
+  recentSessionsLoadState: RecentWorkoutSessionsLoadState
   onRetryLoadFeaturedPlan: () => void
+  onRetryLoadRecentSessions: () => void
 }
 
 function FeaturedPlanLoadingState() {
@@ -73,10 +73,10 @@ function FeaturedPlanEmptyState() {
 }
 
 export function HomeView({
-  sessionLabelPl,
   featuredPlanLoadState,
-  recentSessions,
+  recentSessionsLoadState,
   onRetryLoadFeaturedPlan,
+  onRetryLoadRecentSessions,
 }: HomeViewProps) {
   const isEmptyPlanState =
     featuredPlanLoadState.status === 'success' && featuredPlanLoadState.plan === null
@@ -102,11 +102,62 @@ export function HomeView({
     return <FeaturedPlanCard plan={featuredPlanLoadState.plan} />
   }
 
+  function renderRecentSessionsSection() {
+    if (recentSessionsLoadState.status === 'loading') {
+      return (
+        <p
+          className="border border-bd bg-surface px-6 py-12 text-center text-[13px] text-muted"
+          role="status"
+          aria-live="polite"
+        >
+          Ładowanie sesji…
+        </p>
+      )
+    }
+
+    if (recentSessionsLoadState.status === 'error') {
+      return (
+        <div
+          className="flex flex-col items-center border border-bd bg-surface px-6 py-12 text-center"
+          role="alert"
+        >
+          <h3 className="font-display text-[15px] font-semibold text-ink">Nie udało się wczytać sesji</h3>
+          <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted">
+            {recentSessionsLoadState.message}
+          </p>
+          <button
+            type="button"
+            onClick={onRetryLoadRecentSessions}
+            className={getButtonClassName({ variant: 'primary', size: 'md', className: 'mt-5' })}
+          >
+            Spróbuj ponownie
+          </button>
+        </div>
+      )
+    }
+
+    if (recentSessionsLoadState.sessions.length === 0) {
+      return (
+        <p className="border border-bd bg-surface px-6 py-12 text-center text-[13px] leading-relaxed text-muted">
+          Nie masz jeszcze ukończonych treningów. Rozpocznij pierwszy trening, aby zobaczyć go tutaj.
+        </p>
+      )
+    }
+
+    return (
+      <div className="space-y-2">
+        {recentSessionsLoadState.sessions.map((session) => (
+          <RecentSessionCard key={session.id} session={session} />
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="mx-auto w-full max-w-lg space-y-6 px-4 pb-4 pt-6 md:max-w-4xl md:pb-6 md:pt-2">
         <header>
-          <HomeSectionLabel>{sessionLabelPl}</HomeSectionLabel>
+          <HomeSectionLabel>Sesja treningowa</HomeSectionLabel>
           <h1 className="mt-1 font-display text-[28px] font-bold leading-tight text-ink md:text-[32px]">
             Gotowy do treningu?
           </h1>
@@ -130,26 +181,20 @@ export function HomeView({
             )}
           </div>
 
-          {recentSessions.length > 0 ? (
-            <section aria-labelledby="home-recent-sessions-heading">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 id="home-recent-sessions-heading">
-                  <HomeSectionLabel>Ostatnie sesje</HomeSectionLabel>
-                </h2>
-                <Link
-                  to={routes.workouts}
-                  className="inline-flex min-h-touch items-center px-2 font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-crimson hover:text-crimson-hi focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-                >
-                  Zobacz wszystkie
-                </Link>
-              </div>
-              <div className="space-y-2">
-                {recentSessions.map((session) => (
-                  <RecentSessionCard key={session.id} session={session} />
-                ))}
-              </div>
-            </section>
-          ) : null}
+          <section aria-labelledby="home-recent-sessions-heading">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 id="home-recent-sessions-heading">
+                <HomeSectionLabel>Ostatnie sesje</HomeSectionLabel>
+              </h2>
+              <Link
+                to={routes.workouts}
+                className="inline-flex min-h-touch items-center px-2 font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-crimson hover:text-crimson-hi focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+              >
+                Zobacz wszystkie
+              </Link>
+            </div>
+            {renderRecentSessionsSection()}
+          </section>
         </div>
       </div>
     </div>

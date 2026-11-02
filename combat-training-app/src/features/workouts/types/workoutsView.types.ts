@@ -52,7 +52,3 @@ export type WorkoutHistoryLoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'success'; sessions: WorkoutHistoryListItem[] }
-
-export interface WorkoutsViewData {
-  plans: WorkoutPlanListItem[]
-}

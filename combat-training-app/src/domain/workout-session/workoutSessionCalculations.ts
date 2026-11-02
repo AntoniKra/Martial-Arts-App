@@ -10,6 +10,9 @@ export interface WorkoutSessionSummary {
   completedExerciseStepCount: number
   partialExerciseStepCount: number
   skippedExerciseStepCount: number
+  plannedExerciseCount: number
+  completedExerciseCount: number
+  exerciseCompletionPercent: number
   plannedRoundCount: number
   completedRoundCount: number
 }
@@ -39,6 +42,7 @@ export function calculateWorkoutSessionSummary(session: WorkoutSession): Workout
   let plannedRoundCount = 0
   let completedRoundCount = 0
   let activeDurationSeconds = 0
+  const exerciseCompletion = new Map<string, boolean>()
 
   for (const step of stepResults) {
     activeDurationSeconds += step.performedDurationSeconds
@@ -57,6 +61,10 @@ export function calculateWorkoutSessionSummary(session: WorkoutSession): Workout
 
     if (isExerciseStep(step)) {
       plannedExerciseStepCount += 1
+      exerciseCompletion.set(
+        step.workoutItemId,
+        (exerciseCompletion.get(step.workoutItemId) ?? true) && step.outcome === 'completed',
+      )
 
       switch (step.outcome) {
         case 'completed':
@@ -80,6 +88,9 @@ export function calculateWorkoutSessionSummary(session: WorkoutSession): Workout
     }
   }
 
+  const plannedExerciseCount = exerciseCompletion.size
+  const completedExerciseCount = [...exerciseCompletion.values()].filter(Boolean).length
+
   return {
     activeDurationSeconds,
     plannedStepCount: stepResults.length,
@@ -90,6 +101,10 @@ export function calculateWorkoutSessionSummary(session: WorkoutSession): Workout
     completedExerciseStepCount,
     partialExerciseStepCount,
     skippedExerciseStepCount,
+    plannedExerciseCount,
+    completedExerciseCount,
+    exerciseCompletionPercent:
+      plannedExerciseCount > 0 ? Math.round((completedExerciseCount / plannedExerciseCount) * 100) : 0,
     plannedRoundCount,
     completedRoundCount,
   }
