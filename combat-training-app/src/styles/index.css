@@ -16,10 +16,11 @@
   --color-crimson-hi: var(--app-crimson-hi);
   --color-on-accent: var(--app-on-accent);
   --color-input: var(--app-input);
-  --color-disabled: var(--app-disabled);
-  --color-success: var(--app-success);
-  --color-warning: var(--app-warning);
-  --color-danger: var(--app-danger);
+  --color-discipline-boxing: var(--app-discipline-boxing);
+  --color-discipline-kickboxing: var(--app-discipline-kickboxing);
+  --color-discipline-muay-thai: var(--app-discipline-muay-thai);
+  --color-discipline-k1: var(--app-discipline-k1);
+  --color-discipline-mma-striking: var(--app-discipline-mma-striking);
 
   --radius-none: 0;
   --radius-sm: var(--app-radius-sm);
@@ -40,13 +41,12 @@
   --app-crimson-hi: #d91535;
   --app-on-accent: #f4f4f1;
   --app-input: #1d1d20;
-  --app-disabled: #525255;
-  --app-success: #3d7a4a;
-  --app-warning: #a67c2e;
-  --app-danger: #c1122f;
   --app-focus-ring: #c1122f;
-  --app-overlay: rgb(11 11 13 / 72%);
-  --app-shadow: 0 8px 24px rgb(0 0 0 / 32%);
+  --app-discipline-boxing: #e8a030;
+  --app-discipline-kickboxing: #6baf8a;
+  --app-discipline-muay-thai: #f06b82;
+  --app-discipline-k1: #7b9fd4;
+  --app-discipline-mma-striking: #a7a7aa;
   --app-radius-sm: 4px;
   --app-touch-min: 2.75rem;
 }
@@ -59,18 +59,17 @@
   --app-border: #c9c9c5;
   --app-ink: #111113;
   --app-muted: #5f5f63;
-  --app-faint: #8c8c90;
+  --app-faint: #66666a;
   --app-crimson: #b5122b;
   --app-crimson-hi: #c1122f;
   --app-on-accent: #f4f4f1;
   --app-input: #ffffff;
-  --app-disabled: #b0b0b4;
-  --app-success: #2f6b3c;
-  --app-warning: #8a6418;
-  --app-danger: #b5122b;
   --app-focus-ring: #b5122b;
-  --app-overlay: rgb(17 17 19 / 40%);
-  --app-shadow: 0 8px 24px rgb(17 17 19 / 12%);
+  --app-discipline-boxing: #87520c;
+  --app-discipline-kickboxing: #286243;
+  --app-discipline-muay-thai: #b5122b;
+  --app-discipline-k1: #365d91;
+  --app-discipline-mma-striking: #5f5f63;
 }
 
 html {

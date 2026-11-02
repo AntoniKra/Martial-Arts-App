@@ -1,19 +1,27 @@
-import { useCallback, useState, type PropsWithChildren } from 'react'
+import { useCallback, useLayoutEffect, useState, useSyncExternalStore, type PropsWithChildren } from 'react'
 
 import { ThemeContext } from '@/features/theme/themeContext'
 import {
   applyThemeToDocument,
   persistThemeMode,
-  readThemeModeFromDocument,
+  readStoredThemeMode,
+  readSystemThemeMode,
+  resolveThemeMode,
+  subscribeToSystemTheme,
 } from '@/features/theme/themeStorage'
 import type { ThemeMode } from '@/features/theme/theme.types'
 
 export function ThemeProvider({ children }: PropsWithChildren) {
-  const [theme, setThemeState] = useState<ThemeMode>(readThemeModeFromDocument)
+  const [preference, setPreference] = useState<ThemeMode | null>(readStoredThemeMode)
+  const systemTheme = useSyncExternalStore(subscribeToSystemTheme, readSystemThemeMode)
+  const theme = resolveThemeMode(preference, systemTheme)
+
+  useLayoutEffect(() => {
+    applyThemeToDocument(theme)
+  }, [theme])
 
   const setTheme = useCallback((mode: ThemeMode) => {
-    setThemeState(mode)
-    applyThemeToDocument(mode)
+    setPreference(mode)
     persistThemeMode(mode)
   }, [])
 
