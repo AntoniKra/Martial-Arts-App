@@ -59,7 +59,7 @@ Każdy przeniesiony fragment należy rozdzielić na komponenty oraz przetłumacz
 ## Logika, którą należy napisać od nowa
 
 - routing oparty obecnie o pojedynczy stan `screen`;
-- Supabase i anonimowe konto;
+- Supabase i logowanie;
 - model danych i repozytoria;
 - walidacja;
 - timer oparty obecnie na `setTimeout(... - 1)`;

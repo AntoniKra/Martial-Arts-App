@@ -7,6 +7,8 @@
 
 > Uzupełnij przed oddaniem: **Imię i nazwisko**, **nr albumu**, **uczelnia**, **data**.
 
+> **Dokument historyczny.** Ten plik i wersja `sprawozdanie-demo.html` opisują stan dema z 26 lipca 2026. Od tego czasu zamiast anonimowego konta przyjęto logowanie e-mailem i hasłem oraz kontem Google (`adr/0002-email-password-and-google-auth.md`), a gong, Wake Lock (PR #10) i PWA (PR #13, `adr/0003-pwa-with-vite-plugin-pwa.md`) są gotowe. Aktualny zakres: `mvp-scope.md` i `backlog.md`.
+
 ---
 
 ## 1. Cel projektu

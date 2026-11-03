@@ -1,6 +1,6 @@
 # Supabase integration
 
-Implementacja zostanie dodana po migracji ekranów na dane demonstracyjne.
+Implementacja zostanie dodana razem z logowaniem i pierwszymi migracjami.
 
 Docelowo katalog zawiera:
 
@@ -8,6 +8,6 @@ Docelowo katalog zawiera:
 - wygenerowane typy bazy;
 - mapowanie błędów;
 - repozytoria danych;
-- anonymous auth bootstrap.
+- obsługę sesji zalogowanego użytkownika (Supabase Auth: e-mail i hasło oraz Google, zob. `docs/adr/0002-email-password-and-google-auth.md`).
 
 Nie wykonuj surowych zapytań Supabase w komponentach React.
