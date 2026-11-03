@@ -26,11 +26,14 @@ Te same kroki uruchamia CI przy każdym pull requeście.
 
 ## Testy przeglądarkowe (E2E)
 
-Po `npm ci`, z katalogu `combat-training-app/`:
+Z katalogu `combat-training-app/`, w PowerShell:
 
-```bash
-npx playwright install --with-deps chromium
-npm run test:e2e
+```powershell
+& {
+  npm ci
+  npx playwright install --with-deps chromium
+  npm run test:e2e
+}
 ```
 
 Playwright sam buduje aplikację i uruchamia `vite preview` pod adresem
