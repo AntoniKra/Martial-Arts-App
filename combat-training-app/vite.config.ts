@@ -8,9 +8,13 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), VitePWA({
     registerType: 'prompt',
     devOptions: { enabled: false },
+    // The icons are already precached by globPatterns below, so do not list them twice.
+    includeManifestIcons: false,
     manifest: {
+      id: '/',
       name: 'Combat Training',
       short_name: 'Combat Training',
+      description: 'Planowanie i analiza treningów sportów walki',
       lang: 'pl',
       display: 'standalone',
       start_url: '/',
@@ -25,6 +29,9 @@ export default defineConfig({
     },
     workbox: {
       globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2}'],
+      // Polish text needs only the latin and latin-ext font subsets. Other subsets still load from the
+      // network when a page uses them, but they are not downloaded up front for offline use.
+      globIgnores: ['**/*-{cyrillic,greek,vietnamese}-*.woff2'],
       navigateFallback: '/index.html',
       cleanupOutdatedCaches: true,
       clientsClaim: true,
