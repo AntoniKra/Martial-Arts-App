@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,100..900;1,75..125,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import '@fontsource-variable/archivo';
+@import '@fontsource-variable/inter/opsz.css';
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  --font-display: 'Archivo Variable', system-ui, -apple-system, sans-serif;
 
   --color-bg: var(--app-bg);
   --color-surface: var(--app-surface);
