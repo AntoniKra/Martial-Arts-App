@@ -6,6 +6,7 @@ import { getButtonClassName } from '@/components/ui/Button'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
+import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 import { WorkoutHistoryCard } from '@/features/workouts/components/WorkoutHistoryCard'
 import { WorkoutPlanCard } from '@/features/workouts/components/WorkoutPlanCard'
 import { WorkoutsEmptyState } from '@/features/workouts/components/WorkoutsEmptyState'
@@ -23,6 +24,7 @@ import {
 } from '@/features/workouts/utils/workoutsFilters'
 
 interface WorkoutsViewProps {
+  planDeleted?: boolean
   plansLoadState: WorkoutPlansLoadState
   historyLoadState: WorkoutHistoryLoadState
   onRetryLoadPlans: () => void
@@ -98,6 +100,7 @@ function WorkoutHistoryErrorState({ message, onRetry }: WorkoutHistoryErrorState
 }
 
 export function WorkoutsView({
+  planDeleted = false,
   plansLoadState,
   historyLoadState,
   onRetryLoadPlans,
@@ -229,6 +232,11 @@ export function WorkoutsView({
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="mx-auto w-full max-w-lg shrink-0 px-4 pt-6 md:max-w-4xl md:pt-2">
         <h1 className="font-display text-[24px] font-bold text-ink md:text-[28px]">Treningi</h1>
+        {planDeleted ? (
+          <p role="status" className="mt-3 border border-bd bg-surface px-3 py-3 text-[13px] text-ink">
+            {workoutPlanLabels.deleted}
+          </p>
+        ) : null}
         <div className="mt-4">
           <SegmentedControl
             ariaLabel="Zakładki ekranu treningów"

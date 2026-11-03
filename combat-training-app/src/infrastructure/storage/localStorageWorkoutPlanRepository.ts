@@ -65,6 +65,19 @@ export class LocalStorageWorkoutPlanRepository implements WorkoutPlanRepository 
     return plan ? cloneWorkoutPlan(plan) : null
   }
 
+  async delete(id: string): Promise<void> {
+    const envelope = this.readEnvelope()
+
+    if (!envelope.plans.some((plan) => plan.id === id)) {
+      return
+    }
+
+    this.writeEnvelope({
+      schemaVersion: 1,
+      plans: envelope.plans.filter((plan) => plan.id !== id),
+    })
+  }
+
   private readEnvelope(): WorkoutPlanStorageEnvelopeV1 {
     let rawValue: string | null
 

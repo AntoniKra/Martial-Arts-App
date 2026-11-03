@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
 import { createWorkoutPlanRepository } from '@/app/createWorkoutPlanRepository'
 import { createWorkoutSessionRepository } from '@/app/createWorkoutSessionRepository'
@@ -16,6 +17,10 @@ import type {
 import { normalizeWorkoutHistoryNote } from '@/features/workouts/utils/normalizeWorkoutHistoryNote'
 
 export function WorkoutsPage() {
+  const location = useLocation()
+  const navigationState: unknown = location.state
+  const planDeleted = typeof navigationState === 'object' && navigationState !== null &&
+    'planDeleted' in navigationState && navigationState.planDeleted === true
   const [workoutPlanRepository] = useState(createWorkoutPlanRepository)
   const [workoutSessionRepository] = useState(createWorkoutSessionRepository)
   const [plansLoadState, setPlansLoadState] = useState<WorkoutPlansLoadState>({ status: 'loading' })
@@ -264,6 +269,7 @@ export function WorkoutsPage() {
 
   return (
     <WorkoutsView
+      planDeleted={planDeleted}
       plansLoadState={plansLoadState}
       historyLoadState={historyLoadState}
       onRetryLoadPlans={handleRetryLoadPlans}

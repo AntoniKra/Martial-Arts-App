@@ -20,6 +20,10 @@ class UnavailableStorageWorkoutPlanRepository implements WorkoutPlanRepository {
   getById(_id: string): Promise<WorkoutPlan | null> {
     return Promise.reject(this.error)
   }
+
+  delete(_id: string): Promise<void> {
+    return Promise.reject(this.error)
+  }
 }
 
 export function createWorkoutPlanRepository(): WorkoutPlanRepository {
