@@ -2,17 +2,19 @@
 
 Kolejność odpowiada priorytetom z `mvp-scope.md`. Każda pozycja to osobna gałąź i pull request.
 
+> Priorytety P0 i P1 zostaną uporządkowane po drugiej rundzie ustaleń. Propozycje zmian zawiera audyt `reviews/2026-11-02-astra-audit.md`.
+
 ## P0: rdzeń
 
-1. Strona główna z prawdziwą historią zamiast danych przykładowych i poprawny licznik ćwiczeń w historii.
+1. ~~Strona główna z prawdziwą historią zamiast danych przykładowych i poprawny licznik ćwiczeń w historii.~~ Zrobione w PR #7.
 2. Supabase: schemat, migracje, RLS i repozytoria zamiast localStorage.
 3. Rejestracja, logowanie, reset hasła i logowanie kontem Google.
 4. Dziennik: ręczny wpis treningu i edycja wpisu.
 5. Cele z paskiem postępu.
 6. Profil zawodnika: waga i statystyki.
-7. Szybki stoper, gong i Wake Lock.
-8. Jasny motyw z przełącznikiem.
-9. PWA i wdrożenie z publicznym linkiem.
+7. Szybki stoper. Gong i Wake Lock zrobione w PR #10.
+8. ~~Jasny motyw z przełącznikiem.~~ Zrobione w PR #8.
+9. Wdrożenie z publicznym linkiem. PWA zrobione w PR #13.
 10. Testy E2E na trzech rozdzielczościach.
 11. Testy do rozdziału 5: Lighthouse, SUS, dokładność timera, RLS.
 
