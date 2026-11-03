@@ -132,7 +132,7 @@ export function WorkoutBlockCard({
           {!isConfirmingDelete ? (
             <MoveIconButton
               label={`Usuń blok ${position} — ${blockLabel}`}
-              className="hover:text-crimson"
+              className="hover:text-crimson-ink"
               onClick={handleDelete}
             >
               <TrashIcon />
@@ -154,7 +154,7 @@ export function WorkoutBlockCard({
               type="button"
               size="sm"
               variant="danger"
-              aria-label={`Potwierdź usunięcie ${blockDescriptorGenitive}`}
+              aria-label={`Usuń ${blockDescriptor}`}
               onClick={() => {
                 dispatch({ type: 'removeBlock', blockId: block.id })
                 onCloseInlinePanel({ type: 'addBlock' })

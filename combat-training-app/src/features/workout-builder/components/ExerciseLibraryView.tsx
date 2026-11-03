@@ -200,7 +200,7 @@ export function ExerciseLibraryView({
                   }}
                 />
                 {customNameError ? (
-                  <p id={customNameErrorId} className="mt-2 text-[13px] leading-relaxed text-crimson">
+                  <p id={customNameErrorId} className="mt-2 text-[13px] leading-relaxed text-crimson-ink">
                     {customNameError}
                   </p>
                 ) : null}

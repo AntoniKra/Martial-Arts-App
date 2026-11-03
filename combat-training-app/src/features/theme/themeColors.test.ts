@@ -33,6 +33,18 @@ function luminance(hex: string): number {
   return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
 }
 
+const textTokens = ['ink', 'muted', 'faint', 'crimson-ink'] as const
+const surfaces = ['bg', 'surface', 'elevated', 'input'] as const
+
+/** Colour of a semi-transparent foreground (e.g. `bg-crimson/10`) laid over an opaque background. */
+function blend(foreground: string, background: string, alpha: number): string {
+  const channel = (hex: string, start: number) => parseInt(hex.slice(start, start + 2), 16)
+  return `#${[1, 3, 5]
+    .map((start) => Math.round(alpha * channel(foreground, start) + (1 - alpha) * channel(background, start)))
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('')}`
+}
+
 function contrast(foreground: string, background: string): number {
   const first = luminance(foreground)
   const second = luminance(background)
@@ -59,11 +71,32 @@ describe.each(['dark', 'light'] as const)('%s theme colours', (mode) => {
   it('matches the browser bar to the page background', () => {
     expect(THEME_COLOR_BY_MODE[mode].toLowerCase()).toBe(getToken(mode, 'bg'))
   })
+
+  it.each(textTokens)('keeps %s text at least 4.5:1 on every surface', (token) => {
+    for (const background of surfaces) {
+      expect(contrast(getToken(mode, token), getToken(mode, background)), background).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('keeps red text readable on the tinted danger button, also on hover', () => {
+    for (const background of surfaces) {
+      for (const alpha of [0.1, 0.2]) {
+        const tinted = blend(getToken(mode, 'crimson'), getToken(mode, background), alpha)
+        expect(contrast(getToken(mode, 'crimson-ink'), tinted), `${background} ${alpha}`).toBeGreaterThanOrEqual(4.5)
+      }
+    }
+  })
+
+  it('keeps button text readable on the accent, also on hover', () => {
+    for (const accent of ['crimson', 'crimson-hi']) {
+      expect(contrast(getToken(mode, 'on-accent'), getToken(mode, accent)), accent).toBeGreaterThanOrEqual(4.5)
+    }
+  })
 })
 
-it('keeps secondary light-theme labels readable on every surface', () => {
-  for (const background of ['surface', 'elevated', 'bg', 'input']) {
-    expect(contrast(getToken('light', 'faint'), getToken('light', background))).toBeGreaterThanOrEqual(4.5)
+it('uses the text variant of red for text, because the accent is too dark for small text', () => {
+  for (const path of componentFiles(fileURLToPath(new URL('../../', import.meta.url)))) {
+    expect(readFileSync(path, 'utf8'), path).not.toMatch(/(?<![\w-])text-crimson(?![\w/-])/)
   }
 })
 

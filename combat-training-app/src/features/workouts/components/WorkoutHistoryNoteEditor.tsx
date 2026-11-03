@@ -54,7 +54,7 @@ export function WorkoutHistoryNoteEditor({
           id={noteCounterId}
           className={[
             'mt-1 text-right font-display text-[11px] tabular-nums',
-            isOverLimit ? 'text-crimson' : 'text-muted',
+            isOverLimit ? 'text-crimson-ink' : 'text-muted',
           ].join(' ')}
         >
           {value.length}/{WORKOUT_HISTORY_NOTE_MAX_LENGTH}
@@ -62,7 +62,7 @@ export function WorkoutHistoryNoteEditor({
       </div>
 
       {saveError ? (
-        <p className="text-[13px] leading-relaxed text-crimson" role="alert">
+        <p className="text-[13px] leading-relaxed text-crimson-ink" role="alert">
           {saveError}
         </p>
       ) : null}

@@ -188,7 +188,7 @@ export function HomeView({
               </h2>
               <Link
                 to={routes.workouts}
-                className="inline-flex min-h-touch items-center px-2 font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-crimson hover:text-crimson-hi focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+                className="inline-flex min-h-touch items-center px-2 font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-crimson-ink hover:text-crimson-hi focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
               >
                 Zobacz wszystkie
               </Link>

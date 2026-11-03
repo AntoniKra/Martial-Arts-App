@@ -201,7 +201,7 @@ function CustomDurationFields({
         </div>
       </div>
       {errorMessage ? (
-        <p id={errorId} className="text-[13px] leading-relaxed text-crimson">
+        <p id={errorId} className="text-[13px] leading-relaxed text-crimson-ink">
           {errorMessage}
         </p>
       ) : null}
@@ -449,7 +449,7 @@ export function ExerciseConfigurationView({
                     aria-describedby={roundCountError ? roundCountErrorId : undefined}
                   />
                   {roundCountError ? (
-                    <p id={roundCountErrorId} className="mt-2 text-[13px] leading-relaxed text-crimson">
+                    <p id={roundCountErrorId} className="mt-2 text-[13px] leading-relaxed text-crimson-ink">
                       {roundCountError}
                     </p>
                   ) : null}

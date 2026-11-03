@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { Button, getButtonClassName } from '@/components/ui/Button'
@@ -17,6 +17,7 @@ export function WorkoutPlanActions({ editPath, onDelete }: WorkoutPlanActionsPro
   const deleteButtonRef = useRef<HTMLButtonElement>(null)
   const cancelButtonRef = useRef<HTMLButtonElement>(null)
   const errorRef = useRef<HTMLParagraphElement>(null)
+  const warningId = useId()
 
   async function handleDelete() {
     if (inFlightRef.current) return
@@ -47,7 +48,7 @@ export function WorkoutPlanActions({ editPath, onDelete }: WorkoutPlanActionsPro
       </Link>
       {confirming ? (
         <div className="border border-bd bg-bg/40 px-3 py-3" aria-busy={deleting}>
-          <p className="text-[13px] leading-relaxed text-muted">{workoutPlanLabels.deleteWarning}</p>
+          <p id={warningId} className="text-[13px] leading-relaxed text-muted">{workoutPlanLabels.deleteWarning}</p>
           {error ? (
             <p ref={errorRef} role="alert" tabIndex={-1} className="mt-3 text-[13px] text-ink">
               {workoutPlanLabels.deleteFailed}
@@ -71,7 +72,7 @@ export function WorkoutPlanActions({ editPath, onDelete }: WorkoutPlanActionsPro
               variant="danger"
               size="sm"
               loading={deleting}
-              aria-label={workoutPlanLabels.confirmDelete}
+              aria-describedby={warningId}
               onClick={() => { void handleDelete() }}
             >
               {deleting ? workoutPlanLabels.deleting : workoutPlanLabels.delete}

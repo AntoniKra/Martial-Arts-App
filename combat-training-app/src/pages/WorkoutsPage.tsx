@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { createWorkoutPlanRepository } from '@/app/createWorkoutPlanRepository'
 import { createWorkoutSessionRepository } from '@/app/createWorkoutSessionRepository'
@@ -16,11 +16,20 @@ import type {
 } from '@/features/workouts/types/workoutsView.types'
 import { normalizeWorkoutHistoryNote } from '@/features/workouts/utils/normalizeWorkoutHistoryNote'
 
+function isPlanDeletedNavigationState(state: unknown): boolean {
+  return typeof state === 'object' && state !== null && 'planDeleted' in state && state.planDeleted === true
+}
+
 export function WorkoutsPage() {
   const location = useLocation()
-  const navigationState: unknown = location.state
-  const planDeleted = typeof navigationState === 'object' && navigationState !== null &&
-    'planDeleted' in navigationState && navigationState.planDeleted === true
+  const navigate = useNavigate()
+  // Show the deletion notice once, then drop it from browser history so a reload does not repeat it.
+  const [planDeleted] = useState(() => isPlanDeletedNavigationState(location.state))
+  useEffect(() => {
+    if (isPlanDeletedNavigationState(location.state)) {
+      navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
+    }
+  }, [location.pathname, location.search, location.state, navigate])
   const [workoutPlanRepository] = useState(createWorkoutPlanRepository)
   const [workoutSessionRepository] = useState(createWorkoutSessionRepository)
   const [plansLoadState, setPlansLoadState] = useState<WorkoutPlansLoadState>({ status: 'loading' })

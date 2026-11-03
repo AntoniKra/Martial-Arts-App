@@ -176,7 +176,7 @@ function WorkoutPlayerCompletedPanel({
   return (
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-5 safe-area-pt pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
       <div className="shrink-0 border-b border-bd bg-surface px-4 py-3">
-        <p className="font-display text-[10px] font-semibold uppercase tracking-[0.14em] text-crimson">
+        <p className="font-display text-[10px] font-semibold uppercase tracking-[0.14em] text-crimson-ink">
           Trening ukończony
         </p>
         <h1 className="mt-0.5 font-display text-[20px] font-bold text-ink">Trening zakończony</h1>
@@ -301,7 +301,7 @@ function WorkoutPlayerRuntime({
 
   if (isCompleted) {
     return (
-      <div className="flex min-h-dvh flex-col overflow-hidden bg-bg">
+      <main className="flex min-h-dvh flex-col overflow-hidden bg-bg">
         <WorkoutPlayerCompletedPanel
           planName={plan.nameSnapshot}
           workoutDetailsPath={workoutDetailsPath}
@@ -311,7 +311,7 @@ function WorkoutPlayerRuntime({
           onRetrySave={retrySave}
           isRestartDisabled={hasRecorderError || saveState.status !== 'saved'}
         />
-      </div>
+      </main>
     )
   }
 
@@ -322,7 +322,7 @@ function WorkoutPlayerRuntime({
   const stepDurationSeconds = currentStep.durationSeconds
 
   return (
-    <div className="flex min-h-dvh flex-col overflow-hidden bg-bg">
+    <main className="flex min-h-dvh flex-col overflow-hidden bg-bg">
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col safe-area-pt">
         <header className="shrink-0 px-5 pt-5 pb-2">
           <div className="flex items-start justify-between gap-4">
@@ -338,7 +338,7 @@ function WorkoutPlayerRuntime({
             <p className="break-words font-display text-[14px] font-semibold leading-snug text-ink">
               {plan.nameSnapshot}
             </p>
-            <p className="font-display text-[10px] font-semibold uppercase tracking-[0.16em] text-crimson">
+            <p className="font-display text-[10px] font-semibold uppercase tracking-[0.16em] text-crimson-ink">
               Blok <span className="tabular-nums">{currentStep.blockIndex + 1}</span> ·{' '}
               {getWorkoutBlockLabelPl(currentStep.blockType)}
             </p>
@@ -404,7 +404,7 @@ function WorkoutPlayerRuntime({
 
         <p className="sr-only" aria-live="polite">{stepAnnouncement}</p>
       </div>
-    </div>
+    </main>
   )
 }
 
@@ -466,8 +466,8 @@ export function WorkoutPlayerView({
   }
 
   return (
-    <section className="flex min-h-dvh flex-col bg-bg">
+    <main className="flex min-h-dvh flex-col bg-bg">
       <div className="mx-auto w-full max-w-lg px-4 py-6 md:py-8">{renderContent()}</div>
-    </section>
+    </main>
   )
 }

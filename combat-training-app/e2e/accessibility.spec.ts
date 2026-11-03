@@ -2,9 +2,11 @@ import AxeBuilder from '@axe-core/playwright'
 
 import { test, expect } from './fixtures'
 
+const BLOCKING_IMPACTS: readonly string[] = ['critical', 'serious', 'moderate']
+
 for (const theme of ['dark', 'light'] as const) {
   for (const screen of ['start', 'workouts', 'builder', 'player'] as const) {
-    test(`has no critical axe violations on ${screen} in ${theme} theme`, async ({ app, page }, testInfo) => {
+    test(`has no moderate, serious or critical axe violations on ${screen} in ${theme} theme`, async ({ app, page }, testInfo) => {
       if (screen === 'player') {
         await app.createPlan('Plan dostępności')
         await app.setTheme(theme)
@@ -28,13 +30,15 @@ for (const theme of ['dark', 'light'] as const) {
         body: await page.screenshot({ fullPage: true }),
         contentType: 'image/png',
       })
-      const nonCritical = violations.filter(({ impact }) => impact !== 'critical')
-      if (nonCritical.length > 0) {
-        console.warn(JSON.stringify({ screen, theme, violations: nonCritical.map(({ id, impact, nodes }) => ({
+      // Contrast and landmark issues were fixed, so anything from moderate up now blocks the test.
+      const blocking = violations.filter(({ impact }) => impact && BLOCKING_IMPACTS.includes(impact))
+      const minor = violations.filter((violation) => !blocking.includes(violation))
+      if (minor.length > 0) {
+        console.warn(JSON.stringify({ screen, theme, violations: minor.map(({ id, impact, nodes }) => ({
           id, impact, elements: nodes.length,
         })) }))
       }
-      expect(violations.filter(({ impact }) => impact === 'critical')).toEqual([])
+      expect(blocking.map(({ id, impact, nodes }) => ({ id, impact, elements: nodes.length }))).toEqual([])
     })
   }
 }

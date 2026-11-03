@@ -23,7 +23,7 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
         aria-current={active ? 'page' : undefined}
         className={[
           'relative flex min-h-touch flex-1 flex-col items-center justify-center gap-0.5 transition-colors',
-          active ? 'text-crimson' : 'text-faint hover:text-muted',
+          active ? 'text-crimson-ink' : 'text-faint hover:text-muted',
         ].join(' ')}
       >
         <span
