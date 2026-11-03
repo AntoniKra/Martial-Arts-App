@@ -6,7 +6,7 @@ Eksperyment jest odseparowany od aplikacji. Nie zmienia wyboru backendu w ADR 00
 
 - Wyłącznie projekt demonstracyjny `demo-combat-training`, Firestore Emulator pod `127.0.0.1:8080` i syntetyczne dokumenty `workouts` z losowym ID.
 - Bez projektu w chmurze, Google Auth, kluczy, kont testowych i plików środowiskowych. Reguły zezwalające na dostęp do `workouts` służą tylko temu emulatorowi.
-- Firebase `13.2.0`, firebase-tools `15.34.2`; konkretna wersja Playwright jest zamrożona w głównym `package-lock.json`. Firebase 13 wymaga Node co najmniej 24.12.0, dlatego osobny workflow używa Node 24. Emulator uruchamia się z Javą 21.
+- Firebase `13.2.0`, firebase-tools `15.34.2`; konkretna wersja Playwright jest zamrożona w głównym `package-lock.json`. Firebase 13 wymaga Node co najmniej 24.12.0, dlatego osobny workflow używa dokładnie Node 24.12.0 (jak lokalna weryfikacja). Emulator uruchamia się z Javą 21.
 - Lokalnie 3 listopada 2026 Java nie była dostępna w PATH. Pełna macierz jest uruchamiana w GitHub Actions przez `actions/setup-java`, bez instalowania Javy na komputerze użytkownika.
 - WebKit z Playwright na Linuksie nie jest testem Safari na fizycznym iPhonie. Zamknięcie jest kontrolowane, nie symuluje zabicia procesu, awarii systemu, usunięcia danych przeglądarki ani presji na pamięć urządzenia.
 
