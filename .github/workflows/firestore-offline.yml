@@ -1,0 +1,72 @@
+name: Firestore offline spike
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'combat-training-app/spikes/**'
+      - 'combat-training-app/package.json'
+      - 'combat-training-app/package-lock.json'
+      - '.github/workflows/firestore-offline.yml'
+  pull_request:
+    paths:
+      - 'combat-training-app/spikes/**'
+      - 'combat-training-app/package.json'
+      - 'combat-training-app/package-lock.json'
+      - '.github/workflows/firestore-offline.yml'
+
+concurrency:
+  group: firestore-offline-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  spike:
+    name: A, B, C — Chromium and WebKit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: combat-training-app
+    env:
+      CI: true
+      FIREBASE_CLI_DISABLE_TELEMETRY: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: combat-training-app/package-lock.json
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npm run spike:firestore:typecheck
+      - name: Record package and Java versions
+        run: |
+          npm ls firebase firebase-tools @playwright/test
+          java -version
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Run the demo emulator and six offline experiments
+        run: npm run spike:firestore:test
+      - name: Add scenario matrix to the job summary
+        if: always()
+        run: |
+          if [ -f test-results/firestore-offline/summary.md ]; then
+            cat test-results/firestore-offline/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload observations, screenshots, and emulator logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: firestore-offline-results
+          path: |
+            combat-training-app/test-results/firestore-offline/
+            combat-training-app/playwright-report/firestore-offline/
+            combat-training-app/*debug.log
+          retention-days: 14
