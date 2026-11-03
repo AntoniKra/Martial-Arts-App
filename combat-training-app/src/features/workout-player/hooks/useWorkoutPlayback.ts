@@ -11,6 +11,11 @@ import type {
   WorkoutPlaybackEvent,
   WorkoutPlaybackStepFinalizeReason,
 } from '@/features/workout-player/types/workoutPlaybackEvents.types'
+import {
+  getResumeDeadlineMs,
+  pauseRunningStep,
+  type PausedPlayback,
+} from '@/features/workout-player/utils/playbackPause'
 import { resolveRunningPlaybackAtTime } from '@/features/workout-player/utils/resolveRunningPlaybackAtTime'
 import {
   calculatePerformedDurationSeconds,
@@ -166,6 +171,7 @@ export function useWorkoutPlayback(
   const [playback, setPlayback] = useState<WorkoutPlaybackState>(() => playbackRef.current)
 
   const deadlineRef = useRef<number | null>(null)
+  const pausedPlaybackRef = useRef<PausedPlayback | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const generationRef = useRef(0)
 
@@ -318,18 +324,17 @@ export function useWorkoutPlayback(
       return
     }
 
-    const remainingSeconds = Math.max(1, Math.ceil((resolved.deadlineMs! - nowMs) / 1000))
-    const bumpRevision = shouldBumpStepRevision(current, resolved.playback)
+    // Not reachable in practice: a step that has not completed always has a deadline.
+    if (resolved.deadlineMs === null) {
+      return
+    }
 
-    commitPlayback(
-      withStepRevision(current, {
-        status: 'paused',
-        currentStepIndex: resolved.playback.currentStepIndex,
-        remainingSeconds,
-        stepRevision: current.stepRevision,
-      }, bumpRevision),
-      null,
-    )
+    const paused = pauseRunningStep(resolved.playback, resolved.deadlineMs, nowMs)
+    const bumpRevision = shouldBumpStepRevision(current, resolved.playback)
+    const pausedPlayback = withStepRevision(current, paused.playback, bumpRevision)
+
+    pausedPlaybackRef.current = { playback: pausedPlayback, remainingMs: paused.remainingMs }
+    commitPlayback(pausedPlayback, null)
   }, [commitPlayback, commitPlaybackTransition, emitEvent, invalidateRuntime])
 
   const resume = useCallback(() => {
@@ -340,7 +345,9 @@ export function useWorkoutPlayback(
     }
 
     const nowMs = Date.now()
+    const deadlineMs = getResumeDeadlineMs(current, pausedPlaybackRef.current, nowMs)
 
+    pausedPlaybackRef.current = null
     commitPlayback(
       {
         status: 'running',
@@ -348,7 +355,7 @@ export function useWorkoutPlayback(
         remainingSeconds: current.remainingSeconds,
         stepRevision: current.stepRevision,
       },
-      nowMs + current.remainingSeconds * 1000,
+      deadlineMs,
     )
   }, [commitPlayback])
 
