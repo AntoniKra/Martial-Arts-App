@@ -31,7 +31,12 @@ async function loadAssets(directory = dist, prefix = ''): Promise<Map<string, Bu
   return assets
 }
 
-async function installNetworkHarness(context: BrowserContext) {
+async function installNetworkHarness(context: BrowserContext, events: Checkpoint[]) {
+  if (context.browser()?.browserType().name() === 'chromium') {
+    // Route-fulfilled documents have no network IP address classification. Use the
+    // normal per-origin permission for loopback access, without disabling browser security.
+    await context.grantPermissions(['local-network-access'], { origin })
+  }
   const assets = await loadAssets()
   await context.route('**/*', async (route) => {
     const url = new URL(route.request().url())
@@ -45,6 +50,13 @@ async function installNetworkHarness(context: BrowserContext) {
       return route.fulfill({ status: 200, contentType, body })
     }
     if (url.origin === emulatorOrigin) return route.continue()
+    await route.abort('blockedbyclient')
+    if (url.origin === 'https://www.google.com' && url.pathname === '/images/cleardot.gif') {
+      // WebChannel probes connectivity after transport errors (including deliberate
+      // offline mode). Block the probe before it leaves the browser and record it.
+      events.push({ stage: 'network:blocked-connectivity-probe', at: new Date().toISOString(), observation: url.origin + url.pathname })
+      return
+    }
     throw new Error(`Unexpected network destination: ${url.origin}`)
   })
 }
@@ -117,7 +129,7 @@ for (const scenario of ['A', 'B', 'C'] as const) {
         engine: browserName,
         node: process.version,
       })
-      await installNetworkHarness(context)
+      await installNetworkHarness(context, events)
       let page = await openPage(context, mode, events)
 
       stage = 'online-before-write'
@@ -147,7 +159,7 @@ for (const scenario of ['A', 'B', 'C'] as const) {
         context = await playwright[browserName].launchPersistentContext(profile, {
           headless: true, offline: true, serviceWorkers: 'block',
         })
-        await installNetworkHarness(context)
+        await installNetworkHarness(context, events)
       } else {
         await page.close()
       }

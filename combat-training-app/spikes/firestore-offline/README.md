@@ -24,6 +24,8 @@ W A/B używane są `persistentLocalCache` i `persistentMultipleTabManager`. Test
 
 Test wczytuje osobno zbudowany HTML i JavaScript z dysku i dostarcza je przez `context.route` pod stałym origin `http://127.0.0.1:4175`. Dzięki temu można uruchomić stronę także po restarcie przeglądarki przy wyłączonej sieci, bez dołączania service workera do eksperymentu. Przechwytywane są tylko pliki strony; ruch Firestore do emulatora nie jest zastępowany odpowiedziami. Pozostałe originy są odrzucane. Ten mechanizm nie dowodzi dostępności samej aplikacji PWA offline — mierzy wyłącznie trwałość kolejki Firestore.
 
+Chromium otrzymuje standardowe uprawnienie `local-network-access` wyłącznie dla origin strony testowej. Jest potrzebne dla strony dostarczonej przez routing Playwright (bez klasyfikacji adresu IP odpowiedzi); nie są wyłączane zabezpieczenia przeglądarki. WebChannel po błędach transportu próbuje pobrać `https://www.google.com/images/cleardot.gif` jako sondę łączności. Test blokuje tę konkretną sondę przed wysłaniem, zapisuje zdarzenie w obserwacjach i kontynuuje eksperyment. Każdy inny nieoczekiwany origin powoduje niepowodzenie testu po zablokowaniu żądania.
+
 ## Uruchamianie i artefakty
 
 Polecenia npm są zdefiniowane w `combat-training-app/package.json`:
@@ -41,3 +43,4 @@ Raport Playwright: `playwright-report/firestore-offline/`. Wyniki maszynowe i ta
 - [Firebase: konfiguracja trwałej pamięci i wielu kart](https://firebase.google.com/docs/firestore/manage-data/enable-offline).
 - [Firebase: projekt demo, połączenie z emulatorem i niezależny REST](https://firebase.google.com/docs/emulator-suite/connect_firestore).
 - [Playwright: trwały profil i zamknięcie całej przeglądarki](https://playwright.dev/docs/api/class-browsertype#browser-type-launch-persistent-context).
+- [Playwright: nadawanie uprawnień dla pojedynczego origin](https://playwright.dev/docs/api/class-browsercontext#browser-context-grant-permissions).
