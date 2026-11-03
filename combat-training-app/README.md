@@ -24,6 +24,32 @@ npm run build       # build produkcyjny
 
 Te same kroki uruchamia CI przy każdym pull requeście.
 
+## Testy przeglądarkowe (E2E)
+
+Po `npm ci`, z katalogu `combat-training-app/`:
+
+```bash
+npx playwright install --with-deps chromium
+npm run test:e2e
+```
+
+Playwright sam buduje aplikację i uruchamia `vite preview` pod adresem
+`http://127.0.0.1:4173` (port musi być wolny). Nie wymaga osobnego serwera deweloperskiego.
+Uruchamia Chromium w trzech rozmiarach: telefon 360×800, tablet 768×1024 i komputer 1440×900.
+Każdy test ma osobny kontekst i pusty localStorage. Service worker działa tylko w teście offline.
+Wspólne wejście do aplikacji i tworzenie planu znajdują się w `e2e/fixtures.ts`.
+
+Testy obejmują kreator, edycję i usuwanie planu z zachowaniem historii, odtwarzacz
+z kontrolowanym zegarem, zapamiętywanie motywu i uruchomienie `/workouts` offline.
+axe sprawdza stronę startową, listę treningów, kreator i uruchomiony odtwarzacz
+w obu motywach. Naruszenia `critical` blokują test; pozostałe są wypisywane w konsoli
+i dołączane jako JSON do raportu wraz ze zrzutem każdego badanego ekranu.
+Automatyczne skany nie zastępują ręcznej oceny dostępności.
+
+Raport HTML: `npx playwright show-report`. Wyniki JSON są w `test-results/e2e-results.json`.
+CI uruchamia osobny job `e2e`; przy niepowodzeniu udostępnia raport HTML, wyniki i ślady
+jako artefakt `playwright-report` przechowywany przez 14 dni. Testy nie są automatycznie ponawiane.
+
 ## Zasady pracy
 
 - Zasady dla agentów i ludzi: `../AGENTS.md`.
