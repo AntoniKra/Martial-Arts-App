@@ -4,4 +4,5 @@ export interface WorkoutPlanRepository {
   save(plan: WorkoutPlan): Promise<void>
   list(): Promise<WorkoutPlan[]>
   getById(id: string): Promise<WorkoutPlan | null>
+  delete(id: string): Promise<void>
 }
