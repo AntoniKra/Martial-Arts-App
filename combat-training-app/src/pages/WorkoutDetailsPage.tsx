@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { createWorkoutPlanRepository } from '@/app/createWorkoutPlanRepository'
 import { mapWorkoutPlanReadError } from '@/app/mapWorkoutPlanReadError'
@@ -8,6 +8,7 @@ import { WorkoutPlanDetailsView } from '@/features/workout-details/components/Wo
 import type { WorkoutPlanDetailsLoadState } from '@/features/workout-details/types/workoutPlanDetails.types'
 
 export function WorkoutDetailsPage() {
+  const navigate = useNavigate()
   const { workoutId } = useParams()
   const resolvedWorkoutId = workoutId?.trim() ?? ''
   const [workoutPlanRepository] = useState(createWorkoutPlanRepository)
@@ -70,6 +71,11 @@ export function WorkoutDetailsPage() {
       workoutsListPath={routes.workouts}
       newWorkoutPath={routes.newWorkout}
       workoutActivePath={routes.workoutActive(resolvedWorkoutId)}
+      workoutEditPath={routes.workoutEdit(resolvedWorkoutId)}
+      onDelete={async () => {
+        await workoutPlanRepository.delete(resolvedWorkoutId)
+        navigate(routes.workouts, { replace: true, state: { planDeleted: true } })
+      }}
       onRetry={handleRetry}
     />
   )

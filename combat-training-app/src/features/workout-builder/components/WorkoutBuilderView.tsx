@@ -36,12 +36,14 @@ import {
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
 import { copyExerciseConfiguration } from '@/features/workout-builder/utils/exerciseConfigurationCompare'
 import { mapWorkoutPlanSaveError } from '@/features/workout-builder/utils/workoutPlanSaveErrorMessages'
+import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 
 interface WorkoutBuilderViewProps {
   state: WorkoutBuilderState
   dispatch: Dispatch<WorkoutBuilderAction>
   workoutPlanRepository: WorkoutPlanRepository
   onPlanSaved: (plan: WorkoutPlan) => void
+  editingPlanId?: string
 }
 
 const initialLibraryUiState: ExerciseLibraryUiState = {
@@ -55,6 +57,7 @@ export function WorkoutBuilderView({
   dispatch,
   workoutPlanRepository,
   onPlanSaved,
+  editingPlanId,
 }: WorkoutBuilderViewProps) {
   const [screen, setScreen] = useState<WorkoutBuilderScreen>({ type: 'edit' })
   const [libraryUiState, setLibraryUiState] = useState<ExerciseLibraryUiState>(initialLibraryUiState)
@@ -360,17 +363,19 @@ export function WorkoutBuilderView({
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-lg px-4 py-6 md:max-w-2xl md:py-8">
           <Link
-            to={routes.workouts}
+            to={editingPlanId ? routes.workoutDetails(editingPlanId) : routes.workouts}
             className="mb-6 inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             <ChevronRightIcon className="rotate-180" />
-            Wróć do treningów
+            {editingPlanId ? workoutPlanLabels.cancel : 'Wróć do treningów'}
           </Link>
 
           <p className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
             Kreator treningu
           </p>
-          <h1 className="mt-2 font-display text-[24px] font-bold text-ink md:text-[28px]">Nowy trening</h1>
+          <h1 className="mt-2 font-display text-[24px] font-bold text-ink md:text-[28px]">
+            {editingPlanId ? workoutPlanLabels.editHeading : 'Nowy trening'}
+          </h1>
           <p className="mt-2 max-w-prose text-[14px] leading-relaxed text-muted">
             Ustal dyscyplinę i podstawowe informacje planu, a następnie buduj bloki, ćwiczenia i przerwy na osi
             treningu.

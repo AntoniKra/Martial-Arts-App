@@ -11,12 +11,15 @@ import type { WorkoutPlanDetailsLoadState } from '@/features/workout-details/typ
 import { formatExerciseConfigurationSummary } from '@/features/workout-details/utils/formatExerciseConfiguration'
 import { formatEstimatedDuration, formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
 import { polishPlural } from '@/domain/language/polishPlural'
+import { WorkoutPlanActions } from '@/features/workout-details/components/WorkoutPlanActions'
 
 interface WorkoutPlanDetailsViewProps {
   loadState: WorkoutPlanDetailsLoadState
   workoutsListPath: string
   newWorkoutPath: string
   workoutActivePath: string
+  workoutEditPath: string
+  onDelete: () => Promise<void>
   onRetry: () => void
 }
 
@@ -87,7 +90,7 @@ interface WorkoutPlanDetailsNotFoundStateProps {
   newWorkoutPath: string
 }
 
-function WorkoutPlanDetailsNotFoundState({
+export function WorkoutPlanDetailsNotFoundState({
   workoutsListPath,
   newWorkoutPath,
 }: WorkoutPlanDetailsNotFoundStateProps) {
@@ -147,10 +150,14 @@ function WorkoutPlanDetailsSuccessView({
   plan,
   workoutsListPath,
   workoutActivePath,
+  workoutEditPath,
+  onDelete,
 }: {
   plan: WorkoutPlan
   workoutsListPath: string
   workoutActivePath: string
+  workoutEditPath: string
+  onDelete: () => Promise<void>
 }) {
   const summary = calculateWorkoutPlanSummary(plan)
 
@@ -199,6 +206,8 @@ function WorkoutPlanDetailsSuccessView({
       >
         Rozpocznij trening
       </Link>
+
+      <WorkoutPlanActions key={plan.id} editPath={workoutEditPath} onDelete={onDelete} />
 
       <section aria-labelledby="workout-details-blocks-heading" className="w-full space-y-4">
         <h2
@@ -252,6 +261,8 @@ export function WorkoutPlanDetailsView({
   workoutsListPath,
   newWorkoutPath,
   workoutActivePath,
+  workoutEditPath,
+  onDelete,
   onRetry,
 }: WorkoutPlanDetailsViewProps) {
   function renderContent() {
@@ -283,6 +294,8 @@ export function WorkoutPlanDetailsView({
         plan={loadState.plan}
         workoutsListPath={workoutsListPath}
         workoutActivePath={workoutActivePath}
+        workoutEditPath={workoutEditPath}
+        onDelete={onDelete}
       />
     )
   }

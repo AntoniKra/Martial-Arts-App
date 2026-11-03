@@ -4,6 +4,7 @@ import { AppRoot } from '@/app/AppRoot'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
 import { NewWorkoutPage } from '@/pages/NewWorkoutPage'
+import { EditWorkoutPage } from '@/pages/EditWorkoutPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { WorkoutPlayerPage } from '@/pages/WorkoutPlayerPage'
 import { WorkoutDetailsPage } from '@/pages/WorkoutDetailsPage'
@@ -20,7 +21,7 @@ export const router = createBrowserRouter([
           { path: '/workouts', element: <WorkoutsPage /> },
           { path: '/workouts/new', element: <NewWorkoutPage /> },
           { path: '/workouts/:workoutId', element: <WorkoutDetailsPage /> },
-          { path: '/workouts/:workoutId/edit', element: <PlaceholderPage title="Edycja planu" /> },
+          { path: '/workouts/:workoutId/edit', element: <EditWorkoutPage /> },
           { path: '/workouts/:workoutId/preview', element: <PlaceholderPage title="Podgląd treningu" /> },
           { path: '/workouts/:workoutId/report', element: <PlaceholderPage title="Raport treningu" /> },
         ],
