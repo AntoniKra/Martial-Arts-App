@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom'
+import { AppRoot } from '@/app/AppRoot'
 
 import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
@@ -8,7 +9,7 @@ import { WorkoutPlayerPage } from '@/pages/WorkoutPlayerPage'
 import { WorkoutDetailsPage } from '@/pages/WorkoutDetailsPage'
 import { WorkoutsPage } from '@/pages/WorkoutsPage'
 
-export const router = createBrowserRouter([
+export const router = createBrowserRouter([{ element: <AppRoot />, children: [
   {
     element: <AppLayout />,
     children: [
@@ -23,4 +24,4 @@ export const router = createBrowserRouter([
   },
   { path: '/workouts/:workoutId/active', element: <WorkoutPlayerPage /> },
   { path: '/workouts/:workoutId/feedback', element: <PlaceholderPage title="Podsumowanie treningu" fullscreen /> },
-])
+]}])

@@ -1,0 +1,6 @@
+<!-- Temporary mark until the final logo is approved. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <path fill="#0B0B0D" d="M0 0h512v512H0z"/>
+  <path fill="#C1122F" d="M128 140h256v52H128z"/>
+  <path fill="#F4F4F1" d="M128 216h52v104h52v52H128zm104 0h152v52h-50v104h-52V268h-50z"/>
+</svg>
