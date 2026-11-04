@@ -21,7 +21,7 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       // Temporarily warnings, not errors. Existing pages load data inside effects and the
       // playback hook reads refs during render. Both are scheduled for rework: data loading
-      // moves to TanStack Query with the Supabase migration, and the playback hook gets a
+      // moves to the Firestore repositories with the backend migration, and the playback hook gets a
       // ref-safe refactor covered by timer tests. Switch back to 'error' once done.
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/refs': 'warn',

@@ -2,7 +2,7 @@
 
 Progresywna aplikacja internetowa (PWA) do ewidencji i analizy treningów sportów walki: boks, kickboxing, Muay Thai, K-1 i MMA w stójce. Aplikacja powstaje w ramach pracy inżynierskiej. Temat i wymagania opisuje `docs/thesis-card.md`.
 
-Stos: React, TypeScript, Vite, Tailwind CSS, docelowo Supabase.
+Stos: React, TypeScript, Vite, Tailwind CSS, docelowo Firebase (Authentication, Firestore, Hosting).
 
 ## Uruchomienie
 

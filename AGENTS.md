@@ -54,19 +54,21 @@ Report failures honestly. Never weaken a test, a type or a lint rule just to mak
 
 ## Architecture
 
-- Feature modules live in `src/features/<feature>`. Stable, framework-independent types and calculations live in `src/domain`. External integrations (Supabase, storage, audio, Wake Lock) live in `src/infrastructure` behind repository or service interfaces from `src/application`.
-- React components never call Supabase directly and never contain domain calculations in JSX.
+- Feature modules live in `src/features/<feature>`. Stable, framework-independent types and calculations live in `src/domain`. External integrations (Firebase, storage, audio, Wake Lock) live in `src/infrastructure` behind repository or service interfaces from `src/application`.
+- React components never call Firebase directly and never contain domain calculations in JSX.
 - Validate every external input (storage, network, database) at the infrastructure boundary.
 - Shared UI goes to `src/components` only when genuinely reused; otherwise it stays in its feature.
 - Prefer named exports. No global state library without a demonstrated need. No speculative abstractions.
 
 ## Data and backend
 
-- Backend: Supabase (Postgres, Auth, Row Level Security). See `docs/adr/0001-supabase-as-baas.md`.
-- Authentication: email and password with email confirmation and password reset, plus Google sign-in. No anonymous mode. See `docs/adr/0002-email-password-and-google-auth.md`.
-- Every user-owned row is protected by RLS. Test isolation with two separate accounts.
-- Schema changes are versioned SQL migrations in `combat-training-app/supabase/migrations`. Tables and columns use English `snake_case`.
-- Never expose a service-role key in the frontend or commit secrets. Configuration comes from `.env` (see `.env.example`).
+- Backend: Firebase (Authentication, Cloud Firestore in `europe-central2`, Hosting) on the free Spark plan. See `docs/adr/0004-firebase-as-baas.md`, which supersedes ADR 0001.
+- Authentication: email and password with email verification and password reset, plus Google sign-in. No anonymous mode. A user whose email address is not verified does not get into the app. See `docs/adr/0002-email-password-and-google-auth.md`.
+- User data lives under `users/{uid}/…`. Firestore Security Rules allow access only to the owner and validate fields. Every rule change has tests with `@firebase/rules-unit-testing` on the emulator, including attempts by a second account and by a signed-out user.
+- Firestore uses `persistentLocalCache` with `persistentMultipleTabManager`. The UI never waits for a write to reach the server; it shows a "waiting to send" state from `hasPendingWrites`. Load Firestore after the first render, not in the initial bundle. On sign-out, clear the local Firestore cache.
+- Firestore has no schema: validate every document read or written at the infrastructure boundary and keep a `schemaVersion` field in stored documents. Field names use English `camelCase`.
+- Tests and local development use the Firebase Emulator Suite with a `demo-` project ID. Tests never touch the real project.
+- Never put a service account key or the Admin SDK in the frontend, and never commit secrets. The Firebase web config is public by design but still comes from `.env` (see `.env.example`).
 - Historical workout snapshots must not change when library records change: store an immutable exercise-name snapshot and keep `combinationId` when available.
 - Keep seed and demo data separate from user data.
 
@@ -119,5 +121,5 @@ The current scope is in `docs/mvp-scope.md`. Out of scope unless the owner appro
 | Workout player | `docs/workout-player-spec.md` |
 | Ratings and feedback | `docs/feedback-system.md` |
 | Design | `docs/design-system.md` |
-| Database | `docs/database-model.md`, `docs/adr/` |
+| Database and backend | `docs/database-model.md`, `docs/adr/0004-firebase-as-baas.md`, `docs/research/backend-firebase-vs-supabase.md` |
 | Architecture | `docs/architecture.md` |

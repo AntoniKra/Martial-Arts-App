@@ -1,6 +1,8 @@
 ---
-status: accepted
+status: superseded by 0004
 ---
+
+> **Nieaktualne.** Zastąpione przez `0004-firebase-as-baas.md` (4 listopada 2026).
 
 # Supabase jako backend (BaaS)
 

@@ -1,7 +1,9 @@
-# Wstępny model danych Supabase
+# Wstępny model danych
 
 Dokument opisuje kierunek. Ostateczne migracje tworzymy dopiero po zatwierdzeniu modelu w kodzie domenowym.
 
+> **Backend zmieniony na Firebase (`adr/0004-firebase-as-baas.md`).** Model zaprojektujemy jako dokumenty Firestore pod `users/{uid}/…` w drugiej rundzie ustaleń. Tabele SQL poniżej to historyczny punkt wyjścia.
+>
 > **Do przeprojektowania (listopad 2026).** Model powstał przed kartą tematu. Wersja finalna zakłada jeden typ wpisu w dzienniku dla trzech źródeł treningu (szybki stoper, plan, ręczny wpis), cele, profil z historią wagi oraz logowanie e-mailem, hasłem i kontem Google zamiast anonimowego konta (`adr/0002-email-password-and-google-auth.md`). Schemat zaprojektujemy w drugiej rundzie ustaleń i zapiszemy w ADR. Do tego czasu traktuj tabele poniżej jako punkt wyjścia.
 
 ## Lokalny storage — WorkoutSession
@@ -111,8 +113,8 @@ Wspólna oś elementów bloku:
 
 ## Bezpieczeństwo
 
-- wszystkie dane użytkownika mają `user_id` pośrednio lub bezpośrednio;
-- użytkownik zakłada konto e-mailem i hasłem albo loguje się kontem Google (`adr/0002-email-password-and-google-auth.md`) i otrzymuje własne UUID z Supabase Auth;
-- RLS musi uniemożliwić odczyt i zapis cudzych danych;
-- schemat jest zarządzany przez migracje SQL;
-- komponenty React nie wykonują surowych zapytań Supabase bezpośrednio.
+- wszystkie dane użytkownika leżą pod `users/{uid}/…`;
+- użytkownik zakłada konto e-mailem i hasłem albo loguje się kontem Google (`adr/0002-email-password-and-google-auth.md`) i otrzymuje własny identyfikator (`uid`) z Firebase Authentication;
+- reguły bezpieczeństwa Firestore muszą uniemożliwić odczyt i zapis cudzych danych, a ich testy działają na emulatorze;
+- strukturę dokumentów sprawdzamy na granicy infrastruktury i oznaczamy polem `schemaVersion`;
+- komponenty React nie wywołują Firebase bezpośrednio.

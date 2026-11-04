@@ -7,7 +7,7 @@ Kolejność odpowiada priorytetom z `mvp-scope.md`. Każda pozycja to osobna ga�
 ## P0: rdzeń
 
 1. ~~Strona główna z prawdziwą historią zamiast danych przykładowych i poprawny licznik ćwiczeń w historii.~~ Zrobione w PR #7.
-2. Supabase: schemat, migracje, RLS i repozytoria zamiast localStorage.
+2. Firebase: Firestore z trybem offline, reguły bezpieczeństwa z testami i repozytoria zamiast localStorage.
 3. Rejestracja, logowanie, reset hasła i logowanie kontem Google.
 4. Dziennik: ręczny wpis treningu i edycja wpisu.
 5. Cele z paskiem postępu.
@@ -16,7 +16,7 @@ Kolejność odpowiada priorytetom z `mvp-scope.md`. Każda pozycja to osobna ga�
 8. ~~Jasny motyw z przełącznikiem.~~ Zrobione w PR #8.
 9. Wdrożenie z publicznym linkiem. PWA zrobione w PR #13.
 10. Testy E2E na trzech rozdzielczościach.
-11. Testy do rozdziału 5: Lighthouse, SUS, dokładność timera, RLS.
+11. Testy do rozdziału 5: Lighthouse, SUS, dokładność timera, izolacja danych (reguły Firestore).
 
 ## P1: ważne
 
