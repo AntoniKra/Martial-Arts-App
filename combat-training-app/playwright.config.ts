@@ -28,6 +28,13 @@ export default defineConfig({
     { name: 'desktop', use: { viewport: { width: 1440, height: 900 } } },
   ],
   webServer: {
+    env: {
+      VITE_FIREBASE_API_KEY: 'demo-config',
+      VITE_FIREBASE_AUTH_DOMAIN: 'demo-combat-training.firebaseapp.com',
+      VITE_FIREBASE_PROJECT_ID: 'demo-combat-training',
+      VITE_FIREBASE_APP_ID: 'demo-app',
+      VITE_FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+    },
     command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: false,

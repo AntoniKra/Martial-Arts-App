@@ -1,0 +1,95 @@
+import { test, expect } from './fixtures'
+import { createVerifiedAccount, signIn, testPassword, uniqueEmail, verificationLink } from './authEmulator'
+
+test('registers, waits for email verification and opens the app after following the emulator link', async ({ page, request }) => {
+  const email = uniqueEmail()
+  await page.goto('/register')
+  await page.getByLabel('Adres e-mail', { exact: true }).fill(email)
+  await page.getByLabel('Hasło', { exact: true }).fill(testPassword)
+  await page.getByRole('button', { name: 'Utwórz konto', exact: true }).click()
+  await expect(page).toHaveURL('/verify-email')
+  await expect(page.getByRole('button', { name: /Wyślij ponownie za/ })).toBeDisabled()
+  await page.getByRole('button', { name: 'Potwierdziłem adres', exact: true }).click()
+  await expect(page.getByText('Adres nie jest jeszcze potwierdzony.', { exact: false })).toBeVisible()
+  await page.goto('/workouts')
+  await expect(page).toHaveURL('/verify-email')
+  const actionPage = await page.context().newPage()
+  await actionPage.goto(await verificationLink(request, email))
+  await actionPage.close()
+  await page.getByRole('button', { name: 'Potwierdziłem adres', exact: true }).click()
+  await expect(page).toHaveURL('/workouts')
+  await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
+})
+
+test('uses the same error for an unknown login and an incorrect password', async ({ page, request }) => {
+  const account = await createVerifiedAccount(request)
+  await page.goto('/login')
+  await signIn(page, { email: uniqueEmail(), password: testPassword })
+  await expect(page.getByRole('alert')).toHaveText('Nieprawidłowy adres e-mail lub hasło.')
+  await signIn(page, { ...account, password: 'Incorrect-test-password' })
+  await expect(page.getByRole('alert')).toHaveText('Nieprawidłowy adres e-mail lub hasło.')
+  await expect(page).toHaveURL('/login')
+})
+
+test('returns to the protected destination after sign in and signs out', async ({ page, request }) => {
+  const account = await createVerifiedAccount(request)
+  await page.goto('/workouts?source=auth#plans')
+  await expect(page).toHaveURL('/login')
+  await signIn(page, account)
+  await expect(page).toHaveURL('/workouts?source=auth#plans')
+  await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
+  await expect(page).toHaveURL('/login')
+  await page.reload()
+  await page.goto('/workouts')
+  await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
+})
+
+test('returns the same reset acknowledgement for existing and unknown accounts', async ({ page, request }) => {
+  const account = await createVerifiedAccount(request)
+  for (const email of [account.email, uniqueEmail()]) {
+    await page.goto('/forgot-password')
+    await page.getByLabel('Adres e-mail', { exact: true }).fill(email)
+    await page.getByRole('button', { name: 'Wyślij link do resetu hasła', exact: true }).click()
+    await expect(page.getByRole('status')).toHaveText('Jeśli konto istnieje, wysłaliśmy link')
+  }
+})
+
+test('validates registration fields and enforces an eight character password', async ({ page }) => {
+  await page.goto('/register')
+  await page.getByRole('button', { name: 'Utwórz konto', exact: true }).click()
+  await expect(page.getByLabel('Adres e-mail', { exact: true })).toHaveAttribute('aria-invalid', 'true')
+  await page.getByLabel('Adres e-mail', { exact: true }).fill(uniqueEmail())
+  await page.getByLabel('Hasło', { exact: true }).fill('short')
+  await page.getByRole('button', { name: 'Utwórz konto', exact: true }).click()
+  await expect(page.getByRole('alert')).toHaveText('Hasło musi mieć co najmniej 8 znaków.')
+})
+
+test('allows resending verification only after sixty seconds', async ({ page }) => {
+  await page.goto('/register')
+  await page.getByLabel('Adres e-mail', { exact: true }).fill(uniqueEmail())
+  await page.getByLabel('Hasło', { exact: true }).fill(testPassword)
+  await page.getByRole('button', { name: 'Utwórz konto', exact: true }).click()
+  await expect(page.getByRole('button', { name: /Wyślij ponownie za/ })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Potwierdziłem adres', exact: true })).toBeEnabled()
+  await page.clock.install()
+  await page.clock.fastForward(59_000)
+  await expect(page.getByRole('button', { name: /Wyślij ponownie za/ })).toBeDisabled()
+  await page.clock.fastForward(1000)
+  await page.getByRole('button', { name: 'Wyślij ponownie', exact: true }).click()
+  await expect(page.getByRole('button', { name: /Wyślij ponownie za/ })).toBeDisabled()
+})
+
+test('session loss in another tab does not interrupt an admitted workout', async ({ app, page, context }) => {
+  await app.createPlan('Plan utraty sesji')
+  await app.openPlayer()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  const otherPage = await context.newPage()
+  await otherPage.goto('/')
+  await otherPage.getByRole('button', { name: 'Wyloguj', exact: true }).click()
+  await expect(otherPage).toHaveURL('/login')
+  await otherPage.close()
+  await expect(page.getByRole('button', { name: 'Pauza', exact: true })).toBeVisible()
+  await expect(page).toHaveURL(/\/active$/)
+  await page.getByRole('button', { name: 'Pauza', exact: true }).click()
+  await expect(page.getByText('WSTRZYMANO', { exact: true })).toBeVisible()
+})

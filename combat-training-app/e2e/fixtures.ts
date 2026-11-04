@@ -1,10 +1,19 @@
 import { test as base, expect, type Page } from '@playwright/test'
+import { createVerifiedAccount, signIn } from './authEmulator'
 
 class WorkoutApp {
+  private authenticated = false
   constructor(readonly page: Page) {}
 
   async open(path = '/') {
-    // Keep application entry (and future sign-in) in one place.
+    if (!this.authenticated) {
+      const account = await createVerifiedAccount(this.page.request)
+      await this.page.goto(path)
+      await expect(this.page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
+      await signIn(this.page, account)
+      await expect(this.page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeVisible()
+      this.authenticated = true
+    }
     await this.page.goto(path)
     await expect(this.page.getByRole('main')).toBeVisible()
   }
