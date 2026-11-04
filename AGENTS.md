@@ -56,7 +56,7 @@ Report failures honestly. Never weaken a test, a type or a lint rule just to mak
 
 - Feature modules live in `src/features/<feature>`. Stable, framework-independent types and calculations live in `src/domain`. External integrations (Firebase, storage, audio, Wake Lock) live in `src/infrastructure` behind repository or service interfaces from `src/application`.
 - React components never call Firebase directly and never contain domain calculations in JSX.
-- Validate every external input (storage, network, database) at the infrastructure boundary.
+- Validate every external input (storage, network, database) at the infrastructure boundary with `zod/mini` schemas. Forms use controlled inputs and a tested validation function, without a form library. See `docs/adr/0006-validation-with-zod-mini.md`.
 - Shared UI goes to `src/components` only when genuinely reused; otherwise it stays in its feature.
 - Prefer named exports. No global state library without a demonstrated need. No speculative abstractions.
 
