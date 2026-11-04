@@ -10,7 +10,7 @@
 
 ## Etap projektu
 
-Migracja ekranów z prototypu Figmy jest zakończona (MVP, lipiec 2026). Teraz budujemy wersję finalną zgodną z kartą tematu: Supabase z logowaniem, dziennik z trzema sposobami dodania treningu, cele, profil zawodnika, jasny motyw, PWA, wdrożenie i testy do rozdziału 5 pracy.
+Migracja ekranów z prototypu Figmy jest zakończona (MVP, lipiec 2026). Teraz budujemy wersję finalną zgodną z kartą tematu: Firebase z logowaniem, dziennik z trzema sposobami dodania treningu, cele, profil zawodnika, jasny motyw, PWA, wdrożenie i testy do rozdziału 5 pracy.
 
 ## Dokumenty obowiązkowe przed zmianą danego obszaru
 

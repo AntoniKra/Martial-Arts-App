@@ -10,7 +10,7 @@ src/
 ├── components/          współdzielone UI i layout
 ├── domain/              stabilne typy i czyste obliczenia
 ├── features/            moduły funkcjonalne
-├── infrastructure/      Supabase, audio, Wake Lock, storage
+├── infrastructure/      Firebase, audio, Wake Lock, storage
 ├── pages/               komponenty tras
 ├── styles/
 └── test/
@@ -18,7 +18,7 @@ src/
 
 ## Granice odpowiedzialności
 
-- komponent UI nie zawiera zapytań Supabase;
+- komponent UI nie wywołuje Firebase;
 - logika czasu i średnich nie znajduje się w JSX;
 - typy domenowe nie zależą od Reacta;
 - infrastruktura implementuje interfejsy repozytoriów;

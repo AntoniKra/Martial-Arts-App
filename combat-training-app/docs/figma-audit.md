@@ -59,7 +59,7 @@ Każdy przeniesiony fragment należy rozdzielić na komponenty oraz przetłumacz
 ## Logika, którą należy napisać od nowa
 
 - routing oparty obecnie o pojedynczy stan `screen`;
-- Supabase i logowanie;
+- Firebase i logowanie;
 - model danych i repozytoria;
 - walidacja;
 - timer oparty obecnie na `setTimeout(... - 1)`;
@@ -109,7 +109,7 @@ Każdy przeniesiony fragment należy rozdzielić na komponenty oraz przetłumacz
 7. Konfiguracja ćwiczenia i podgląd;
 8. Odtwarzacz wizualny na mockach;
 9. Feedback i raport;
-10. Supabase i logika domenowa;
+10. Firebase i logika domenowa;
 11. prawidłowy timer, gong i Wake Lock;
 12. PWA i testy E2E.
 

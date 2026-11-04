@@ -4,7 +4,7 @@
   "production_directory": "combat-training-app",
   "interface_language": "pl",
   "code_language": "en",
-  "backend": "Supabase",
+  "backend": "Firebase",
   "auth": "email_password_and_google",
   "reference_app_tsx_lines": 2372,
   "strategy": "clean production architecture with controlled visual migration"
