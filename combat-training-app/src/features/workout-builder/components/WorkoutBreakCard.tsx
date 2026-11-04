@@ -129,7 +129,7 @@ export function WorkoutBreakCard({
             type="button"
             size="sm"
             variant="ghost"
-            className="min-h-touch px-2 text-crimson hover:text-crimson"
+            className="min-h-touch px-2 text-crimson-ink hover:text-crimson-ink"
             aria-label={`Usuń przerwę, ${breakContext}`}
             onClick={() => {
               dispatch({ type: 'removeItem', blockId, itemId: breakItem.id })

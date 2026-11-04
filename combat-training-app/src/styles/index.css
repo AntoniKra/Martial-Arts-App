@@ -15,6 +15,7 @@
   --color-faint: var(--app-faint);
   --color-crimson: var(--app-crimson);
   --color-crimson-hi: var(--app-crimson-hi);
+  --color-crimson-ink: var(--app-crimson-ink);
   --color-on-accent: var(--app-on-accent);
   --color-input: var(--app-input);
   --color-discipline-boxing: var(--app-discipline-boxing);
@@ -37,9 +38,11 @@
   --app-border: #2a2a2e;
   --app-ink: #f4f4f1;
   --app-muted: #a7a7aa;
-  --app-faint: #525255;
+  --app-faint: #85858a;
   --app-crimson: #c1122f;
   --app-crimson-hi: #d91535;
+  /* Red for text: the accent itself is too dark to read as small text on near-black. */
+  --app-crimson-ink: #ef5d6e;
   --app-on-accent: #f4f4f1;
   --app-input: #1d1d20;
   --app-focus-ring: #c1122f;
@@ -63,6 +66,7 @@
   --app-faint: #66666a;
   --app-crimson: #b5122b;
   --app-crimson-hi: #c1122f;
+  --app-crimson-ink: #a01027;
   --app-on-accent: #f4f4f1;
   --app-input: #ffffff;
   --app-focus-ring: #b5122b;

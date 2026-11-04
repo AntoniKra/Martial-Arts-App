@@ -27,7 +27,11 @@ Tokeny prototypu Figmy są dobrym punktem wyjścia:
 - `#2A2A2E` — border;
 - `#F4F4F1` — primary text;
 - `#A7A7AA` — secondary text;
-- `#C1122F` — crimson accent.
+- `#85858A` — tertiary text (`faint`, małe etykiety);
+- `#C1122F` — crimson accent (tła przycisków, obramowania, akcenty);
+- `#EF5D6E` — czerwień tekstu (`crimson-ink`), bo `#C1122F` jest za ciemna dla małego tekstu na prawie czarnym tle.
+
+Aktualne wartości obu motywów są w `src/styles/index.css`. `src/features/theme/themeColors.test.ts` pilnuje kontrastu co najmniej 4,5:1 dla wszystkich tokenów tekstu na każdym tle.
 
 ## Light mode
 
@@ -54,7 +58,9 @@ Light mode używa przewagi jasnej szarości i bieli, grafitowego tekstu oraz tej
 - nie koduj stanu wyłącznie kolorem;
 - zachowuj widoczne focus states;
 - przyciski treningowe muszą być używalne podczas zmęczenia;
-- respektuj `prefers-reduced-motion`.
+- respektuj `prefers-reduced-motion`;
+- czerwony tekst zawsze przez `text-crimson-ink`, nigdy `text-crimson`;
+- każdy ekran ma jeden obszar `<main>`. Testy E2E (axe) blokują naruszenia od poziomu `moderate`.
 
 ## Migracja Figmy
 

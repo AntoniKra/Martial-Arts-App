@@ -193,7 +193,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
         <h3 className="mt-1 font-display text-[14px] font-semibold text-ink">
           <Link
             to={routes.workoutReport(session.id)}
-            className="transition-colors hover:text-crimson focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+            className="transition-colors hover:text-crimson-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             {session.name}
           </Link>
@@ -264,7 +264,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
             </p>
 
             {deleteError ? (
-              <p className="text-[13px] leading-relaxed text-crimson" role="alert">
+              <p className="text-[13px] leading-relaxed text-crimson-ink" role="alert">
                 {deleteError}
               </p>
             ) : null}
@@ -303,7 +303,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
               shouldFocusDeleteCancelRef.current = true
               setIsConfirmingDelete(true)
             }}
-            className="font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson underline decoration-crimson/40 underline-offset-2 transition-colors hover:text-crimson-hi hover:decoration-crimson disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+            className="font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink underline decoration-crimson/40 underline-offset-2 transition-colors hover:text-crimson-hi hover:decoration-crimson disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             Usuń wpis
           </button>

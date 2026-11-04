@@ -102,7 +102,7 @@ export function WorkoutBreakForm({
       </div>
 
       {errorMessage ? (
-        <p id={errorId} className="text-[13px] leading-relaxed text-crimson">
+        <p id={errorId} className="text-[13px] leading-relaxed text-crimson-ink">
           {errorMessage}
         </p>
       ) : null}

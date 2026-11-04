@@ -87,7 +87,7 @@ export function WorkoutExerciseCard({
           >
             {exercise.exerciseNameSnapshot}
           </h3>
-          <p className="mt-1 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-crimson">
+          <p className="mt-1 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-crimson-ink">
             Ćwiczenie
           </p>
           <p className="mt-1 font-display text-[12px] tabular-nums text-muted">
@@ -122,7 +122,7 @@ export function WorkoutExerciseCard({
           </MoveIconButton>
           <MoveIconButton
             label={`Usuń ćwiczenie ${exerciseContext}`}
-            className="hover:text-crimson focus-visible:text-crimson"
+            className="hover:text-crimson-ink focus-visible:text-crimson-ink"
             onClick={() => {
               dispatch({ type: 'removeItem', blockId, itemId: exercise.id })
               onScheduleFocusRestore(addExerciseFocusTarget)

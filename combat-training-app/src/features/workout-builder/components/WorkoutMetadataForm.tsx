@@ -62,7 +62,7 @@ export function WorkoutMetadataForm({ state, dispatch }: WorkoutMetadataFormProp
                   {isSelected ? (
                     <span
                       aria-hidden="true"
-                      className="font-display text-[10px] font-semibold uppercase tracking-[0.1em] text-crimson"
+                      className="font-display text-[10px] font-semibold uppercase tracking-[0.1em] text-crimson-ink"
                     >
                       Wybrano
                     </span>

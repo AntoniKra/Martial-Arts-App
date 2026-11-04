@@ -40,7 +40,7 @@ function PreviewExerciseItem({ exercise }: { exercise: WorkoutExercise }) {
       <p className="break-words font-display text-[14px] font-semibold leading-snug text-ink">
         {exercise.exerciseNameSnapshot}
       </p>
-      <p className="mt-1 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-crimson">
+      <p className="mt-1 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-crimson-ink">
         Ćwiczenie
       </p>
       <p className="mt-1 break-words font-display text-[12px] tabular-nums text-muted">
