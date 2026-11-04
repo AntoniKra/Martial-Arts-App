@@ -6,7 +6,7 @@ Stos: React, TypeScript, Vite, Tailwind CSS, docelowo Firebase (Authentication, 
 
 ## Uruchomienie
 
-Wymagany Node.js 22 i npm.
+Wymagany Node.js 24.12.0 lub nowszy i npm (także pakiety Firebase wymagają tej wersji).
 
 Przed uruchomieniem ustaw konfigurację według `.env.example`. Brak konfiguracji
 wyświetla polski komunikat zamiast pustej strony. Właściciel sam podłącza prawdziwy
