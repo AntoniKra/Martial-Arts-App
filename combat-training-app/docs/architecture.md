@@ -29,7 +29,7 @@ src/
 
 - routing: React Router;
 - dane serwerowe: docelowo TanStack Query;
-- formularze: React Hook Form i Zod tam, gdzie formularz ma klasyczną strukturę;
+- formularze: kontrolowane pola Reacta i walidacja w czystej funkcji ze schematami `zod/mini` (ADR 0006);
 - kreator: reducer lub wyspecjalizowany hook domenowy;
 - aktywny timer: osobny moduł stanów, nie ogólny globalny store;
 - szkic lokalny: storage adapter.
