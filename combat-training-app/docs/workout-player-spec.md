@@ -15,14 +15,13 @@ Po jednym kliknięciu „Start” aplikacja automatycznie przeprowadza użytkown
 
 ## Sterowanie
 
-- `Poprzedni`: pierwsze kliknięcie restartuje aktualny element;
-- drugie szybkie kliknięcie cofa do poprzedniego elementu;
+- `Poprzedni`: jeśli od początku bieżącego etapu minęły ponad 3 sekundy, etap zaczyna się od nowa; jeśli mniej, odtwarzacz cofa do poprzedniego etapu. Na pierwszym etapie zawsze restartuje bieżący (decyzja z 4 listopada 2026);
 - `Następny`: jedno kliknięcie przechodzi dalej;
 - `Pauza/Wznów`: jeden przycisk ze zmienną ikoną;
 - `−15 s` i `+15 s`: zmieniają bieżące odliczanie;
 - brak osobnego przycisku „Powtórz rundę”.
 
-Zakończenie ćwiczenia i całego treningu znajduje się w menu dodatkowym. Zakończenie treningu wymaga potwierdzenia.
+Zakończenie ćwiczenia i całego treningu znajduje się w menu dodatkowym. „Zakończ wcześniej” wymaga potwierdzenia i zapisuje trening jako częściowy, jeśli była jakaś praca. Wyjście z odtwarzacza w trakcie treningu pyta: „Zakończ wcześniej”, „Porzuć” albo „Wróć” (`adr/0005-journal-entry-definitions.md`).
 
 ## Informacja o kolejnym elemencie
 

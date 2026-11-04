@@ -22,6 +22,18 @@
 | koncentracja | `concentrationRating` |
 | dyskomfort | `discomfort` |
 | wnioski | `workoutConclusions` |
+| wpis w dzienniku | `workoutSession` |
+| źródło wpisu | `source`: `plan`, `quickTimer`, `manual` |
+| szybki stoper | `quickTimer` |
+| ręczny wpis | `manual` |
+| rodzaj treningu | `category` (typ bloku bez rozgrzewki albo `mixed`) |
+| trening ukończony | `completed` |
+| trening częściowy | `partial` |
+| czas treningu | `durationSeconds` |
+| czas pracy | `workSeconds` |
+| czas sparingu | `sparringSeconds` |
+| realizacja | `completion` |
+| dzień treningu | `workoutDate` |
 
 ## Identyfikatory i tłumaczenia
 
