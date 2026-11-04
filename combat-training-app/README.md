@@ -8,6 +8,11 @@ Stos: React, TypeScript, Vite, Tailwind CSS, docelowo Firebase (Authentication, 
 
 Wymagany Node.js 22 i npm.
 
+Przed uruchomieniem ustaw konfigurację według `.env.example`. Brak konfiguracji
+wyświetla polski komunikat zamiast pustej strony. Właściciel sam podłącza prawdziwy
+projekt i włącza dostawcę Email/Password; agent i testy nie korzystają z tego projektu.
+Lokalne testy używają wyłącznie emulatora Authentication.
+
 ```bash
 npm ci
 npm run dev
@@ -36,22 +41,36 @@ Z katalogu `combat-training-app/`, w PowerShell:
 }
 ```
 
-Playwright sam buduje aplikację i uruchamia `vite preview` pod adresem
+`test:e2e` uruchamia `firebase emulators:exec --only auth --project demo-combat-training`.
+W CI przed testami instalowana jest Java 21, tak jak w eksperymencie Firestore.
+Sam emulator Authentication może działać bez Javy; emulatory Firestore jej wymagają.
+Porty emulatora (9099 i 4400) muszą być wolne. Nie trzeba logować się do Firebase CLI.
+
+Playwright sam buduje aplikację z jawną konfiguracją demo i uruchamia `vite preview` pod adresem
 `http://127.0.0.1:4173` (port musi być wolny). Nie wymaga osobnego serwera deweloperskiego.
 Uruchamia Chromium w trzech rozmiarach: telefon 360×800, tablet 768×1024 i komputer 1440×900.
-Każdy test ma osobny kontekst i pusty localStorage. Service worker działa tylko w teście offline.
-Wspólne wejście do aplikacji i tworzenie planu znajdują się w `e2e/fixtures.ts`.
+Każdy test ma osobny kontekst, pusty localStorage i własny adres testowy. Service worker
+działa tylko w teście offline. `WorkoutApp.open()` tworzy konto przez REST emulatora,
+oznacza adres jako potwierdzony i loguje przez interfejs aplikacji.
 
 Testy obejmują kreator, edycję i usuwanie planu z zachowaniem historii, odtwarzacz
 z kontrolowanym zegarem, zapamiętywanie motywu i uruchomienie `/workouts` offline.
-axe sprawdza stronę startową, listę treningów, kreator i uruchomiony odtwarzacz
-w obu motywach. Naruszenia `critical` blokują test; pozostałe są wypisywane w konsoli
-i dołączane jako JSON do raportu wraz ze zrzutem każdego badanego ekranu.
+Nowe scenariusze obejmują rejestrację i lokalny link weryfikacyjny, blokadę ponownej wysyłki
+przez 60 s, błędny login, powrót na chronioną stronę, reset hasła, wylogowanie oraz utratę
+sesji w drugiej karcie podczas treningu. axe sprawdza także cztery ekrany logowania.
+W obu motywach naruszenia `moderate`, `serious` i `critical` blokują test.
+Do raportu trafiają wyniki axe i zrzuty ekranów.
 Automatyczne skany nie zastępują ręcznej oceny dostępności.
 
 Raport HTML: `npx playwright show-report`. Wyniki JSON są w `test-results/e2e-results.json`.
-CI uruchamia osobny job `e2e`; przy niepowodzeniu udostępnia raport HTML, wyniki i ślady
+CI uruchamia osobny job `e2e`; zawsze udostępnia raport HTML, wyniki, zrzuty i ślady błędów
 jako artefakt `playwright-report` przechowywany przez 14 dni. Testy nie są automatycznie ponawiane.
+
+## Ograniczenie danych lokalnych
+
+Logowanie chroni wejście do aplikacji, ale plany i historia nadal są w localStorage,
+bez powiązania z kontem. Konta używane w tej samej przeglądarce widzą te same dane.
+Wylogowanie ich nie usuwa. Firestore i logowanie Google są osobnymi zadaniami.
 
 ## Zasady pracy
 

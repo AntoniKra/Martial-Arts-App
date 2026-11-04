@@ -51,12 +51,16 @@ jobs:
           cache: npm
           cache-dependency-path: combat-training-app/package-lock.json
 
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
 
-      - name: Upload Playwright report on failure
-        if: failure()
+      - name: Upload Playwright report and screenshots
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report
