@@ -1,0 +1,210 @@
+{
+  "scenario": "A",
+  "browserName": "webkit",
+  "mode": "persistent",
+  "stage": "online-rest-verification",
+  "events": [
+    {
+      "stage": "versions",
+      "at": "2026-11-03T22:51:25.150Z",
+      "observation": {
+        "firebase": "13.2.0",
+        "browser": "27.2",
+        "engine": "webkit",
+        "node": "v24.12.0"
+      }
+    },
+    {
+      "stage": "online-before-write",
+      "at": "2026-11-03T22:51:28.148Z",
+      "observation": {
+        "exists": false,
+        "hasPendingWrites": false,
+        "fromCache": false,
+        "data": null
+      }
+    },
+    {
+      "stage": "console:error",
+      "at": "2026-11-03T22:51:28.163Z",
+      "observation": "Beacon API cannot load http://127.0.0.1:8080/google.firestore.v1.Firestore/Listen/channel?VER=8&database=projects%2Fdemo-combat-training%2Fdatabases%2F(default)&SID=4d-DOjSMnDxQaqxwr-FNSg%3D%3D&RID=51555&TYPE=terminate&zx=8v5cb6w953d8. WebKit encountered an internal error"
+    },
+    {
+      "stage": "console:error",
+      "at": "2026-11-03T22:51:28.163Z",
+      "observation": "Failed to load resource: WebKit encountered an internal error"
+    },
+    {
+      "stage": "console:error",
+      "at": "2026-11-03T22:51:28.190Z",
+      "observation": "Failed to load resource: WebKit encountered an internal error"
+    },
+    {
+      "stage": "console:warning",
+      "at": "2026-11-03T22:51:28.196Z",
+      "observation": "[2026-11-03T22:51:28.191Z]  @firebase/firestore: Firestore (13.2.0): WebChannelConnection RPC 'Write' stream 0x74745620 transport errored. Name: undefined Message: undefined"
+    },
+    {
+      "stage": "console:info",
+      "at": "2026-11-03T22:51:28.200Z",
+      "observation": "Web Inspector blocked https://www.google.com/images/cleardot.gif?zx=e3020cbogspi from loading"
+    },
+    {
+      "stage": "network:blocked-connectivity-probe",
+      "at": "2026-11-03T22:51:28.200Z",
+      "observation": "https://www.google.com/images/cleardot.gif"
+    },
+    {
+      "stage": "console:error",
+      "at": "2026-11-03T22:51:28.207Z",
+      "observation": "Failed to load resource: WebKit encountered an internal error"
+    },
+    {
+      "stage": "console:warning",
+      "at": "2026-11-03T22:51:28.211Z",
+      "observation": "[2026-11-03T22:51:28.207Z]  @firebase/firestore: Firestore (13.2.0): WebChannelConnection RPC 'Write' stream 0x74745621 transport errored. Name: undefined Message: undefined"
+    },
+    {
+      "stage": "console:info",
+      "at": "2026-11-03T22:51:28.211Z",
+      "observation": "Web Inspector blocked https://www.google.com/images/cleardot.gif?zx=qp8sgqro2gga from loading"
+    },
+    {
+      "stage": "network:blocked-connectivity-probe",
+      "at": "2026-11-03T22:51:28.211Z",
+      "observation": "https://www.google.com/images/cleardot.gif"
+    },
+    {
+      "stage": "offline-pending-write",
+      "at": "2026-11-03T22:51:28.215Z",
+      "observation": {
+        "cache": {
+          "exists": true,
+          "hasPendingWrites": true,
+          "fromCache": true,
+          "data": {
+            "workoutId": "webkit-A-393dd13e-1eb4-49be-acd3-9e1187807043",
+            "discipline": "boxing",
+            "completedRounds": 3,
+            "completedAtIso": "2026-11-03T12:00:00.000Z"
+          }
+        },
+        "write": {
+          "state": "pending",
+          "error": null
+        },
+        "rest": {
+          "status": 404,
+          "body": {
+            "error": {
+              "code": 404,
+              "message": "Document (projects/demo-combat-training/databases/(default)/documents/workouts/webkit-A-393dd13e-1eb4-49be-acd3-9e1187807043) not found.",
+              "status": "NOT_FOUND"
+            }
+          }
+        }
+      }
+    },
+    {
+      "stage": "console:error",
+      "at": "2026-11-03T22:51:28.575Z",
+      "observation": "Failed to load resource: WebKit encountered an internal error"
+    },
+    {
+      "stage": "tab-reopen-offline",
+      "at": "2026-11-03T22:51:28.576Z",
+      "observation": {
+        "cache": {
+          "exists": true,
+          "hasPendingWrites": true,
+          "fromCache": true,
+          "data": {
+            "workoutId": "webkit-A-393dd13e-1eb4-49be-acd3-9e1187807043",
+            "discipline": "boxing",
+            "completedRounds": 3,
+            "completedAtIso": "2026-11-03T12:00:00.000Z"
+          }
+        },
+        "rest": {
+          "status": 404,
+          "body": {
+            "error": {
+              "code": 404,
+              "message": "Document (projects/demo-combat-training/databases/(default)/documents/workouts/webkit-A-393dd13e-1eb4-49be-acd3-9e1187807043) not found.",
+              "status": "NOT_FOUND"
+            }
+          }
+        }
+      }
+    },
+    {
+      "stage": "console:warning",
+      "at": "2026-11-03T22:51:28.581Z",
+      "observation": "[2026-11-03T22:51:28.577Z]  @firebase/firestore: Firestore (13.2.0): WebChannelConnection RPC 'Write' stream 0x7c6e50cf transport errored. Name: undefined Message: undefined"
+    },
+    {
+      "stage": "console:info",
+      "at": "2026-11-03T22:51:28.583Z",
+      "observation": "Web Inspector blocked https://www.google.com/images/cleardot.gif?zx=3h08cu8jvgud from loading"
+    },
+    {
+      "stage": "network:blocked-connectivity-probe",
+      "at": "2026-11-03T22:51:28.583Z",
+      "observation": "https://www.google.com/images/cleardot.gif"
+    },
+    {
+      "stage": "console:error",
+      "at": "2026-11-03T22:51:28.584Z",
+      "observation": "Failed to load resource: WebKit encountered an internal error"
+    },
+    {
+      "stage": "console:warning",
+      "at": "2026-11-03T22:51:28.586Z",
+      "observation": "[2026-11-03T22:51:28.584Z]  @firebase/firestore: Firestore (13.2.0): WebChannelConnection RPC 'Write' stream 0x7c6e50d0 transport errored. Name: undefined Message: undefined"
+    },
+    {
+      "stage": "console:info",
+      "at": "2026-11-03T22:51:28.626Z",
+      "observation": "Web Inspector blocked https://www.google.com/images/cleardot.gif?zx=ne1g0qls9351 from loading"
+    },
+    {
+      "stage": "network:blocked-connectivity-probe",
+      "at": "2026-11-03T22:51:28.626Z",
+      "observation": "https://www.google.com/images/cleardot.gif"
+    },
+    {
+      "stage": "online-rest-verification",
+      "at": "2026-11-03T22:51:28.758Z",
+      "observation": {
+        "status": 200,
+        "body": {
+          "name": "projects/demo-combat-training/databases/(default)/documents/workouts/webkit-A-393dd13e-1eb4-49be-acd3-9e1187807043",
+          "fields": {
+            "workoutId": {
+              "stringValue": "webkit-A-393dd13e-1eb4-49be-acd3-9e1187807043"
+            },
+            "discipline": {
+              "stringValue": "boxing"
+            },
+            "completedRounds": {
+              "integerValue": "3"
+            },
+            "completedAtIso": {
+              "stringValue": "2026-11-03T12:00:00.000Z"
+            }
+          },
+          "createTime": "2026-11-03T22:51:28.670564Z",
+          "updateTime": "2026-11-03T22:51:28.670564Z"
+        }
+      }
+    },
+    {
+      "stage": "complete",
+      "at": "2026-11-03T22:51:28.816Z",
+      "observation": {
+        "scenario": "A",
+        "expectedPersistence": true
+      }
+    }
+  ]
+}
