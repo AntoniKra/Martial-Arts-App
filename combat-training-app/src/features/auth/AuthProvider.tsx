@@ -6,31 +6,31 @@ import { mapAuthError } from './mapAuthError'
 export function AuthProvider({ service, children }: PropsWithChildren<{ service: AuthService }>) {
   const [state, setState] = useState<AuthState>({ status: 'loading' })
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [verificationSentAt, setVerificationSentAt] = useState<number | null>(null)
+  const [verificationError, setVerificationError] = useState<string | null>(null)
 
   useEffect(() => service.subscribe(
     (session) => setState({ status: 'ready', session }),
     () => setState({ status: 'error' }),
   ), [service])
 
-  async function execute(action: () => Promise<void>): Promise<boolean> {
+  async function execute(action: () => Promise<void>): Promise<string | null> {
     setBusy(true)
-    setError(null)
     try {
       await action()
-      return true
+      return null
     } catch (cause) {
-      setError(mapAuthError(cause))
-      return false
+      return mapAuthError(cause)
     } finally {
       setBusy(false)
     }
   }
 
   async function sendVerification() {
-    await service.sendVerificationEmail()
-    setVerificationSentAt(Date.now())
+    const error = await execute(() => service.sendVerificationEmail())
+    setVerificationError(error)
+    if (error === null) setVerificationSentAt(Date.now())
+    return error === null
   }
 
   async function refreshVerification() {
@@ -40,7 +40,7 @@ export function AuthProvider({ service, children }: PropsWithChildren<{ service:
   }
 
   return (
-    <AuthContext.Provider value={{ service, state, busy, error, verificationSentAt, execute, sendVerification, refreshVerification }}>
+    <AuthContext.Provider value={{ service, state, busy, verificationSentAt, verificationError, execute, sendVerification, refreshVerification }}>
       {children}
     </AuthContext.Provider>
   )
