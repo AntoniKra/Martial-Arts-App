@@ -37,6 +37,32 @@ test('renames and deletes a plan while preserving the completed workout', async 
   await expect(history.getByText('2/2 ćwiczeń', { exact: true })).toBeVisible()
 })
 
+test('"Poprzedni" restarts the step after three seconds and goes back before that', async ({ app, page }) => {
+  await app.createPlan('Trening z cofaniem')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  const previous = page.getByRole('button', { name: 'Poprzedni etap', exact: true })
+
+  // First step: always restarts.
+  await page.clock.runFor(10_000)
+  await expect(page.getByText('Pozostały czas: 50 sekund', { exact: true })).toBeAttached()
+  await previous.click()
+  await expect(page.getByText('Pozostały czas: 1 minuta', { exact: true })).toBeAttached()
+
+  // Rest after the first round, within three seconds: back to the round.
+  await page.clock.runFor(62_000)
+  await expect(page.getByText('Pozostały czas: 28 sekund', { exact: true })).toBeAttached()
+  await previous.click()
+  await expect(page.getByText('Pozostały czas: 1 minuta', { exact: true })).toBeAttached()
+
+  // Rest again, after more than three seconds: the rest starts over.
+  await page.clock.runFor(65_000)
+  await expect(page.getByText('Pozostały czas: 25 sekund', { exact: true })).toBeAttached()
+  await previous.click()
+  await expect(page.getByText('Pozostały czas: 30 sekund', { exact: true })).toBeAttached()
+})
+
 test('plays, pauses and resumes through rounds and rest with correct history totals', async ({ app, page }) => {
   await app.createPlan('Trening z zegarem')
   await app.openPlayer()
