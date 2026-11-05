@@ -1,11 +1,23 @@
 import path from 'node:path'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
 import { VitePWA } from 'vite-plugin-pwa'
+import { readDeployFirebaseConfig } from './src/infrastructure/firebase/firebaseConfig'
+
+// Project in .firebaserc under the "prod" alias. `npm run build:deploy` refuses any other target.
+const deployProjectId = 'combat-training-830fb'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), VitePWA({
+  plugins: [react(), tailwindcss(), {
+    // Fail the deploy build early instead of publishing the configuration error screen.
+    name: 'deploy-firebase-config',
+    apply: 'build',
+    configResolved(config) {
+      if (config.mode === 'deploy') readDeployFirebaseConfig(loadEnv(config.mode, config.envDir || config.root, 'VITE_'), deployProjectId)
+    },
+  }, VitePWA({
     registerType: 'prompt',
     devOptions: { enabled: false },
     // The icons are already precached by globPatterns below, so do not list them twice.
