@@ -12,6 +12,7 @@ export type WorkoutPlaybackEvent =
       stepIndex: number
       playbackStepId: string
       performedDurationSeconds: number
+      performedDurationMs: number
       outcome: WorkoutSessionStepOutcome
       reason: WorkoutPlaybackStepFinalizeReason
     }

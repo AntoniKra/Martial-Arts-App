@@ -1,20 +1,27 @@
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import type { WorkoutBlockType } from '@/domain/workout/workout.types'
+import { calculateWorkoutDate, calculateWorkoutSessionCompletion, calculateWorkoutSessionDurations, definePlanWorkoutSession } from '@/domain/workout-session/workoutSessionDefinitions'
 import type {
   WorkoutSession,
+  WorkoutSessionCategory,
+  WorkoutSessionCompletion,
+  WorkoutSessionSource,
+  WorkoutSessionStatus,
   WorkoutSessionStepKind,
   WorkoutSessionStepOutcome,
   WorkoutSessionStepResult,
 } from '@/domain/workout-session/workoutSession.types'
 
 export const WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V1 = 1 as const
-export const WORKOUT_SESSION_STORAGE_SCHEMA_VERSION = 2 as const
+export const WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V2 = 2 as const
+export const WORKOUT_SESSION_STORAGE_SCHEMA_VERSION = 3 as const
 
 export type WorkoutSessionStorageSchemaVersion =
   | typeof WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V1
+  | typeof WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V2
   | typeof WORKOUT_SESSION_STORAGE_SCHEMA_VERSION
 
-export interface WorkoutSessionStorageEnvelopeV2 {
+export interface WorkoutSessionStorageEnvelopeV3 {
   schemaVersion: typeof WORKOUT_SESSION_STORAGE_SCHEMA_VERSION
   sessions: WorkoutSession[]
 }
@@ -87,6 +94,15 @@ const SESSION_KEYS_V2 = [
   'stepResults',
   'note',
 ] as const
+
+const SESSION_KEYS_V3 = [
+  ...SESSION_KEYS_V2,
+  'source', 'status', 'durationSeconds', 'workSeconds', 'sparringSeconds',
+  'completion', 'workoutDate', 'timezone', 'category',
+] as const
+
+const SOURCES = new Set<WorkoutSessionSource>(['plan', 'quickTimer', 'manual'])
+const STATUSES = new Set<WorkoutSessionStatus>(['completed', 'partial'])
 
 const ISO_TIMESTAMP_PATTERN =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|[+-]\d{2}:\d{2})$/
@@ -469,10 +485,10 @@ function parseWorkoutSessionShapeV1(value: unknown): WorkoutSession {
 
   assertExactKeys(value, SESSION_KEYS_V1, 'Workout session contains unexpected or missing fields.')
 
-  return {
+  return migrateLegacySession({
     ...parseWorkoutSessionCoreFields(value),
     note: null,
-  }
+  })
 }
 
 function parseWorkoutSessionShapeV2(value: unknown): WorkoutSession {
@@ -482,17 +498,114 @@ function parseWorkoutSessionShapeV2(value: unknown): WorkoutSession {
 
   assertExactKeys(value, SESSION_KEYS_V2, 'Workout session contains unexpected or missing fields.')
 
-  return {
+  return migrateLegacySession({
     ...parseWorkoutSessionCoreFields(value),
     note: normalizeWorkoutSessionNote(value.note),
+  })
+}
+
+function migrateLegacySession(fields: ReturnType<typeof parseWorkoutSessionCoreFields> & { note: string | null }): WorkoutSession {
+  // Preserve legacy step results; only completed exercises contribute work (ADR 0005).
+  // The original timezone and timings of repeated attempts are unavailable.
+  return definePlanWorkoutSession(fields, {
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    blockTypes: fields.stepResults.map((step) => step.blockType),
+    endedEarly: false,
+    durations: calculateWorkoutSessionDurations(fields.stepResults.map((step) => ({
+      ...step, performedDurationMs: step.performedDurationSeconds * 1000,
+    }))),
+  })
+}
+
+function isDuration(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER
+}
+
+function parseCompletion(value: unknown): WorkoutSessionCompletion | null {
+  if (value === null) return null
+  if (!isRecord(value) || !hasExactKeys(value, ['completedExercises', 'plannedExercises']) ||
+    !isNonNegativeSafeInteger(value.completedExercises) || !isNonNegativeSafeInteger(value.plannedExercises) ||
+    value.completedExercises > value.plannedExercises) {
+    throw new WorkoutSessionStorageError('invalid_data', 'Workout session completion has invalid fields.')
+  }
+  return { completedExercises: value.completedExercises, plannedExercises: value.plannedExercises }
+}
+
+function assertWorkoutDate(startedAt: string, workoutDate: unknown, timezone: unknown): asserts workoutDate is string {
+  if (typeof workoutDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(workoutDate) ||
+    !isValidCalendarDate(Number(workoutDate.slice(0, 4)), Number(workoutDate.slice(5, 7)), Number(workoutDate.slice(8, 10))) ||
+    typeof timezone !== 'string' || !/^[A-Za-z_]+(?:\/[A-Za-z0-9_+-]+)*$/.test(timezone)) {
+    throw new WorkoutSessionStorageError('invalid_data', 'Workout session date or timezone is invalid.')
+  }
+  try {
+    if (calculateWorkoutDate(startedAt, timezone) !== workoutDate) throw new Error('Date mismatch')
+  } catch (error) {
+    throw new WorkoutSessionStorageError('invalid_data', 'Workout session date or timezone is invalid.', { cause: error })
+  }
+}
+
+function parseWorkoutSessionShapeV3(value: unknown): WorkoutSession {
+  if (!isRecord(value)) {
+    throw new WorkoutSessionStorageError('invalid_data', 'Workout session must be an object.')
+  }
+  assertExactKeys(value, SESSION_KEYS_V3, 'Workout session contains unexpected or missing fields.')
+  const fields = parseWorkoutSessionCoreFields(value)
+  const completion = parseCompletion(value.completion)
+  if (typeof value.source !== 'string' || !SOURCES.has(value.source as WorkoutSessionSource) ||
+    typeof value.status !== 'string' || !STATUSES.has(value.status as WorkoutSessionStatus) ||
+    !isDuration(value.durationSeconds) ||
+    !(value.workSeconds === null || isDuration(value.workSeconds)) ||
+    !(value.sparringSeconds === null || isDuration(value.sparringSeconds)) ||
+    typeof value.timezone !== 'string' ||
+    typeof value.category !== 'string' ||
+    !(value.category === 'mixed' || (value.category !== 'warmup' && BLOCK_TYPES.has(value.category as WorkoutBlockType)))) {
+    throw new WorkoutSessionStorageError('invalid_data', 'Workout session journal fields are invalid.')
+  }
+  if ((value.source !== 'manual' && (completion === null || value.workSeconds === null || value.sparringSeconds === null)) ||
+    (value.workSeconds !== null && value.workSeconds > value.durationSeconds) ||
+    (value.sparringSeconds !== null && (value.workSeconds === null || value.sparringSeconds > value.workSeconds))) {
+    throw new WorkoutSessionStorageError('invalid_data', 'Workout session journal measurements are inconsistent.')
+  }
+  if (value.source === 'plan') {
+    const expected = calculateWorkoutSessionCompletion(fields.stepResults)
+    const minimumDurations = calculateWorkoutSessionDurations(fields.stepResults.map((step) => ({
+      ...step, performedDurationMs: step.performedDurationSeconds * 1000,
+    })))
+    if (completion?.completedExercises !== expected.completedExercises || completion?.plannedExercises !== expected.plannedExercises ||
+      (value.status === 'completed' && expected.completedExercises !== expected.plannedExercises) ||
+      value.durationSeconds < minimumDurations.durationSeconds ||
+      value.workSeconds === null || value.workSeconds < minimumDurations.workSeconds ||
+      value.sparringSeconds === null || value.sparringSeconds < minimumDurations.sparringSeconds) {
+      throw new WorkoutSessionStorageError('invalid_data', 'Workout session completion does not match exercise results.')
+    }
+    // Repetitions can increase work above the snapshot, but cannot create work without a completed step.
+    if (!isNonNegativeSafeInteger(value.workSeconds) || !isNonNegativeSafeInteger(value.sparringSeconds) ||
+      (minimumDurations.workSeconds === 0 && value.workSeconds !== 0) ||
+      (minimumDurations.sparringSeconds === 0 && value.sparringSeconds !== 0)) {
+      throw new WorkoutSessionStorageError('invalid_data', 'Workout session work requires completed exercise steps.')
+    }
+  }
+  assertWorkoutDate(fields.startedAt, value.workoutDate, value.timezone)
+  return {
+    ...fields,
+    note: normalizeWorkoutSessionNote(value.note),
+    source: value.source as WorkoutSessionSource,
+    status: value.status as WorkoutSessionStatus,
+    durationSeconds: value.durationSeconds,
+    workSeconds: value.workSeconds,
+    sparringSeconds: value.sparringSeconds,
+    completion,
+    workoutDate: value.workoutDate,
+    timezone: value.timezone,
+    category: value.category as WorkoutSessionCategory,
   }
 }
 
 export function parseStoredWorkoutSession(value: unknown): WorkoutSession {
-  return parseWorkoutSessionShapeV2(value)
+  return parseWorkoutSessionShapeV3(value)
 }
 
-export function createEmptyWorkoutSessionStorageEnvelope(): WorkoutSessionStorageEnvelopeV2 {
+export function createEmptyWorkoutSessionStorageEnvelope(): WorkoutSessionStorageEnvelopeV3 {
   return {
     schemaVersion: WORKOUT_SESSION_STORAGE_SCHEMA_VERSION,
     sessions: [],
@@ -516,6 +629,7 @@ function assertReadableSchemaVersion(raw: Record<string, unknown>): WorkoutSessi
 
   if (
     raw.schemaVersion !== WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V1 &&
+    raw.schemaVersion !== WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V2 &&
     raw.schemaVersion !== WORKOUT_SESSION_STORAGE_SCHEMA_VERSION
   ) {
     throw new WorkoutSessionStorageError(
@@ -547,7 +661,9 @@ export function parseWorkoutSessionStorageEnvelope(raw: unknown): WorkoutSession
   const parseSession =
     schemaVersion === WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V1
       ? parseWorkoutSessionShapeV1
-      : parseWorkoutSessionShapeV2
+      : schemaVersion === WORKOUT_SESSION_STORAGE_SCHEMA_VERSION_V2
+        ? parseWorkoutSessionShapeV2
+        : parseWorkoutSessionShapeV3
 
   const sessions: WorkoutSession[] = []
   const sessionIds = new Set<string>()
@@ -572,6 +688,6 @@ export function parseWorkoutSessionStorageEnvelope(raw: unknown): WorkoutSession
   }
 }
 
-export function serializeWorkoutSessionStorageEnvelope(envelope: WorkoutSessionStorageEnvelopeV2): string {
+export function serializeWorkoutSessionStorageEnvelope(envelope: WorkoutSessionStorageEnvelopeV3): string {
   return JSON.stringify(envelope)
 }

@@ -11,7 +11,7 @@ import { WorkoutCircularTimer } from '@/features/workout-player/components/Worko
 import { WorkoutPlayerControls } from '@/features/workout-player/components/WorkoutPlayerControls'
 import { WorkoutPlayerNextPreview } from '@/features/workout-player/components/WorkoutPlayerNextPreview'
 import { useWorkoutSessionAutoSave, type WorkoutSessionSaveState } from '@/features/workout-player/hooks/useWorkoutSessionAutoSave'
-import { useWorkoutSessionRecorder, WORKOUT_SESSION_RECORDER_ERROR_MESSAGE } from '@/features/workout-player/hooks/useWorkoutSessionRecorder'
+import { useWorkoutSessionRecorder, WORKOUT_SESSION_NO_WORK_MESSAGE, WORKOUT_SESSION_RECORDER_ERROR_MESSAGE } from '@/features/workout-player/hooks/useWorkoutSessionRecorder'
 import { useWorkoutPlayback } from '@/features/workout-player/hooks/useWorkoutPlayback'
 import { useWorkoutGong } from '@/features/workout-player/hooks/useWorkoutGong'
 import { useWorkoutScreenWakeLock } from '@/features/workout-player/hooks/useWorkoutScreenWakeLock'
@@ -149,6 +149,7 @@ function WorkoutPlayerCompletedPanel({
   workoutDetailsPath,
   saveState,
   hasRecorderError,
+  hasNoWork,
   onRestart,
   onRetrySave,
   isRestartDisabled,
@@ -157,19 +158,22 @@ function WorkoutPlayerCompletedPanel({
   workoutDetailsPath: string
   saveState: WorkoutSessionSaveState
   hasRecorderError: boolean
+  hasNoWork: boolean
   onRestart: () => void
   onRetrySave: () => void
   isRestartDisabled: boolean
 }) {
   const statusMessage = hasRecorderError
     ? WORKOUT_SESSION_RECORDER_ERROR_MESSAGE
-    : saveState.status === 'saving'
-      ? 'Zapisywanie treningu…'
-      : saveState.status === 'saved'
-        ? 'Trening został zapisany.'
-        : saveState.status === 'error'
-          ? saveState.message
-          : 'Trening został ukończony.'
+    : hasNoWork
+      ? WORKOUT_SESSION_NO_WORK_MESSAGE
+      : saveState.status === 'saving'
+        ? 'Zapisywanie treningu…'
+        : saveState.status === 'saved'
+          ? 'Trening został zapisany.'
+          : saveState.status === 'error'
+            ? saveState.message
+            : 'Trening został ukończony.'
 
   const showBackWithoutSave = hasRecorderError || saveState.status === 'error'
 
@@ -256,7 +260,7 @@ function WorkoutPlayerRuntime({
   workoutDetailsPath,
   saveWorkoutSession,
 }: WorkoutPlayerRuntimeProps) {
-  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError } = useWorkoutSessionRecorder(plan, timeline)
+  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork } = useWorkoutSessionRecorder(plan, timeline)
   const { unlockGong, onGongPlaybackEvent } = useWorkoutGong(timeline)
   const handlePlaybackEvent = useCallback((event: WorkoutPlaybackEvent) => {
     onPlaybackEvent(event)
@@ -307,9 +311,10 @@ function WorkoutPlayerRuntime({
           workoutDetailsPath={workoutDetailsPath}
           saveState={saveState}
           hasRecorderError={hasRecorderError}
+          hasNoWork={hasNoWork}
           onRestart={restart}
           onRetrySave={retrySave}
-          isRestartDisabled={hasRecorderError || saveState.status !== 'saved'}
+          isRestartDisabled={hasRecorderError || (!hasNoWork && saveState.status !== 'saved')}
         />
       </main>
     )

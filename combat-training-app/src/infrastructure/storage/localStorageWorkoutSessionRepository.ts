@@ -9,7 +9,7 @@ import {
   WorkoutSessionStorageError,
   WORKOUT_SESSION_STORAGE_SCHEMA_VERSION,
   type WorkoutSessionStorageEnvelopeRead,
-  type WorkoutSessionStorageEnvelopeV2,
+  type WorkoutSessionStorageEnvelopeV3,
 } from '@/infrastructure/storage/workoutSessionStorageSchema'
 
 export const DEFAULT_WORKOUT_SESSION_STORAGE_KEY = 'combat-training.workout-sessions'
@@ -141,7 +141,18 @@ export class LocalStorageWorkoutSessionRepository implements WorkoutSessionRepos
     }
 
     try {
-      return parseWorkoutSessionStorageEnvelope(parsed)
+      const envelope = parseWorkoutSessionStorageEnvelope(parsed)
+      if (envelope.schemaVersion !== WORKOUT_SESSION_STORAGE_SCHEMA_VERSION) {
+        // Persist the migration once so later device timezone changes cannot move old entries.
+        const migrated = { ...envelope, schemaVersion: WORKOUT_SESSION_STORAGE_SCHEMA_VERSION }
+        try {
+          this.writeEnvelope(migrated)
+        } catch {
+          // A migration write is best effort: reads still succeed and retry on the next read.
+        }
+        return migrated
+      }
+      return envelope
     } catch (error) {
       if (error instanceof WorkoutSessionStorageError) {
         throw error
@@ -153,7 +164,7 @@ export class LocalStorageWorkoutSessionRepository implements WorkoutSessionRepos
     }
   }
 
-  private writeEnvelope(envelope: WorkoutSessionStorageEnvelopeV2): void {
+  private writeEnvelope(envelope: WorkoutSessionStorageEnvelopeV3): void {
     let serialized: string
 
     try {

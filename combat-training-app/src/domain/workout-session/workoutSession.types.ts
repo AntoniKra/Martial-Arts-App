@@ -19,7 +19,18 @@ export interface WorkoutSessionStepResult {
   outcome: WorkoutSessionStepOutcome
 }
 
-/** Persisted completed workout session. Existence implies the workout was finished. */
+export type WorkoutSessionSource = 'plan' | 'quickTimer' | 'manual'
+
+export type WorkoutSessionStatus = 'completed' | 'partial'
+
+export type WorkoutSessionCategory = Exclude<WorkoutBlockType, 'warmup'> | 'mixed'
+
+export interface WorkoutSessionCompletion {
+  completedExercises: number
+  plannedExercises: number
+}
+
+/** Persisted journal entry. A saved workout can be completed or partial. */
 export interface WorkoutSession {
   id: string
   workoutPlanId: string
@@ -27,6 +38,16 @@ export interface WorkoutSession {
   disciplineKey: DisciplineKey
   startedAt: string
   completedAt: string
+  source: WorkoutSessionSource
+  status: WorkoutSessionStatus
+  durationSeconds: number
+  workSeconds: number | null
+  sparringSeconds: number | null
+  /** null means not applicable (a future manual entry), never 100%. */
+  completion: WorkoutSessionCompletion | null
+  workoutDate: string
+  timezone: string
+  category: WorkoutSessionCategory
   stepResults: WorkoutSessionStepResult[]
   note: string | null
 }

@@ -106,6 +106,7 @@ function emitStepFinalized(
   stepIndex: number,
   remainingSeconds: number,
   reason: WorkoutPlaybackStepFinalizeReason,
+  performedDurationMs?: number,
 ): void {
   const step = steps[stepIndex]
 
@@ -117,14 +118,17 @@ function emitStepFinalized(
     step.durationSeconds,
     remainingSeconds,
     reason,
+    step.kind,
   )
-  const outcome = deriveStepOutcome(step.durationSeconds, performedDurationSeconds, reason)
+  const outcome = deriveStepOutcome(step.durationSeconds, performedDurationSeconds, reason, step.kind)
 
   emit({
     type: 'stepFinalized',
     stepIndex,
     playbackStepId: step.id,
     performedDurationSeconds,
+    // Manual navigation supplies real elapsed milliseconds even when the exercise is skipped.
+    performedDurationMs: performedDurationMs ?? performedDurationSeconds * 1000,
     outcome,
     reason,
   })
@@ -433,6 +437,7 @@ export function useWorkoutPlayback(
         current.currentStepIndex,
         current.remainingSeconds,
         'previous',
+        elapsedMs,
       )
 
       const targetIndex = action === 'restartCurrent' ? current.currentStepIndex : current.currentStepIndex - 1
@@ -515,6 +520,13 @@ export function useWorkoutPlayback(
         current.currentStepIndex,
         current.remainingSeconds,
         'next',
+        getElapsedInStepMs(
+          current,
+          getStepDurationSeconds(stepsRef.current, current.currentStepIndex),
+          deadlineRef.current,
+          pausedPlaybackRef.current,
+          nowMs,
+        ),
       )
 
       const nextIndex = current.currentStepIndex + 1

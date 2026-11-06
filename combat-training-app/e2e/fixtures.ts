@@ -18,7 +18,7 @@ class WorkoutApp {
     await expect(this.page.getByRole('main')).toBeVisible()
   }
 
-  async createPlan(name = 'Plan E2E') {
+  async createPlan(name = 'Plan E2E', roundDurationLabel: '1:00' | '3:00' = '1:00') {
     const { page } = this
     await this.open('/workouts/new')
     await page.getByRole('radio', { name: 'Boks', exact: true }).check()
@@ -30,7 +30,7 @@ class WorkoutApp {
     await page.getByRole('textbox', { name: 'Liczba rund' }).fill('2')
     // Native radios are visually hidden inside labels; select them with the keyboard.
     const roundDuration = page.getByRole('group', { name: 'Czas rundy', exact: true })
-      .getByRole('radio', { name: '1:00', exact: true })
+      .getByRole('radio', { name: roundDurationLabel, exact: true })
     await roundDuration.press('Space')
     await expect(roundDuration).toBeChecked()
     const roundRest = page.getByRole('group', { name: 'Przerwa między rundami', exact: true })
