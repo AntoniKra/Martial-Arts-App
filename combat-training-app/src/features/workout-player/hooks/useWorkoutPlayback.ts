@@ -18,6 +18,7 @@ import {
 } from '@/features/workout-player/utils/playbackPause'
 import { choosePreviousStepAction, getElapsedInStepMs } from '@/features/workout-player/utils/previousStepAction'
 import { resolveRunningPlaybackAtTime } from '@/features/workout-player/utils/resolveRunningPlaybackAtTime'
+import { finalizePlaybackSteps, getNextWorkoutItemStepIndex } from '@/features/workout-player/utils/finishPlaybackSteps'
 import {
   calculatePerformedDurationSeconds,
   deriveStepOutcome,
@@ -42,6 +43,8 @@ interface UseWorkoutPlaybackResult {
   resume: () => void
   goToPreviousStep: (expected: ExpectedStepNavigation) => void
   goToNextStep: (expected: ExpectedStepNavigation) => void
+  finishCurrentExercise: (expected: ExpectedStepNavigation) => void
+  endEarly: () => void
   restart: () => void
 }
 
@@ -457,8 +460,8 @@ export function useWorkoutPlayback(
     [commitPlayback, commitPlaybackTransition, emitEvent, invalidateRuntime],
   )
 
-  const goToNextStep = useCallback(
-    (expected: ExpectedStepNavigation) => {
+  const advancePlayback = useCallback(
+    (expected: ExpectedStepNavigation, reason: 'next' | 'finishExercise' | 'endEarly') => {
       const nowMs = Date.now()
       const capturedGeneration = generationRef.current
       const snapshot = playbackRef.current
@@ -514,12 +517,19 @@ export function useWorkoutPlayback(
         return
       }
 
-      emitStepFinalized(
-        emitEvent,
+      if (reason === 'finishExercise' && stepsRef.current[current.currentStepIndex]?.kind === 'break') return
+
+      const nextIndex = reason === 'endEarly'
+        ? stepsRef.current.length
+        : reason === 'finishExercise'
+          ? getNextWorkoutItemStepIndex(stepsRef.current, current.currentStepIndex)
+          : current.currentStepIndex + 1
+
+      const events = finalizePlaybackSteps(
         stepsRef.current,
         current.currentStepIndex,
+        nextIndex,
         current.remainingSeconds,
-        'next',
         getElapsedInStepMs(
           current,
           getStepDurationSeconds(stepsRef.current, current.currentStepIndex),
@@ -527,9 +537,9 @@ export function useWorkoutPlayback(
           pausedPlaybackRef.current,
           nowMs,
         ),
+        reason,
       )
-
-      const nextIndex = current.currentStepIndex + 1
+      events.forEach(emitEvent)
 
       if (nextIndex >= stepsRef.current.length) {
         invalidateRuntime()
@@ -543,7 +553,7 @@ export function useWorkoutPlayback(
           },
           null,
         )
-        emitEvent({ type: 'completed', timestampMs: nowMs })
+        emitEvent({ type: 'completed', timestampMs: nowMs, endedEarly: reason === 'endEarly' })
         return
       }
 
@@ -564,6 +574,13 @@ export function useWorkoutPlayback(
     },
     [commitPlaybackTransition, emitEvent, invalidateRuntime],
   )
+
+  const goToNextStep = useCallback((expected: ExpectedStepNavigation) => advancePlayback(expected, 'next'), [advancePlayback])
+  const finishCurrentExercise = useCallback((expected: ExpectedStepNavigation) => advancePlayback(expected, 'finishExercise'), [advancePlayback])
+  const endEarly = useCallback(() => {
+    const current = playbackRef.current
+    advancePlayback({ expectedStepIndex: current.currentStepIndex, expectedStepRevision: current.stepRevision }, 'endEarly')
+  }, [advancePlayback])
 
   const restart = useCallback(() => {
     emitEvent({ type: 'restarted' })
@@ -626,6 +643,8 @@ export function useWorkoutPlayback(
     resume,
     goToPreviousStep,
     goToNextStep,
+    finishCurrentExercise,
+    endEarly,
     restart,
   }
 }

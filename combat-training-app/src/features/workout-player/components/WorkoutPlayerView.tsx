@@ -10,6 +10,8 @@ import type { WorkoutSession } from '@/domain/workout-session/workoutSession.typ
 import { WorkoutCircularTimer } from '@/features/workout-player/components/WorkoutCircularTimer'
 import { WorkoutPlayerControls } from '@/features/workout-player/components/WorkoutPlayerControls'
 import { WorkoutPlayerNextPreview } from '@/features/workout-player/components/WorkoutPlayerNextPreview'
+import { WorkoutPlayerExitControls } from '@/features/workout-player/components/WorkoutPlayerExitControls'
+import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 import { useWorkoutSessionAutoSave, type WorkoutSessionSaveState } from '@/features/workout-player/hooks/useWorkoutSessionAutoSave'
 import { useWorkoutSessionRecorder, WORKOUT_SESSION_NO_WORK_MESSAGE, WORKOUT_SESSION_RECORDER_ERROR_MESSAGE } from '@/features/workout-player/hooks/useWorkoutSessionRecorder'
 import { useWorkoutPlayback } from '@/features/workout-player/hooks/useWorkoutPlayback'
@@ -150,6 +152,7 @@ function WorkoutPlayerCompletedPanel({
   saveState,
   hasRecorderError,
   hasNoWork,
+  endedEarly,
   onRestart,
   onRetrySave,
   isRestartDisabled,
@@ -159,6 +162,7 @@ function WorkoutPlayerCompletedPanel({
   saveState: WorkoutSessionSaveState
   hasRecorderError: boolean
   hasNoWork: boolean
+  endedEarly: boolean
   onRestart: () => void
   onRetrySave: () => void
   isRestartDisabled: boolean
@@ -170,10 +174,10 @@ function WorkoutPlayerCompletedPanel({
       : saveState.status === 'saving'
         ? 'Zapisywanie treningu…'
         : saveState.status === 'saved'
-          ? 'Trening został zapisany.'
+          ? endedEarly ? workoutPlayerLabels.endedEarlySaved : 'Trening został zapisany.'
           : saveState.status === 'error'
             ? saveState.message
-            : 'Trening został ukończony.'
+            : endedEarly ? workoutPlayerLabels.endedEarlyMessage : 'Trening został ukończony.'
 
   const showBackWithoutSave = hasRecorderError || saveState.status === 'error'
 
@@ -181,9 +185,9 @@ function WorkoutPlayerCompletedPanel({
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-5 safe-area-pt pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
       <div className="shrink-0 border-b border-bd bg-surface px-4 py-3">
         <p className="font-display text-[10px] font-semibold uppercase tracking-[0.14em] text-crimson-ink">
-          Trening ukończony
+          {endedEarly ? workoutPlayerLabels.endedEarly : 'Trening ukończony'}
         </p>
-        <h1 className="mt-0.5 font-display text-[20px] font-bold text-ink">Trening zakończony</h1>
+        <h1 className="mt-0.5 font-display text-[20px] font-bold text-ink">{endedEarly ? workoutPlayerLabels.endedEarly : 'Trening zakończony'}</h1>
       </div>
 
       <div className="flex flex-1 flex-col px-1 pt-5">
@@ -260,7 +264,7 @@ function WorkoutPlayerRuntime({
   workoutDetailsPath,
   saveWorkoutSession,
 }: WorkoutPlayerRuntimeProps) {
-  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork } = useWorkoutSessionRecorder(plan, timeline)
+  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly } = useWorkoutSessionRecorder(plan, timeline)
   const { unlockGong, onGongPlaybackEvent } = useWorkoutGong(timeline)
   const handlePlaybackEvent = useCallback((event: WorkoutPlaybackEvent) => {
     onPlaybackEvent(event)
@@ -282,6 +286,8 @@ function WorkoutPlayerRuntime({
     resume,
     goToPreviousStep,
     goToNextStep,
+    finishCurrentExercise,
+    endEarly,
     restart,
   } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent })
 
@@ -312,6 +318,7 @@ function WorkoutPlayerRuntime({
           saveState={saveState}
           hasRecorderError={hasRecorderError}
           hasNoWork={hasNoWork}
+          endedEarly={endedEarly}
           onRestart={restart}
           onRetrySave={retrySave}
           isRestartDisabled={hasRecorderError || (!hasNoWork && saveState.status !== 'saved')}
@@ -332,10 +339,22 @@ function WorkoutPlayerRuntime({
         <header className="shrink-0 px-5 pt-5 pb-2">
           <div className="flex items-start justify-between gap-4">
             <BackToPlanLink to={workoutDetailsPath} />
-            <p className="shrink-0 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
+            <p className="ml-auto pt-3 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
               Etap <span className="tabular-nums">{playback.currentStepIndex + 1}</span> z{' '}
               <span className="tabular-nums">{totalSteps}</span>
             </p>
+            <WorkoutPlayerExitControls
+              status={playback.status}
+              canFinishExercise={currentStep.kind !== 'break'}
+              workoutDetailsPath={workoutDetailsPath}
+              onPause={pause}
+              onResume={() => { unlockGong(); resume() }}
+              onFinishExercise={() => finishCurrentExercise({
+                expectedStepIndex: playback.currentStepIndex,
+                expectedStepRevision: playback.stepRevision,
+              })}
+              onEndEarly={endEarly}
+            />
           </div>
 
           <div className="mt-3 flex flex-col items-start gap-1">

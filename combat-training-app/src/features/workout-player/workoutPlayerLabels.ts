@@ -1,0 +1,17 @@
+export const workoutPlayerLabels = {
+  menu: 'Menu treningu',
+  finishExercise: 'Zakończ ćwiczenie',
+  finishWorkout: 'Zakończ trening',
+  exitTitle: 'Zakończyć trening?',
+  exitDescription: 'Trening jest wstrzymany. Przy zakończeniu zapiszą się tylko dokończone rundy.',
+  endEarly: 'Zakończ wcześniej',
+  discard: 'Porzuć',
+  discardWarning: 'Bez zapisu. Tej operacji nie można cofnąć.',
+  return: 'Wróć',
+  endedEarly: 'Trening zakończony wcześniej',
+  endedEarlyMessage: 'Trening zakończony wcześniej.',
+  endedEarlySaved: 'Trening zakończony wcześniej został zapisany.',
+  noWork: 'Trening bez czasu pracy nie został zapisany.',
+  recorderError: 'Nie udało się przygotować zapisu treningu.',
+  sessionStatus: { completed: 'Ukończony', partial: 'Częściowy' },
+} as const

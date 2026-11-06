@@ -10,6 +10,7 @@ import type {
   WorkoutHistoryMutationResult,
 } from '@/features/workouts/types/workoutsView.types'
 import { WORKOUT_HISTORY_NOTE_MAX_LENGTH } from '@/features/workouts/types/workoutsView.types'
+import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 
 const NOTE_SAVE_ERROR_MESSAGE = 'Nie udało się zapisać notatki.'
 const DELETE_ERROR_MESSAGE = 'Nie udało się usunąć wpisu.'
@@ -198,6 +199,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
             {session.name}
           </Link>
         </h3>
+        <p className="mt-2 font-display text-xs font-semibold text-muted">{workoutPlayerLabels.sessionStatus[session.status]}</p>
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 font-display text-[11px] text-muted @min-[400px]:grid-cols-3 @min-[560px]:items-baseline @min-[560px]:gap-x-2">
           <span className="whitespace-nowrap">
             <span className="font-semibold tabular-nums text-ink">{session.durationLabelPl}</span>
