@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { readFirebaseConfig } from './firebaseConfig'
+import { readDeployFirebaseConfig, readFirebaseConfig } from './firebaseConfig'
 
 const env = {
   VITE_FIREBASE_API_KEY: 'demo-config', VITE_FIREBASE_AUTH_DOMAIN: 'demo-combat-training.firebaseapp.com',
@@ -18,4 +18,18 @@ it.each(['https://example.test:9099', 'example.test:9099', '127.0.0.1:0', '127.0
 it('requires an emulator for demo projects and a demo project for the emulator', () => {
   expect(() => readFirebaseConfig({ ...env, VITE_FIREBASE_AUTH_EMULATOR_HOST: '' })).toThrow()
   expect(() => readFirebaseConfig({ ...env, VITE_FIREBASE_PROJECT_ID: 'other-project' })).toThrow()
+})
+
+const production = {
+  VITE_FIREBASE_API_KEY: 'public-web-key', VITE_FIREBASE_AUTH_DOMAIN: 'combat-training-830fb.firebaseapp.com',
+  VITE_FIREBASE_PROJECT_ID: 'combat-training-830fb', VITE_FIREBASE_APP_ID: 'web-app-id',
+}
+it('accepts a deploy build for the expected real project', () => {
+  expect(readDeployFirebaseConfig(production, 'combat-training-830fb')).toMatchObject({ projectId: 'combat-training-830fb' })
+  expect(readDeployFirebaseConfig({ ...production, VITE_FIREBASE_AUTH_EMULATOR_HOST: '' }, 'combat-training-830fb').emulatorHost).toBeUndefined()
+})
+it('rejects deploy builds for the emulator, another project or a missing value', () => {
+  expect(() => readDeployFirebaseConfig(env, 'demo-combat-training')).toThrow('emulator')
+  expect(() => readDeployFirebaseConfig(production, 'other-project')).toThrow('expected other-project')
+  expect(() => readDeployFirebaseConfig({ ...production, VITE_FIREBASE_APP_ID: '' }, 'combat-training-830fb')).toThrow()
 })

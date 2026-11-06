@@ -28,3 +28,11 @@ export function readFirebaseConfig(env: Record<string, unknown>): FirebaseConfig
   if (config.projectId.startsWith('demo-') && !config.emulatorHost) throw new Error('Demo project requires an emulator')
   return config
 }
+
+/** Configuration for a production deployment: the real project only, never the emulator. */
+export function readDeployFirebaseConfig(env: Record<string, unknown>, expectedProjectId: string): FirebaseConfig {
+  const config = readFirebaseConfig(env)
+  if (config.emulatorHost) throw new Error('Deploy build must not use the emulator')
+  if (config.projectId !== expectedProjectId) throw new Error(`Deploy build targets ${config.projectId}, expected ${expectedProjectId}`)
+  return config
+}

@@ -29,6 +29,10 @@ npm run build       # build produkcyjny
 
 Te same kroki uruchamia CI przy każdym pull requeście.
 
+## Wdrożenie
+
+Firebase Hosting, wdrażany ręcznie przez właściciela: `npx firebase deploy --only hosting -P prod`. Kroki, zabezpieczenia i test na telefonie opisuje `docs/deployment.md`.
+
 ## Testy przeglądarkowe (E2E)
 
 Z katalogu `combat-training-app/`, w PowerShell:
