@@ -11,7 +11,7 @@ Dokument opisuje kierunek. Ostateczne migracje tworzymy dopiero po zatwierdzeniu
 W aplikacji lokalny envelope sesji jest oddzielony od planów:
 
 - klucz namespaced, niezależny od `workout-plans`;
-- `schemaVersion: 1` lub `schemaVersion: 2`;
+- bieżący `schemaVersion: 3`; odczyt także v1 i v2;
 - `sessions: WorkoutSession[]`.
 
 ### v1
@@ -26,11 +26,18 @@ W aplikacji lokalny envelope sesji jest oddzielony od planów:
 - nowe zapisy, `updateNote` i `delete` zapisują envelope `schemaVersion: 2`;
 - notatka jest normalizowana: trim, pusty tekst → `null`, maksymalnie 1000 znaków.
 
-Storage przechowuje wyłącznie ukończone sesje. Brak draftów, porzuconych treningów, RPE, ocen i feedbacku.
+### v3
+
+- zapisuje źródło, status `completed` lub `partial`, czas treningu, pracy i sparingu, licznik ukończonych i zaplanowanych ćwiczeń, kategorię, lokalny dzień startu i strefę IANA (ADR 0005);
+- odczyt v1/v2 wylicza nowe pola z `stepResults`, zachowuje notatkę i utrwala pełny envelope v3; nie usuwa dawnych wpisów bez pracy;
+- strefa historyczna jest przybliżana strefą urządzenia przy pierwszej migracji; czasu dawnych powtórzeń nie da się odtworzyć;
+- nowe zapisy, `updateNote` i `delete` używają v3; ręczny schemat pozostaje zgodny z ADR 0006.
+
+Storage przechowuje zapisane sesje ukończone i częściowe. Brak draftów, porzuconych treningów, RPE, ocen i feedbacku.
 
 Każda sesja zawiera snapshot planu i wyniki kroków (`stepResults`) z outcome `completed`, `partial` lub `skipped`.
 
-`activeDurationSeconds` nie jest zapisywany — jest wyliczany w domenie jako suma `performedDurationSeconds`.
+`activeDurationSeconds` podsumowania korzysta w v3 z `durationSeconds`; unikalne wyniki kroków nie zawierają całego czasu powtórzeń.
 
 Instrukcje ćwiczeń nie są zapisywane w storage v1, jeżeli nie są potrzebne do historii i podsumowania.
 

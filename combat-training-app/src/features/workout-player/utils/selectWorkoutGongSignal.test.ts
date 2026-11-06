@@ -14,7 +14,7 @@ function step(kind: WorkoutPlaybackStepKind, index: number) {
 function finalized(stepIndex: number, reason: WorkoutPlaybackStepFinalizeReason = 'elapsed'): WorkoutPlaybackEvent {
   return {
     type: 'stepFinalized', stepIndex, playbackStepId: `step-${stepIndex}`,
-    performedDurationSeconds: 10, outcome: 'completed', reason,
+    performedDurationSeconds: 10, performedDurationMs: 10_000, outcome: 'completed', reason,
   }
 }
 

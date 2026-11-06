@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import type { WorkoutPlaybackState } from '@/features/workout-player/types/workoutPlayback.types'
 import { getResumeDeadlineMs, pauseRunningStep } from '@/features/workout-player/utils/playbackPause'
+import { getElapsedInStepMs } from '@/features/workout-player/utils/previousStepAction'
+import { calculateWorkoutSessionDurations } from '@/domain/workout-session/workoutSessionDefinitions'
 
 const START_MS = 1_000_000
 
@@ -60,5 +62,28 @@ describe('getResumeDeadlineMs', () => {
     }
 
     expect(deadlineMs - nowMs).toBe(58_000)
+  })
+
+  it('counts a repeated attempt and resumed work but excludes a controlled 90-second pause', () => {
+    let nowMs = START_MS
+    const firstDeadline = nowMs + 60_000
+    nowMs += 10_000
+    const firstAttemptMs = getElapsedInStepMs(running(), 60, firstDeadline, null, nowMs)
+
+    // Restart the round, do five seconds of work, then pause for ninety seconds.
+    const repeatedDeadline = nowMs + 60_000
+    nowMs += 5_000
+    const paused = pauseRunningStep(running(), repeatedDeadline, nowMs)
+    nowMs += 90_000
+    const resumedDeadline = getResumeDeadlineMs(paused.playback, paused, nowMs)
+    const resumed = { ...paused.playback, status: 'running' as const }
+    nowMs += 55_000
+    const repeatedAttemptMs = getElapsedInStepMs(resumed, 60, resumedDeadline, null, nowMs)
+
+    expect(nowMs - START_MS).toBe(160_000)
+    expect(calculateWorkoutSessionDurations([
+      { kind: 'exercise', blockType: 'sparring', performedDurationMs: firstAttemptMs },
+      { kind: 'exercise', blockType: 'sparring', performedDurationMs: repeatedAttemptMs },
+    ])).toEqual({ durationSeconds: 70, workSeconds: 70, sparringSeconds: 70 })
   })
 })

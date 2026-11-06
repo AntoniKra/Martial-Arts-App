@@ -87,11 +87,11 @@ Jedno ćwiczenie zawiera jedną kombinację lub jedną instrukcję.
 
 `WorkoutPlan` opisuje zapisany, zatwierdzony plan treningowy bez pól wykonania.
 
-`WorkoutSession` opisuje ukończoną sesję wykonania planu. Encje są rozdzielone:
+`WorkoutSession` opisuje zapisany wpis w dzienniku, ukończony lub częściowy (ADR 0005). Encje są rozdzielone:
 
 - plan może istnieć bez sesji;
 - sesja zachowuje snapshot planu i kroków niezależnie od przyszłych zmian planu;
-- samo istnienie `WorkoutSession` oznacza ukończony trening — w lokalnym storage v1 nie zapisujemy draftów, porzuconych ani trwających sesji.
+- samo istnienie `WorkoutSession` nie oznacza ukończenia całego planu; nadal nie zapisujemy draftów, porzuconych ani trwających sesji.
 
 ## WorkoutSession — minimalny model v1
 
@@ -120,6 +120,20 @@ Zasady notatki:
 - notatka nie ma osobnego statusu ani encji.
 
 Lokalny storage v2 zachowuje kompatybilność wsteczną: dokumenty `schemaVersion: 1` są odczytywane z `note: null` w pamięci, ale nie są migrowane automatycznie podczas samego `list()` ani `getById()`. Kolejny zapis, `updateNote` lub `delete` zapisuje pełny envelope v2.
+
+## WorkoutSession — model v3 (ADR 0005)
+
+- `source`: `plan`, `quickTimer` lub `manual`; odtwarzacz zapisuje `plan`;
+- `status`: `completed`, gdy wszystkie ćwiczenia ukończono, albo `partial`, gdy pominięto ćwiczenie lub zakończono wcześniej; pominięcie odpoczynku lub przerwy nie obniża statusu;
+- `durationSeconds`: rzeczywisty czas etapów, wraz z odpoczynkami, przerwami i powtórzeniami, bez pauz;
+- `workSeconds`: czas etapów ćwiczeń; `sparringSeconds`: tylko ćwiczenia w blokach `sparring`;
+- `completion`: `{ completedExercises, plannedExercises }`, liczone po ćwiczeniach, nie rundach, czasie ani ocenach; `null` oznacza „nie dotyczy” dla przyszłego ręcznego wpisu;
+- `workoutDate`: dzień startu `YYYY-MM-DD` w zapisanej strefie IANA `timezone`;
+- `category`: wspólny typ bloków bez rozgrzewki albo `mixed`; plan z samą rozgrzewką także dostaje `mixed`.
+
+Czasy v3 mogą zawierać ułamki sekund, aby nie odrzucać krótkiej pracy. Dla przyszłego ręcznego wpisu `workSeconds` i `sparringSeconds` mogą być `null` (nieznane). Odtwarzacz zwraca jawny wynik „nie zapisuj”, gdy czas pracy wynosi zero, i pokazuje komunikat zamiast dodawać wpis.
+
+Odczyt v1/v2 wylicza pola z zachowanych wyników kroków i utrwala envelope v3. Strefa urządzenia w chwili migracji zastępuje nieznaną strefę historyczną. Starsze dane nie zawierają czasu dodatkowych prób ani powtórzeń; nie można go odzyskać. Istniejące wpisy bez pracy pozostają zachowane. Kolejne odczyty nie zmieniają utrwalonej daty ani strefy.
 
 ## WorkoutSessionStepResult
 
@@ -161,7 +175,7 @@ Nie zapisujemy pełnego `WorkoutPlan` jako zagnieżdżonego dokumentu ani instru
 
 `startedAt` i `completedAt` są ISO 8601. `completedAt` nie może być wcześniejsze niż `startedAt`.
 
-`activeDurationSeconds` nie jest zapisywany — wyliczamy go jako sumę `performedDurationSeconds` wszystkich kroków. Ta suma oznacza czas aktywnego runtime:
+W v1/v2 `activeDurationSeconds` wyliczano jako sumę `performedDurationSeconds` wszystkich kroków. W v3 podsumowanie używa zapisanego `durationSeconds`, które obejmuje również czas powtórzonych prób. Czas działania stopera:
 
 - obejmuje wykonane ćwiczenia, odpoczynki między rundami i przerwy;
 - nie obejmuje czasu pauzy;

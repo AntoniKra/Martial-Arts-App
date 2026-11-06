@@ -106,6 +106,7 @@ function emitStepFinalized(
   stepIndex: number,
   remainingSeconds: number,
   reason: WorkoutPlaybackStepFinalizeReason,
+  performedDurationMs?: number,
 ): void {
   const step = steps[stepIndex]
 
@@ -125,6 +126,7 @@ function emitStepFinalized(
     stepIndex,
     playbackStepId: step.id,
     performedDurationSeconds,
+    performedDurationMs: performedDurationMs ?? performedDurationSeconds * 1000,
     outcome,
     reason,
   })
@@ -433,6 +435,7 @@ export function useWorkoutPlayback(
         current.currentStepIndex,
         current.remainingSeconds,
         'previous',
+        elapsedMs,
       )
 
       const targetIndex = action === 'restartCurrent' ? current.currentStepIndex : current.currentStepIndex - 1
@@ -515,6 +518,13 @@ export function useWorkoutPlayback(
         current.currentStepIndex,
         current.remainingSeconds,
         'next',
+        getElapsedInStepMs(
+          current,
+          getStepDurationSeconds(stepsRef.current, current.currentStepIndex),
+          deadlineRef.current,
+          pausedPlaybackRef.current,
+          nowMs,
+        ),
       )
 
       const nextIndex = current.currentStepIndex + 1

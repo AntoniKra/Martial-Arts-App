@@ -41,12 +41,10 @@ export function calculateWorkoutSessionSummary(session: WorkoutSession): Workout
   let skippedExerciseStepCount = 0
   let plannedRoundCount = 0
   let completedRoundCount = 0
-  let activeDurationSeconds = 0
+  const activeDurationSeconds = session.durationSeconds
   const exerciseCompletion = new Map<string, boolean>()
 
   for (const step of stepResults) {
-    activeDurationSeconds += step.performedDurationSeconds
-
     switch (step.outcome) {
       case 'completed':
         completedStepCount += 1

@@ -2,6 +2,7 @@ import type {
   WorkoutSession,
   WorkoutSessionStepResult,
 } from '@/domain/workout-session/workoutSession.types'
+import { definePlanWorkoutSession, calculateWorkoutSessionDurations } from '@/domain/workout-session/workoutSessionDefinitions'
 
 export function sessionStep(overrides: Partial<WorkoutSessionStepResult> = {}): WorkoutSessionStepResult {
   return {
@@ -21,15 +22,25 @@ export function sessionStep(overrides: Partial<WorkoutSessionStepResult> = {}): 
 }
 
 export function workoutSession(overrides: Partial<WorkoutSession> = {}): WorkoutSession {
+  const stepResults = overrides.stepResults ?? []
   return {
-    id: 'session-1',
-    workoutPlanId: 'plan-1',
-    workoutPlanNameSnapshot: 'Workout',
-    disciplineKey: 'boxing',
-    startedAt: '2026-11-02T09:00:00.000Z',
-    completedAt: '2026-11-02T10:00:00.000Z',
-    stepResults: [],
-    note: null,
+    ...definePlanWorkoutSession({
+      id: 'session-1',
+      workoutPlanId: 'plan-1',
+      workoutPlanNameSnapshot: 'Workout',
+      disciplineKey: 'boxing',
+      startedAt: '2026-11-02T09:00:00.000Z',
+      completedAt: '2026-11-02T10:00:00.000Z',
+      stepResults,
+      note: null,
+    }, {
+      timezone: 'Europe/Warsaw',
+      blockTypes: stepResults.map((step) => step.blockType),
+      endedEarly: false,
+      durations: calculateWorkoutSessionDurations(stepResults.map((step) => ({
+        ...step, performedDurationMs: step.performedDurationSeconds * 1000,
+      }))),
+    }),
     ...overrides,
   }
 }
