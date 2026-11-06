@@ -31,6 +31,19 @@ test('uses the same error for an unknown login and an incorrect password', async
   await expect(page).toHaveURL('/login')
 })
 
+test('keeps a failed sign-in message on the login screen only', async ({ page }) => {
+  await page.goto('/login')
+  await signIn(page, { email: uniqueEmail(), password: testPassword })
+  await expect(page.getByRole('alert')).toHaveText('Nieprawidłowy adres e-mail lub hasło.')
+  await page.getByRole('link', { name: 'Utwórz konto', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Utwórz konto', exact: true })).toBeVisible()
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await page.getByRole('link', { name: 'Zaloguj się', exact: true }).click()
+  await page.getByRole('link', { name: 'Nie pamiętasz hasła?', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Reset hasła', exact: true })).toBeVisible()
+  await expect(page.getByRole('alert')).toHaveCount(0)
+})
+
 test('returns to the protected destination after sign in and signs out', async ({ page, request }) => {
   const account = await createVerifiedAccount(request)
   await page.goto('/workouts?source=auth#plans')

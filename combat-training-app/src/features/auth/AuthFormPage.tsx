@@ -14,6 +14,7 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
   const inFlight = useRef(false)
   const [values, setValues] = useState<AuthFormValues>({ email: '', password: '' })
   const [errors, setErrors] = useState<AuthFormErrors>({})
+  const [formError, setFormError] = useState<string | null>(null)
   const [resetSent, setResetSent] = useState(false)
   const title = mode === 'login' ? labels.login : mode === 'register' ? labels.register : labels.resetTitle
 
@@ -38,17 +39,16 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
     const { email, password } = result.values
     inFlight.current = true
     try {
-      await auth.execute(async () => {
-        if (mode === 'register') {
-          await auth.service.register(email, password)
-          await auth.sendVerification()
-        } else if (mode === 'login') {
-          await auth.service.signIn(email, password)
-        } else {
-          await auth.service.requestPasswordReset(email)
-          setResetSent(true)
-        }
+      const error = await auth.execute(async () => {
+        if (mode === 'register') await auth.service.register(email, password)
+        else if (mode === 'login') await auth.service.signIn(email, password)
+        else await auth.service.requestPasswordReset(email)
       })
+      setFormError(error)
+      if (error !== null) return
+      if (mode === 'forgot-password') setResetSent(true)
+      // The new account is already signed in and redirected to /verify-email, which shows the sending result.
+      if (mode === 'register') await auth.sendVerification()
     } finally {
       inFlight.current = false
     }
@@ -77,7 +77,7 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
           {mode === 'register' && <p id="password-hint" className="mt-2 text-sm text-muted">{labels.passwordHint}</p>}
           {errors.password && <p id="password-error" className="mt-2 text-sm text-crimson-ink" role="alert">{errors.password}</p>}
         </div>}
-        {auth.error && <p role="alert" className="text-sm text-crimson-ink">{auth.error}</p>}
+        {formError && <p role="alert" className="text-sm text-crimson-ink">{formError}</p>}
         {resetSent && <p role="status" className="text-sm">{labels.resetSent}</p>}
         <Button type="submit" loading={auth.busy}>{mode === 'forgot-password' ? labels.reset : title}</Button>
       </form>

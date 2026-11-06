@@ -16,6 +16,7 @@ import {
   pauseRunningStep,
   type PausedPlayback,
 } from '@/features/workout-player/utils/playbackPause'
+import { choosePreviousStepAction, getElapsedInStepMs } from '@/features/workout-player/utils/previousStepAction'
 import { resolveRunningPlaybackAtTime } from '@/features/workout-player/utils/resolveRunningPlaybackAtTime'
 import {
   calculatePerformedDurationSeconds,
@@ -365,11 +366,7 @@ export function useWorkoutPlayback(
       const capturedGeneration = generationRef.current
       const snapshot = playbackRef.current
 
-      if (
-        snapshot.status === 'idle' ||
-        snapshot.status === 'completed' ||
-        snapshot.currentStepIndex === 0
-      ) {
+      if (snapshot.status === 'idle' || snapshot.status === 'completed') {
         return
       }
 
@@ -420,6 +417,16 @@ export function useWorkoutPlayback(
         return
       }
 
+      const elapsedMs = getElapsedInStepMs(
+        current,
+        getStepDurationSeconds(stepsRef.current, current.currentStepIndex),
+        deadlineRef.current,
+        pausedPlaybackRef.current,
+        nowMs,
+      )
+      const action = choosePreviousStepAction(current.currentStepIndex, elapsedMs)
+
+      // A restarted attempt is recorded like going back: the step keeps its best result.
       emitStepFinalized(
         emitEvent,
         stepsRef.current,
@@ -428,23 +435,21 @@ export function useWorkoutPlayback(
         'previous',
       )
 
-      const previousIndex = current.currentStepIndex - 1
-      const durationSeconds = getStepDurationSeconds(stepsRef.current, previousIndex)
+      const targetIndex = action === 'restartCurrent' ? current.currentStepIndex : current.currentStepIndex - 1
+      const durationSeconds = getStepDurationSeconds(stepsRef.current, targetIndex)
       const nextStatus: WorkoutPlaybackStatus = current.status === 'running' ? 'running' : 'paused'
       const nextDeadlineMs = nextStatus === 'running' ? nowMs + durationSeconds * 1000 : null
+      const nextPlayback: WorkoutPlaybackState = {
+        status: nextStatus,
+        currentStepIndex: targetIndex,
+        remainingSeconds: durationSeconds,
+        stepRevision: current.stepRevision,
+      }
 
-      commitPlaybackTransition(
-        current,
-        {
-          status: nextStatus,
-          currentStepIndex: previousIndex,
-          remainingSeconds: durationSeconds,
-          stepRevision: current.stepRevision,
-        },
-        nextDeadlineMs,
-      )
+      // A restart keeps the index, so bump the revision explicitly to drop clicks aimed at the old attempt.
+      commitPlayback(withStepRevision(current, nextPlayback, true), nextDeadlineMs)
     },
-    [commitPlaybackTransition, emitEvent, invalidateRuntime],
+    [commitPlayback, commitPlaybackTransition, emitEvent, invalidateRuntime],
   )
 
   const goToNextStep = useCallback(
@@ -591,7 +596,8 @@ export function useWorkoutPlayback(
 
   const currentStep = stepsRef.current[playback.currentStepIndex] ?? null
   const stepNavigationEnabled = playback.status === 'running' || playback.status === 'paused'
-  const canGoPrevious = stepNavigationEnabled && playback.currentStepIndex > 0
+  // On the first step "Poprzedni" restarts it, so it is available whenever navigation is.
+  const canGoPrevious = stepNavigationEnabled
   const canGoNext = stepNavigationEnabled
   const progressRatio =
     stepsRef.current.length === 0 ? 1 : (playback.currentStepIndex + 1) / stepsRef.current.length

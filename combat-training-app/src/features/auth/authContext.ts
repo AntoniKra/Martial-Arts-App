@@ -5,10 +5,13 @@ export interface AuthContextValue {
   service: AuthService
   state: AuthState
   busy: boolean
-  error: string | null
   verificationSentAt: number | null
-  execute(action: () => Promise<void>): Promise<boolean>
-  sendVerification(): Promise<void>
+  /** Why the last verification email could not be sent; shown on the verification screen. */
+  verificationError: string | null
+  /** Runs an auth action and returns a Polish error message, or null on success. Each screen keeps its own error. */
+  execute(action: () => Promise<void>): Promise<string | null>
+  /** Sends the verification email and records the result in verificationSentAt or verificationError. */
+  sendVerification(): Promise<boolean>
   refreshVerification(): Promise<boolean>
 }
 

@@ -5,6 +5,7 @@ import { authLabels } from '@/features/auth/authLabels'
 import { AuthProvider } from '@/features/auth/AuthProvider'
 import { readFirebaseConfig } from '@/infrastructure/firebase/firebaseConfig'
 import { createFirebaseAuthService } from '@/infrastructure/firebase/firebaseAuthService'
+import { PersistentStorageOnSignIn } from './PersistentStorageOnSignIn'
 
 // Initialize once outside React's StrictMode double render. Failed configuration never starts Auth.
 let service: AuthService | undefined
@@ -18,5 +19,5 @@ function getService(): AuthService | null {
 export function AuthBootstrap({ children }: PropsWithChildren) {
   const [auth] = useState(getService)
   if (!auth) return <AuthFrame title={authLabels.configurationTitle}><p role="alert">{authLabels.configurationError}</p></AuthFrame>
-  return <AuthProvider service={auth}>{children}</AuthProvider>
+  return <AuthProvider service={auth}><PersistentStorageOnSignIn />{children}</AuthProvider>
 }
