@@ -45,10 +45,11 @@ describe('plan journal entries', () => {
       .toMatchObject({ kind: 'save', session: { status: 'completed', durationSeconds: 60 } })
   })
 
-  it.each([0, 15])('marks a skipped exercise with %s seconds of work as partial when other work was done', (performedDurationSeconds) => {
+  it.each([0, 15])('excludes a legacy unfinished exercise with %s elapsed seconds from work', (performedDurationSeconds) => {
     expect(build([exercise, { ...skipped, performedDurationSeconds, outcome: performedDurationSeconds === 0 ? 'skipped' : 'partial' }]))
       .toMatchObject({ kind: 'save', session: {
-        status: 'partial', completion: { completedExercises: 1, plannedExercises: 2 },
+        status: 'partial', durationSeconds: 60 + performedDurationSeconds, workSeconds: 60,
+        completion: { completedExercises: 1, plannedExercises: 2 },
       } })
   })
 
@@ -72,10 +73,10 @@ describe('plan journal entries', () => {
   })
 
   it('includes repeated attempts in time without increasing completion', () => {
-    // A 10-second attempt, a repeated full round, a rest, and the next exercise.
+    // A skipped 10-second attempt, the same round completed twice, and a rest.
     // Pauses are not attempts, so the 90 seconds paused contribute nothing.
     const durations = calculateWorkoutSessionDurations([
-      { ...exercise, performedDurationMs: 10_000 },
+      { ...exercise, performedDurationMs: 10_000, outcome: 'skipped' },
       { ...exercise, performedDurationMs: 60_000 },
       { ...rest, performedDurationMs: 30_000 },
       { ...exercise, performedDurationMs: 60_000 },
@@ -84,22 +85,32 @@ describe('plan journal entries', () => {
       timezone: 'Europe/Warsaw', blockTypes: ['technique'], endedEarly: false, durations,
     })
     expect(result).toMatchObject({ kind: 'save', session: {
-      durationSeconds: 160, workSeconds: 130,
+      durationSeconds: 160, workSeconds: 120,
       completion: { completedExercises: 1, plannedExercises: 1 },
     } })
     if (result.kind !== 'save') throw new Error('Expected a saved entry')
     expect(calculateWorkoutSessionSummary(result.session).activeDurationSeconds).toBe(160)
   })
 
-  it('preserves subsecond work with no minimum duration and sums short repeated attempts', () => {
+  it('retains subsecond attempts in duration but rejects a run without a completed exercise', () => {
     const durations = calculateWorkoutSessionDurations([
-      { ...exercise, performedDurationMs: 400 },
-      { ...exercise, performedDurationMs: 400 },
+      { ...exercise, performedDurationMs: 400, outcome: 'skipped' },
+      { ...exercise, performedDurationMs: 400, outcome: 'skipped' },
     ])
-    expect(durations).toEqual({ durationSeconds: 0.8, workSeconds: 0.8, sparringSeconds: 0 })
+    expect(durations).toEqual({ durationSeconds: 0.8, workSeconds: 0, sparringSeconds: 0 })
     expect(createPlanWorkoutSession(workoutSession({ stepResults: [skipped] }), {
       timezone: 'Europe/Warsaw', blockTypes: ['technique'], endedEarly: false, durations,
-    })).toMatchObject({ kind: 'save', session: { status: 'partial', workSeconds: 0.8 } })
+    })).toEqual({ kind: 'noWork' })
+  })
+
+  it('counts only completed sparring rounds as work, including each completed repetition', () => {
+    expect(calculateWorkoutSessionDurations([
+      { kind: 'exercise', blockType: 'sparring', performedDurationMs: 120_000, outcome: 'skipped' },
+      { kind: 'exercise', blockType: 'sparring', performedDurationMs: 180_000, outcome: 'completed' },
+      { kind: 'exercise', blockType: 'sparring', performedDurationMs: 180_000, outcome: 'completed' },
+      { kind: 'roundRest', blockType: 'sparring', performedDurationMs: 15_000, outcome: 'partial' },
+      { kind: 'break', blockType: 'sparring', performedDurationMs: 10_000, outcome: 'partial' },
+    ])).toEqual({ durationSeconds: 505, workSeconds: 360, sparringSeconds: 360 })
   })
 
   it.each<{ blocks: WorkoutBlockType[]; category: string }>([

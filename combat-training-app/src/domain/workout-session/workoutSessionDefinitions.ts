@@ -4,6 +4,7 @@ import type {
   WorkoutSessionCategory,
   WorkoutSessionCompletion,
   WorkoutSessionStatus,
+  WorkoutSessionStepOutcome,
   WorkoutSessionStepResult,
 } from '@/domain/workout-session/workoutSession.types'
 
@@ -13,11 +14,12 @@ export interface WorkoutSessionDurations {
   sparringSeconds: number
 }
 
-/** Each attempt contributes time, even when a repeated step keeps only its best outcome. */
+/** Every attempt adds duration; only completed exercise attempts add work. */
 export interface WorkoutSessionAttempt {
   kind: WorkoutSessionStepResult['kind']
   blockType: WorkoutBlockType
   performedDurationMs: number
+  outcome: WorkoutSessionStepOutcome
 }
 
 export function calculateWorkoutSessionDurations(attempts: readonly WorkoutSessionAttempt[]): WorkoutSessionDurations {
@@ -27,13 +29,13 @@ export function calculateWorkoutSessionDurations(attempts: readonly WorkoutSessi
 
   for (const attempt of attempts) {
     durationMs += attempt.performedDurationMs
-    if (attempt.kind === 'exercise') {
+    if (attempt.kind === 'exercise' && attempt.outcome === 'completed') {
       workMs += attempt.performedDurationMs
       if (attempt.blockType === 'sparring') sparringMs += attempt.performedDurationMs
     }
   }
 
-  // Keep fractional seconds: even a short attempt is work, with no minimum-time threshold.
+  // Keep the real duration of skipped attempts, including fractions of a second.
   return {
     durationSeconds: durationMs / 1000,
     workSeconds: workMs / 1000,

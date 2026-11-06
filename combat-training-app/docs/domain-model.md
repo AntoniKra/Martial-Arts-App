@@ -126,14 +126,16 @@ Lokalny storage v2 zachowuje kompatybilność wsteczną: dokumenty `schemaVersio
 - `source`: `plan`, `quickTimer` lub `manual`; odtwarzacz zapisuje `plan`;
 - `status`: `completed`, gdy wszystkie ćwiczenia ukończono, albo `partial`, gdy pominięto ćwiczenie lub zakończono wcześniej; pominięcie odpoczynku lub przerwy nie obniża statusu;
 - `durationSeconds`: rzeczywisty czas etapów, wraz z odpoczynkami, przerwami i powtórzeniami, bez pauz;
-- `workSeconds`: czas etapów ćwiczeń; `sparringSeconds`: tylko ćwiczenia w blokach `sparring`;
+- `workSeconds`: czas wyłącznie dokończonych etapów ćwiczeń; `sparringSeconds`: wyłącznie dokończone ćwiczenia w blokach `sparring`;
 - `completion`: `{ completedExercises, plannedExercises }`, liczone po ćwiczeniach, nie rundach, czasie ani ocenach; `null` oznacza „nie dotyczy” dla przyszłego ręcznego wpisu;
 - `workoutDate`: dzień startu `YYYY-MM-DD` w zapisanej strefie IANA `timezone`;
 - `category`: wspólny typ bloków bez rozgrzewki albo `mixed`; plan z samą rozgrzewką także dostaje `mixed`.
 
-Czasy v3 mogą zawierać ułamki sekund, aby nie odrzucać krótkiej pracy. Dla przyszłego ręcznego wpisu `workSeconds` i `sparringSeconds` mogą być `null` (nieznane). Odtwarzacz zwraca jawny wynik „nie zapisuj”, gdy czas pracy wynosi zero, i pokazuje komunikat zamiast dodawać wpis.
+Czas treningu v3 może zawierać ułamki sekund, aby zachować realny czas przerwanych prób w `durationSeconds`. Dla przyszłego ręcznego wpisu `workSeconds` i `sparringSeconds` mogą być `null` (nieznane). Odtwarzacz zwraca jawny wynik „nie zapisuj”, gdy żaden etap ćwiczenia nie został dokończony, i pokazuje komunikat zamiast dodawać wpis.
 
-Odczyt v1/v2 wylicza pola z zachowanych wyników kroków i utrwala envelope v3. Strefa urządzenia w chwili migracji zastępuje nieznaną strefę historyczną. Starsze dane nie zawierają czasu dodatkowych prób ani powtórzeń; nie można go odzyskać. Istniejące wpisy bez pracy pozostają zachowane. Kolejne odczyty nie zmieniają utrwalonej daty ani strefy.
+Decyzja z 6 listopada 2026: etap ćwiczenia dostaje `completed` tylko po upływie pełnego czasu (`elapsed`). Zakończenie przez `next` lub `previous` daje `skipped` i `performedDurationSeconds: 0`. Rzeczywisty czas próby wchodzi wyłącznie do `durationSeconds`, bez wkładu do pracy i sparingu. Każda powtórzona i dokończona runda liczy się do pracy osobno. Zasady etapów odpoczynku i przerw nie zmieniają się.
+
+Odczyt v1/v2 wylicza pola z zachowanych wyników kroków, licząc pracę wyłącznie dla ćwiczeń `completed`; nie zmienia zapisanych wyników etapów, w tym historycznych `partial`. Próbuje utrwalić envelope v3. Jeśli zapis migracji się nie uda, odczyt nadal zwraca zmigrowane wpisy w pamięci, a następny odczyt ponawia migrację. Strefa urządzenia w chwili migracji zastępuje nieznaną strefę historyczną. Starsze dane nie zawierają czasu dodatkowych prób ani powtórzeń; nie można go odzyskać. Istniejące wpisy bez pracy pozostają zachowane. Po udanym utrwaleniu kolejne odczyty nie zmieniają daty ani strefy.
 
 ## WorkoutSessionStepResult
 
@@ -156,6 +158,8 @@ Inwarianty:
 - `plannedDurationSeconds > 0`;
 - `performedDurationSeconds` nie przekracza planu;
 - każdy `playbackStepId` występuje w sesji najwyżej raz.
+
+Nowy odtwarzacz zapisuje dla ćwiczenia wyłącznie `completed` lub `skipped`. `partial` pozostaje poprawnym wynikiem odpoczynku, przerwy oraz historycznego etapu ćwiczenia. Realny czas przerwanej próby ćwiczenia jest uwzględniany w czasie treningu osobno, mimo zerowego `performedDurationSeconds` wyniku kroku.
 
 ## Snapshot sesji
 

@@ -505,7 +505,8 @@ function parseWorkoutSessionShapeV2(value: unknown): WorkoutSession {
 }
 
 function migrateLegacySession(fields: ReturnType<typeof parseWorkoutSessionCoreFields> & { note: string | null }): WorkoutSession {
-  // Legacy entries have neither the original timezone nor timings of repeated attempts.
+  // Preserve legacy step results; only completed exercises contribute work (ADR 0005).
+  // The original timezone and timings of repeated attempts are unavailable.
   return definePlanWorkoutSession(fields, {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     blockTypes: fields.stepResults.map((step) => step.blockType),
@@ -576,6 +577,12 @@ function parseWorkoutSessionShapeV3(value: unknown): WorkoutSession {
       value.workSeconds === null || value.workSeconds < minimumDurations.workSeconds ||
       value.sparringSeconds === null || value.sparringSeconds < minimumDurations.sparringSeconds) {
       throw new WorkoutSessionStorageError('invalid_data', 'Workout session completion does not match exercise results.')
+    }
+    // Repetitions can increase work above the snapshot, but cannot create work without a completed step.
+    if (!isNonNegativeSafeInteger(value.workSeconds) || !isNonNegativeSafeInteger(value.sparringSeconds) ||
+      (minimumDurations.workSeconds === 0 && value.workSeconds !== 0) ||
+      (minimumDurations.sparringSeconds === 0 && value.sparringSeconds !== 0)) {
+      throw new WorkoutSessionStorageError('invalid_data', 'Workout session work requires completed exercise steps.')
     }
   }
   assertWorkoutDate(fields.startedAt, value.workoutDate, value.timezone)

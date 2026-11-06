@@ -29,12 +29,24 @@ Do celów liczą się wpisy `completed` i `partial`. Historia pokazuje, który j
 Trzy osobne miary, nigdy mieszane:
 
 - **Czas treningu** (`durationSeconds`): ile naprawdę biegł stoper, razem z odpoczynkami, przerwami i powtórzonymi rundami, ale bez pauz. W ręcznym wpisie to czas podany przez użytkownika.
-- **Czas pracy** (`workSeconds`): tylko etapy ćwiczeń, bez odpoczynków i przerw. Osobno liczymy czas sparingu (`sparringSeconds`, ćwiczenia w blokach typu `sparring`). W ręcznym wpisie oba mogą być nieznane.
+- **Czas pracy** (`workSeconds`): tylko etapy ćwiczeń dokończone do końca czasu (doprecyzowanie z 6 listopada poniżej), bez odpoczynków i przerw. Osobno liczymy czas sparingu (`sparringSeconds`, dokończone ćwiczenia w blokach typu `sparring`). W ręcznym wpisie oba mogą być nieznane.
 - **Realizacja:** dla planu ukończone ćwiczenia wobec zaplanowanych, dla szybkiego stopera ukończone rundy wobec zaplanowanych. Dla ręcznego wpisu „nie dotyczy”, a nie 100%. Realizacji nie wyliczamy z czasu ani z ocen.
 
 ## Dzień treningu
 
 `workoutDate` to dzień **rozpoczęcia** treningu w strefie czasowej użytkownika (`timezone` zapisany razem z wpisem), utrwalony przy zapisie. Trening od 23:30 do 00:30 należy do dnia startu. Późniejsza zmiana strefy nie przesuwa dawnych wpisów. Ręczny wpis ma samą datę, bez godziny. Moment zapisu (`createdAt`) to osobne pole.
+
+## Zmiana z 6 listopada 2026
+
+Decyzja właściciela: pracą są wyłącznie rundy lub ciągłe etapy ćwiczeń dokończone do końca czasu.
+
+- Etap ćwiczenia dostaje wynik `completed` tylko przy zakończeniu z powodem `elapsed`.
+- Każde inne zakończenie etapu ćwiczenia (`next`, `previous`, a w przyszłości także „Zakończ”) daje `skipped`, `performedDurationSeconds: 0` oraz zero wkładu do `workSeconds` i `sparringSeconds`, niezależnie od upływu czasu.
+- Rzeczywisty czas przerwanej próby nadal wchodzi do `durationSeconds`. Pauzy nadal są wyłączone z tego czasu.
+- Każde dokończenie powtórzonej rundy dodaje pełny czas do pracy i, dla bloku `sparring`, do sparingu. Licznik realizacji nadal dotyczy zaplanowanych ćwiczeń, nie liczby prób.
+- Przebieg bez żadnego dokończonego etapu ćwiczenia nie zapisuje się i pokazuje komunikat o braku pracy. Przeklikanie etapów po 0,5 s nie tworzy wpisu. Nie jest to nowy próg czasu — warunkiem jest dokończenie etapu.
+- Odpoczynki między rundami i osobne przerwy zachowują dotychczasowe wyniki oraz sposób liczenia czasu.
+- Migracja v1/v2 liczy pracę i sparing wyłącznie z etapów ćwiczeń o wyniku `completed`. Zachowane `stepResults`, również historyczne `partial`, nie są zmieniane; ich rzeczywisty zapisany czas nadal wchodzi do czasu treningu.
 
 ## Poza tym ADR
 

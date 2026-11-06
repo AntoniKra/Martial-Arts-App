@@ -145,7 +145,11 @@ export class LocalStorageWorkoutSessionRepository implements WorkoutSessionRepos
       if (envelope.schemaVersion !== WORKOUT_SESSION_STORAGE_SCHEMA_VERSION) {
         // Persist the migration once so later device timezone changes cannot move old entries.
         const migrated = { ...envelope, schemaVersion: WORKOUT_SESSION_STORAGE_SCHEMA_VERSION }
-        this.writeEnvelope(migrated)
+        try {
+          this.writeEnvelope(migrated)
+        } catch {
+          // A migration write is best effort: reads still succeed and retry on the next read.
+        }
         return migrated
       }
       return envelope

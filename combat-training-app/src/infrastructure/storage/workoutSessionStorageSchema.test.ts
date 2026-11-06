@@ -33,15 +33,17 @@ describe('workout session schema v3', () => {
   it.each([1, 2] as const)('migrates v%s on read and persists the timezone exactly once', async (version) => {
     deviceTimezone('America/Los_Angeles')
     const storage = createMemoryStorage()
-    storage.setItem(DEFAULT_WORKOUT_SESSION_STORAGE_KEY, JSON.stringify({ schemaVersion: version, sessions: [legacySession(version)] }))
+    const legacy = legacySession(version)
+    storage.setItem(DEFAULT_WORKOUT_SESSION_STORAGE_KEY, JSON.stringify({ schemaVersion: version, sessions: [legacy] }))
     const repository = new LocalStorageWorkoutSessionRepository(storage)
     const [session] = await repository.list()
     expect(session).toMatchObject({
-      source: 'plan', status: 'partial', durationSeconds: 160, workSeconds: 130, sparringSeconds: 70,
+      source: 'plan', status: 'partial', durationSeconds: 160, workSeconds: 120, sparringSeconds: 60,
       completion: { completedExercises: 1, plannedExercises: 2 },
       workoutDate: '2026-11-02', timezone: 'America/Los_Angeles', category: 'sparring',
       note: version === 1 ? null : 'Legacy note',
     })
+    expect(session.stepResults).toEqual(legacy.stepResults)
     const migratedRaw = storage.getItem(DEFAULT_WORKOUT_SESSION_STORAGE_KEY)
     expect(JSON.parse(migratedRaw ?? '')).toEqual({ schemaVersion: 3, sessions: [session] })
     vi.restoreAllMocks()
@@ -57,15 +59,25 @@ describe('workout session schema v3', () => {
       .toMatchObject([{ source: 'plan', status: 'partial', workSeconds: 0, durationSeconds: 0 }])
   })
 
-  it('saves and reads v3 timings of repeated attempts, preserving the snapshot and fractional work', async () => {
+  it('saves repeated completed work and fractional duration without changing the snapshot', async () => {
     const storage = createMemoryStorage()
     const repository = new LocalStorageWorkoutSessionRepository(storage)
-    const session = workoutSession({ stepResults: [sessionStep()], durationSeconds: 70.5, workSeconds: 70.5 })
+    const session = workoutSession({ stepResults: [sessionStep()], durationSeconds: 120.5, workSeconds: 120 })
     await repository.save(session)
     expect(JSON.parse(storage.getItem(DEFAULT_WORKOUT_SESSION_STORAGE_KEY) ?? '')).toEqual({ schemaVersion: 3, sessions: [session] })
     expect(await repository.getById(session.id)).toEqual(session)
     await repository.updateNote(session.id, ' Note ')
     expect(await repository.getById(session.id)).toEqual({ ...session, note: 'Note' })
+  })
+
+  it('accepts a legacy partial step in v3 without adding its elapsed seconds to work', () => {
+    const stepResults = [sessionStep({ outcome: 'partial', performedDurationSeconds: 30, blockType: 'sparring' })]
+    const session = workoutSession({ stepResults })
+    expect(parseStoredWorkoutSession(session)).toMatchObject({
+      stepResults, durationSeconds: 30, workSeconds: 0, sparringSeconds: 0,
+    })
+    expect(() => parseStoredWorkoutSession({ ...session, workSeconds: 30, sparringSeconds: 30 }))
+      .toThrow(WorkoutSessionStorageError)
   })
 
   it('supports not-applicable completion and unknown work for a future manual entry', () => {
@@ -78,6 +90,8 @@ describe('workout session schema v3', () => {
     { source: 'unknown' }, { status: 'abandoned' }, { category: 'warmup' },
     { durationSeconds: -1 }, { durationSeconds: Infinity }, { workSeconds: NaN },
     { durationSeconds: 0, workSeconds: 0 },
+    { durationSeconds: 120, workSeconds: 60.5 },
+    { sparringSeconds: 1 },
     { workSeconds: 61 }, { sparringSeconds: 61 },
     { completion: null }, { workSeconds: null }, { sparringSeconds: null },
     { completion: { completedExercises: 2, plannedExercises: 1 } },
@@ -107,13 +121,27 @@ describe('workout session schema v3', () => {
     expect(storage.getItem(DEFAULT_WORKOUT_SESSION_STORAGE_KEY)).toBe(raw)
   })
 
-  it('reports migration write failures without deleting old data', async () => {
+  it.each([1, 2] as const)('returns migrated v%s data after a failed write and retries on subsequent reads', async (version) => {
     deviceTimezone('Europe/Warsaw')
     const storage = createMemoryStorage()
-    const raw = JSON.stringify({ schemaVersion: 1, sessions: [legacySession(1)] })
+    const raw = JSON.stringify({ schemaVersion: version, sessions: [legacySession(version)] })
     storage.setItem(DEFAULT_WORKOUT_SESSION_STORAGE_KEY, raw)
-    vi.spyOn(storage, 'setItem').mockImplementation(() => { throw new Error('Quota exceeded') })
-    await expect(new LocalStorageWorkoutSessionRepository(storage).list()).rejects.toMatchObject({ code: 'write_failed' })
+    const originalSetItem = storage.setItem
+    const write = vi.spyOn(storage, 'setItem').mockImplementation(() => { throw new Error('Quota exceeded') })
+    const repository = new LocalStorageWorkoutSessionRepository(storage)
+    const [session] = await repository.list()
+    expect(session).toMatchObject({ source: 'plan', durationSeconds: 160, workSeconds: 120, sparringSeconds: 60 })
     expect(storage.getItem(DEFAULT_WORKOUT_SESSION_STORAGE_KEY)).toBe(raw)
+    expect(await repository.getById(session.id)).toEqual(session)
+    expect(write).toHaveBeenCalledTimes(2)
+    expect(storage.getItem(DEFAULT_WORKOUT_SESSION_STORAGE_KEY)).toBe(raw)
+
+    write.mockImplementation(originalSetItem)
+    expect(await repository.list()).toEqual([session])
+    expect(write).toHaveBeenCalledTimes(3)
+    expect(JSON.parse(storage.getItem(DEFAULT_WORKOUT_SESSION_STORAGE_KEY) ?? 'null'))
+      .toEqual({ schemaVersion: 3, sessions: [session] })
+    expect(await repository.getById(session.id)).toEqual(session)
+    expect(write).toHaveBeenCalledTimes(3)
   })
 })

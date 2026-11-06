@@ -118,14 +118,16 @@ function emitStepFinalized(
     step.durationSeconds,
     remainingSeconds,
     reason,
+    step.kind,
   )
-  const outcome = deriveStepOutcome(step.durationSeconds, performedDurationSeconds, reason)
+  const outcome = deriveStepOutcome(step.durationSeconds, performedDurationSeconds, reason, step.kind)
 
   emit({
     type: 'stepFinalized',
     stepIndex,
     playbackStepId: step.id,
     performedDurationSeconds,
+    // Manual navigation supplies real elapsed milliseconds even when the exercise is skipped.
     performedDurationMs: performedDurationMs ?? performedDurationSeconds * 1000,
     outcome,
     reason,

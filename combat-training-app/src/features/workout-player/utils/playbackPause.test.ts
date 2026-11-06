@@ -82,8 +82,8 @@ describe('getResumeDeadlineMs', () => {
 
     expect(nowMs - START_MS).toBe(160_000)
     expect(calculateWorkoutSessionDurations([
-      { kind: 'exercise', blockType: 'sparring', performedDurationMs: firstAttemptMs },
-      { kind: 'exercise', blockType: 'sparring', performedDurationMs: repeatedAttemptMs },
-    ])).toEqual({ durationSeconds: 70, workSeconds: 70, sparringSeconds: 70 })
+      { kind: 'exercise', blockType: 'sparring', performedDurationMs: firstAttemptMs, outcome: 'skipped' },
+      { kind: 'exercise', blockType: 'sparring', performedDurationMs: repeatedAttemptMs, outcome: 'completed' },
+    ])).toEqual({ durationSeconds: 70, workSeconds: 60, sparringSeconds: 60 })
   })
 })

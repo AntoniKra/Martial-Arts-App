@@ -29,7 +29,8 @@ W aplikacji lokalny envelope sesji jest oddzielony od planów:
 ### v3
 
 - zapisuje źródło, status `completed` lub `partial`, czas treningu, pracy i sparingu, licznik ukończonych i zaplanowanych ćwiczeń, kategorię, lokalny dzień startu i strefę IANA (ADR 0005);
-- odczyt v1/v2 wylicza nowe pola z `stepResults`, zachowuje notatkę i utrwala pełny envelope v3; nie usuwa dawnych wpisów bez pracy;
+- odczyt v1/v2 wylicza nowe pola z `stepResults`, zachowuje notatkę i wyniki etapów; do pracy liczy wyłącznie ćwiczenia `completed`, a do czasu treningu także zapisany czas historycznych etapów `partial`;
+- odczyt próbuje utrwalić pełny envelope v3; błąd zapisu migracji nie blokuje zwrócenia zmigrowanych wpisów i powoduje ponowienie przy kolejnym odczycie; nie usuwa dawnych wpisów bez pracy;
 - strefa historyczna jest przybliżana strefą urządzenia przy pierwszej migracji; czasu dawnych powtórzeń nie da się odtworzyć;
 - nowe zapisy, `updateNote` i `delete` używają v3; ręczny schemat pozostaje zgodny z ADR 0006.
 

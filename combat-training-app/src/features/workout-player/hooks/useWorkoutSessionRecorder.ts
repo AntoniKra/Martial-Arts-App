@@ -69,7 +69,7 @@ export function useWorkoutSessionRecorder(
         return
       }
 
-      attemptsRef.current.push({ kind: step.kind, blockType: step.blockType, performedDurationMs })
+      attemptsRef.current.push({ kind: step.kind, blockType: step.blockType, performedDurationMs, outcome })
 
       const incoming: TrackedStepResult = {
         stepIndex,
