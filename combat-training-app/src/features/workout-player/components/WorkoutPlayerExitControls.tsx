@@ -173,6 +173,10 @@ export function WorkoutPlayerExitControls({
           <button type="button"
             className={getButtonClassName({ variant: 'danger', size: 'lg', className: 'flex-col gap-1 whitespace-normal border-2 py-3' })}
             onClick={() => {
+              if (blocker.state === 'blocked') {
+                blocker.proceed()
+                return
+              }
               allowExitRef.current = true
               closeExit()
               void navigate(workoutDetailsPath)

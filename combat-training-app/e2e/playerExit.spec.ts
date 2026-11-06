@@ -11,6 +11,7 @@ async function openExit(page: Page) {
   await menu(page).click()
   await page.getByRole('menuitem', { name: 'Zakończ trening', exact: true }).click()
   await expect(exitDialog(page)).toBeVisible()
+  await expect(exitDialog(page)).toHaveAccessibleDescription('Trening jest wstrzymany. Przy zakończeniu zapiszą się tylko dokończone rundy.')
 }
 
 test('ends early after a completed round, records every step and shows partial status in both histories', async ({ app, page }) => {
@@ -115,6 +116,36 @@ test('blocks browser back, cancels it and can block it again before discarding',
   await expect(page.getByRole('button', { name: 'Pauza', exact: true })).toBeVisible()
   await page.goBack()
   await expect(exitDialog(page)).toBeVisible()
+  await exitDialog(page).getByRole('button', { name: 'Porzuć', exact: false }).click()
+  await expect(page).toHaveURL(planUrl)
+  expect(await storedSessions(page)).toHaveLength(0)
+})
+
+test('discards by continuing browser back without leaving the player behind in backward history', async ({ app, page }) => {
+  const planUrl = await app.createPlan('Historia po porzuceniu')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.fastForward(60_000)
+  await page.goBack()
+  await expect(exitDialog(page)).toBeVisible()
+  await exitDialog(page).getByRole('button', { name: 'Porzuć', exact: false }).click()
+  await expect(page).toHaveURL(planUrl)
+  await expect(page.getByRole('heading', { name: 'Historia po porzuceniu', exact: true })).toBeVisible()
+  expect(await storedSessions(page)).toHaveLength(0)
+  await page.goBack()
+  await expect(page).toHaveURL('/workouts')
+  await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
+  await expect(exitDialog(page)).toHaveCount(0)
+})
+
+test('discards from the workout menu by navigating to the plan without saving', async ({ app, page }) => {
+  const planUrl = await app.createPlan('Porzucenie z menu')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.fastForward(60_000)
+  await openExit(page)
   await exitDialog(page).getByRole('button', { name: 'Porzuć', exact: false }).click()
   await expect(page).toHaveURL(planUrl)
   expect(await storedSessions(page)).toHaveLength(0)

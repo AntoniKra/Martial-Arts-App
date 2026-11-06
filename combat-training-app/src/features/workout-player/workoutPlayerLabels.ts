@@ -3,7 +3,7 @@ export const workoutPlayerLabels = {
   finishExercise: 'Zakończ ćwiczenie',
   finishWorkout: 'Zakończ trening',
   exitTitle: 'Zakończyć trening?',
-  exitDescription: 'Trening jest wstrzymany. Możesz zapisać wykonaną pracę albo wrócić do ćwiczeń.',
+  exitDescription: 'Trening jest wstrzymany. Przy zakończeniu zapiszą się tylko dokończone rundy.',
   endEarly: 'Zakończ wcześniej',
   discard: 'Porzuć',
   discardWarning: 'Bez zapisu. Tej operacji nie można cofnąć.',
