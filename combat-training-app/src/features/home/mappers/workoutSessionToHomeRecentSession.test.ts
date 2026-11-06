@@ -5,6 +5,11 @@ import { mapWorkoutSessionToHistoryListItem } from '@/features/workouts/mappers/
 import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
 
 describe('workout session list mappings', () => {
+  it.each(['completed', 'partial'] as const)('preserves %s status on home and history cards', (status) => {
+    const session = workoutSession({ status })
+    expect(mapWorkoutSessionToHomeRecentSession(session).status).toBe(status)
+    expect(mapWorkoutSessionToHistoryListItem(session).status).toBe(status)
+  })
   it('uses the same exercise completion on home and history and leaves missing ratings empty', () => {
     const session = workoutSession({
       workoutPlanNameSnapshot: 'Saved workout name',

@@ -1,4 +1,5 @@
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
+import type { WorkoutSessionStatus } from '@/domain/workout-session/workoutSession.types'
 
 export type WorkoutsTab = 'plans' | 'history'
 
@@ -29,6 +30,7 @@ export const WORKOUT_HISTORY_NOTE_MAX_LENGTH = 1000
 
 export interface WorkoutHistoryListItem {
   id: string
+  status: WorkoutSessionStatus
   name: string
   disciplineKey: DisciplineKey
   dateLabelPl: string

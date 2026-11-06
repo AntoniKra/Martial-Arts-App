@@ -1,6 +1,6 @@
 import type { WorkoutSessionStepOutcome } from '@/domain/workout-session/workoutSession.types'
 
-export type WorkoutPlaybackStepFinalizeReason = 'elapsed' | 'next' | 'previous'
+export type WorkoutPlaybackStepFinalizeReason = 'elapsed' | 'next' | 'previous' | 'finishExercise' | 'endEarly'
 
 export type WorkoutPlaybackEvent =
   | {
@@ -19,6 +19,7 @@ export type WorkoutPlaybackEvent =
   | {
       type: 'completed'
       timestampMs: number
+      endedEarly?: boolean
     }
   | {
       type: 'restarted'

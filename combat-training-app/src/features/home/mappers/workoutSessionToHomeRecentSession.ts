@@ -11,6 +11,7 @@ export function mapWorkoutSessionToHomeRecentSession(session: WorkoutSession): H
 
   return {
     id: session.id,
+    status: session.status,
     name: session.workoutPlanNameSnapshot,
     disciplineKey: session.disciplineKey,
     dateLabelPl: formatWorkoutSessionDatePl(session.completedAt),

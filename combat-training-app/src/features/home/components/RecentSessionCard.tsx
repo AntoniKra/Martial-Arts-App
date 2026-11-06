@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import type { HomeRecentSession } from '@/features/home/types/homeView.types'
+import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 
 interface RecentSessionCardProps {
   session: HomeRecentSession
@@ -20,6 +21,7 @@ export function RecentSessionCard({ session }: RecentSessionCardProps) {
           <time className="text-[10px] text-muted">{session.dateLabelPl}</time>
         </div>
         <h3 className="mt-1 font-display text-[14px] font-semibold text-ink">{session.name}</h3>
+        <p className="mt-2 font-display text-xs font-semibold text-muted">{workoutPlayerLabels.sessionStatus[session.status]}</p>
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 font-display text-[11px] text-muted min-[350px]:grid-cols-[repeat(4,auto)] min-[350px]:items-baseline min-[350px]:justify-between min-[350px]:gap-x-2 min-[350px]:gap-y-0">
           <span className="whitespace-nowrap">
             <span className="font-semibold tabular-nums text-ink">{session.durationLabelPl}</span>

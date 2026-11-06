@@ -11,13 +11,14 @@ import {
 import { mapPlaybackStepToSessionStepResult } from '@/features/workout-player/mappers/mapPlaybackStepToSessionStepResult'
 import type { WorkoutPlaybackTimeline } from '@/features/workout-player/types/workoutPlayback.types'
 import type { WorkoutPlaybackEvent } from '@/features/workout-player/types/workoutPlaybackEvents.types'
+import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 import {
   mergeTrackedStepResult,
   type TrackedStepResult,
 } from '@/features/workout-player/utils/mergeTrackedStepResult'
 
-export const WORKOUT_SESSION_RECORDER_ERROR_MESSAGE = 'Nie udało się przygotować zapisu treningu.'
-export const WORKOUT_SESSION_NO_WORK_MESSAGE = 'Trening bez czasu pracy nie został zapisany.'
+export const WORKOUT_SESSION_RECORDER_ERROR_MESSAGE = workoutPlayerLabels.recorderError
+export const WORKOUT_SESSION_NO_WORK_MESSAGE = workoutPlayerLabels.noWork
 
 interface UseWorkoutSessionRecorderResult {
   onPlaybackEvent: (event: WorkoutPlaybackEvent) => void
@@ -25,6 +26,7 @@ interface UseWorkoutSessionRecorderResult {
   runGeneration: number
   hasRecorderError: boolean
   hasNoWork: boolean
+  endedEarly: boolean
 }
 
 export function useWorkoutSessionRecorder(
@@ -41,6 +43,7 @@ export function useWorkoutSessionRecorder(
   const [completedSession, setCompletedSession] = useState<WorkoutSession | null>(null)
   const [hasRecorderError, setHasRecorderError] = useState(false)
   const [hasNoWork, setHasNoWork] = useState(false)
+  const [endedEarly, setEndedEarly] = useState(false)
 
   const resetRecorder = useCallback(() => {
     sessionIdRef.current = null
@@ -53,6 +56,7 @@ export function useWorkoutSessionRecorder(
     setCompletedSession(null)
     setHasRecorderError(false)
     setHasNoWork(false)
+    setEndedEarly(false)
   }, [])
 
   const recordStepResult = useCallback(
@@ -86,7 +90,7 @@ export function useWorkoutSessionRecorder(
   )
 
   const buildCompletedSession = useCallback(
-    (completedAtMs: number): PlanWorkoutSessionResult | null => {
+    (completedAtMs: number, endedEarly: boolean): PlanWorkoutSessionResult | null => {
       const sessionId = sessionIdRef.current
       const startedAt = startedAtRef.current
 
@@ -120,7 +124,7 @@ export function useWorkoutSessionRecorder(
       }, {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         blockTypes: plan.blocks.map((block) => block.blockType),
-        endedEarly: false,
+        endedEarly,
         durations: calculateWorkoutSessionDurations(attemptsRef.current),
       })
     },
@@ -168,7 +172,8 @@ export function useWorkoutSessionRecorder(
           }
 
           try {
-            const result = buildCompletedSession(event.timestampMs)
+            setEndedEarly(event.endedEarly === true)
+            const result = buildCompletedSession(event.timestampMs, event.endedEarly === true)
 
             if (result === null) {
               isFinalizedRef.current = true
@@ -198,5 +203,6 @@ export function useWorkoutSessionRecorder(
     runGeneration,
     hasRecorderError,
     hasNoWork,
+    endedEarly,
   }
 }

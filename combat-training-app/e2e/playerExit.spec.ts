@@ -1,0 +1,235 @@
+import AxeBuilder from '@axe-core/playwright'
+import type { Page } from '@playwright/test'
+
+import { test, expect } from './fixtures'
+
+const menu = (page: Page) => page.getByRole('button', { name: 'Menu treningu', exact: true })
+const exitDialog = (page: Page) => page.getByRole('dialog', { name: 'Zakończyć trening?', exact: true })
+const storedSessions = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('combat-training.workout-sessions') ?? '{"sessions":[]}').sessions)
+
+async function openExit(page: Page) {
+  await menu(page).click()
+  await page.getByRole('menuitem', { name: 'Zakończ trening', exact: true }).click()
+  await expect(exitDialog(page)).toBeVisible()
+}
+
+test('ends early after a completed round, records every step and shows partial status in both histories', async ({ app, page }) => {
+  await app.createPlan('Trening czesciowy')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.fastForward(90_000)
+  await page.clock.runFor(5_000)
+  await openExit(page)
+  await page.clock.fastForward(120_000)
+  await exitDialog(page).getByRole('button', { name: 'Zakończ wcześniej', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Trening zakończony wcześniej', exact: true })).toBeVisible()
+  await expect(page.getByRole('status')).toHaveText('Trening zakończony wcześniej został zapisany.')
+  const sessions = await storedSessions(page)
+  expect(sessions).toHaveLength(1)
+  expect(sessions[0]).toMatchObject({
+    status: 'partial', durationSeconds: 95, workSeconds: 60,
+    completion: { completedExercises: 0, plannedExercises: 2 },
+    stepResults: [
+      { kind: 'exercise', outcome: 'completed', performedDurationSeconds: 60 },
+      { kind: 'roundRest', outcome: 'completed', performedDurationSeconds: 30 },
+      { kind: 'exercise', outcome: 'skipped', performedDurationSeconds: 0 },
+      { kind: 'exercise', outcome: 'skipped', performedDurationSeconds: 0 },
+    ],
+  })
+  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  const history = await app.openHistory()
+  await expect(history.getByText('Częściowy', { exact: true })).toBeVisible()
+  await app.open('/')
+  await expect(page.getByRole('link').filter({ hasText: 'Trening czesciowy' }).getByText('Częściowy', { exact: true })).toBeVisible()
+})
+
+test('does not save an interrupted first round and allows a fresh completed run', async ({ app, page }) => {
+  await app.createPlan('Bez ukonczonej rundy')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.runFor(500)
+  await openExit(page)
+  await exitDialog(page).getByRole('button', { name: 'Zakończ wcześniej', exact: true }).click()
+  await expect(page.getByRole('status')).toHaveText('Trening bez czasu pracy nie został zapisany.')
+  expect(await storedSessions(page)).toHaveLength(0)
+  await page.getByRole('button', { name: 'Uruchom ponownie', exact: true }).click()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.fastForward(210_000)
+  await app.expectWorkoutSaved()
+  expect(await storedSessions(page)).toHaveLength(1)
+})
+
+test('blocks the header link and discards without saving even after completed work', async ({ app, page }) => {
+  const planUrl = await app.createPlan('Porzucony trening')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.fastForward(60_000)
+  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await expect(exitDialog(page)).toBeVisible()
+  await expect(page).toHaveURL(`${planUrl}/active`)
+  await exitDialog(page).getByRole('button', { name: 'Porzuć', exact: false }).click()
+  await expect(page).toHaveURL(planUrl)
+  expect(await storedSessions(page)).toHaveLength(0)
+})
+
+test('returns to the same running step, excludes dialog time and preserves a pre-existing pause', async ({ app, page }) => {
+  await app.createPlan('Powrot do cwiczen')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.runFor(10_000)
+  await openExit(page)
+  await page.clock.fastForward(120_000)
+  await exitDialog(page).getByRole('button', { name: 'Wróć', exact: true }).click()
+  await expect(page.getByText('Runda 1 z 2', { exact: true })).toBeVisible()
+  await expect(page.getByText('Pozostały czas: 50 sekund', { exact: true })).toBeAttached()
+  await expect(page.getByRole('button', { name: 'Pauza', exact: true })).toBeVisible()
+  await page.clock.runFor(5_000)
+  await page.getByRole('button', { name: 'Pauza', exact: true }).click()
+  await openExit(page)
+  await page.clock.fastForward(120_000)
+  await page.keyboard.press('Escape')
+  await expect(menu(page)).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Wznów', exact: true })).toBeVisible()
+  await page.clock.fastForward(120_000)
+  await expect(page.getByText('Pozostały czas: 45 sekund', { exact: true })).toBeAttached()
+  await page.getByRole('button', { name: 'Wznów', exact: true }).click()
+  await page.clock.fastForward(195_000)
+  await app.expectWorkoutSaved()
+  expect((await storedSessions(page))[0]).toMatchObject({ durationSeconds: 210, workSeconds: 180 })
+})
+
+test('blocks browser back, cancels it and can block it again before discarding', async ({ app, page }) => {
+  const planUrl = await app.createPlan('Wstecz w przegladarce')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.goBack()
+  await expect(exitDialog(page)).toBeVisible()
+  await expect(page).toHaveURL(`${planUrl}/active`)
+  await page.keyboard.press('Escape')
+  await expect(menu(page)).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Pauza', exact: true })).toBeVisible()
+  await page.goBack()
+  await expect(exitDialog(page)).toBeVisible()
+  await exitDialog(page).getByRole('button', { name: 'Porzuć', exact: false }).click()
+  await expect(page).toHaveURL(planUrl)
+  expect(await storedSessions(page)).toHaveLength(0)
+})
+
+test('leaves without confirmation before start and after completion and shows completed status in both histories', async ({ app, page }) => {
+  const planUrl = await app.createPlan('Ukonczony trening')
+  await app.openPlayer()
+  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await expect(page).toHaveURL(planUrl)
+  await expect(exitDialog(page)).toHaveCount(0)
+  await app.openPlayer()
+  await app.finishWorkout()
+  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await expect(page).toHaveURL(planUrl)
+  const history = await app.openHistory()
+  await expect(history.getByText('Ukończony', { exact: true })).toBeVisible()
+  await app.open('/')
+  await expect(page.getByRole('link').filter({ hasText: 'Ukonczony trening' }).getByText('Ukończony', { exact: true })).toBeVisible()
+})
+
+test('finishes the whole exercise instead of the next round and preserves earlier completed work', async ({ app, page }) => {
+  await app.createPlan('Koniec cwiczenia')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.fastForward(90_000)
+  await page.clock.runFor(5_000)
+  await menu(page).click()
+  await page.getByRole('menuitem', { name: 'Zakończ ćwiczenie', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Walka z cieniem', exact: true })).toBeVisible()
+  await expect(exitDialog(page)).not.toBeVisible()
+  await page.clock.fastForward(60_000)
+  await app.expectWorkoutSaved()
+  expect((await storedSessions(page))[0]).toMatchObject({ status: 'partial', durationSeconds: 155, workSeconds: 120,
+    stepResults: [{ outcome: 'completed' }, { outcome: 'completed' }, { outcome: 'skipped', performedDurationSeconds: 0 }, { outcome: 'completed' }],
+  })
+})
+
+test('finishes all remaining rounds from the first round without crediting interrupted work', async ({ app, page }) => {
+  await app.createPlan('Pominiete rundy')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.runFor(10_000)
+  await menu(page).click()
+  await page.getByRole('menuitem', { name: 'Zakończ ćwiczenie', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Walka z cieniem', exact: true })).toBeVisible()
+  await page.clock.fastForward(60_000)
+  await app.expectWorkoutSaved()
+  expect((await storedSessions(page))[0]).toMatchObject({ status: 'partial', durationSeconds: 70, workSeconds: 60,
+    stepResults: [{ outcome: 'skipped' }, { outcome: 'skipped' }, { outcome: 'skipped' }, { outcome: 'completed' }],
+  })
+})
+
+test('retries a failed early save once and clears early completion on restart', async ({ app, page }) => {
+  await app.createPlan('Ponowienie zapisu')
+  await app.openPlayer()
+  await app.freezeClock()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.fastForward(60_000)
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'combat-training.workout-sessions' && !sessionStorage.getItem('allow-session-save')) {
+        throw new DOMException('Test storage failure', 'QuotaExceededError')
+      }
+      original.call(this, key, value)
+    }
+  })
+  await openExit(page)
+  await exitDialog(page).getByRole('button', { name: 'Zakończ wcześniej', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Trening zakończony wcześniej', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Uruchom ponownie', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Spróbuj ponownie', exact: true })).toBeVisible()
+  expect(await storedSessions(page)).toHaveLength(0)
+  await page.evaluate(() => sessionStorage.setItem('allow-session-save', 'true'))
+  await page.getByRole('button', { name: 'Spróbuj ponownie', exact: true }).click()
+  await expect(page.getByRole('status')).toHaveText('Trening zakończony wcześniej został zapisany.')
+  expect(await storedSessions(page)).toHaveLength(1)
+  await page.getByRole('button', { name: 'Uruchom ponownie', exact: true }).click()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await page.clock.fastForward(210_000)
+  await app.expectWorkoutSaved()
+  expect((await storedSessions(page)).map((session: { status: string }) => session.status).sort()).toEqual(['completed', 'partial'])
+})
+
+for (const theme of ['dark', 'light'] as const) {
+  test(`supports keyboard, traps dialog focus and has accessible menu and exit dialog in ${theme} theme`, async ({ app, page }, testInfo) => {
+    await app.createPlan('Dostepne menu')
+    await app.setTheme(theme)
+    await app.openPlayer()
+    await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+    await menu(page).click()
+    await expect(page.getByRole('menu')).toBeVisible()
+    await menu(page).click()
+    await expect(page.getByRole('menu')).toHaveCount(0)
+    await menu(page).focus()
+    await page.keyboard.press('Enter')
+    await expect(page.getByRole('menuitem', { name: 'Zakończ ćwiczenie', exact: true })).toBeFocused()
+    await page.evaluate(() => document.fonts.ready)
+    await page.screenshot({ path: testInfo.outputPath(`menu-${theme}.png`), fullPage: true })
+    expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Enter')
+    await expect(exitDialog(page).getByRole('button', { name: 'Wróć', exact: true })).toBeFocused()
+    await page.keyboard.press('Tab')
+    await expect(exitDialog(page).getByRole('button', { name: 'Zakończ wcześniej', exact: true })).toBeFocused()
+    await page.keyboard.press('Shift+Tab')
+    await expect(exitDialog(page).getByRole('button', { name: 'Wróć', exact: true })).toBeFocused()
+    await page.screenshot({ path: testInfo.outputPath(`exit-${theme}.png`), fullPage: true })
+    expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
+    await page.keyboard.press('Escape')
+    await expect(exitDialog(page)).not.toBeVisible()
+    await expect(menu(page)).toBeFocused()
+    await expect(page.getByRole('button', { name: 'Pauza', exact: true })).toBeVisible()
+  })
+}

@@ -1,4 +1,5 @@
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
+import type { WorkoutSessionStatus } from '@/domain/workout-session/workoutSession.types'
 
 export interface HomeFeaturedPlan {
   id: string
@@ -13,6 +14,7 @@ export interface HomeFeaturedPlan {
 
 export interface HomeRecentSession {
   id: string
+  status: WorkoutSessionStatus
   name: string
   disciplineKey: DisciplineKey
   dateLabelPl: string
