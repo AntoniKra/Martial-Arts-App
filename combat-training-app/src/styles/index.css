@@ -77,28 +77,24 @@
   --app-discipline-mma-striking: #5f5f63;
 }
 
-html {
-  min-width: 320px;
-  background: var(--app-bg);
-  color: var(--app-ink);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  html {
+    min-width: 320px;
+    background: var(--app-bg);
+    color: var(--app-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100dvh;
+    margin: 0;
+    background: var(--app-bg);
+  }
 }
 
-body {
-  min-height: 100dvh;
-  margin: 0;
-  background: var(--app-bg);
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
+/* Keep the existing focus ring above utilities, including inset outline offsets. */
 :focus-visible {
   outline: 2px solid var(--app-focus-ring);
   outline-offset: 2px;

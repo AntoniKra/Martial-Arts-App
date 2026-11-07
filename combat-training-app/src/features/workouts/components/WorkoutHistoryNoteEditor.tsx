@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { WORKOUT_HISTORY_NOTE_MAX_LENGTH } from '@/features/workouts/types/workoutsView.types'
 
 const textareaClassName =
-  'min-h-[96px] w-full resize-y border border-bd bg-input px-3 py-2 font-display text-[13px] leading-relaxed text-ink placeholder:text-faint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:cursor-not-allowed disabled:opacity-60'
+  'min-h-[96px] w-full resize-y border border-bd bg-input px-3 py-2 font-display text-[16px] leading-relaxed text-ink placeholder:text-faint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:cursor-not-allowed disabled:opacity-60'
 
 const labelClassName =
   'mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint'

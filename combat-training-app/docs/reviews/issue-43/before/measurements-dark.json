@@ -1,0 +1,1371 @@
+{
+  "viewport": {
+    "width": 360,
+    "height": 800
+  },
+  "theme": "dark",
+  "samples": {
+    "primary": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "email": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "roundFormat": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "roundCount": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "menuFinishExercise": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "menuFinishWorkout": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "exitEarly": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "exitDiscard": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "exitReturn": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "restart": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "plansSelected": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "historyUnselected": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "plansUnselected": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "historySelected": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    },
+    "addNote": {
+      "size": "16px",
+      "weight": "400",
+      "family": "\"Inter Variable\", system-ui, -apple-system, sans-serif"
+    }
+  },
+  "screens": [
+    {
+      "name": "login",
+      "controls": [
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "auth-email",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "auth-password",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Zaloguj się",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "home",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        }
+      ]
+    },
+    {
+      "name": "builder",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workout-builder-custom-name",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workout-builder-main-goal",
+          "field": true,
+          "size": 16,
+          "height": 90,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj blok",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Podgląd planu",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "library",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Wróć do osi treningu",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Biblioteka",
+          "field": false,
+          "size": 16,
+          "height": 68,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Własne ćwiczenie",
+          "field": false,
+          "size": 16,
+          "height": 68,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_1_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Jab → prawy prosty",
+          "field": false,
+          "size": 16,
+          "height": 45.5,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Jab → prawy prosty → lewy sierpowy",
+          "field": false,
+          "size": 16,
+          "height": 45.5,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Jab → zejście pod prawy sierpowy → prawy prosty",
+          "field": false,
+          "size": 16,
+          "height": 65,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Podwójny jab → prawy prosty",
+          "field": false,
+          "size": 16,
+          "height": 45.5,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Jab → prosty w korpus → prawy prosty",
+          "field": false,
+          "size": 16,
+          "height": 45.5,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Prawy prosty → lewy sierpowy → prawy prosty",
+          "field": false,
+          "size": 16,
+          "height": 65,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Praca nóg — zmiana kąta po kombinacji",
+          "field": false,
+          "size": 16,
+          "height": 45.5,
+          "minHeight": "44px"
+        }
+      ]
+    },
+    {
+      "name": "custom-exercise",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Wróć do osi treningu",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Biblioteka",
+          "field": false,
+          "size": 16,
+          "height": 68,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Własne ćwiczenie",
+          "field": false,
+          "size": 16,
+          "height": 68,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_2_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Konfiguruj ćwiczenie",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "configuration",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Wróć do biblioteki",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Rundy",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Ciągłe",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "3 × 3:00 · przerwa 1:00",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "3 × 3:00 · przerwa 0:30",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_5_",
+          "field": true,
+          "size": 16,
+          "height": 90,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj ćwiczenie",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "configuration-round-count",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Wróć do biblioteki",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Rundy",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Ciągłe",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "3 × 3:00 · przerwa 1:00",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "3 × 3:00 · przerwa 0:30",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_6_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_5_",
+          "field": true,
+          "size": 16,
+          "height": 90,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj ćwiczenie",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "configuration-duration",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Wróć do biblioteki",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Rundy",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Ciągłe",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "3 × 3:00 · przerwa 1:00",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "3 × 3:00 · przerwa 0:30",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_6_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_9_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_a_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_5_",
+          "field": true,
+          "size": 16,
+          "height": 90,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj ćwiczenie",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "configuration-rest",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Wróć do biblioteki",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Rundy",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Ciągłe",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "3 × 3:00 · przerwa 1:00",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "3 × 3:00 · przerwa 0:30",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_6_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_9_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_a_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_c_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_d_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_5_",
+          "field": true,
+          "size": 16,
+          "height": 90,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj ćwiczenie",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "configuration-continuous",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Wróć do biblioteki",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Rundy",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Ciągłe",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_f_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_g_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_5_",
+          "field": true,
+          "size": 16,
+          "height": 90,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj ćwiczenie",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "configuration-instruction",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Wróć do biblioteki",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Rundy",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Ciągłe",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_f_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_g_",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_5_",
+          "field": true,
+          "size": 16,
+          "height": 90,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj ćwiczenie",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "builder-break",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workout-builder-custom-name",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workout-builder-main-goal",
+          "field": true,
+          "size": 16,
+          "height": 90,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Przenieś blok 1 — Technika w górę",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Przenieś blok 1 — Technika w dół",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Usuń blok 1 — Technika",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Przenieś ćwiczenie Jab → prawy prosty, element 1 w bloku 1 — Technika w górę",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Przenieś ćwiczenie Jab → prawy prosty, element 1 w bloku 1 — Technika w dół",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Edytuj ćwiczenie Jab → prawy prosty, element 1 w bloku 1 — Technika",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Usuń ćwiczenie Jab → prawy prosty, element 1 w bloku 1 — Technika",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj ćwiczenie do bloku 1 — Technika",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_j_-minutes",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_j_-seconds",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_j_-instruction",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj przerwę",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Anuluj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj blok",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Podgląd planu",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "plan-details",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Usuń plan",
+          "field": false,
+          "size": 16,
+          "height": 50,
+          "minHeight": "48px"
+        }
+      ]
+    },
+    {
+      "name": "player-menu",
+      "controls": [
+        {
+          "name": "Menu treningu",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Zakończ ćwiczenie",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "48px"
+        },
+        {
+          "name": "Zakończ trening",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "48px"
+        },
+        {
+          "name": "Poprzedni etap",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "auto"
+        },
+        {
+          "name": "Pauza",
+          "field": false,
+          "size": 16,
+          "height": 64,
+          "minHeight": "auto"
+        },
+        {
+          "name": "Następny etap",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "auto"
+        }
+      ]
+    },
+    {
+      "name": "player-exit",
+      "controls": [
+        {
+          "name": "Menu treningu",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Zakończ wcześniej",
+          "field": false,
+          "size": 16,
+          "height": 56,
+          "minHeight": "56px"
+        },
+        {
+          "name": "PorzućBez zapisu. Tej operacji nie można cofnąć.",
+          "field": false,
+          "size": 16,
+          "height": 107,
+          "minHeight": "56px"
+        },
+        {
+          "name": "Wróć",
+          "field": false,
+          "size": 16,
+          "height": 58,
+          "minHeight": "56px"
+        },
+        {
+          "name": "Poprzedni etap",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "auto"
+        },
+        {
+          "name": "Wznów",
+          "field": false,
+          "size": 16,
+          "height": 64,
+          "minHeight": "auto"
+        },
+        {
+          "name": "Następny etap",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "auto"
+        }
+      ]
+    },
+    {
+      "name": "completed",
+      "controls": [
+        {
+          "name": "Uruchom ponownie",
+          "field": false,
+          "size": 16,
+          "height": 56,
+          "minHeight": "56px"
+        }
+      ]
+    },
+    {
+      "name": "plans",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Plany",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Historia",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-search",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-discipline",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-sort",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        }
+      ]
+    },
+    {
+      "name": "history",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Plany",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Historia",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-search",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-discipline",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-sort",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj notatkę",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Usuń wpis",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "44px"
+        }
+      ]
+    },
+    {
+      "name": "history-note-action",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Plany",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Historia",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-search",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-discipline",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-sort",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Dodaj notatkę",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Usuń wpis",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "44px"
+        }
+      ]
+    },
+    {
+      "name": "history-note-editor",
+      "controls": [
+        {
+          "name": "Wyloguj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Włącz jasny motyw",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Plany",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Historia",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-search",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-discipline",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "workouts-sort",
+          "field": true,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "_r_2_",
+          "field": true,
+          "size": 16,
+          "height": 114,
+          "minHeight": "96px"
+        },
+        {
+          "name": "Anuluj",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Zapisz",
+          "field": false,
+          "size": 16,
+          "height": 44,
+          "minHeight": "44px"
+        },
+        {
+          "name": "Usuń wpis",
+          "field": false,
+          "size": 16,
+          "height": 48,
+          "minHeight": "44px"
+        }
+      ]
+    }
+  ],
+  "focus": {
+    "loginFocus": {
+      "visible": true,
+      "style": "solid",
+      "width": "2px",
+      "offset": "2px",
+      "color": "rgb(239, 93, 110)"
+    },
+    "builderFocus": {
+      "visible": true,
+      "style": "solid",
+      "width": "2px",
+      "offset": "2px",
+      "color": "rgb(239, 93, 110)"
+    }
+  }
+}
