@@ -39,6 +39,11 @@ interface ExerciseConfigurationViewProps {
   exerciseName: string
   initialConfiguration: ExerciseConfiguration
   initialInstruction: string | null
+  initialRoundSettings?: {
+    roundCount: number
+    roundDurationSeconds: number
+    restBetweenRoundsSeconds: number
+  } | null
   variant: 'new' | 'existing'
   onBack: () => void
   onSubmit: (configuration: ExerciseConfiguration, instruction: string | null) => void
@@ -228,6 +233,7 @@ export function ExerciseConfigurationView({
   exerciseName,
   initialConfiguration,
   initialInstruction,
+  initialRoundSettings = null,
   variant,
   onBack,
   onSubmit,
@@ -253,8 +259,13 @@ export function ExerciseConfigurationView({
 
   const [form, dispatch] = useReducer(
     exerciseConfigurationFormReducer,
-    { configuration: initialConfiguration, instruction: initialInstruction },
-    ({ configuration, instruction }) => createExerciseConfigurationFormState(configuration, instruction),
+    {
+      configuration: initialConfiguration,
+      instruction: initialInstruction,
+      roundSettings: initialRoundSettings,
+    },
+    ({ configuration, instruction, roundSettings }) =>
+      createExerciseConfigurationFormState(configuration, instruction, roundSettings),
   )
   const selectedFormat = selectedRoundFormat(form)
 

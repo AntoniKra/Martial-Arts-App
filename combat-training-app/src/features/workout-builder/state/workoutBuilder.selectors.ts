@@ -1,6 +1,5 @@
 import { resolveWorkoutPlanDisplayName } from '@/domain/workout/workoutPlanDisplayName'
 import type {
-  RoundExerciseConfiguration,
   WorkoutBlock,
   WorkoutExercise,
   WorkoutItem,
@@ -56,26 +55,42 @@ export function selectExerciseById(
   return item
 }
 
-function defaultRoundConfiguration(): RoundExerciseConfiguration {
+const DEFAULT_CONTINUOUS_DURATION_SECONDS = 300
+
+export interface StartingExerciseConfiguration {
+  mode: 'rounds' | 'continuous'
+  roundCount: number
+  roundDurationSeconds: number
+  restBetweenRoundsSeconds: number
+  continuousDurationSeconds: number
+}
+
+function defaultStartingExerciseConfiguration(): StartingExerciseConfiguration {
   return {
     mode: 'rounds',
     roundCount: DEFAULT_ROUND_EXERCISE_CONFIGURATION.roundCount,
     roundDurationSeconds: DEFAULT_ROUND_EXERCISE_CONFIGURATION.roundDurationSeconds,
     restBetweenRoundsSeconds: DEFAULT_ROUND_EXERCISE_CONFIGURATION.restBetweenRoundsSeconds,
+    continuousDurationSeconds: DEFAULT_CONTINUOUS_DURATION_SECONDS,
   }
 }
 
-/** Round settings for a new exercise appended at the end of `blockId`. */
-export function selectStartingRoundConfiguration(
-  blocks: readonly WorkoutBlock[],
-  blockId: string,
-): RoundExerciseConfiguration {
-  const blockIndex = blocks.findIndex((block) => block.id === blockId)
+function lastExerciseInBlock(block: WorkoutBlock): WorkoutExercise | null {
+  for (let index = block.items.length - 1; index >= 0; index -= 1) {
+    const item = block.items[index]
 
-  if (blockIndex === -1) {
-    return defaultRoundConfiguration()
+    if (item.type === 'exercise') {
+      return item
+    }
   }
 
+  return null
+}
+
+function lastRoundsSettings(
+  blocks: readonly WorkoutBlock[],
+  blockIndex: number,
+): Pick<StartingExerciseConfiguration, 'roundCount' | 'roundDurationSeconds' | 'restBetweenRoundsSeconds'> {
   for (let currentBlockIndex = blockIndex; currentBlockIndex >= 0; currentBlockIndex -= 1) {
     const items = blocks[currentBlockIndex].items
 
@@ -84,7 +99,6 @@ export function selectStartingRoundConfiguration(
 
       if (item.type === 'exercise' && item.configuration.mode === 'rounds') {
         return {
-          mode: 'rounds',
           roundCount: item.configuration.roundCount,
           roundDurationSeconds: item.configuration.roundDurationSeconds,
           restBetweenRoundsSeconds: item.configuration.restBetweenRoundsSeconds,
@@ -93,5 +107,31 @@ export function selectStartingRoundConfiguration(
     }
   }
 
-  return defaultRoundConfiguration()
+  return {
+    roundCount: DEFAULT_ROUND_EXERCISE_CONFIGURATION.roundCount,
+    roundDurationSeconds: DEFAULT_ROUND_EXERCISE_CONFIGURATION.roundDurationSeconds,
+    restBetweenRoundsSeconds: DEFAULT_ROUND_EXERCISE_CONFIGURATION.restBetweenRoundsSeconds,
+  }
+}
+
+/** Settings for a new exercise appended at the end of `blockId`. */
+export function selectStartingExerciseConfiguration(
+  blocks: readonly WorkoutBlock[],
+  blockId: string,
+): StartingExerciseConfiguration {
+  const blockIndex = blocks.findIndex((block) => block.id === blockId)
+
+  if (blockIndex === -1) {
+    return defaultStartingExerciseConfiguration()
+  }
+
+  const lastExercise = lastExerciseInBlock(blocks[blockIndex])
+  const continuous =
+    lastExercise?.configuration.mode === 'continuous' ? lastExercise.configuration : null
+
+  return {
+    mode: continuous ? 'continuous' : 'rounds',
+    ...lastRoundsSettings(blocks, blockIndex),
+    continuousDurationSeconds: continuous?.durationSeconds ?? DEFAULT_CONTINUOUS_DURATION_SECONDS,
+  }
 }

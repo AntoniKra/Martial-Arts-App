@@ -32,7 +32,7 @@ import {
   selectBlockById,
   selectDisplayPlanName,
   selectExerciseById,
-  selectStartingRoundConfiguration,
+  selectStartingExerciseConfiguration,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
 import { copyExerciseConfiguration } from '@/features/workout-builder/utils/exerciseConfigurationCompare'
 import { mapWorkoutPlanSaveError } from '@/features/workout-builder/utils/workoutPlanSaveErrorMessages'
@@ -323,12 +323,24 @@ export function WorkoutBuilderView({
       }
 
       if (screen.type === 'configureNew') {
+        const starting = selectStartingExerciseConfiguration(state.draft.blocks, targetBlock.id)
+
         return (
           <div className="flex flex-1 flex-col overflow-hidden">
             <ExerciseConfigurationView
               blockLabel={getWorkoutBlockLabelPl(targetBlock.blockType)}
               exerciseName={screen.selection.exerciseNameSnapshot}
-              initialConfiguration={selectStartingRoundConfiguration(state.draft.blocks, targetBlock.id)}
+              initialConfiguration={
+                starting.mode === 'continuous'
+                  ? { mode: 'continuous', durationSeconds: starting.continuousDurationSeconds }
+                  : {
+                      mode: 'rounds',
+                      roundCount: starting.roundCount,
+                      roundDurationSeconds: starting.roundDurationSeconds,
+                      restBetweenRoundsSeconds: starting.restBetweenRoundsSeconds,
+                    }
+              }
+              initialRoundSettings={starting}
               initialInstruction={null}
               variant="new"
               onBack={backToLibraryFromConfigureNew}

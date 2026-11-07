@@ -95,11 +95,16 @@ function secondsToCustomFields(totalSeconds: number): DurationFields {
 export function createExerciseConfigurationFormState(
   configuration: ExerciseConfiguration,
   instruction: string | null,
+  roundSettings?: {
+    roundCount: number
+    roundDurationSeconds: number
+    restBetweenRoundsSeconds: number
+  } | null,
 ): ExerciseConfigurationFormState {
   const roundsConfiguration =
     configuration.mode === 'rounds'
       ? configuration
-      : { roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 }
+      : roundSettings ?? { roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 }
   const continuousSeconds = configuration.mode === 'continuous' ? configuration.durationSeconds : 300
 
   return {

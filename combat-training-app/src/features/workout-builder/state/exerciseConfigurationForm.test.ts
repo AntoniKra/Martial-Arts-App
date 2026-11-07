@@ -140,6 +140,25 @@ describe('exercise configuration form', () => {
     expect(next.errors.continuousDuration).toBe(fieldErrors.continuousDuration)
   })
 
+  it('shows inherited round values after switching a continuous exercise to rounds', () => {
+    const start = createExerciseConfigurationFormState(
+      { mode: 'continuous', durationSeconds: 90 },
+      null,
+      { roundCount: 2, roundDurationSeconds: 60, restBetweenRoundsSeconds: 30 },
+    )
+
+    expect(start.mode).toBe('continuous')
+    expect(start.continuousMinutesInput).toBe('1')
+    expect(start.continuousSecondsInput).toBe('30')
+
+    const rounds = exerciseConfigurationFormReducer(start, { type: 'setMode', mode: 'rounds' })
+
+    expect(rounds.mode).toBe('rounds')
+    expect(rounds.roundCountPreset).toBe(2)
+    expect(rounds.roundDurationPreset).toBe(60)
+    expect(rounds.restPreset).toBe(30)
+  })
+
   it('clears the continuous duration error when that duration changes', () => {
     const start = withFieldErrors(
       createExerciseConfigurationFormState({ mode: 'continuous', durationSeconds: 300 }, null),
