@@ -9,7 +9,7 @@ import { calculateWorkoutPlanSummary } from '@/domain/workout/workoutCalculation
 import type { WorkoutExercise, WorkoutItem, WorkoutPlan } from '@/domain/workout/workout.types'
 import type { WorkoutPlanDetailsLoadState } from '@/features/workout-details/types/workoutPlanDetails.types'
 import { formatExerciseConfigurationSummary } from '@/features/workout-details/utils/formatExerciseConfiguration'
-import { formatEstimatedDuration, formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
+import { formatEstimatedDuration, formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { polishPlural } from '@/domain/language/polishPlural'
 import { WorkoutPlanActions } from '@/features/workout-details/components/WorkoutPlanActions'
 

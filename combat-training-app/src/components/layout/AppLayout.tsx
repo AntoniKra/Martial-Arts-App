@@ -16,7 +16,7 @@ export function AppLayout() {
           <SignOutButton onError={setSignOutError} />
           <div className="md:hidden"><ThemeToggle /></div>
         </div>
-        <main className="mx-auto flex w-full max-w-lg flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:max-w-5xl md:px-8 md:pb-8 md:pt-6">
+        <main className="mx-auto flex w-full max-w-lg flex-1 flex-col pb-[calc(4rem+13px+env(safe-area-inset-bottom,0px))] md:max-w-5xl md:px-8 md:pb-8 md:pt-6">
           {signOutError && <p role="alert" className="px-4 text-sm text-crimson-ink">{signOutError}</p>}
           <Outlet />
         </main>

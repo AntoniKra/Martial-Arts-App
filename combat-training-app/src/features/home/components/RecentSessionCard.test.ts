@@ -1,0 +1,36 @@
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { MemoryRouter } from 'react-router-dom'
+import { describe, expect, it } from 'vitest'
+
+import { RecentSessionCard } from '@/features/home/components/RecentSessionCard'
+import { mapWorkoutSessionToHomeRecentSession } from '@/features/home/mappers/workoutSessionToHomeRecentSession'
+import { WorkoutHistoryCard } from '@/features/workouts/components/WorkoutHistoryCard'
+import { mapWorkoutSessionToHistoryListItem } from '@/features/workouts/mappers/workoutSessionHistoryListItemMapper'
+import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
+
+describe('session card completion counters', () => {
+  it.each([true, false])('shares ordered exercise and round labels on both cards (rounds: %s)', (hasRounds) => {
+    const session = workoutSession({ stepResults: hasRounds ? [
+      sessionStep({ playbackStepId: 'round-1', roundNumber: 1, roundCount: 2 }),
+      sessionStep({ playbackStepId: 'round-2', roundNumber: 2, roundCount: 2, outcome: 'skipped', performedDurationSeconds: 0 }),
+    ] : [sessionStep({ outcome: 'skipped', performedDurationSeconds: 0 })] })
+    const home = createElement(RecentSessionCard, { session: mapWorkoutSessionToHomeRecentSession(session) })
+    const history = createElement(WorkoutHistoryCard, {
+      session: mapWorkoutSessionToHistoryListItem(session),
+      onUpdateNote: async () => 'applied' as const, onDelete: async () => 'applied' as const,
+    })
+    for (const card of [home, history]) {
+      const markup = renderToStaticMarkup(createElement(MemoryRouter, null, card))
+      const text = markup.replace(/<[^>]+>/g, '')
+      expect(text).toContain('0/1 ćwiczeń')
+      expect(text).not.toContain('wykonania')
+      expect(markup).toContain('width:0%')
+      if (hasRounds) {
+        expect(text).toContain('0/1 ćwiczeń1/2 rund')
+      } else {
+        expect(text).not.toContain('rund')
+      }
+    }
+  })
+})

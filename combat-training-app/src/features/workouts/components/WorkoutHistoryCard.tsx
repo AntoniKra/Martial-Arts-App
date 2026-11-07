@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { Button, getButtonClassName } from '@/components/ui/Button'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
+import { WorkoutCompletionCounts } from '@/components/domain/WorkoutCompletionCounts'
 import { WorkoutHistoryNoteEditor } from '@/features/workouts/components/WorkoutHistoryNoteEditor'
 import type {
   WorkoutHistoryListItem,
@@ -204,20 +205,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
           <span className="whitespace-nowrap">
             <span className="font-semibold tabular-nums text-ink">{session.durationLabelPl}</span>
           </span>
-          <span className="whitespace-nowrap">
-            <span className="font-semibold tabular-nums text-ink">
-              {session.completedExercises}/{session.plannedExercises}
-            </span>{' '}
-            ćwiczeń
-          </span>
-          {session.plannedRounds !== null ? (
-            <span className="whitespace-nowrap">
-              <span className="font-semibold tabular-nums text-ink">
-                {session.completedRounds}/{session.plannedRounds}
-              </span>{' '}
-              rund
-            </span>
-          ) : null}
+          <WorkoutCompletionCounts counts={session} />
         </div>
       </div>
 
@@ -228,39 +216,41 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
         />
       </div>
 
-      <div className="border-t border-bd px-4 py-3">
+      <div className="border-t border-bd">
         {hasSavedNote && !isEditingNote ? (
-          <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-ink">{session.note}</p>
+          <p className="whitespace-pre-wrap break-words px-4 pt-3 text-[13px] leading-relaxed text-ink">{session.note}</p>
         ) : null}
 
         {isEditingNote ? (
-          <WorkoutHistoryNoteEditor
-            value={draftNote}
-            onChange={setDraftNote}
-            onSave={() => {
-              void handleSaveNote()
-            }}
-            onCancel={closeNoteEditor}
-            isSaving={isSavingNote}
-            saveError={noteSaveError}
-            textareaRef={noteTextareaRef}
-          />
+          <div className="px-4 py-3">
+            <WorkoutHistoryNoteEditor
+              value={draftNote}
+              onChange={setDraftNote}
+              onSave={() => {
+                void handleSaveNote()
+              }}
+              onCancel={closeNoteEditor}
+              isSaving={isSavingNote}
+              saveError={noteSaveError}
+              textareaRef={noteTextareaRef}
+            />
+          </div>
         ) : (
           <button
             ref={noteToggleButtonRef}
             type="button"
             disabled={isOperationInProgress || isConfirmingDelete}
             onClick={openNoteEditor}
-            className="font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+            className="min-h-touch w-full px-4 py-3 text-left font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             {hasSavedNote ? 'Edytuj notatkę' : 'Dodaj notatkę'}
           </button>
         )}
       </div>
 
-      <div className="border-t border-bd px-4 py-3">
+      <div className="border-t border-bd">
         {isConfirmingDelete ? (
-          <div aria-labelledby={deleteConfirmationId} className="space-y-3">
+          <div aria-labelledby={deleteConfirmationId} className="space-y-3 px-4 py-3">
             <p id={deleteConfirmationId} className="text-[13px] leading-relaxed text-muted">
               Czy na pewno chcesz usunąć ten wpis? Tej operacji nie można cofnąć.
             </p>
@@ -305,7 +295,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
               shouldFocusDeleteCancelRef.current = true
               setIsConfirmingDelete(true)
             }}
-            className="font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink underline decoration-crimson/40 underline-offset-2 transition-colors hover:text-crimson-hi hover:decoration-crimson disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+            className="min-h-touch w-full px-4 py-3 text-left font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink underline decoration-crimson/40 underline-offset-2 transition-colors hover:text-crimson-hi hover:decoration-crimson disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             Usuń wpis
           </button>
