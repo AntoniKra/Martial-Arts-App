@@ -185,9 +185,9 @@ function WorkoutPlayerCompletedPanel({
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-5 safe-area-pt pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
       <div className="shrink-0 border-b border-bd bg-surface px-4 py-3">
         <p className="font-display text-[10px] font-semibold uppercase tracking-[0.14em] text-crimson-ink">
-          {endedEarly ? workoutPlayerLabels.endedEarly : 'Trening ukończony'}
+          {hasNoWork ? workoutPlayerLabels.notSaved : endedEarly ? workoutPlayerLabels.endedEarly : 'Trening ukończony'}
         </p>
-        <h1 className="mt-0.5 font-display text-[20px] font-bold text-ink">{endedEarly ? workoutPlayerLabels.endedEarly : 'Trening zakończony'}</h1>
+        <h1 className="mt-0.5 font-display text-[20px] font-bold text-ink">{hasNoWork ? workoutPlayerLabels.noWorkHeading : endedEarly ? workoutPlayerLabels.endedEarly : 'Trening zakończony'}</h1>
       </div>
 
       <div className="flex flex-1 flex-col px-1 pt-5">

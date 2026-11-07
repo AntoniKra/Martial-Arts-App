@@ -33,7 +33,9 @@ test('does not save a run without work and resets the message on restart', async
   for (let index = 0; index < 4; index += 1) {
     await page.getByRole('button', { name: 'Następny etap', exact: true }).click()
   }
-  await expect(page.getByRole('status')).toHaveText('Trening bez czasu pracy nie został zapisany.')
+  await expect(page.getByRole('heading', { name: 'Nie zapisano treningu', exact: true })).toBeVisible()
+  await expect(page.getByText('Trening niezapisany', { exact: true })).toBeVisible()
+  await expect(page.getByRole('status')).toHaveText('Zapisujemy tylko rundy i ćwiczenia, które dobiegły do końca czasu. Tym razem żadne nie dobiegło.')
   expect(await page.evaluate(() => localStorage.getItem('combat-training.workout-sessions'))).toBeNull()
   await page.screenshot({ path: testInfo.outputPath('no-work.png'), fullPage: true })
   await page.getByRole('button', { name: 'Uruchom ponownie', exact: true }).click()
@@ -66,7 +68,8 @@ test('does not save a run clicked through after half a second of each exercise',
     await page.clock.runFor(500)
     await page.getByRole('button', { name: 'Następny etap', exact: true }).click()
   }
-  await expect(page.getByRole('status')).toHaveText('Trening bez czasu pracy nie został zapisany.')
+  await expect(page.getByRole('heading', { name: 'Nie zapisano treningu', exact: true })).toBeVisible()
+  await expect(page.getByRole('status')).toHaveText('Zapisujemy tylko rundy i ćwiczenia, które dobiegły do końca czasu. Tym razem żadne nie dobiegło.')
   expect(await page.evaluate(() => localStorage.getItem('combat-training.workout-sessions'))).toBeNull()
 })
 

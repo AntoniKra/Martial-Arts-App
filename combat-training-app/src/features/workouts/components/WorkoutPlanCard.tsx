@@ -32,9 +32,9 @@ function getPlanStats(plan: WorkoutPlanListItem): PlanStat[] {
       unitPl: polishPlural(plan.roundCount, 'runda', 'rundy', 'rund'),
     },
     {
-      key: 'minutes',
+      key: 'duration',
       termPl: 'Szacowany czas',
-      value: `~${plan.estimatedMinutes} min`,
+      value: `ok. ${plan.estimatedDurationLabelPl}`,
       unitPl: null,
     },
   ]

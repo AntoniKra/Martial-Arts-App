@@ -1,5 +1,5 @@
 import type { WorkoutExercise } from '@/domain/workout/workout.types'
-import { formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
+import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { formatPolishCount } from '@/domain/language/polishPlural'
 
 function formatRoundLabel(roundCount: number): string {

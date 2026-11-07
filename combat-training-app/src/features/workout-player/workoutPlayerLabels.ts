@@ -11,7 +11,9 @@ export const workoutPlayerLabels = {
   endedEarly: 'Trening zakończony wcześniej',
   endedEarlyMessage: 'Trening zakończony wcześniej.',
   endedEarlySaved: 'Trening zakończony wcześniej został zapisany.',
-  noWork: 'Trening bez czasu pracy nie został zapisany.',
+  notSaved: 'Trening niezapisany',
+  noWorkHeading: 'Nie zapisano treningu',
+  noWork: 'Zapisujemy tylko rundy i ćwiczenia, które dobiegły do końca czasu. Tym razem żadne nie dobiegło.',
   recorderError: 'Nie udało się przygotować zapisu treningu.',
   sessionStatus: { completed: 'Ukończony', partial: 'Częściowy' },
 } as const
