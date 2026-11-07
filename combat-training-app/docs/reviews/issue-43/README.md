@@ -77,7 +77,8 @@ Zbiorczy wynik: [checks.json](checks.json). Końcowy stan Git, statystyka i SHA-
 - **P1/P2:** brak wykrytych problemów blokujących zmianę.
 - **P3:** istniejące 21 ostrzeżeń lint oraz ostrzeżenia Vite dotyczące przyszłego ładowania konfiguracji i dużej paczki. Nie zmieniano ich w tym zadaniu.
 - **P3:** pomiar 16 px sprawdzono w Chromium; fizycznego Safari na iPhonie nie uruchamiano. E2E potwierdza wymagany rozmiar CSS pól.
-- **P3:** `gh` nie łączy się z `api.github.com`; w razie utrzymania błędu gałąź zostanie wypchnięta, a PR otworzy Claude z przygotowanego opisu.
+
+Początkowy brak połączenia `gh` z API ustąpił po ponowieniu z dostępem do sieci. Gałąź wypchnięto, a [PR #45](https://github.com/AntoniKra/Martial-Arts-App/pull/45) został otwarty po polsku. Nie scalano.
 
 ## Potwierdzenie ograniczeń
 
