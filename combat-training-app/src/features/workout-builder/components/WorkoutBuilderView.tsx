@@ -32,7 +32,7 @@ import {
   selectBlockById,
   selectDisplayPlanName,
   selectExerciseById,
-  selectInheritedExerciseConfiguration,
+  selectStartingRoundConfiguration,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
 import { copyExerciseConfiguration } from '@/features/workout-builder/utils/exerciseConfigurationCompare'
 import { mapWorkoutPlanSaveError } from '@/features/workout-builder/utils/workoutPlanSaveErrorMessages'
@@ -328,7 +328,7 @@ export function WorkoutBuilderView({
             <ExerciseConfigurationView
               blockLabel={getWorkoutBlockLabelPl(targetBlock.blockType)}
               exerciseName={screen.selection.exerciseNameSnapshot}
-              initialConfiguration={selectInheritedExerciseConfiguration(targetBlock)}
+              initialConfiguration={selectStartingRoundConfiguration(state.draft.blocks, targetBlock.id)}
               initialInstruction={null}
               variant="new"
               onBack={backToLibraryFromConfigureNew}

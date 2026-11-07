@@ -39,9 +39,9 @@ Karta nie pokazuje tagów, liczby technik ani listy dyscyplin.
 
 ## Konfiguracja rundowa
 
-Domyślne wartości pierwszego ćwiczenia:
+Gdy przed miejscem wstawienia nie ma ćwiczenia rundowego, nowe ćwiczenie startuje od:
 
-- 3 rundy;
+- 3 rund;
 - 3:00 pracy;
 - 1:00 odpoczynku.
 
@@ -51,7 +51,14 @@ Szybkie opcje:
 - runda: 1:00, 1:30, 2:00, 3:00, własna;
 - odpoczynek: 0:30, 1:00, 1:30, 2:00, własny.
 
-Następne ćwiczenie w tym samym bloku dziedziczy ustawienia poprzedniego.
+Gotowe formaty, zawsze te same, nie są zapisywane w planie:
+
+- 3 × 3:00 · przerwa 1:00;
+- 3 × 3:00 · przerwa 0:30.
+
+Stuknięcie formatu ustawia naraz liczbę rund, czas rundy i przerwę. Każdą wartość można potem zmienić. Format jest zaznaczony tylko wtedy, gdy wszystkie trzy wartości się zgadzają.
+
+Nowe ćwiczenie jest dopisywane na końcu wybranego bloku. Liczbę rund, czas rundy i przerwę bierze z ostatniego ćwiczenia rundowego od początku planu do tego miejsca. Ćwiczenie ciągłe i przerwa po drodze nie zmieniają tych wartości. Elementy w późniejszych blokach są pomijane. Edycja istniejącego ćwiczenia pokazuje jego własne wartości.
 
 ## Obliczenia
 

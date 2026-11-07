@@ -27,8 +27,11 @@ class WorkoutApp {
     await page.getByRole('button', { name: 'Technika', exact: true }).click()
 
     await this.addCustomExercise('Praca na nogach')
-    await page.getByRole('textbox', { name: 'Liczba rund' }).fill('2')
     // Native radios are visually hidden inside labels; select them with the keyboard.
+    const roundCount = page.getByRole('group', { name: 'Liczba rund', exact: true })
+      .getByRole('radio', { name: '2', exact: true })
+    await roundCount.press('Space')
+    await expect(roundCount).toBeChecked()
     const roundDuration = page.getByRole('group', { name: 'Czas rundy', exact: true })
       .getByRole('radio', { name: roundDurationLabel, exact: true })
     await roundDuration.press('Space')

@@ -1,10 +1,29 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import {
+  useEffect,
+  useId,
+  useReducer,
+  useRef,
+  type FormEvent,
+  type ReactNode,
+  type Ref,
+  type RefObject,
+} from 'react'
 
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { Button } from '@/components/ui/Button'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
-import type { ExerciseConfiguration, ExerciseMode } from '@/domain/workout/workout.types'
+import type { ExerciseConfiguration } from '@/domain/workout/workout.types'
+import {
+  createExerciseConfigurationFormState,
+  emptyExerciseConfigurationFieldErrors,
+  exerciseConfigurationFormReducer,
+  REST_PRESETS,
+  ROUND_COUNT_PRESETS,
+  ROUND_DURATION_PRESETS,
+  ROUND_FORMAT_PRESETS,
+  selectedRoundFormat,
+} from '@/features/workout-builder/state/exerciseConfigurationForm'
 import {
   EXERCISE_INSTRUCTION_MAX_LENGTH,
   ROUND_COUNT_MAX,
@@ -27,9 +46,6 @@ interface ExerciseConfigurationViewProps {
 
 type DurationPresetValue = number | 'custom'
 
-const ROUND_DURATION_PRESETS = [60, 90, 120, 180] as const
-const REST_PRESETS = [30, 60, 90, 120] as const
-
 const contentContainerClass = 'mx-auto w-full max-w-lg px-4 md:max-w-2xl'
 
 const fieldClassName =
@@ -41,21 +57,8 @@ const labelClassName =
 const presetLabelClassName =
   'flex min-h-touch cursor-pointer items-center justify-center border px-3 py-2 font-display text-[12px] font-semibold transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--app-focus-ring)]'
 
-function resolvePreset(seconds: number, presets: readonly number[]): DurationPresetValue {
-  return presets.includes(seconds) ? seconds : 'custom'
-}
-
-function splitSeconds(totalSeconds: number): { minutes: number; seconds: number } {
-  return {
-    minutes: Math.floor(totalSeconds / 60),
-    seconds: totalSeconds % 60,
-  }
-}
-
-function secondsToCustomFields(totalSeconds: number): { minutes: string; seconds: string } {
-  const split = splitSeconds(totalSeconds)
-  return { minutes: String(split.minutes), seconds: String(split.seconds) }
-}
+const formatButtonClassName =
+  'flex min-h-touch w-full items-center justify-center border px-3 py-2 text-center font-display text-[12px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]'
 
 function normalizeInstruction(value: string): string | null {
   const trimmed = value.trim()
@@ -72,13 +75,19 @@ function focusField(element: HTMLElement | null | undefined) {
   })
 }
 
+function isListedRoundCount(roundCount: number): boolean {
+  return (ROUND_COUNT_PRESETS as readonly number[]).includes(roundCount)
+}
+
 interface PresetRadioGroupProps {
   legend: string
   name: string
   presets: readonly { label: string; value: number }[]
   selectedPreset: DurationPresetValue
   onSelectPreset: (value: DurationPresetValue) => void
+  customLabel?: string
   customFields?: ReactNode
+  fieldsetRef?: Ref<HTMLFieldSetElement>
 }
 
 function PresetRadioGroup({
@@ -87,10 +96,12 @@ function PresetRadioGroup({
   presets,
   selectedPreset,
   onSelectPreset,
+  customLabel = 'Własny',
   customFields,
+  fieldsetRef,
 }: PresetRadioGroupProps) {
   return (
-    <fieldset className="space-y-3">
+    <fieldset ref={fieldsetRef} className="space-y-3">
       <legend className={labelClassName}>{legend}</legend>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {presets.map((preset) => {
@@ -136,7 +147,7 @@ function PresetRadioGroup({
             onChange={() => onSelectPreset('custom')}
             className="sr-only"
           />
-          Własny
+          {customLabel}
         </label>
       </div>
       {selectedPreset === 'custom' ? customFields : null}
@@ -164,7 +175,7 @@ function CustomDurationFields({
   onMinutesChange: (value: string) => void
   onSecondsChange: (value: string) => void
   errorMessage: string | null
-  minutesRef?: React.RefObject<HTMLInputElement | null>
+  minutesRef?: RefObject<HTMLInputElement | null>
   allowZeroTotal?: boolean
 }) {
   return (
@@ -212,34 +223,6 @@ function CustomDurationFields({
   )
 }
 
-function createInitialMode(configuration: ExerciseConfiguration): Exclude<ExerciseMode, 'strength'> {
-  return configuration.mode === 'continuous' ? 'continuous' : 'rounds'
-}
-
-function createFormStateFromConfiguration(
-  configuration: ExerciseConfiguration,
-  instruction: string | null,
-) {
-  const roundsConfiguration =
-    configuration.mode === 'rounds'
-      ? configuration
-      : { roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 }
-  const continuousSeconds =
-    configuration.mode === 'continuous' ? configuration.durationSeconds : 300
-
-  return {
-    mode: createInitialMode(configuration),
-    roundCountInput: String(roundsConfiguration.roundCount),
-    roundDurationPreset: resolvePreset(roundsConfiguration.roundDurationSeconds, ROUND_DURATION_PRESETS),
-    roundDurationCustom: secondsToCustomFields(roundsConfiguration.roundDurationSeconds),
-    restPreset: resolvePreset(roundsConfiguration.restBetweenRoundsSeconds, REST_PRESETS),
-    restCustom: secondsToCustomFields(roundsConfiguration.restBetweenRoundsSeconds),
-    continuousMinutesInput: String(Math.floor(continuousSeconds / 60)),
-    continuousSecondsInput: String(continuousSeconds % 60),
-    instructionInput: instruction ?? '',
-  }
-}
-
 export function ExerciseConfigurationView({
   blockLabel,
   exerciseName,
@@ -262,120 +245,111 @@ export function ExerciseConfigurationView({
   const continuousMinutesId = useId()
   const continuousSecondsId = useId()
 
+  const roundCountGroupRef = useRef<HTMLFieldSetElement>(null)
   const roundCountRef = useRef<HTMLInputElement>(null)
   const roundDurationCustomMinutesRef = useRef<HTMLInputElement>(null)
   const restCustomMinutesRef = useRef<HTMLInputElement>(null)
   const continuousMinutesRef = useRef<HTMLInputElement>(null)
 
-  const initialFormState = createFormStateFromConfiguration(initialConfiguration, initialInstruction)
-
-  const [mode, setMode] = useState<Exclude<ExerciseMode, 'strength'>>(initialFormState.mode)
-  const [roundCountInput, setRoundCountInput] = useState(initialFormState.roundCountInput)
-  const [roundDurationPreset, setRoundDurationPreset] = useState<DurationPresetValue>(
-    initialFormState.roundDurationPreset,
+  const [form, dispatch] = useReducer(
+    exerciseConfigurationFormReducer,
+    { configuration: initialConfiguration, instruction: initialInstruction },
+    ({ configuration, instruction }) => createExerciseConfigurationFormState(configuration, instruction),
   )
-  const [roundDurationCustom, setRoundDurationCustom] = useState(initialFormState.roundDurationCustom)
-  const [restPreset, setRestPreset] = useState<DurationPresetValue>(initialFormState.restPreset)
-  const [restCustom, setRestCustom] = useState(initialFormState.restCustom)
-  const [continuousMinutesInput, setContinuousMinutesInput] = useState(initialFormState.continuousMinutesInput)
-  const [continuousSecondsInput, setContinuousSecondsInput] = useState(initialFormState.continuousSecondsInput)
-  const [instructionInput, setInstructionInput] = useState(initialFormState.instructionInput)
-  const [roundCountError, setRoundCountError] = useState<string | null>(null)
-  const [roundDurationCustomError, setRoundDurationCustomError] = useState<string | null>(null)
-  const [restCustomError, setRestCustomError] = useState<string | null>(null)
-  const [continuousError, setContinuousError] = useState<string | null>(null)
+  const selectedFormat = selectedRoundFormat(form)
 
   const backLabel = variant === 'new' ? 'Wróć do biblioteki' : 'Wróć do osi treningu'
   const heading = variant === 'new' ? 'Konfiguracja ćwiczenia' : 'Edycja ćwiczenia'
   const submitLabel = variant === 'new' ? 'Dodaj ćwiczenie' : 'Zapisz zmiany'
+  const initialMode = initialConfiguration.mode
+  const initialRoundCount = initialConfiguration.mode === 'rounds' ? initialConfiguration.roundCount : null
 
   useEffect(() => {
     if (variant !== 'existing') {
       return
     }
 
-    requestAnimationFrame(() => {
-      if (initialConfiguration.mode === 'continuous') {
+    const frame = requestAnimationFrame(() => {
+      if (initialMode === 'continuous') {
         continuousMinutesRef.current?.focus()
         return
       }
 
-      roundCountRef.current?.focus()
+      if (initialRoundCount !== null && !isListedRoundCount(initialRoundCount)) {
+        roundCountRef.current?.focus()
+        return
+      }
+
+      roundCountGroupRef.current?.querySelector<HTMLInputElement>('input[type="radio"]:checked')?.focus()
     })
-  }, [variant, initialConfiguration.mode])
 
-  function handleSelectRoundDurationPreset(value: DurationPresetValue) {
-    setRoundDurationPreset(value)
-
-    if (value !== 'custom') {
-      setRoundDurationCustom(secondsToCustomFields(value))
-    }
-  }
-
-  function handleSelectRestPreset(value: DurationPresetValue) {
-    setRestPreset(value)
-
-    if (value !== 'custom') {
-      setRestCustom(secondsToCustomFields(value))
-    }
-  }
-
-  function resolveRoundDurationSeconds(): { seconds: number | null; error: string | null } {
-    if (roundDurationPreset !== 'custom') {
-      return { seconds: roundDurationPreset, error: null }
-    }
-
-    return computeDurationSeconds(roundDurationCustom.minutes, roundDurationCustom.seconds, false)
-  }
-
-  function resolveRestSeconds(): { seconds: number | null; error: string | null } {
-    if (restPreset !== 'custom') {
-      return { seconds: restPreset, error: null }
-    }
-
-    return computeDurationSeconds(restCustom.minutes, restCustom.seconds, true)
-  }
+    return () => cancelAnimationFrame(frame)
+  }, [variant, initialMode, initialRoundCount])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setRoundCountError(null)
-    setRoundDurationCustomError(null)
-    setRestCustomError(null)
-    setContinuousError(null)
+    const clearedErrors = emptyExerciseConfigurationFieldErrors()
 
-    if (mode === 'continuous') {
-      const result = computeDurationSeconds(continuousMinutesInput, continuousSecondsInput, false)
+    if (form.mode === 'continuous') {
+      const result = computeDurationSeconds(form.continuousMinutesInput, form.continuousSecondsInput, false)
 
       if (result.error) {
-        setContinuousError(result.error)
+        dispatch({
+          type: 'replaceFieldErrors',
+          errors: { ...clearedErrors, continuousDuration: result.error },
+        })
         focusField(continuousMinutesRef.current)
         return
       }
 
-      onSubmit({ mode: 'continuous', durationSeconds: result.seconds ?? 0 }, normalizeInstruction(instructionInput))
+      onSubmit(
+        { mode: 'continuous', durationSeconds: result.seconds ?? 0 },
+        normalizeInstruction(form.instructionInput),
+      )
       return
     }
 
-    const roundCount = parseRequiredNonNegativeInteger(roundCountInput)
+    const roundCount =
+      form.roundCountPreset === 'custom'
+        ? parseRequiredNonNegativeInteger(form.roundCountInput)
+        : form.roundCountPreset
 
     if (roundCount === null || roundCount < 1 || roundCount > ROUND_COUNT_MAX) {
-      setRoundCountError(`Liczba rund musi być liczbą całkowitą od 1 do ${ROUND_COUNT_MAX}.`)
+      dispatch({
+        type: 'replaceFieldErrors',
+        errors: {
+          ...clearedErrors,
+          roundCount: `Liczba rund musi być liczbą całkowitą od 1 do ${ROUND_COUNT_MAX}.`,
+        },
+      })
       focusField(roundCountRef.current)
       return
     }
 
-    const roundDuration = resolveRoundDurationSeconds()
+    const roundDuration =
+      form.roundDurationPreset === 'custom'
+        ? computeDurationSeconds(form.roundDurationCustom.minutes, form.roundDurationCustom.seconds, false)
+        : { seconds: form.roundDurationPreset, error: null }
 
     if (roundDuration.error) {
-      setRoundDurationCustomError(roundDuration.error)
+      dispatch({
+        type: 'replaceFieldErrors',
+        errors: { ...clearedErrors, roundDuration: roundDuration.error },
+      })
       focusField(roundDurationCustomMinutesRef.current)
       return
     }
 
-    const restDuration = resolveRestSeconds()
+    const restDuration =
+      form.restPreset === 'custom'
+        ? computeDurationSeconds(form.restCustom.minutes, form.restCustom.seconds, true)
+        : { seconds: form.restPreset, error: null }
 
     if (restDuration.error) {
-      setRestCustomError(restDuration.error)
+      dispatch({
+        type: 'replaceFieldErrors',
+        errors: { ...clearedErrors, rest: restDuration.error },
+      })
       focusField(restCustomMinutesRef.current)
       return
     }
@@ -387,7 +361,7 @@ export function ExerciseConfigurationView({
         roundDurationSeconds: roundDuration.seconds ?? 0,
         restBetweenRoundsSeconds: restDuration.seconds ?? 0,
       },
-      normalizeInstruction(instructionInput),
+      normalizeInstruction(form.instructionInput),
     )
   }
 
@@ -426,34 +400,78 @@ export function ExerciseConfigurationView({
                 { label: 'Rundy', value: 'rounds' },
                 { label: 'Ciągłe', value: 'continuous' },
               ]}
-              value={mode}
-              onChange={setMode}
+              value={form.mode}
+              onChange={(mode) => dispatch({ type: 'setMode', mode })}
             />
 
             <RedAccent />
 
-            {mode === 'rounds' ? (
+            {form.mode === 'rounds' ? (
               <>
-                <div>
-                  <label htmlFor={roundCountId} className={labelClassName}>
-                    Liczba rund
-                  </label>
-                  <input
-                    ref={roundCountRef}
-                    id={roundCountId}
-                    inputMode="numeric"
-                    value={roundCountInput}
-                    onChange={(event) => setRoundCountInput(event.target.value)}
-                    className={fieldClassName}
-                    aria-invalid={roundCountError ? true : undefined}
-                    aria-describedby={roundCountError ? roundCountErrorId : undefined}
-                  />
-                  {roundCountError ? (
-                    <p id={roundCountErrorId} className="mt-2 text-[13px] leading-relaxed text-crimson-ink">
-                      {roundCountError}
-                    </p>
-                  ) : null}
-                </div>
+                <fieldset className="space-y-3">
+                  <legend className={labelClassName}>Gotowe formaty</legend>
+                  <div className="grid gap-2">
+                    {ROUND_FORMAT_PRESETS.map((format) => {
+                      const selected = selectedFormat?.id === format.id
+
+                      return (
+                        <button
+                          key={format.id}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => dispatch({ type: 'applyRoundFormat', formatId: format.id })}
+                          className={[
+                            formatButtonClassName,
+                            selected
+                              ? 'border-crimson bg-crimson/10 text-ink ring-1 ring-crimson/40'
+                              : 'border-bd bg-elevated text-muted hover:border-muted/50 hover:text-ink',
+                          ].join(' ')}
+                        >
+                          {format.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </fieldset>
+
+                <PresetRadioGroup
+                  legend="Liczba rund"
+                  name="round-count"
+                  customLabel="Własna"
+                  fieldsetRef={roundCountGroupRef}
+                  presets={ROUND_COUNT_PRESETS.map((value) => ({
+                    label: String(value),
+                    value,
+                  }))}
+                  selectedPreset={form.roundCountPreset}
+                  onSelectPreset={(value) => dispatch({ type: 'selectRoundCountPreset', value })}
+                  customFields={
+                    <div className="space-y-3 border border-bd bg-surface p-3">
+                      <div>
+                        <label htmlFor={roundCountId} className={labelClassName}>
+                          Własna liczba rund
+                        </label>
+                        <input
+                          ref={roundCountRef}
+                          id={roundCountId}
+                          inputMode="numeric"
+                          value={form.roundCountInput}
+                          onChange={(event) =>
+                            dispatch({ type: 'setRoundCountInput', value: event.target.value })
+                          }
+                          className={fieldClassName}
+                          aria-invalid={form.errors.roundCount ? true : undefined}
+                          aria-describedby={form.errors.roundCount ? roundCountErrorId : undefined}
+                        />
+                      </div>
+                      {form.errors.roundCount ? (
+                        <p id={roundCountErrorId} className="text-[13px] leading-relaxed text-crimson-ink">
+                          {form.errors.roundCount}
+                        </p>
+                      ) : null}
+                    </div>
+                  }
+                />
 
                 <PresetRadioGroup
                   legend="Czas rundy"
@@ -462,23 +480,19 @@ export function ExerciseConfigurationView({
                     label: formatSecondsAsClock(value),
                     value,
                   }))}
-                  selectedPreset={roundDurationPreset}
-                  onSelectPreset={handleSelectRoundDurationPreset}
+                  selectedPreset={form.roundDurationPreset}
+                  onSelectPreset={(value) => dispatch({ type: 'selectRoundDurationPreset', value })}
                   customFields={
                     <CustomDurationFields
                       minutesId={roundDurationCustomMinutesId}
                       secondsId={roundDurationCustomSecondsId}
                       errorId={roundDurationCustomErrorId}
-                      minutes={roundDurationCustom.minutes}
-                      seconds={roundDurationCustom.seconds}
+                      minutes={form.roundDurationCustom.minutes}
+                      seconds={form.roundDurationCustom.seconds}
                       minutesRef={roundDurationCustomMinutesRef}
-                      onMinutesChange={(value) =>
-                        setRoundDurationCustom((current) => ({ ...current, minutes: value }))
-                      }
-                      onSecondsChange={(value) =>
-                        setRoundDurationCustom((current) => ({ ...current, seconds: value }))
-                      }
-                      errorMessage={roundDurationCustomError}
+                      onMinutesChange={(value) => dispatch({ type: 'setRoundDurationMinutes', value })}
+                      onSecondsChange={(value) => dispatch({ type: 'setRoundDurationSeconds', value })}
+                      errorMessage={form.errors.roundDuration}
                     />
                   }
                 />
@@ -490,19 +504,19 @@ export function ExerciseConfigurationView({
                     label: formatSecondsAsClock(value),
                     value,
                   }))}
-                  selectedPreset={restPreset}
-                  onSelectPreset={handleSelectRestPreset}
+                  selectedPreset={form.restPreset}
+                  onSelectPreset={(value) => dispatch({ type: 'selectRestPreset', value })}
                   customFields={
                     <CustomDurationFields
                       minutesId={restCustomMinutesId}
                       secondsId={restCustomSecondsId}
                       errorId={restCustomErrorId}
-                      minutes={restCustom.minutes}
-                      seconds={restCustom.seconds}
+                      minutes={form.restCustom.minutes}
+                      seconds={form.restCustom.seconds}
                       minutesRef={restCustomMinutesRef}
-                      onMinutesChange={(value) => setRestCustom((current) => ({ ...current, minutes: value }))}
-                      onSecondsChange={(value) => setRestCustom((current) => ({ ...current, seconds: value }))}
-                      errorMessage={restCustomError}
+                      onMinutesChange={(value) => dispatch({ type: 'setRestMinutes', value })}
+                      onSecondsChange={(value) => dispatch({ type: 'setRestSeconds', value })}
+                      errorMessage={form.errors.rest}
                       allowZeroTotal
                     />
                   }
@@ -515,12 +529,12 @@ export function ExerciseConfigurationView({
                   minutesId={continuousMinutesId}
                   secondsId={continuousSecondsId}
                   errorId={continuousErrorId}
-                  minutes={continuousMinutesInput}
-                  seconds={continuousSecondsInput}
+                  minutes={form.continuousMinutesInput}
+                  seconds={form.continuousSecondsInput}
                   minutesRef={continuousMinutesRef}
-                  onMinutesChange={setContinuousMinutesInput}
-                  onSecondsChange={setContinuousSecondsInput}
-                  errorMessage={continuousError}
+                  onMinutesChange={(value) => dispatch({ type: 'setContinuousMinutes', value })}
+                  onSecondsChange={(value) => dispatch({ type: 'setContinuousSeconds', value })}
+                  errorMessage={form.errors.continuousDuration}
                 />
               </div>
             )}
@@ -531,12 +545,12 @@ export function ExerciseConfigurationView({
               </label>
               <textarea
                 id={instructionId}
-                value={instructionInput}
+                value={form.instructionInput}
                 maxLength={EXERCISE_INSTRUCTION_MAX_LENGTH}
                 rows={3}
                 placeholder="Notatki wykonawcze dla tego ćwiczenia…"
                 className={`${fieldClassName} resize-y`}
-                onChange={(event) => setInstructionInput(event.target.value)}
+                onChange={(event) => dispatch({ type: 'setInstruction', value: event.target.value })}
               />
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { resolveWorkoutPlanDisplayName } from '@/domain/workout/workoutPlanDisplayName'
 import type {
-  ExerciseConfiguration,
+  RoundExerciseConfiguration,
   WorkoutBlock,
   WorkoutExercise,
   WorkoutItem,
@@ -56,12 +56,33 @@ export function selectExerciseById(
   return item
 }
 
-export function selectInheritedExerciseConfiguration(block: WorkoutBlock): ExerciseConfiguration {
-  for (let index = block.items.length - 1; index >= 0; index -= 1) {
-    const item = block.items[index]
+function defaultRoundConfiguration(): RoundExerciseConfiguration {
+  return {
+    mode: 'rounds',
+    roundCount: DEFAULT_ROUND_EXERCISE_CONFIGURATION.roundCount,
+    roundDurationSeconds: DEFAULT_ROUND_EXERCISE_CONFIGURATION.roundDurationSeconds,
+    restBetweenRoundsSeconds: DEFAULT_ROUND_EXERCISE_CONFIGURATION.restBetweenRoundsSeconds,
+  }
+}
 
-    if (item.type === 'exercise') {
-      if (item.configuration.mode === 'rounds') {
+/** Round settings for a new exercise appended at the end of `blockId`. */
+export function selectStartingRoundConfiguration(
+  blocks: readonly WorkoutBlock[],
+  blockId: string,
+): RoundExerciseConfiguration {
+  const blockIndex = blocks.findIndex((block) => block.id === blockId)
+
+  if (blockIndex === -1) {
+    return defaultRoundConfiguration()
+  }
+
+  for (let currentBlockIndex = blockIndex; currentBlockIndex >= 0; currentBlockIndex -= 1) {
+    const items = blocks[currentBlockIndex].items
+
+    for (let itemIndex = items.length - 1; itemIndex >= 0; itemIndex -= 1) {
+      const item = items[itemIndex]
+
+      if (item.type === 'exercise' && item.configuration.mode === 'rounds') {
         return {
           mode: 'rounds',
           roundCount: item.configuration.roundCount,
@@ -69,13 +90,8 @@ export function selectInheritedExerciseConfiguration(block: WorkoutBlock): Exerc
           restBetweenRoundsSeconds: item.configuration.restBetweenRoundsSeconds,
         }
       }
-
-      return {
-        mode: 'continuous',
-        durationSeconds: item.configuration.durationSeconds,
-      }
     }
   }
 
-  return { ...DEFAULT_ROUND_EXERCISE_CONFIGURATION }
+  return defaultRoundConfiguration()
 }
