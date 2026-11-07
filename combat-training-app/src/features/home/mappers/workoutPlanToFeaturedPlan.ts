@@ -1,4 +1,5 @@
 import { calculateWorkoutPlanSummary } from '@/domain/workout/workoutCalculations'
+import { formatEstimatedDuration } from '@/domain/time/formatDuration'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { HomeFeaturedPlan } from '@/features/home/types/homeView.types'
 
@@ -13,6 +14,6 @@ export function mapWorkoutPlanToFeaturedPlan(plan: WorkoutPlan): HomeFeaturedPla
     blockCount: summary.blockCount,
     exerciseCount: summary.exerciseCount,
     roundCount: summary.plannedRoundCount,
-    estimatedMinutes: Math.ceil(summary.estimatedTotalSeconds / 60),
+    estimatedDurationLabelPl: formatEstimatedDuration(summary.estimatedTotalSeconds),
   }
 }

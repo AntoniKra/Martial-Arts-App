@@ -51,10 +51,10 @@ function contrast(foreground: string, background: string): number {
   return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05)
 }
 
-function componentFiles(directory: string): string[] {
+function sourceFiles(directory: string, extensions: readonly string[]): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name)
-    return entry.isDirectory() ? componentFiles(path) : entry.name.endsWith('.tsx') ? [path] : []
+    return entry.isDirectory() ? sourceFiles(path, extensions) : extensions.some((extension) => entry.name.endsWith(extension)) ? [path] : []
   })
 }
 
@@ -70,6 +70,10 @@ describe.each(['dark', 'light'] as const)('%s theme colours', (mode) => {
 
   it('matches the browser bar to the page background', () => {
     expect(THEME_COLOR_BY_MODE[mode].toLowerCase()).toBe(getToken(mode, 'bg'))
+  })
+
+  it.each(surfaces)('keeps the focus ring at least 3:1 on %s', (background) => {
+    expect(contrast(getToken(mode, 'focus-ring'), getToken(mode, background))).toBeGreaterThanOrEqual(3)
   })
 
   it.each(textTokens)('keeps %s text at least 4.5:1 on every surface', (token) => {
@@ -95,13 +99,15 @@ describe.each(['dark', 'light'] as const)('%s theme colours', (mode) => {
 })
 
 it('uses the text variant of red for text, because the accent is too dark for small text', () => {
-  for (const path of componentFiles(fileURLToPath(new URL('../../', import.meta.url)))) {
-    expect(readFileSync(path, 'utf8'), path).not.toMatch(/(?<![\w-])text-crimson(?![\w/-])/)
+  const accentTextClass = ['text', 'crimson'].join('-')
+  const bareAccentText = new RegExp(`${accentTextClass}(?![-\\w])`)
+  for (const path of sourceFiles(fileURLToPath(new URL('../../', import.meta.url)), ['.ts', '.tsx'])) {
+    expect(readFileSync(path, 'utf8'), path).not.toMatch(bareAccentText)
   }
 })
 
 it('uses tokens instead of hex or rgb colours in components', () => {
-  for (const path of componentFiles(fileURLToPath(new URL('../../', import.meta.url)))) {
+  for (const path of sourceFiles(fileURLToPath(new URL('../../', import.meta.url)), ['.tsx'])) {
     expect(readFileSync(path, 'utf8'), path).not.toMatch(/#[a-f0-9]{3,8}\b|\brgba?\(/i)
   }
 })

@@ -20,7 +20,7 @@ export interface WorkoutPlanListItem {
   goal: string | null
   exerciseCount: number
   roundCount: number
-  estimatedMinutes: number
+  estimatedDurationLabelPl: string
   createdAt: string
 }
 

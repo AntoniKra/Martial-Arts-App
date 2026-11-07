@@ -26,6 +26,10 @@ describe('workout session list mappings', () => {
       name: 'Saved workout name',
       durationLabelPl: '3 min',
       exerciseCompletionPercent: 0,
+      plannedExercises: 1,
+      completedExercises: 0,
+      plannedRounds: 3,
+      completedRounds: 2,
       rpe: null,
       averageRatingLabel: null,
     })
@@ -37,5 +41,15 @@ describe('workout session list mappings', () => {
       completedRounds: 2,
       durationLabelPl: '3 min',
     })
+  })
+
+  it('leaves round counters absent for continuous exercises on both cards', () => {
+    const session = workoutSession({ stepResults: [sessionStep()] })
+    for (const map of [mapWorkoutSessionToHomeRecentSession, mapWorkoutSessionToHistoryListItem]) {
+      expect(map(session)).toMatchObject({
+        completedExercises: 1, plannedExercises: 1,
+        completedRounds: null, plannedRounds: null, exerciseCompletionPercent: 100,
+      })
+    }
   })
 })

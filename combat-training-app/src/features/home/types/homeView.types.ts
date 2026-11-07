@@ -9,7 +9,7 @@ export interface HomeFeaturedPlan {
   blockCount: number
   exerciseCount: number
   roundCount: number
-  estimatedMinutes: number
+  estimatedDurationLabelPl: string
 }
 
 export interface HomeRecentSession {
@@ -19,6 +19,10 @@ export interface HomeRecentSession {
   disciplineKey: DisciplineKey
   dateLabelPl: string
   durationLabelPl: string
+  completedExercises: number
+  plannedExercises: number
+  completedRounds: number | null
+  plannedRounds: number | null
   exerciseCompletionPercent: number
   rpe: number | null
   averageRatingLabel: string | null

@@ -14,7 +14,7 @@ export function getWorkoutStepTimerPresentation(kind: WorkoutPlaybackStepKind): 
         stateLabel: 'PRACA',
         ringColor: 'var(--app-crimson)',
         innerFillClass: 'bg-crimson/10',
-        labelClass: 'text-crimson',
+        labelClass: 'text-crimson-ink',
       }
     case 'roundRest':
       return {

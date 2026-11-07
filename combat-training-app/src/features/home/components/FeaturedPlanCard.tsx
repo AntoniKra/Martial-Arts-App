@@ -29,9 +29,9 @@ const statItems = [
     value: (plan: HomeFeaturedPlan) => plan.roundCount,
   },
   {
-    key: 'minutes',
-    label: '~Min',
-    value: (plan: HomeFeaturedPlan) => plan.estimatedMinutes,
+    key: 'duration',
+    label: 'Czas',
+    value: (plan: HomeFeaturedPlan) => plan.estimatedDurationLabelPl,
   },
 ] as const
 

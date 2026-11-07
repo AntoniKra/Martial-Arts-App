@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
+import { WorkoutCompletionCounts } from '@/components/domain/WorkoutCompletionCounts'
 import type { HomeRecentSession } from '@/features/home/types/homeView.types'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 
@@ -26,9 +27,7 @@ export function RecentSessionCard({ session }: RecentSessionCardProps) {
           <span className="whitespace-nowrap">
             <span className="font-semibold tabular-nums text-ink">{session.durationLabelPl}</span>
           </span>
-          <span className="whitespace-nowrap">
-            <span className="font-semibold tabular-nums text-ink">{session.exerciseCompletionPercent}%</span> wykonania
-          </span>
+          <WorkoutCompletionCounts counts={session} />
           {session.rpe !== null ? (
             <span className="whitespace-nowrap">
               RPE <span className="font-semibold tabular-nums text-ink">{session.rpe}</span>

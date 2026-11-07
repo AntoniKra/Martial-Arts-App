@@ -13,7 +13,7 @@ import type {
   WorkoutBuilderAction,
   WorkoutBuilderState,
 } from '@/features/workout-builder/state/workoutBuilder.types'
-import { formatEstimatedDuration } from '@/features/workout-builder/utils/formatDuration'
+import { formatEstimatedDuration } from '@/domain/time/formatDuration'
 import { polishPlural } from '@/domain/language/polishPlural'
 import type { WorkoutBlock } from '@/domain/workout/workout.types'
 

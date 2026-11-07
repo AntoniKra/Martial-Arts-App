@@ -13,7 +13,7 @@ import {
   computeDurationSeconds,
   parseRequiredNonNegativeInteger,
 } from '@/features/workout-builder/utils/durationInput'
-import { formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
+import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 
 interface ExerciseConfigurationViewProps {
   blockLabel: string

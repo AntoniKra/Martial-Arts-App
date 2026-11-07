@@ -1,4 +1,4 @@
-import { formatSecondsAsClock } from '@/features/workout-builder/utils/formatDuration'
+import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import type { WorkoutPlaybackStepKind } from '@/features/workout-player/types/workoutPlayback.types'
 import { formatRemainingSecondsAccessiblePl } from '@/features/workout-player/utils/formatRemainingSecondsAccessiblePl'
 import { getWorkoutStepTimerPresentation } from '@/features/workout-player/utils/workoutStepTimerPresentation'
