@@ -1,4 +1,7 @@
 export const workoutPlayerLabels = {
+  preparationSetting: 'Przygotowanie przed startem',
+  preparing: 'PRZYGOTUJ SIĘ',
+  startNow: 'Zacznij teraz',
   menu: 'Menu treningu',
   finishExercise: 'Zakończ ćwiczenie',
   finishWorkout: 'Zakończ trening',

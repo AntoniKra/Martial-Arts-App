@@ -11,7 +11,7 @@ for (const theme of ['dark', 'light'] as const) {
         await app.createPlan('Plan dostępności')
         await app.setTheme(theme)
         await app.openPlayer()
-        await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+        await app.startWorkout()
       } else {
         const path = screen === 'start' ? '/' : screen === 'workouts' ? '/workouts' : '/workouts/new'
         await app.open(path)

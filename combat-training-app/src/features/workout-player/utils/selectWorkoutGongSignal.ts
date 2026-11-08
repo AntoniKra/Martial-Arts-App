@@ -11,7 +11,9 @@ export function selectWorkoutGongSignal(
   for (const event of events) {
     if (event.type === 'completed') {
       signal = 'workoutEnd'
-    } else if (event.type === 'started' || event.type === 'restarted') {
+    } else if (event.type === 'started') {
+      signal = 'restEnd'
+    } else if (event.type === 'restarted') {
       signal = null
     } else if (event.reason !== 'elapsed') {
       signal = null

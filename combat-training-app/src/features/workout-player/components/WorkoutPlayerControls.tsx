@@ -3,12 +3,14 @@ import { PlayIcon } from '@/components/icons/PlayIcon'
 import { SkipBackIcon } from '@/components/icons/SkipBackIcon'
 import { SkipForwardIcon } from '@/components/icons/SkipForwardIcon'
 import type { WorkoutPlaybackStatus } from '@/features/workout-player/types/workoutPlayback.types'
+import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 
 interface WorkoutPlayerControlsProps {
   status: WorkoutPlaybackStatus
   canGoPrevious: boolean
   canGoNext: boolean
   onStart: () => void
+  onStartNow: () => void
   onPause: () => void
   onResume: () => void
   onPrevious: () => void
@@ -19,6 +21,8 @@ function getPrimaryControlLabel(status: WorkoutPlaybackStatus): string {
   switch (status) {
     case 'idle':
       return 'Rozpocznij trening'
+    case 'preparing':
+      return workoutPlayerLabels.startNow
     case 'running':
       return 'Pauza'
     case 'paused':
@@ -33,12 +37,17 @@ export function WorkoutPlayerControls({
   canGoPrevious,
   canGoNext,
   onStart,
+  onStartNow,
   onPause,
   onResume,
   onPrevious,
   onNext,
 }: WorkoutPlayerControlsProps) {
   function handlePrimaryAction() {
+    if (status === 'preparing') {
+      onStartNow()
+      return
+    }
     if (status === 'idle') {
       onStart()
       return
@@ -69,14 +78,19 @@ export function WorkoutPlayerControls({
           <SkipBackIcon />
         </button>
 
-        <button
-          type="button"
-          onClick={handlePrimaryAction}
-          aria-label={getPrimaryControlLabel(status)}
-          className="flex size-16 shrink-0 items-center justify-center rounded-full bg-crimson text-on-accent transition-colors hover:bg-crimson-hi active:bg-crimson"
-        >
-          {showPause ? <PauseIcon /> : <PlayIcon />}
-        </button>
+        <div className="flex flex-col items-center gap-1">
+          <button
+            type="button"
+            onClick={handlePrimaryAction}
+            aria-label={getPrimaryControlLabel(status)}
+            className="flex size-16 shrink-0 items-center justify-center rounded-full bg-crimson text-on-accent transition-colors hover:bg-crimson-hi active:bg-crimson"
+          >
+            {showPause ? <PauseIcon /> : <PlayIcon />}
+          </button>
+          {status === 'preparing' ? (
+            <span className="font-display text-[12px] font-semibold text-ink">{workoutPlayerLabels.startNow}</span>
+          ) : null}
+        </div>
 
         <button
           type="button"

@@ -41,7 +41,7 @@ test('"Poprzedni" restarts the step after three seconds and goes back before tha
   await app.createPlan('Trening z cofaniem')
   await app.openPlayer()
   await app.freezeClock()
-  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await app.startWorkout()
   const previous = page.getByRole('button', { name: 'Poprzedni etap', exact: true })
 
   // First step: always restarts.
@@ -68,7 +68,7 @@ test('plays, pauses and resumes through rounds and rest with correct history tot
   await app.openPlayer()
   await app.freezeClock()
   await expect(page.getByText('Pozostały czas: 1 minuta', { exact: true })).toBeAttached()
-  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await app.startWorkout()
   await page.clock.runFor(10_000)
   await expect(page.getByText('Pozostały czas: 50 sekund', { exact: true })).toBeAttached()
   await page.getByRole('button', { name: 'Pauza', exact: true }).click()

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
@@ -26,6 +26,7 @@ import type {
 } from '@/features/workout-player/types/workoutPlayback.types'
 import { createWorkoutPlaybackTimeline } from '@/features/workout-player/utils/createWorkoutPlaybackTimeline'
 import { getWorkoutStepKindShortLabelPl } from '@/features/workout-player/utils/workoutStepTimerPresentation'
+import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
 
 interface WorkoutPlayerViewProps {
   loadState: WorkoutPlayerLoadState
@@ -264,6 +265,7 @@ function WorkoutPlayerRuntime({
   workoutDetailsPath,
   saveWorkoutSession,
 }: WorkoutPlayerRuntimeProps) {
+  const [preparation] = useState(readStoredWorkoutPreparation)
   const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly } = useWorkoutSessionRecorder(plan, timeline)
   const { unlockGong, onGongPlaybackEvent } = useWorkoutGong(timeline)
   const handlePlaybackEvent = useCallback((event: WorkoutPlaybackEvent) => {
@@ -282,6 +284,7 @@ function WorkoutPlayerRuntime({
     canGoPrevious,
     canGoNext,
     start,
+    startNow,
     pause,
     resume,
     goToPreviousStep,
@@ -289,18 +292,20 @@ function WorkoutPlayerRuntime({
     finishCurrentExercise,
     endEarly,
     restart,
-  } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent })
+  } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent, preparation })
 
   useWorkoutScreenWakeLock(playback.status !== 'completed')
 
-  const stepAnnouncement = currentStep && playback.status !== 'idle' && playback.status !== 'completed'
-    ? buildStepAnnouncement(currentStep, playback.currentStepIndex, timeline.steps.length) : ''
+  const isPreparing = playback.status === 'preparing'
+  const stepAnnouncement = isPreparing ? `${workoutPlayerLabels.preparing}.`
+    : currentStep && playback.status !== 'idle' && playback.status !== 'completed'
+      ? buildStepAnnouncement(currentStep, playback.currentStepIndex, timeline.steps.length) : ''
 
   const totalSteps = timeline.steps.length
   const isCompleted = playback.status === 'completed'
   const isPaused = playback.status === 'paused'
-  const nextStep = timeline.steps[playback.currentStepIndex + 1] ?? null
-  const isLastStep = playback.currentStepIndex >= totalSteps - 1
+  const nextStep = isPreparing ? currentStep : timeline.steps[playback.currentStepIndex + 1] ?? null
+  const isLastStep = !isPreparing && playback.currentStepIndex >= totalSteps - 1
 
   if (isCompleted) {
     return (
@@ -312,7 +317,7 @@ function WorkoutPlayerRuntime({
           hasRecorderError={hasRecorderError}
           hasNoWork={hasNoWork}
           endedEarly={endedEarly}
-          onRestart={restart}
+          onRestart={() => { unlockGong(); restart() }}
           onRetrySave={retrySave}
           isRestartDisabled={hasRecorderError || (!hasNoWork && saveState.status !== 'saved')}
         />
@@ -324,7 +329,7 @@ function WorkoutPlayerRuntime({
     return null
   }
 
-  const stepDurationSeconds = currentStep.durationSeconds
+  const stepDurationSeconds = isPreparing ? Number(preparation) : currentStep.durationSeconds
 
   return (
     <main className="flex min-h-dvh flex-col overflow-hidden bg-bg">
@@ -386,6 +391,7 @@ function WorkoutPlayerRuntime({
               remainingSeconds={playback.remainingSeconds}
               stepKind={currentStep.kind}
               paused={isPaused}
+              preparing={isPreparing}
             />
           </div>
 
@@ -400,6 +406,7 @@ function WorkoutPlayerRuntime({
             unlockGong()
             start()
           }}
+          onStartNow={() => { unlockGong(); startNow() }}
           onPause={pause}
           onResume={() => {
             unlockGong()

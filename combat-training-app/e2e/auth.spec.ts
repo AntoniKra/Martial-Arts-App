@@ -100,7 +100,7 @@ test('session loss in another tab does not interrupt an admitted workout', async
   await expect(otherPage.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
   await app.openPlayer()
   await app.freezeClock()
-  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+  await app.startWorkout()
   await otherPage.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   await expect(otherPage).toHaveURL('/login')
   await otherPage.close()

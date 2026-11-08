@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
@@ -12,6 +12,10 @@ import { formatExerciseConfigurationSummary } from '@/features/workout-details/u
 import { formatEstimatedDuration, formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { polishPlural } from '@/domain/language/polishPlural'
 import { WorkoutPlanActions } from '@/features/workout-details/components/WorkoutPlanActions'
+import { SegmentedControl } from '@/components/ui/SegmentedControl'
+import { WORKOUT_PREPARATION_OPTIONS } from '@/features/workout-player/workoutPreparation'
+import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
+import { persistWorkoutPreparation, readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
 
 interface WorkoutPlanDetailsViewProps {
   loadState: WorkoutPlanDetailsLoadState
@@ -160,6 +164,7 @@ function WorkoutPlanDetailsSuccessView({
   onDelete: () => Promise<void>
 }) {
   const summary = calculateWorkoutPlanSummary(plan)
+  const [preparation, setPreparation] = useState(readStoredWorkoutPreparation)
 
   return (
     <div className="flex flex-col items-start gap-3">
@@ -195,6 +200,14 @@ function WorkoutPlanDetailsSuccessView({
           ok. <span className="tabular-nums">{formatEstimatedDuration(summary.estimatedTotalSeconds)}</span>
         </p>
       </section>
+
+      <SegmentedControl
+        label={workoutPlayerLabels.preparationSetting}
+        options={WORKOUT_PREPARATION_OPTIONS}
+        value={preparation}
+        onChange={(value) => setPreparation(persistWorkoutPreparation(value))}
+        className="w-full"
+      />
 
       <Link
         to={workoutActivePath}
