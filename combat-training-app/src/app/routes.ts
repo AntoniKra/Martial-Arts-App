@@ -6,6 +6,6 @@ export const routes = {
   workoutEdit: (workoutId: string) => `/workouts/${workoutId}/edit`,
   workoutPreview: (workoutId: string) => `/workouts/${workoutId}/preview`,
   workoutActive: (workoutId: string) => `/workouts/${workoutId}/active`,
-  workoutFeedback: (workoutId: string) => `/workouts/${workoutId}/feedback`,
+  workoutFeedback: (sessionId: string) => `/workout-sessions/${sessionId}/feedback`,
   workoutReport: (workoutId: string) => `/workouts/${workoutId}/report`,
 } as const

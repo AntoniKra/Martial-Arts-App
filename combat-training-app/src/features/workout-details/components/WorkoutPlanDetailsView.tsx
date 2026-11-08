@@ -21,6 +21,7 @@ import { FocusSkillBadge } from '@/features/focus-skills/FocusSkillBadge'
 import { focusSkillLabels } from '@/features/focus-skills/focusSkillLabels'
 
 interface WorkoutPlanDetailsViewProps {
+  correctionNotes?: ReactNode
   loadState: WorkoutPlanDetailsLoadState
   workoutsListPath: string
   newWorkoutPath: string
@@ -155,12 +156,14 @@ function DetailsBreakItem({ breakItem }: { breakItem: Extract<WorkoutItem, { typ
 }
 
 function WorkoutPlanDetailsSuccessView({
+  correctionNotes,
   plan,
   workoutsListPath,
   workoutActivePath,
   workoutEditPath,
   onDelete,
 }: {
+  correctionNotes?: ReactNode
   plan: WorkoutPlan
   workoutsListPath: string
   workoutActivePath: string
@@ -228,6 +231,8 @@ function WorkoutPlanDetailsSuccessView({
 
       <WorkoutPlanActions key={plan.id} editPath={workoutEditPath} onDelete={onDelete} />
 
+      {correctionNotes}
+
       <section aria-labelledby="workout-details-blocks-heading" className="w-full space-y-4">
         <h2
           id="workout-details-blocks-heading"
@@ -276,6 +281,7 @@ function WorkoutPlanDetailsSuccessView({
 }
 
 export function WorkoutPlanDetailsView({
+  correctionNotes,
   loadState,
   workoutsListPath,
   newWorkoutPath,
@@ -310,6 +316,7 @@ export function WorkoutPlanDetailsView({
 
     return (
       <WorkoutPlanDetailsSuccessView
+        correctionNotes={correctionNotes}
         plan={loadState.plan}
         workoutsListPath={workoutsListPath}
         workoutActivePath={workoutActivePath}

@@ -99,4 +99,20 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
       (items) => JSON.stringify(items.get(id)) === JSON.stringify(item))
     return true
   }
+
+  validateUpdate(id: string, fields: Partial<T>): T {
+    const current = this.items.get(id)
+    if (!current) throw new Error('Document is no longer available')
+    return this.parse({ ...current, ...fields, schemaVersion: 1 })
+  }
+
+  async updateFields(id: string, fields: Partial<T>, action: () => Promise<void>): Promise<boolean> {
+    if (!this.items.has(id)) return false
+    this.validateUpdate(id, fields)
+    await this.write(action, (items) => {
+      const item = items.get(id)
+      return !!item && (Object.keys(fields) as (keyof T)[]).every((key) => JSON.stringify(item[key]) === JSON.stringify(fields[key]))
+    })
+    return true
+  }
 }

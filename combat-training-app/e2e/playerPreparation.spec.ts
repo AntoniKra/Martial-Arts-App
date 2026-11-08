@@ -103,7 +103,7 @@ test('catches up from hidden preparation and never repeats it after pause or res
   })
 })
 
-test('starts now at the actual click time and prepares again immediately on restart', async ({ app, page }) => {
+test('starts now at the actual click time and prepares again for a new session', async ({ app, page }) => {
   await app.createPlan('Pominiete przygotowanie')
   await app.openPlayer()
   await app.freezeClock()
@@ -117,7 +117,9 @@ test('starts now at the actual click time and prepares again immediately on rest
     startedAt: '2026-11-03T10:00:02.500Z', durationSeconds: 210, workSeconds: 180,
   })
   await app.freezeClock()
-  await page.getByRole('button', { name: 'Uruchom ponownie', exact: true }).click()
+  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await app.openPlayer()
+  await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
   await expect(page.getByText('PRZYGOTUJ SIĘ', { exact: true })).toBeVisible()
   await expect(page.getByText('Pozostały czas: 10 sekund', { exact: true })).toBeAttached()
   await page.clock.runFor(10_000)

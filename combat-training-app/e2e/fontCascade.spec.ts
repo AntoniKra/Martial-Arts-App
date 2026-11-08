@@ -126,7 +126,7 @@ for (const theme of ['dark', 'light'] as const) {
     await dialog.getByRole('button', { name: 'Wróć', exact: true }).click()
     await page.clock.fastForward(150_000)
     await app.expectWorkoutSaved()
-    samples.restart = await typography(page.getByRole('button', { name: 'Uruchom ponownie', exact: true }))
+    samples.summaryDone = await typography(page.getByRole('button', { name: 'Gotowe', exact: true }))
     await capture('completed')
 
     await app.open('/workouts')
@@ -163,7 +163,7 @@ for (const theme of ['dark', 'light'] as const) {
     for (const key of ['menuFinishExercise', 'menuFinishWorkout']) {
       expect(samples[key], key).toEqual({ size: '13px', weight: '600', family: display })
     }
-    for (const key of ['exitEarly', 'exitDiscard', 'exitReturn', 'restart']) {
+    for (const key of ['exitEarly', 'exitDiscard', 'exitReturn', 'summaryDone']) {
       expect(samples[key], key).toEqual({ size: '14px', weight: '600', family: display })
     }
     for (const key of ['plansSelected', 'historySelected', 'plansUnselected', 'historyUnselected', 'roundFormat']) {

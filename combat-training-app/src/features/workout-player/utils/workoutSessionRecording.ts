@@ -21,11 +21,11 @@ export function buildRecordedWorkoutSession(
   }, {
     timezone: recording.timezone,
     blockTypes: plan.blocks.map((block) => block.blockType), blocks: plan.blocks, endedEarly,
+    focusRatings: recording.focusRatings,
     durations: calculateWorkoutSessionDurations(recording.attempts),
   })
   if (result.kind === 'save') {
     result.session.exerciseRatings = recording.exerciseRatings
-    result.session.focusRatings = recording.focusRatings
   }
   return result
 }
