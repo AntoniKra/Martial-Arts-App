@@ -371,13 +371,13 @@ function WorkoutPlayerRuntime({
 
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <div className="shrink-0 px-5 py-3 text-center">
-            <h1 className="break-words font-display text-[18px] font-bold leading-snug text-ink">
+            <h1 className="break-words font-display text-[24px] font-bold leading-snug text-ink">
               {currentStep.name}
             </h1>
             {currentStep.kind === 'exercise' &&
             currentStep.roundNumber !== null &&
             currentStep.roundCount !== null ? (
-              <p className="mt-1 font-display text-[11px] uppercase tracking-[0.12em] text-muted">
+              <p className="mt-2 font-display text-[16px] uppercase tracking-[0.12em] text-muted">
                 Runda {currentStep.roundNumber} z {currentStep.roundCount}
               </p>
             ) : null}
