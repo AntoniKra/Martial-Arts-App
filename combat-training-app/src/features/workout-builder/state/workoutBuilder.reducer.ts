@@ -1,6 +1,8 @@
 import type { WorkoutBlock, WorkoutBreak, WorkoutExercise } from '@/domain/workout/workout.types'
 import type { WorkoutBuilderAction, WorkoutBuilderState } from '@/features/workout-builder/state/workoutBuilder.types'
 import { areExerciseConfigurationsEqual } from '@/features/workout-builder/utils/exerciseConfigurationCompare'
+import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
+import { MAX_PLAN_FOCUS_EXERCISES } from '@/domain/focus-skill/focusSkill.types'
 
 export function createInitialWorkoutBuilderState(): WorkoutBuilderState {
   return {
@@ -188,6 +190,20 @@ export function workoutBuilderReducer(
         disciplineLocked: true,
         isDirty: true,
       }
+    }
+    case 'setExerciseFocusSkill': {
+      const blockIndex = findBlockIndex(state.draft.blocks, action.blockId)
+      if (blockIndex === -1) return state
+      const block = state.draft.blocks[blockIndex]
+      const exercise = block.items.find((item) => item.id === action.exerciseId)
+      if (!exercise || exercise.type !== 'exercise' || exercise.focusSkillId === action.focusSkillId) return state
+      if (exercise.focusSkillId === null && action.focusSkillId !== null
+        && countFocusExercises(state.draft.blocks) >= MAX_PLAN_FOCUS_EXERCISES) return state
+      return { ...state, isDirty: true, draft: { ...state.draft,
+        blocks: updateBlockAtIndex(state.draft.blocks, blockIndex, { ...block,
+          items: block.items.map((item) => item.id === action.exerciseId ? { ...exercise, focusSkillId: action.focusSkillId } : item),
+        }),
+      } }
     }
     case 'updateExercise': {
       const blockIndex = findBlockIndex(state.draft.blocks, action.blockId)

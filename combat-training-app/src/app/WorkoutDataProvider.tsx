@@ -8,7 +8,8 @@ import { removeLegacyWorkouts } from '@/infrastructure/storage/removeLegacyWorko
 function SubscribedData({ repositories, retry, children }: PropsWithChildren<{ repositories: WorkoutRepositories; retry: () => void }>) {
   const plans = useRepositoryCollection(repositories.plans)
   const sessions = useRepositoryCollection(repositories.sessions)
-  return <WorkoutDataContext.Provider value={{ plans, sessions, planRepository: repositories.plans, sessionRepository: repositories.sessions, retry }}>
+  const focusSkills = useRepositoryCollection(repositories.focusSkills)
+  return <WorkoutDataContext.Provider value={{ plans, sessions, focusSkills, planRepository: repositories.plans, sessionRepository: repositories.sessions, focusSkillRepository: repositories.focusSkills, retry }}>
     {children}
   </WorkoutDataContext.Provider>
 }

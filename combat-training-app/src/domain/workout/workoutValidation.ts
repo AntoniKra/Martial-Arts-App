@@ -1,4 +1,5 @@
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
+import { MAX_PLAN_FOCUS_EXERCISES, type FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { resolveWorkoutPlanDisplayName } from '@/domain/workout/workoutPlanDisplayName'
 import type {
   ExerciseConfiguration,
@@ -21,6 +22,8 @@ export type WorkoutPlanValidationIssueCode =
   | 'empty_exercise_name'
   | 'invalid_exercise_configuration'
   | 'invalid_break_duration'
+  | 'too_many_focus_exercises'
+  | 'unknown_focus_skill'
 
 export interface WorkoutPlanValidationIssue {
   code: WorkoutPlanValidationIssueCode
@@ -201,8 +204,30 @@ function validateBlockStructure(
   }
 }
 
-export function validateWorkoutPlanDraft(draft: WorkoutPlanDraft): WorkoutPlanValidationResult {
+export function validateWorkoutPlanDraft(
+  draft: WorkoutPlanDraft,
+  focusSkills: readonly Pick<FocusSkill, 'id'>[] = [],
+): WorkoutPlanValidationResult {
   const issues: WorkoutPlanValidationIssue[] = []
+
+  const focusExercises = draft.blocks.flatMap((block) => block.items)
+    .filter((item) => item.type === 'exercise' && item.focusSkillId !== null)
+  if (focusExercises.length > MAX_PLAN_FOCUS_EXERCISES) {
+    issues.push({ code: 'too_many_focus_exercises', messagePl: 'W planie mogą być najwyżej 3 ćwiczenia celu.' })
+  }
+  const knownIds = new Set(focusSkills.map((skill) => skill.id))
+  for (const block of draft.blocks) {
+    for (const item of block.items) {
+      if (item.type === 'exercise' && item.focusSkillId !== null && !knownIds.has(item.focusSkillId)) {
+        issues.push({
+          code: 'unknown_focus_skill',
+          messagePl: 'Wybierz istniejące ćwiczenie celu albo wyłącz oznaczenie.',
+          blockId: block.id,
+          itemId: item.id,
+        })
+      }
+    }
+  }
 
   if (draft.disciplineKey === null) {
     issues.push({

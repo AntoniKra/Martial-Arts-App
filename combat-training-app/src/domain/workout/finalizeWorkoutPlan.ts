@@ -1,4 +1,5 @@
 import { resolveWorkoutPlanDisplayName } from '@/domain/workout/workoutPlanDisplayName'
+import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { WorkoutPlan, WorkoutPlanDraft } from '@/domain/workout/workout.types'
 import {
   validateWorkoutPlanDraft,
@@ -15,8 +16,11 @@ export type FinalizeWorkoutPlanResult =
       validation: WorkoutPlanValidationResult
     }
 
-export function finalizeWorkoutPlan(draft: WorkoutPlanDraft): FinalizeWorkoutPlanResult {
-  const validation = validateWorkoutPlanDraft(draft)
+export function finalizeWorkoutPlan(
+  draft: WorkoutPlanDraft,
+  focusSkills: readonly Pick<FocusSkill, 'id'>[] = [],
+): FinalizeWorkoutPlanResult {
+  const validation = validateWorkoutPlanDraft(draft, focusSkills)
 
   if (!validation.isValid) {
     return {

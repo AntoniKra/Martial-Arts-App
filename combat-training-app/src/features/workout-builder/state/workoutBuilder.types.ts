@@ -29,6 +29,7 @@ export type WorkoutBuilderAction =
       instruction: string | null
     }
   | { type: 'addExercise'; blockId: string; exercise: WorkoutExercise }
+  | { type: 'setExerciseFocusSkill'; blockId: string; exerciseId: string; focusSkillId: string | null }
   | {
       type: 'updateExercise'
       blockId: string

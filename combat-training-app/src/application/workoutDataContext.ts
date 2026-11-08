@@ -5,12 +5,16 @@ import type { WorkoutSessionRepository } from './workout-session/workoutSessionR
 import type { CollectionState } from './useRepositoryCollection'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
+import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
+import type { FocusSkillRepository } from './focus-skill/focusSkillRepository'
 
 export interface WorkoutData {
   plans: CollectionState<WorkoutPlan>
   sessions: CollectionState<WorkoutSession>
+  focusSkills: CollectionState<FocusSkill>
   planRepository: WorkoutPlanRepository
   sessionRepository: WorkoutSessionRepository
+  focusSkillRepository: FocusSkillRepository
   retry: () => void
 }
 

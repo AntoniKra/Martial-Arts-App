@@ -16,6 +16,7 @@ import {
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
 import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { formatPolishCount } from '@/domain/language/polishPlural'
+import { FocusSkillPicker } from '@/features/focus-skills/FocusSkillPicker'
 
 interface WorkoutExerciseCardProps {
   blockId: string
@@ -23,6 +24,7 @@ interface WorkoutExerciseCardProps {
   blockLabel: string
   itemPosition: number
   exercise: WorkoutExercise
+  focusExerciseCount: number
   blockItems: readonly WorkoutItem[]
   dispatch: Dispatch<WorkoutBuilderAction>
   onOpenExerciseEdit: (blockId: string, exerciseId: string) => void
@@ -59,6 +61,7 @@ export function WorkoutExerciseCard({
   blockLabel,
   itemPosition,
   exercise,
+  focusExerciseCount,
   blockItems,
   dispatch,
   onOpenExerciseEdit,
@@ -132,6 +135,8 @@ export function WorkoutExerciseCard({
           </MoveIconButton>
         </div>
       </div>
+      <FocusSkillPicker focusSkillId={exercise.focusSkillId} focusExerciseCount={focusExerciseCount}
+        onChange={(focusSkillId) => dispatch({ type: 'setExerciseFocusSkill', blockId, exerciseId: exercise.id, focusSkillId })} />
     </li>
   )
 }

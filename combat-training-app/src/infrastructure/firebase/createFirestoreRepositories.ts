@@ -1,11 +1,11 @@
 import { getApp } from 'firebase/app'
 import { clearIndexedDbPersistence, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, type Firestore } from 'firebase/firestore'
 import type { SubscribableRepository } from '@/application/repositorySubscription'
-import type { WorkoutPlanRepository } from '@/application/workout/workoutPlanRepository'
-import type { WorkoutSessionRepository } from '@/application/workout-session/workoutSessionRepository'
+import type { WorkoutRepositories } from '@/application/deferredWorkoutRepositories'
 import { readFirebaseConfig } from './firebaseConfig'
 import { FirestoreWorkoutRepository } from './firestoreWorkoutRepository'
 import { workoutPlanDocumentSchema, workoutSessionDocumentSchema } from './workoutDocumentSchemas'
+import { focusSkillDocumentSchema } from './focusSkillDocumentSchema'
 
 let database: Firestore | undefined
 const subscriptions = new Set<() => void>()
@@ -35,7 +35,7 @@ export async function clearFirestoreCache(): Promise<void> {
   }
 }
 
-export function createFirestoreRepositories(uid: string): { plans: WorkoutPlanRepository; sessions: WorkoutSessionRepository } {
+export function createFirestoreRepositories(uid: string): WorkoutRepositories {
   if (!database) {
     const config = readFirebaseConfig(import.meta.env)
     if (config.projectId.startsWith('demo-') && !config.firestoreEmulatorHost) throw new Error('Demo project requires a Firestore emulator')
@@ -55,6 +55,10 @@ export function createFirestoreRepositories(uid: string): { plans: WorkoutPlanRe
     const { schemaVersion: _version, ...session } = workoutSessionDocumentSchema.parse(value)
     return session
   })
+  const focusSkills = new FirestoreWorkoutRepository(database, uid, 'focusSkills', (value) => {
+    const { schemaVersion: _version, ...skill } = focusSkillDocumentSchema.parse(value)
+    return skill
+  })
   return {
     plans: {
       subscribe: trackedSubscribe(plans), save: plans.save.bind(plans),
@@ -63,6 +67,9 @@ export function createFirestoreRepositories(uid: string): { plans: WorkoutPlanRe
     sessions: {
       subscribe: trackedSubscribe(sessions), save: sessions.save.bind(sessions),
       updateNote: sessions.updateNote.bind(sessions), delete: sessions.delete.bind(sessions),
+    },
+    focusSkills: {
+      subscribe: trackedSubscribe(focusSkills), save: focusSkills.save.bind(focusSkills),
     },
   }
 }

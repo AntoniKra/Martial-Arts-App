@@ -14,7 +14,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
   private reportError: ((error: unknown) => void) | null = null
   private readonly path
 
-  constructor(db: Firestore, uid: string, collectionName: 'workoutPlans' | 'workoutSessions', private parse: (value: unknown) => T) {
+  constructor(db: Firestore, uid: string, collectionName: 'workoutPlans' | 'workoutSessions' | 'focusSkills', private parse: (value: unknown) => T) {
     if (!uid || uid.includes('/')) throw new Error('Invalid user identity')
     this.path = collection(db, 'users', uid, collectionName)
   }

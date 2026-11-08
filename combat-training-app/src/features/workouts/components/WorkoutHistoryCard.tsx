@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
+import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { Button } from '@/components/ui/Button'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
@@ -200,7 +201,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
             <span className="font-semibold tabular-nums text-ink">{session.durationLabelPl}</span>
           </span>
           <WorkoutCompletionCounts counts={session} />
-          {session.hasPendingWrites ? <span className="whitespace-nowrap font-semibold">Czeka na wysłanie</span> : null}
+          {session.hasPendingWrites ? <span className="whitespace-nowrap font-semibold">{workoutDataLabels.pending}</span> : null}
         </div>
       </div>
 
