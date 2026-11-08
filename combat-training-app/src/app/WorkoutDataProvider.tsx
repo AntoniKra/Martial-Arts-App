@@ -26,7 +26,7 @@ function AccountData({ uid, children }: PropsWithChildren<{ uid: string }>) {
     // This effect runs after the first render. Firestore and its document schemas are a separate chunk.
     void import('@/infrastructure/firebase/createFirestoreRepositories').then(({ createFirestoreRepositories }) => {
       if (cancelled) return
-      removeLegacyWorkouts(window.localStorage)
+      removeLegacyWorkouts()
       setBoot({ repositories: createFirestoreRepositories(uid), error: false })
     }).catch(() => { if (!cancelled) setBoot({ repositories: null, error: true }) })
     return () => { cancelled = true }
