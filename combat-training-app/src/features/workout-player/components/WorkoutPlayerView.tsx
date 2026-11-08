@@ -8,6 +8,7 @@ import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
+import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { WorkoutCircularTimer } from '@/features/workout-player/components/WorkoutCircularTimer'
 import { WorkoutPlayerControls } from '@/features/workout-player/components/WorkoutPlayerControls'
@@ -30,7 +31,12 @@ import { createWorkoutPlaybackTimeline } from '@/features/workout-player/utils/c
 import { getWorkoutStepKindShortLabelPl } from '@/features/workout-player/utils/workoutStepTimerPresentation'
 import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
 
-interface WorkoutPlayerViewProps {
+interface WorkoutSummaryOptions {
+  focusSkills?: readonly FocusSkill[]
+  onSessionSaved?: (sessionId: string) => void
+}
+
+interface WorkoutPlayerViewProps extends WorkoutSummaryOptions {
   initialWorkout?: ActiveWorkout
   activeWorkoutRepository?: ActiveWorkoutRepository
   loadState: WorkoutPlayerLoadState
@@ -138,7 +144,7 @@ function buildStepAnnouncement(step: WorkoutPlaybackStep, stepIndex: number, tot
   return `Etap ${stepIndex + 1} z ${totalSteps}. Blok ${step.blockIndex + 1}, ${blockLabel}. ${kindLabel}. ${step.name}.${roundLabel}`
 }
 
-interface WorkoutPlayerActiveContentProps {
+interface WorkoutPlayerActiveContentProps extends WorkoutSummaryOptions {
   initialWorkout?: ActiveWorkout
   activeWorkoutRepository?: ActiveWorkoutRepository
   plan: WorkoutPlan
@@ -146,7 +152,7 @@ interface WorkoutPlayerActiveContentProps {
   saveWorkoutSession: (session: WorkoutSession) => Promise<void>
 }
 
-interface WorkoutPlayerRuntimeProps {
+interface WorkoutPlayerRuntimeProps extends WorkoutSummaryOptions {
   initialWorkout?: ActiveWorkout
   activeWorkoutRepository?: ActiveWorkoutRepository
   plan: WorkoutPlan
@@ -268,6 +274,8 @@ function WorkoutPlayerCompletedPanel({
 }
 
 function WorkoutPlayerRuntime({
+  focusSkills,
+  onSessionSaved,
   initialWorkout,
   activeWorkoutRepository,
   plan,
@@ -276,7 +284,7 @@ function WorkoutPlayerRuntime({
   saveWorkoutSession,
 }: WorkoutPlayerRuntimeProps) {
   const [preparation] = useState(readStoredWorkoutPreparation)
-  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly, getRecording } = useWorkoutSessionRecorder(plan, timeline, initialWorkout?.recorder)
+  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly, getRecording } = useWorkoutSessionRecorder(plan, timeline, initialWorkout?.recorder, focusSkills)
   const { unlockGong, onGongPlaybackEvent } = useWorkoutGong(timeline)
   const [soundMuted, setSoundMuted] = useState(!!initialWorkout)
   const enableSound = useCallback(() => { unlockGong(); setSoundMuted(false) }, [unlockGong])
@@ -312,6 +320,9 @@ function WorkoutPlayerRuntime({
   useEffect(() => {
     if (saveState.status === 'saved' || hasNoWork) activeWorkoutRepository?.clear()
   }, [saveState.status, hasNoWork, activeWorkoutRepository])
+  useEffect(() => {
+    if (saveState.status === 'saved' && completedSession) onSessionSaved?.(completedSession.id)
+  }, [saveState.status, completedSession, onSessionSaved])
 
   useWorkoutScreenWakeLock(playback.status !== 'completed')
 
@@ -457,6 +468,8 @@ function WorkoutPlayerRuntime({
 }
 
 function WorkoutPlayerActiveContent({
+  focusSkills,
+  onSessionSaved,
   initialWorkout,
   activeWorkoutRepository,
   plan,
@@ -467,6 +480,8 @@ function WorkoutPlayerActiveContent({
 
   return (
     <WorkoutPlayerRuntime
+      focusSkills={focusSkills}
+      onSessionSaved={onSessionSaved}
       initialWorkout={initialWorkout}
       activeWorkoutRepository={activeWorkoutRepository}
       key={timeline.identity}
@@ -479,6 +494,8 @@ function WorkoutPlayerActiveContent({
 }
 
 export function WorkoutPlayerView({
+  focusSkills,
+  onSessionSaved,
   initialWorkout,
   activeWorkoutRepository,
   loadState,
@@ -508,6 +525,8 @@ export function WorkoutPlayerView({
 
     return (
       <WorkoutPlayerActiveContent
+        focusSkills={focusSkills}
+        onSessionSaved={onSessionSaved}
         initialWorkout={initialWorkout}
         activeWorkoutRepository={activeWorkoutRepository}
         plan={loadState.plan}

@@ -14,6 +14,7 @@ import type {
 } from '@/features/workouts/types/workoutsView.types'
 import { WORKOUT_HISTORY_NOTE_MAX_LENGTH } from '@/features/workouts/types/workoutsView.types'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
+import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
 
 const NOTE_SAVE_ERROR_MESSAGE = 'Nie udało się zapisać notatki.'
 const DELETE_ERROR_MESSAGE = 'Nie udało się usunąć wpisu.'
@@ -213,6 +214,10 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
       </div>
 
       <div className="border-t border-bd">
+        {session.feedbackPath && <Link to={session.feedbackPath}
+          className="flex min-h-touch items-center border-b border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink">
+          {workoutFeedbackLabels.title}
+        </Link>}
         {hasSavedNote && !isEditingNote ? (
           <p className="whitespace-pre-wrap break-words px-4 pt-3 text-[13px] leading-relaxed text-ink">{session.note}</p>
         ) : null}

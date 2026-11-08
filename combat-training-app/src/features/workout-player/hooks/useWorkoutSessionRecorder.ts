@@ -4,6 +4,8 @@ import { buildRecordedWorkoutSession } from '../utils/workoutSessionRecording'
 
 import type { WorkoutSession, WorkoutSessionStepOutcome } from '@/domain/workout-session/workoutSession.types'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
+import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
+import { createWorkoutFocusRatings } from '@/domain/workout-session/workoutFocusRatings'
 import {
   calculateWorkoutSessionDurations,
   createPlanWorkoutSession,
@@ -36,6 +38,7 @@ export function useWorkoutSessionRecorder(
   plan: WorkoutPlan,
   timeline: WorkoutPlaybackTimeline,
   initial?: WorkoutSessionRecording,
+  focusSkills: readonly FocusSkill[] = [],
 ): UseWorkoutSessionRecorderResult {
   const sessionIdRef = useRef<string | null>(initial?.sessionId ?? null)
   const timezoneRef = useRef(initial?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone)
@@ -43,7 +46,9 @@ export function useWorkoutSessionRecorder(
   const stepResultsRef = useRef<Map<string, TrackedStepResult>>(new Map(initial?.stepResults.map((result) => [result.playbackStepId, result])))
   const attemptsRef = useRef<WorkoutSessionAttempt[]>(initial?.attempts ?? [])
   const completedAtRef = useRef<number | null>(initial?.completedAt ?? null)
-  const ratingsRef = useRef({ exerciseRatings: initial?.exerciseRatings ?? [], focusRatings: initial?.focusRatings ?? [] })
+  const [initialRatings] = useState(() => ({ exerciseRatings: initial?.exerciseRatings ?? [],
+    focusRatings: initial?.focusRatings ?? createWorkoutFocusRatings(plan.blocks, focusSkills) }))
+  const ratingsRef = useRef(initialRatings)
   const endedEarlyRef = useRef(initial?.endedEarly ?? false)
   const isFinalizedRef = useRef(initial?.completedAt !== null && initial?.completedAt !== undefined)
   const runGenerationRef = useRef(0)
@@ -74,14 +79,14 @@ export function useWorkoutSessionRecorder(
     isFinalizedRef.current = false
     completedAtRef.current = null
     endedEarlyRef.current = false
-    ratingsRef.current = { exerciseRatings: [], focusRatings: [] }
+    ratingsRef.current = { exerciseRatings: [], focusRatings: createWorkoutFocusRatings(plan.blocks, focusSkills) }
     runGenerationRef.current += 1
     setRunGeneration(runGenerationRef.current)
     setCompletedSession(null)
     setHasRecorderError(false)
     setHasNoWork(false)
     setEndedEarly(false)
-  }, [])
+  }, [plan.blocks, focusSkills])
 
   const recordStepResult = useCallback(
     (
@@ -149,6 +154,7 @@ export function useWorkoutSessionRecorder(
         timezone: timezoneRef.current,
         blockTypes: plan.blocks.map((block) => block.blockType),
         blocks: plan.blocks,
+        focusRatings: ratingsRef.current.focusRatings,
         endedEarly,
         durations: calculateWorkoutSessionDurations(attemptsRef.current),
       })

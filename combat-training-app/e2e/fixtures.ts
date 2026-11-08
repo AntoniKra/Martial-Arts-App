@@ -1,7 +1,8 @@
 import { test as base, expect, type Page } from '@playwright/test'
 import { createVerifiedAccount, signIn } from './authEmulator'
-import { seedPlan, readSessions } from './firestoreEmulator'
+import { seedPlan, readSessions, seedFocusSkill, readFocusSkills } from './firestoreEmulator'
 import type { WorkoutPlan } from '../src/domain/workout/workout.types'
+import type { FocusSkill } from '../src/domain/focus-skill/focusSkill.types'
 
 class WorkoutApp {
   private authenticated = false
@@ -47,6 +48,8 @@ class WorkoutApp {
     await expect(this.page.getByRole('heading', { name: plan.nameSnapshot, exact: true })).toBeVisible()
   }
   async readSessions() { return readSessions(this.page.request, this.uid) }
+  async seedFocusSkill(skill: FocusSkill) { await seedFocusSkill(this.page.request, this.uid, skill) }
+  async readFocusSkills() { return readFocusSkills(this.page.request, this.uid) }
 
   async createPlan(name = 'Plan E2E', roundDurationLabel: '1:00' | '3:00' = '1:00') {
     const { page } = this
@@ -129,8 +132,8 @@ class WorkoutApp {
   async expectWorkoutSaved() {
     // The controlled playback clock also freezes Firestore's task queue; release it after playback.
     await this.page.clock.resume()
-    await expect(this.page.getByRole('heading', { name: 'Trening zakończony', exact: true })).toBeVisible()
-    await expect(this.page.getByRole('status')).toHaveText('Trening został zapisany.')
+    await expect(this.page).toHaveURL(/\/workout-sessions\/[^/]+\/feedback$/)
+    await expect(this.page.getByText('Wpis jest już w dzienniku. Oceny dopisują się do niego.', { exact: true })).toBeVisible()
     if (await this.page.evaluate(() => navigator.onLine)) {
       await expect.poll(async () => (await this.readSessions()).length).toBeGreaterThan(0)
     }

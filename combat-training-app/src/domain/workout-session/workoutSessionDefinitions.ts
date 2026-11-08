@@ -1,6 +1,9 @@
 import type { WorkoutBlock, WorkoutBlockType } from '@/domain/workout/workout.types'
+import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
+import { createWorkoutFocusRatings } from './workoutFocusRatings'
 import type {
   PlanWorkoutSession,
+  FocusRating,
   SparringEntry,
   WorkoutSessionCategory,
   WorkoutSessionCompletion,
@@ -92,6 +95,8 @@ interface PlanSessionOptions {
   endedEarly: boolean
   durations: WorkoutSessionDurations
   blocks?: readonly WorkoutBlock[]
+  focusSkills?: readonly FocusSkill[]
+  focusRatings?: readonly FocusRating[]
 }
 
 export function calculateWorkoutSessionSparring(
@@ -119,7 +124,8 @@ export function definePlanWorkoutSession(fields: PlanSessionFields, options: Pla
     rpe: null,
     rpeRecordedAt: null,
     sparring: calculateWorkoutSessionSparring(options.blocks ?? [], fields.stepResults),
-    focusRatings: [],
+    focusRatings: options.focusRatings ? structuredClone([...options.focusRatings])
+      : createWorkoutFocusRatings(options.blocks ?? [], options.focusSkills ?? []),
     exerciseRatings: [],
     createdAt: fields.completedAt,
     updatedAt: fields.completedAt,

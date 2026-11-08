@@ -1,5 +1,5 @@
 import { getApp } from 'firebase/app'
-import { clearIndexedDbPersistence, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, type Firestore } from 'firebase/firestore'
+import { clearIndexedDbPersistence, collection, doc, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, writeBatch, type Firestore } from 'firebase/firestore'
 import type { SubscribableRepository } from '@/application/repositorySubscription'
 import type { WorkoutRepositories } from '@/application/deferredWorkoutRepositories'
 import { readFirebaseConfig } from './firebaseConfig'
@@ -59,6 +59,7 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     const { schemaVersion: _version, ...skill } = focusSkillDocumentSchema.parse(value)
     return skill
   })
+  const db = database
   return {
     plans: {
       subscribe: trackedSubscribe(plans), save: plans.save.bind(plans),
@@ -67,6 +68,27 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     sessions: {
       subscribe: trackedSubscribe(sessions), save: sessions.save.bind(sessions),
       updateNote: sessions.updateNote.bind(sessions), delete: sessions.delete.bind(sessions),
+      saveFeedback: async (id, feedback) => {
+        const { correctionUpdates, ...fields } = feedback
+        // Validate every resulting document before committing the single offline-capable batch.
+        sessions.validateUpdate(id, fields)
+        const skillFields = correctionUpdates.map((update) => {
+          const changes = { openCorrection: update.openCorrection, updatedAt: feedback.updatedAt }
+          focusSkills.validateUpdate(update.focusSkillId, changes)
+          return { id: update.focusSkillId, changes }
+        })
+        const batch = writeBatch(db)
+        batch.update(doc(collection(db, 'users', uid, 'workoutSessions'), id), fields)
+        for (const skill of skillFields) batch.update(doc(collection(db, 'users', uid, 'focusSkills'), skill.id), skill.changes)
+        let resolveServer!: () => void
+        let rejectServer!: (error: unknown) => void
+        const server = new Promise<void>((resolve, reject) => { resolveServer = resolve; rejectServer = reject })
+        // Register both collection observers before committing, including a no-op session update.
+        const localWrites = [sessions.updateFields(id, fields, () => server),
+          ...skillFields.map((skill) => focusSkills.updateFields(skill.id, skill.changes, () => server))]
+        try { void batch.commit().then(resolveServer, rejectServer) } catch (error) { rejectServer(error) }
+        return (await Promise.all(localWrites)).every(Boolean)
+      },
     },
     focusSkills: {
       subscribe: trackedSubscribe(focusSkills), save: focusSkills.save.bind(focusSkills),

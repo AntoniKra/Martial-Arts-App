@@ -253,6 +253,54 @@ describe('focus skill boundaries', () => {
   })
 })
 
+describe('post-workout feedback batch', () => {
+  const sessionPath = `users/${ownerId}/workoutSessions/${documentId}`
+  const skillPath = `users/${ownerId}/focusSkills/${documentId}`
+  const correction = { problem: 'Dropped guard', fix: 'Touch chin', sessionId: documentId, workoutDate: '2026-11-08' }
+  const feedback = {
+    focusRatings: [{ workoutItemId: 'exercise-one', focusSkillId: documentId, skillNameSnapshot: 'Guard',
+      criterionSnapshot: 'Hand returns', blockType: 'sparring', assessment: 4,
+      correction: { problem: correction.problem, fix: correction.fix }, previousCorrectionCheck: null }],
+    exerciseRatings: [], note: 'Workout note', updatedAt: '2026-11-08T10:00:00.000Z',
+  }
+
+  beforeEach(async () => {
+    await ownerDatabase().doc(sessionPath).set(workoutSession('plan'))
+    await ownerDatabase().doc(skillPath).set(focusSkill())
+  })
+
+  it('allows the owner to save feedback and replace or close the open correction atomically', async () => {
+    const db = ownerDatabase()
+    const batch = db.batch()
+    batch.update(db.doc(sessionPath), feedback)
+    batch.update(db.doc(skillPath), { openCorrection: correction, updatedAt: feedback.updatedAt })
+    await assertSucceeds(batch.commit())
+    expect((await db.doc(sessionPath).get()).data()?.note).toBe('Workout note')
+    expect((await db.doc(skillPath).get()).data()?.openCorrection).toEqual(correction)
+    const closing = db.batch()
+    closing.update(db.doc(sessionPath), { focusRatings: [{ ...feedback.focusRatings[0], previousCorrectionCheck: 'better' }] })
+    closing.update(db.doc(skillPath), { openCorrection: null })
+    await assertSucceeds(closing.commit())
+  })
+
+  it.each(['other', 'signedOut', 'unverified', 'invalidNote', 'fourRatings', 'invalidCorrection'] as const)(
+    'rejects the entire batch for %s', async (scenario) => {
+      const db = scenario === 'other' ? environment.authenticatedContext('athlete-two', { email_verified: true }).firestore()
+        : scenario === 'signedOut' ? environment.unauthenticatedContext().firestore()
+          : scenario === 'unverified' ? environment.authenticatedContext(ownerId, { email_verified: false }).firestore() : ownerDatabase()
+      const batch = db.batch()
+      batch.update(db.doc(sessionPath), { ...feedback,
+        ...(scenario === 'invalidNote' ? { note: 'x'.repeat(1001) } : {}),
+        ...(scenario === 'fourRatings' ? { focusRatings: Array.from({ length: 4 }, () => feedback.focusRatings[0]) } : {}),
+      })
+      batch.update(db.doc(skillPath), { openCorrection: scenario === 'invalidCorrection' ? { ...correction, fix: '' } : correction })
+      await assertFails(batch.commit())
+      expect((await ownerDatabase().doc(sessionPath).get()).data()?.note).toBeNull()
+      expect((await ownerDatabase().doc(skillPath).get()).data()?.openCorrection).toBeNull()
+    },
+  )
+})
+
 describe.each(['plan', 'quickTimer'] as const)('%s timed session', (source) => {
   const path = `users/${ownerId}/workoutSessions/${documentId}`
   const invalidFields: [string, unknown][] = [

@@ -9,6 +9,7 @@ import { EditWorkoutPage } from '@/pages/EditWorkoutPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { WorkoutPlayerPage } from '@/pages/WorkoutPlayerPage'
 import { WorkoutDetailsPage } from '@/pages/WorkoutDetailsPage'
+import { WorkoutFeedbackPage } from '@/pages/WorkoutFeedbackPage'
 import { WorkoutsPage } from '@/pages/WorkoutsPage'
 import { AuthGate } from '@/features/auth/AuthGate'
 import { AuthFormPage } from '@/features/auth/AuthFormPage'
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
             children: [
               { path: '/', element: <HomePage /> },
               { path: '/workouts', element: <WorkoutsPage /> },
+              { path: '/workout-sessions/:sessionId/feedback', element: <WorkoutFeedbackPage /> },
               { path: '/workouts/new', element: <NewWorkoutPage /> },
               { path: '/workouts/:workoutId', element: <WorkoutDetailsPage /> },
               { path: '/workouts/:workoutId/edit', element: <EditWorkoutPage /> },
@@ -43,7 +45,6 @@ export const router = createBrowserRouter([
             ],
           },
           { path: '/workouts/:workoutId/active', element: <WorkoutPlayerPage /> },
-          { path: '/workouts/:workoutId/feedback', element: <PlaceholderPage title="Podsumowanie treningu" fullscreen /> },
             ],
           },
           ] },
