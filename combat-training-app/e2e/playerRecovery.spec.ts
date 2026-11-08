@@ -180,7 +180,7 @@ test('recovers the immutable plan even when Firestore cannot load', async ({ app
   await app.openPlayer()
   await page.clock.setFixedTime(new Date(time))
   await app.startWorkout()
-  await app.seedPlan({ ...plan, nameSnapshot: 'Edited plan', blocks: [] })
+  await app.seedPlan({ ...plan, nameSnapshot: 'Edited plan', blocks: [] }, { waitUntilRendered: false })
   await page.route('**/*createFirestoreRepositories*.js', (route) => route.abort())
   await page.reload()
   await expect(page.getByText(plan.nameSnapshot, { exact: true })).toBeVisible()

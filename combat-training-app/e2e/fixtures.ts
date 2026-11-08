@@ -35,8 +35,11 @@ class WorkoutApp {
     })
   }
 
-  async seedPlan(plan: WorkoutPlan) {
+  async seedPlan(plan: WorkoutPlan, { waitUntilRendered = true }: { waitUntilRendered?: boolean } = {}) {
     await seedPlan(this.page.request, this.uid, plan)
+    // Skip the render wait only when the current screen deliberately keeps an
+    // immutable plan snapshot, e.g. an active player while its source plan is edited.
+    if (!waitUntilRendered) return
     // The emulator write stays invisible to this tab until its listener applies it.
     // A reload before that reads an empty persistent cache, and the new tab can keep
     // showing that empty snapshot for the whole 5s primary-lease window. Return only
