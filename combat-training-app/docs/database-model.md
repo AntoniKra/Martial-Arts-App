@@ -79,7 +79,7 @@ Jeden dokument to jeden wpis w dzienniku. Pola zależą od źródła (`source`).
 | `source` | `plan`, `quickTimer`, `manual` | ADR 0005 |
 | `status` | `completed`, `partial` | Ręczny wpis ma zawsze `completed` |
 | `disciplineKey` | klucz dyscypliny | |
-| `category` | typ bloku bez rozgrzewki albo `mixed` | ADR 0005. Szybki stoper: wybór użytkownika, ustalimy w jego issue |
+| `category` | typ bloku bez rozgrzewki i rozluźnienia albo `mixed` | ADR 0005. Szybki stoper: wybór użytkownika, ustalimy w jego issue |
 | `workoutDate`, `timezone` | dzień, strefa IANA | ADR 0005 |
 | `durationSeconds` | liczba > 0 | Czas treningu, może mieć ułamki sekundy |
 | `workSeconds`, `sparringSeconds` | liczba całkowita ≥ 0 albo `null` | `null` tylko w ręcznym wpisie („nieznane”) |

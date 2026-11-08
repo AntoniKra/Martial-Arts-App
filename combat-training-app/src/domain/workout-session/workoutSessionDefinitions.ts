@@ -67,7 +67,7 @@ export function calculateWorkoutSessionStatus(
 }
 
 export function calculateWorkoutSessionCategory(blockTypes: readonly WorkoutBlockType[]): WorkoutSessionCategory {
-  const types = new Set(blockTypes.filter((type) => type !== 'warmup'))
+  const types = new Set(blockTypes.filter((type) => type !== 'warmup' && type !== 'cooldown'))
   return types.size === 1 ? [...types][0] : 'mixed'
 }
 

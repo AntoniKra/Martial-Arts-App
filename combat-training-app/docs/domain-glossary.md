@@ -5,6 +5,7 @@
 | trening | `workout` |
 | plan treningu | `workoutPlan` |
 | blok treningowy | `workoutBlock` |
+| rozluźnienie | `cooldown` |
 | element bloku | `workoutItem` |
 | ćwiczenie | `exercise` |
 | kombinacja | `combination` |
@@ -26,7 +27,7 @@
 | źródło wpisu | `source`: `plan`, `quickTimer`, `manual` |
 | szybki stoper | `quickTimer` |
 | ręczny wpis | `manual` |
-| rodzaj treningu | `category` (typ bloku bez rozgrzewki albo `mixed`) |
+| rodzaj treningu | `category` (typ bloku bez rozgrzewki i rozluźnienia albo `mixed`) |
 | trening ukończony | `completed` |
 | trening częściowy | `partial` |
 | czas treningu | `durationSeconds` |

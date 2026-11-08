@@ -8,6 +8,7 @@ export const WORKOUT_BLOCK_LABELS_PL: Record<WorkoutBlockType, string> = {
   sparring: 'Sparing',
   conditioning: 'Kondycja',
   strengthAndConditioning: 'Siła i motoryka',
+  cooldown: 'Rozluźnienie',
 }
 
 export const WORKOUT_BLOCK_TYPES = [
@@ -18,6 +19,7 @@ export const WORKOUT_BLOCK_TYPES = [
   'sparring',
   'conditioning',
   'strengthAndConditioning',
+  'cooldown',
 ] as const satisfies readonly WorkoutBlockType[]
 
 export function getWorkoutBlockLabelPl(blockType: WorkoutBlockType): string {

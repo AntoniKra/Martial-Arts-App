@@ -14,7 +14,7 @@ Każdy trening trafia do jednego dziennika i ma oznaczone źródło (`source`):
 - `quickTimer`: szybki stoper, czyli same rundy bez zapisywania planu;
 - `manual`: ręczny wpis treningu wykonanego poza aplikacją.
 
-**Rodzaj treningu** (`category`) to typ bloku bez rozgrzewki (`technique`, `pads`, `bag`, `sparring`, `conditioning`, `strengthAndConditioning`) albo `mixed`. Wpis z planu dostaje rodzaj automatycznie: jeśli wszystkie bloki oprócz rozgrzewki mają ten sam typ, wpis dostaje ten typ, w przeciwnym razie `mixed`. Ręczny wpis zawiera datę, dyscyplinę, rodzaj i czas trwania. Nie dopisujemy mu wymyślonych rund ani godzin.
+**Rodzaj treningu** (`category`) to typ bloku bez rozgrzewki i rozluźnienia (`technique`, `pads`, `bag`, `sparring`, `conditioning`, `strengthAndConditioning`) albo `mixed`. Wpis z planu dostaje rodzaj automatycznie: jeśli wszystkie bloki oprócz rozgrzewki i rozluźnienia mają ten sam typ, wpis dostaje ten typ, w przeciwnym razie `mixed`. Ręczny wpis zawiera datę, dyscyplinę, rodzaj i czas trwania. Nie dopisujemy mu wymyślonych rund ani godzin.
 
 ## Status
 
@@ -47,6 +47,10 @@ Decyzja właściciela: pracą są wyłącznie rundy lub ciągłe etapy ćwiczeń
 - Przebieg bez żadnego dokończonego etapu ćwiczenia nie zapisuje się i pokazuje komunikat o braku pracy. Przeklikanie etapów po 0,5 s nie tworzy wpisu. Nie jest to nowy próg czasu — warunkiem jest dokończenie etapu.
 - Odpoczynki między rundami i osobne przerwy zachowują dotychczasowe wyniki oraz sposób liczenia czasu.
 - Migracja v1/v2 liczy pracę i sparing wyłącznie z etapów ćwiczeń o wyniku `completed`. Zachowane `stepResults`, również historyczne `partial`, nie są zmieniane; ich rzeczywisty zapisany czas nadal wchodzi do czasu treningu.
+
+## Zmiana z 8 listopada 2026
+
+Rodzaj treningu pomija rozgrzewkę (`warmup`) i rozluźnienie (`cooldown`). Plan z workiem, rozgrzewką i rozluźnieniem ma rodzaj `bag`. Plan złożony tylko z rozgrzewki, tylko z rozluźnienia albo z obu tych bloków ma rodzaj `mixed`. `cooldown` nie jest wartością `category`.
 
 ## Poza tym ADR
 

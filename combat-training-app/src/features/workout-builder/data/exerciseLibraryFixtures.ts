@@ -269,7 +269,7 @@ export const EXERCISE_LIBRARY_FIXTURES: Combination[] = [
   fixture(
     'snc-kettlebell-swings',
     'snc-kettlebell-swings',
-    'Swing kettlebell — seria powtórzeń',
+    'Swing kettlebell',
     ALL_STRIKING,
     ['strengthAndConditioning'],
   ),
@@ -293,5 +293,35 @@ export const EXERCISE_LIBRARY_FIXTURES: Combination[] = [
     'Pchnięcie sanek — moc nóg',
     ALL_STRIKING,
     ['strengthAndConditioning'],
+  ),
+
+  // Rozluźnienie
+  fixture(
+    'cooldown-hip-leg-stretch',
+    'cooldown-hip-leg-stretch',
+    'Rozciąganie bioder i nóg',
+    ALL_STRIKING,
+    ['cooldown'],
+  ),
+  fixture(
+    'cooldown-shoulder-chest-stretch',
+    'cooldown-shoulder-chest-stretch',
+    'Rozciąganie barków i klatki piersiowej',
+    ALL_STRIKING,
+    ['cooldown'],
+  ),
+  fixture(
+    'cooldown-diaphragmatic-breathing',
+    'cooldown-diaphragmatic-breathing',
+    'Spokojny oddech przeponowy',
+    ALL_STRIKING,
+    ['cooldown'],
+  ),
+  fixture(
+    'cooldown-calf-thigh-roll',
+    'cooldown-calf-thigh-roll',
+    'Rolowanie łydek i ud',
+    ALL_STRIKING,
+    ['cooldown'],
   ),
 ]

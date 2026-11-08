@@ -6,7 +6,7 @@ const text = z.string().check(z.minLength(1))
 const integer = z.number().check(z.int(), z.minimum(0), z.maximum(Number.MAX_SAFE_INTEGER))
 const positiveInteger = z.number().check(z.int(), z.minimum(1), z.maximum(Number.MAX_SAFE_INTEGER))
 const discipline = z.enum(['boxing', 'kickboxing', 'muay_thai', 'k1', 'mma_striking'])
-const blockType = z.enum(['warmup', 'technique', 'pads', 'bag', 'sparring', 'conditioning', 'strengthAndConditioning'])
+const blockType = z.enum(['warmup', 'technique', 'pads', 'bag', 'sparring', 'conditioning', 'strengthAndConditioning', 'cooldown'])
 const category = z.enum(['technique', 'pads', 'bag', 'sparring', 'conditioning', 'strengthAndConditioning', 'mixed'])
 const intensity = z.nullable(z.enum(['light', 'technical', 'hard']))
 const rating = z.number().check(z.int(), z.minimum(1), z.maximum(5))
@@ -21,7 +21,7 @@ const breakItem = z.strictObject({ id, type: z.literal('break'), durationSeconds
 const items = z.array(z.discriminatedUnion('type', [exercise, breakItem]))
 const block = z.union([
   z.strictObject({ id, blockType: z.literal('sparring'), sparringIntensity: intensity, items }),
-  z.strictObject({ id, blockType: z.enum(['warmup', 'technique', 'pads', 'bag', 'conditioning', 'strengthAndConditioning']), items }),
+  z.strictObject({ id, blockType: z.enum(['warmup', 'technique', 'pads', 'bag', 'conditioning', 'strengthAndConditioning', 'cooldown']), items }),
 ])
 const identity = { schemaVersion: z.literal(1), id, createdAt: instantSchema, updatedAt: instantSchema }
 

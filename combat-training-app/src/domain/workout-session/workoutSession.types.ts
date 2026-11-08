@@ -23,7 +23,7 @@ export type WorkoutSessionSource = 'plan' | 'quickTimer' | 'manual'
 
 export type WorkoutSessionStatus = 'completed' | 'partial'
 
-export type WorkoutSessionCategory = Exclude<WorkoutBlockType, 'warmup'> | 'mixed'
+export type WorkoutSessionCategory = Exclude<WorkoutBlockType, 'warmup' | 'cooldown'> | 'mixed'
 
 export interface WorkoutSessionCompletion {
   completed: number

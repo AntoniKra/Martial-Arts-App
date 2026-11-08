@@ -44,6 +44,31 @@ describe('Firestore document schemas', () => {
     expect(workoutSessionDocumentSchema.safeParse({ ...session, stepResults: [sessionStep(), sessionStep()] }).success).toBe(false)
     expect(workoutSessionDocumentSchema.safeParse({ ...session, stepResults: Array.from({ length: 501 }, (_, i) => sessionStep({ playbackStepId: String(i) })) }).success).toBe(false)
   })
+  it('accepts a plan and a session that include a cooldown block', () => {
+    const cooldownPlan = {
+      ...workoutPlan([
+        block('warmup', [continuousExercise('warmup', 60)], 'warmup'),
+        block('bag', [continuousExercise('bag', 60)], 'bag'),
+        block('cooldown', [continuousExercise('stretch', 120)], 'cooldown'),
+      ]),
+      schemaVersion: 1,
+    }
+    const cooldownSession = {
+      ...workoutSession({
+        stepResults: [
+          sessionStep({ playbackStepId: 'warmup', workoutItemId: 'warmup', blockId: 'warmup', blockType: 'warmup' }),
+          sessionStep({ playbackStepId: 'bag', workoutItemId: 'bag', blockId: 'bag', blockType: 'bag' }),
+          sessionStep({ playbackStepId: 'stretch', workoutItemId: 'stretch', blockId: 'cooldown', blockType: 'cooldown' }),
+        ],
+      }),
+      schemaVersion: 1,
+    }
+
+    expect(workoutPlanDocumentSchema.parse(cooldownPlan)).toEqual(cooldownPlan)
+    expect(cooldownSession.category).toBe('bag')
+    expect(workoutSessionDocumentSchema.parse(cooldownSession)).toEqual(cooldownSession)
+    expect(workoutSessionDocumentSchema.safeParse({ ...cooldownSession, category: 'cooldown' }).success).toBe(false)
+  })
   it('checks feedback ranges and sparring data', () => {
     expect(workoutSessionDocumentSchema.safeParse({ ...session, rpe: 11, rpeRecordedAt: session.completedAt }).success).toBe(false)
     expect(workoutSessionDocumentSchema.safeParse({ ...session, rpe: 5 }).success).toBe(false)
