@@ -11,7 +11,7 @@ interface WorkoutsFiltersProps {
 }
 
 const fieldClassName =
-  'min-h-touch w-full border border-bd bg-input px-3 py-2 font-display text-[13px] text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]'
+  'min-h-touch w-full border border-bd bg-input px-3 py-2 font-display text-[16px] text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]'
 
 export function WorkoutsFilters({ filters, onChange, idPrefix }: WorkoutsFiltersProps) {
   const searchId = `${idPrefix}-search`

@@ -1,0 +1,33 @@
+{
+  "baselineHead": "e5494537e1885322b84931aca9648e9238678727",
+  "e2e": {
+    "startTime": "2026-11-07T16:53:53.428Z",
+    "duration": 128288.067,
+    "expected": 162,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "baselineReproduction": {
+    "startTime": "2026-11-07T16:56:26.797Z",
+    "duration": 9429.107,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  },
+  "unit": {
+    "failed": 0,
+    "passed": 384,
+    "skipped": 0,
+    "files": 35
+  },
+  "targetedCssGuard": {
+    "passed": 7,
+    "failed": 0
+  },
+  "typecheck": 0,
+  "lintErrors": 0,
+  "lintWarnings": 21,
+  "build": 0
+}
