@@ -40,6 +40,7 @@ import { copyExerciseConfiguration } from '@/features/workout-builder/utils/exer
 import { mapWorkoutPlanSaveError } from '@/features/workout-builder/utils/workoutPlanSaveErrorMessages'
 import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderLabels'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
+import { useWorkoutData } from '@/application/workoutDataContext'
 
 interface WorkoutBuilderViewProps {
   state: WorkoutBuilderState
@@ -62,6 +63,7 @@ export function WorkoutBuilderView({
   onPlanSaved,
   editingPlanId,
 }: WorkoutBuilderViewProps) {
+  const { focusSkills } = useWorkoutData()
   const [screen, setScreen] = useState<WorkoutBuilderScreen>({ type: 'edit' })
   const [libraryUiState, setLibraryUiState] = useState<ExerciseLibraryUiState>(initialLibraryUiState)
   const [pendingAddedExerciseId, setPendingAddedExerciseId] = useState<string | null>(null)
@@ -123,7 +125,7 @@ export function WorkoutBuilderView({
   }
 
   function handlePreviewPlan() {
-    const result = validateWorkoutPlanDraft(state.draft)
+    const result = validateWorkoutPlanDraft(state.draft, focusSkills.items)
 
     if (result.isValid) {
       setValidationIssues(null)
@@ -154,7 +156,7 @@ export function WorkoutBuilderView({
     saveInFlightRef.current = true
     setSaveState({ status: 'saving' })
 
-    const finalized = finalizeWorkoutPlan(state.draft)
+    const finalized = finalizeWorkoutPlan(state.draft, focusSkills.items)
 
     if (!finalized.ok) {
       saveInFlightRef.current = false
@@ -258,7 +260,7 @@ export function WorkoutBuilderView({
       return
     }
 
-    const result = validateWorkoutPlanDraft(state.draft)
+    const result = validateWorkoutPlanDraft(state.draft, focusSkills.items)
 
     if (!result.isValid) {
       setSaveState({ status: 'idle' })

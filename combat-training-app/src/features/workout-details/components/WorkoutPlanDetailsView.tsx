@@ -16,6 +16,9 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { WORKOUT_PREPARATION_OPTIONS } from '@/features/workout-player/workoutPreparation'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 import { persistWorkoutPreparation, readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
+import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
+import { FocusSkillBadge } from '@/features/focus-skills/FocusSkillBadge'
+import { focusSkillLabels } from '@/features/focus-skills/focusSkillLabels'
 
 interface WorkoutPlanDetailsViewProps {
   loadState: WorkoutPlanDetailsLoadState
@@ -120,8 +123,9 @@ export function WorkoutPlanDetailsNotFoundState({
 function DetailsExerciseItem({ exercise }: { exercise: WorkoutExercise }) {
   return (
     <li className="border-t border-bd bg-bg/20 px-3 py-3">
-      <p className="break-words font-display text-[14px] font-semibold leading-snug text-ink">
-        {exercise.exerciseNameSnapshot}
+      <p className="flex items-start justify-between gap-3 font-display text-[14px] font-semibold leading-snug text-ink">
+        <span className="min-w-0 break-words">{exercise.exerciseNameSnapshot}</span>
+        {exercise.focusSkillId !== null && <FocusSkillBadge />}
       </p>
       <p className="mt-1 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-crimson-ink">
         Ćwiczenie
@@ -164,6 +168,7 @@ function WorkoutPlanDetailsSuccessView({
   onDelete: () => Promise<void>
 }) {
   const summary = calculateWorkoutPlanSummary(plan)
+  const focusExerciseCount = countFocusExercises(plan.blocks)
   const [preparation, setPreparation] = useState(readStoredWorkoutPreparation)
 
   return (
@@ -175,6 +180,7 @@ function WorkoutPlanDetailsSuccessView({
       <h1 className="break-words font-display text-[24px] font-bold text-ink md:text-[28px]">
         {plan.nameSnapshot}
       </h1>
+      <p className="text-[13px] text-muted">{focusSkillLabels.planCount(focusExerciseCount)}</p>
 
       {plan.mainGoal ? (
         <p className="max-w-prose break-words text-[14px] leading-relaxed text-muted">{plan.mainGoal}</p>

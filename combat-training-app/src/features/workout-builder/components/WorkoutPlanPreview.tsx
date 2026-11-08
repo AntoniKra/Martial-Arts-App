@@ -12,6 +12,9 @@ import type { WorkoutBuilderState } from '@/features/workout-builder/state/worko
 import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderLabels'
 import { formatEstimatedDuration, formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { formatPolishCount, polishPlural } from '@/domain/language/polishPlural'
+import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
+import { FocusSkillBadge } from '@/features/focus-skills/FocusSkillBadge'
+import { focusSkillLabels } from '@/features/focus-skills/focusSkillLabels'
 
 interface WorkoutPlanPreviewProps {
   state: WorkoutBuilderState
@@ -38,8 +41,9 @@ function formatExerciseConfigurationSummary(exercise: WorkoutExercise): string {
 function PreviewExerciseItem({ exercise }: { exercise: WorkoutExercise }) {
   return (
     <li className="border-t border-bd bg-bg/20 px-3 py-3">
-      <p className="break-words font-display text-[14px] font-semibold leading-snug text-ink">
-        {exercise.exerciseNameSnapshot}
+      <p className="flex items-start justify-between gap-3 font-display text-[14px] font-semibold leading-snug text-ink">
+        <span className="min-w-0 break-words">{exercise.exerciseNameSnapshot}</span>
+        {exercise.focusSkillId !== null && <FocusSkillBadge />}
       </p>
       <p className="mt-1 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-crimson-ink">
         Ćwiczenie
@@ -75,6 +79,7 @@ export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPrev
   ) {
     const { draft } = state
     const summary = calculateWorkoutPlanSummary(draft)
+    const focusExerciseCount = countFocusExercises(draft.blocks)
     const blockCount = draft.blocks.length
     const isSaving = saveState.status === 'saving'
     const saveErrorMessage = saveState.status === 'error' ? saveState.message : null
@@ -103,6 +108,7 @@ export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPrev
             >
               {displayPlanName}
             </h1>
+            <p className="mt-2 text-[13px] text-muted">{focusSkillLabels.planCount(focusExerciseCount)}</p>
 
             {draft.disciplineKey !== null ? (
               <div className="mt-3">

@@ -40,6 +40,11 @@ function workoutPlan(): Document {
   }
 }
 
+function focusSkill(): Document {
+  return { schemaVersion: 1, id: documentId, name: 'Guard return', criterion: 'Hand returns to the chin',
+    openCorrection: null, archivedAt: null, createdAt: instant, updatedAt: instant }
+}
+
 function workoutSession(source: 'plan' | 'quickTimer' | 'manual'): Document {
   const common: Document = {
     schemaVersion: 1,
@@ -91,6 +96,7 @@ function workoutSession(source: 'plan' | 'quickTimer' | 'manual'): Document {
 }
 
 const scenarios = [
+  { name: 'focus skill', collection: 'focusSkills', create: focusSkill },
   { name: 'workout plan', collection: 'workoutPlans', create: workoutPlan },
   { name: 'plan session', collection: 'workoutSessions', create: () => workoutSession('plan') },
   { name: 'quick timer session', collection: 'workoutSessions', create: () => workoutSession('quickTimer') },
@@ -138,7 +144,8 @@ describe.each(scenarios)('$name', ({ collection, create }) => {
     await assertSucceeds(reference.set(original))
     expect((await assertSucceeds(reference.get())).data()).toEqual(original)
     expect((await assertSucceeds(database.collection(`users/${ownerId}/${collection}`).get())).size).toBe(1)
-    const patch = collection === 'workoutPlans' ? { customName: 'Updated workout' } : { note: 'Updated note' }
+    const patch = collection === 'focusSkills' ? { name: 'Updated skill', criterion: 'Updated criterion' }
+      : collection === 'workoutPlans' ? { customName: 'Updated workout' } : { note: 'Updated note' }
     await assertSucceeds(reference.update(patch))
     expect((await assertSucceeds(reference.get())).data()).toMatchObject(patch)
     await assertSucceeds(reference.delete())
@@ -167,16 +174,17 @@ describe.each(scenarios)('$name', ({ collection, create }) => {
   const invalidCommonFields: [string, unknown][] = [
     ['schemaVersion', 2], ['schemaVersion', '1'],
     ['id', 'another-document'], ['id', 42],
-    ['disciplineKey', 'wrestling'], ['disciplineKey', null],
     ['createdAt', new Date(instant)], ['createdAt', '2026-11-08'],
     ['updatedAt', null], ['updatedAt', 42],
     ['unexpectedField', true],
   ]
   const invalidPlanFields: [string, unknown][] = [
+    ['disciplineKey', 'wrestling'], ['disciplineKey', null],
     ['customName', 42], ['mainGoal', false], ['nameSnapshot', ''], ['nameSnapshot', null],
     ['blocks', {}], ['blocks', null],
   ]
   const invalidSessionFields: [string, unknown][] = [
+    ['disciplineKey', 'wrestling'], ['disciplineKey', null],
     ['source', 'unknown'], ['status', 'in_progress'], ['category', 'warmup'], ['category', 'unknown'],
     ['workoutDate', '08.11.2026'], ['workoutDate', 42], ['timezone', null], ['timezone', '+01:00'],
     ['durationSeconds', 0], ['durationSeconds', -1], ['durationSeconds', '180'],
@@ -187,7 +195,27 @@ describe.each(scenarios)('$name', ({ collection, create }) => {
     ['sparring', {}], ['sparring', null],
   ]
 
-  it.each([...invalidCommonFields, ...(collection === 'workoutPlans' ? invalidPlanFields : invalidSessionFields)])(
+  const correction = { problem: 'Dropping guard', fix: 'Touch the chin', sessionId: documentId, workoutDate: '2026-11-08' }
+  const invalidFocusFields: [string, unknown][] = [
+    ['name', ''], ['name', 'n'.repeat(81)], ['name', 42],
+    ['criterion', ''], ['criterion', 'c'.repeat(201)], ['criterion', null],
+    ['archivedAt', 'yesterday'], ['archivedAt', new Date(instant)],
+    ['openCorrection', []], ['openCorrection', {}],
+    ...[
+      { ...correction, problem: '' }, { ...correction, problem: 'p'.repeat(201) },
+      { ...correction, fix: '' }, { ...correction, fix: 'f'.repeat(201) },
+      { ...correction, sessionId: '' }, { ...correction, workoutDate: '08.11.2026' },
+      { ...correction, extra: true },
+      ...Object.keys(correction).map((field) => {
+        const incomplete: Document = { ...correction }
+        delete incomplete[field]
+        return incomplete
+      }),
+    ].map((value): [string, unknown] => ['openCorrection', value]),
+  ]
+
+  it.each([...invalidCommonFields, ...(collection === 'focusSkills' ? invalidFocusFields
+    : collection === 'workoutPlans' ? invalidPlanFields : invalidSessionFields)])(
     'denies create and update with invalid %s (%j)',
     async (field, value) => {
       const reference = ownerDatabase().doc(path)
@@ -212,6 +240,16 @@ describe.each(scenarios)('$name', ({ collection, create }) => {
       await assertSucceeds(context.firestore().doc(path).set({ schemaVersion: 0 }))
     })
     await assertSucceeds(ownerDatabase().doc(path).delete())
+  })
+})
+
+describe('focus skill boundaries', () => {
+  it('allows bounded text, an exact correction object and an archive instant', async () => {
+    const reference = ownerDatabase().doc(`users/${ownerId}/focusSkills/${documentId}`)
+    await assertSucceeds(reference.set({ ...focusSkill(), name: 'n'.repeat(80), criterion: 'c'.repeat(200),
+      openCorrection: { problem: 'p'.repeat(200), fix: 'f'.repeat(200), sessionId: documentId, workoutDate: '2026-11-08' },
+      archivedAt: instant }))
+    await assertSucceeds(reference.update({ openCorrection: null, archivedAt: null }))
   })
 })
 
@@ -288,13 +326,15 @@ describe('default denial', () => {
   it.each([
     `users/${ownerId}`,
     `users/${ownerId}/inne/${documentId}`,
-    ...['focusSkills', 'weekPlans', 'readiness', 'bodyWeights', 'controlTests', 'controlTestResults']
+    ...['weekPlans', 'readiness', 'bodyWeights', 'controlTests', 'controlTestResults']
       .map((collection) => `users/${ownerId}/${collection}/${documentId}`),
     `users/${ownerId}/workoutPlans/${documentId}/nested/${documentId}`,
     `users/${ownerId}/workoutSessions/${documentId}/nested/${documentId}`,
+    `users/${ownerId}/focusSkills/${documentId}/nested/${documentId}`,
     `workoutPlans/${documentId}`,
     `workoutSessions/${documentId}`,
-  ])('denies all operations outside the two allowed collections: %s', async (path) => {
+    `focusSkills/${documentId}`,
+  ])('denies all operations outside the allowed collections: %s', async (path) => {
     const reference = ownerDatabase().doc(path)
     await assertFails(reference.set({ id: documentId }))
     await environment.withSecurityRulesDisabled(async (context) => {
@@ -308,5 +348,6 @@ describe('default denial', () => {
   it('denies queries across users', async () => {
     await assertFails(ownerDatabase().collectionGroup('workoutPlans').get())
     await assertFails(ownerDatabase().collectionGroup('workoutSessions').get())
+    await assertFails(ownerDatabase().collectionGroup('focusSkills').get())
   })
 })

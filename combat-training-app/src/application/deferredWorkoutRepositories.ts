@@ -1,8 +1,9 @@
 import type { SubscribableRepository } from './repositorySubscription'
 import type { WorkoutPlanRepository } from './workout/workoutPlanRepository'
 import type { WorkoutSessionRepository } from './workout-session/workoutSessionRepository'
+import type { FocusSkillRepository } from './focus-skill/focusSkillRepository'
 
-export interface WorkoutRepositories { plans: WorkoutPlanRepository; sessions: WorkoutSessionRepository }
+export interface WorkoutRepositories { plans: WorkoutPlanRepository; sessions: WorkoutSessionRepository; focusSkills: FocusSkillRepository }
 
 function deferredSubscription<T>(ready: Promise<SubscribableRepository<T>>): SubscribableRepository<T>['subscribe'] {
   return (onChange, onError) => {
@@ -19,6 +20,7 @@ function deferredSubscription<T>(ready: Promise<SubscribableRepository<T>>): Sub
 export function createDeferredWorkoutRepositories(ready: Promise<WorkoutRepositories>): WorkoutRepositories {
   const plans = ready.then((repositories) => repositories.plans)
   const sessions = ready.then((repositories) => repositories.sessions)
+  const focusSkills = ready.then((repositories) => repositories.focusSkills)
   return {
     plans: {
       subscribe: deferredSubscription(plans),
@@ -30,6 +32,10 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
       save: async (session) => (await sessions).save(session),
       updateNote: async (id, note) => (await sessions).updateNote(id, note),
       delete: async (id) => (await sessions).delete(id),
+    },
+    focusSkills: {
+      subscribe: deferredSubscription(focusSkills),
+      save: async (skill) => (await focusSkills).save(skill),
     },
   }
 }

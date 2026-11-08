@@ -25,6 +25,7 @@ import {
   canMoveBlockUp,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
 import { formatPolishCount } from '@/domain/language/polishPlural'
+import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
 
 interface WorkoutBlockCardProps {
   block: WorkoutBlock
@@ -80,6 +81,7 @@ export function WorkoutBlockCard({
   const canMoveUp = canMoveBlockUp(allBlocks, block.id)
   const canMoveDown = canMoveBlockDown(allBlocks, block.id)
   const isEmpty = block.items.length === 0
+  const focusExerciseCount = countFocusExercises(allBlocks)
   const addBreakFocusTarget: FocusRestoreTarget = { type: 'addBreak', blockId: block.id }
 
   const isAddingBreak =
@@ -197,6 +199,7 @@ export function WorkoutBlockCard({
                 blockLabel={blockLabel}
                 itemPosition={itemIndex + 1}
                 exercise={item}
+                focusExerciseCount={focusExerciseCount}
                 blockItems={block.items}
                 dispatch={dispatch}
                 onOpenExerciseEdit={onOpenExerciseEdit}
