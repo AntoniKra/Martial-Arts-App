@@ -1,10 +1,11 @@
-import type { Dispatch } from 'react'
+import type { Dispatch, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import type { WorkoutPlanRepository } from '@/application/workout/workoutPlanRepository'
 import { routes } from '@/app/routes'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
+import { Button } from '@/components/ui/Button'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { finalizeWorkoutPlan } from '@/domain/workout/finalizeWorkoutPlan'
@@ -13,6 +14,7 @@ import { validateWorkoutPlanDraft, type WorkoutPlanValidationIssue } from '@/dom
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { ExerciseConfigurationView } from '@/features/workout-builder/components/ExerciseConfigurationView'
 import { ExerciseLibraryView } from '@/features/workout-builder/components/ExerciseLibraryView'
+import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
 import { WorkoutMetadataForm } from '@/features/workout-builder/components/WorkoutMetadataForm'
 import { WorkoutPlanPreview } from '@/features/workout-builder/components/WorkoutPlanPreview'
 import { WorkoutTimeline } from '@/features/workout-builder/components/WorkoutTimeline'
@@ -36,6 +38,7 @@ import {
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
 import { copyExerciseConfiguration } from '@/features/workout-builder/utils/exerciseConfigurationCompare'
 import { mapWorkoutPlanSaveError } from '@/features/workout-builder/utils/workoutPlanSaveErrorMessages'
+import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderLabels'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 
 interface WorkoutBuilderViewProps {
@@ -76,6 +79,7 @@ export function WorkoutBuilderView({
   const validationSummaryRef = useRef<HTMLDivElement>(null)
   const saveErrorRef = useRef<HTMLDivElement>(null)
   const saveInFlightRef = useRef(false)
+  const allowLeaveRef = useRef(false)
 
   const displayPlanName = selectDisplayPlanName(state)
 
@@ -163,6 +167,7 @@ export function WorkoutBuilderView({
 
     try {
       await workoutPlanRepository.save(finalized.plan)
+      allowLeaveRef.current = true
       onPlanSaved(finalized.plan)
     } catch (error) {
       saveInFlightRef.current = false
@@ -240,6 +245,32 @@ export function WorkoutBuilderView({
     return () => cancelAnimationFrame(frame)
   }, [pendingSaveErrorFocus])
 
+  function guard(content: ReactNode) {
+    return (
+      <UnsavedPlanChangesGuard isDirty={state.isDirty} allowLeaveRef={allowLeaveRef}>
+        {content}
+      </UnsavedPlanChangesGuard>
+    )
+  }
+
+  async function handleSaveChanges() {
+    if (!editingPlanId || !state.isDirty || saveInFlightRef.current || saveState.status === 'saving') {
+      return
+    }
+
+    const result = validateWorkoutPlanDraft(state.draft)
+
+    if (!result.isValid) {
+      setSaveState({ status: 'idle' })
+      setValidationIssues(result.issues)
+      setPendingValidationSummaryFocus(true)
+      return
+    }
+
+    setValidationIssues(null)
+    await handleSavePlan()
+  }
+
   function handleAddExercise(configuration: ExerciseConfiguration, instruction: string | null) {
     if (screen.type !== 'configureNew') {
       return
@@ -274,7 +305,7 @@ export function WorkoutBuilderView({
   }
 
   if (screen.type === 'preview') {
-    return (
+    return guard(
       <WorkoutPlanPreview
         ref={previewHeadingRef}
         state={state}
@@ -283,7 +314,7 @@ export function WorkoutBuilderView({
         saveErrorRef={saveErrorRef}
         onBack={backToEditFromPreview}
         onSave={handleSavePlan}
-      />
+      />,
     )
   }
 
@@ -293,7 +324,7 @@ export function WorkoutBuilderView({
 
     if (targetBlock && disciplineKey !== null) {
       if (screen.type === 'library') {
-        return (
+        return guard(
           <div className="flex flex-1 flex-col overflow-hidden">
             <ExerciseLibraryView
               blockType={targetBlock.blockType}
@@ -303,14 +334,14 @@ export function WorkoutBuilderView({
               onBack={() => cancelExerciseLibrary(screen.blockId)}
               onConfigure={openExerciseConfiguration}
             />
-          </div>
+          </div>,
         )
       }
 
       if (screen.type === 'configureNew') {
         const starting = selectStartingExerciseConfiguration(state.draft.blocks, targetBlock.id)
 
-        return (
+        return guard(
           <div className="flex flex-1 flex-col overflow-hidden">
             <ExerciseConfigurationView
               blockLabel={getWorkoutBlockLabelPl(targetBlock.blockType)}
@@ -331,14 +362,14 @@ export function WorkoutBuilderView({
               onBack={backToLibraryFromConfigureNew}
               onSubmit={handleAddExercise}
             />
-          </div>
+          </div>,
         )
       }
 
       const exercise = selectExerciseById(targetBlock, screen.exerciseId)
 
       if (exercise) {
-        return (
+        return guard(
           <div className="flex flex-1 flex-col overflow-hidden">
             <ExerciseConfigurationView
               blockLabel={getWorkoutBlockLabelPl(targetBlock.blockType)}
@@ -349,13 +380,16 @@ export function WorkoutBuilderView({
               onBack={() => cancelExerciseEdit(screen.exerciseId)}
               onSubmit={handleUpdateExercise}
             />
-          </div>
+          </div>,
         )
       }
     }
   }
 
-  return (
+  const isSaving = saveState.status === 'saving'
+  const saveErrorMessage = saveState.status === 'error' ? saveState.message : null
+
+  return guard(
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-lg px-4 py-6 md:max-w-2xl md:py-8">
@@ -364,7 +398,7 @@ export function WorkoutBuilderView({
             className="mb-6 inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             <ChevronRightIcon className="rotate-180" />
-            {editingPlanId ? workoutPlanLabels.cancel : 'Wróć do treningów'}
+            {editingPlanId ? workoutPlanLabels.cancel : workoutBuilderLabels.backToWorkouts}
           </Link>
 
           <p className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
@@ -415,22 +449,50 @@ export function WorkoutBuilderView({
             </div>
           ) : null}
 
-          <div className="mt-8 pb-2">
+          {saveErrorMessage ? (
+            <div
+              ref={saveErrorRef}
+              role="alert"
+              tabIndex={-1}
+              className="mt-8 border border-bd bg-surface px-4 py-4 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--app-focus-ring)]"
+            >
+              <p className="font-display text-[14px] font-semibold text-ink">{workoutBuilderLabels.saveFailed}</p>
+              <p className="mt-2 break-words text-[13px] leading-relaxed text-muted">{saveErrorMessage}</p>
+            </div>
+          ) : null}
+
+          <div className="mt-8 flex flex-col gap-3 pb-2">
+            {editingPlanId ? (
+              <Button
+                type="button"
+                variant="primary"
+                className="w-full"
+                loading={isSaving}
+                disabled={!state.isDirty || isSaving}
+                onClick={() => {
+                  void handleSaveChanges()
+                }}
+              >
+                {isSaving ? workoutBuilderLabels.saving : workoutBuilderLabels.saveChanges}
+              </Button>
+            ) : null}
             <button
               ref={previewButtonRef}
               type="button"
+              disabled={isSaving}
               onClick={handlePreviewPlan}
               className={getButtonClassName({
                 variant: 'secondary',
+                disabled: isSaving,
                 className:
                   'w-full focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--app-focus-ring)]',
               })}
             >
-              Podgląd planu
+              {workoutBuilderLabels.previewPlan}
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
   )
 }

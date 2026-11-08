@@ -4,7 +4,9 @@ import type { ExerciseConfiguration } from '@/domain/workout/workout.types'
 import {
   createExerciseConfigurationFormState,
   exerciseConfigurationFormReducer,
+  resolveRestBetweenRoundsSeconds,
   selectedRoundFormat,
+  showsRestBetweenRounds,
   type ExerciseConfigurationFieldErrors,
   type ExerciseConfigurationFormState,
 } from '@/features/workout-builder/state/exerciseConfigurationForm'
@@ -157,6 +159,52 @@ describe('exercise configuration form', () => {
     expect(rounds.roundCountPreset).toBe(2)
     expect(rounds.roundDurationPreset).toBe(60)
     expect(rounds.restPreset).toBe(30)
+  })
+
+  it('hides rest at one round and keeps the previous rest when the count returns', () => {
+    const start = createExerciseConfigurationFormState(
+      { mode: 'rounds', roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 30 },
+      null,
+    )
+
+    expect(showsRestBetweenRounds(start)).toBe(true)
+
+    const oneRound = exerciseConfigurationFormReducer(start, { type: 'selectRoundCountPreset', value: 1 })
+    expect(showsRestBetweenRounds(oneRound)).toBe(false)
+    expect(oneRound.restPreset).toBe(30)
+
+    const customOne = exerciseConfigurationFormReducer(
+      exerciseConfigurationFormReducer(start, { type: 'selectRoundCountPreset', value: 'custom' }),
+      { type: 'setRoundCountInput', value: '1' },
+    )
+    expect(showsRestBetweenRounds(customOne)).toBe(false)
+
+    const blankCustom = exerciseConfigurationFormReducer(customOne, { type: 'setRoundCountInput', value: '' })
+    expect(showsRestBetweenRounds(blankCustom)).toBe(true)
+
+    const restored = exerciseConfigurationFormReducer(oneRound, { type: 'selectRoundCountPreset', value: 3 })
+    expect(showsRestBetweenRounds(restored)).toBe(true)
+    expect(restored.restPreset).toBe(30)
+    expect(selectedRoundFormat(restored)?.label).toBe('3 × 3:00 · przerwa 0:30')
+  })
+
+  it('keeps a valid rest at one round and falls back only when that rest cannot be read', () => {
+    expect(resolveRestBetweenRoundsSeconds(1, { seconds: 30, error: null }, 60)).toEqual({
+      ok: true,
+      seconds: 30,
+    })
+    expect(resolveRestBetweenRoundsSeconds(1, { seconds: null, error: 'Sekundy muszą być w zakresie od 0 do 59.' }, 60)).toEqual({
+      ok: true,
+      seconds: 60,
+    })
+    expect(resolveRestBetweenRoundsSeconds(3, { seconds: 30, error: null }, 60)).toEqual({
+      ok: true,
+      seconds: 30,
+    })
+    expect(resolveRestBetweenRoundsSeconds(3, { seconds: null, error: 'Sekundy muszą być w zakresie od 0 do 59.' }, 60)).toEqual({
+      ok: false,
+      error: 'Sekundy muszą być w zakresie od 0 do 59.',
+    })
   })
 
   it('clears the continuous duration error when that duration changes', () => {
