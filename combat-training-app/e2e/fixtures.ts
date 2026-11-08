@@ -15,14 +15,34 @@ class WorkoutApp {
       await this.page.goto(path)
       await expect(this.page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
       await signIn(this.page, account)
-      await expect(this.page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeVisible()
+      // Enabled only after the first snapshots. That is also when Firestore has
+      // registered the pagehide handler that releases the primary lease.
+      await expect(this.page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
       this.authenticated = true
     }
+    await this.releaseFirestoreLease()
     await this.page.goto(path)
     await expect(this.page.getByRole('main')).toBeVisible()
   }
 
-  async seedPlan(plan: WorkoutPlan) { await seedPlan(this.page.request, this.uid, plan) }
+  private async releaseFirestoreLease() {
+    // Firestore keeps the primary lease for 5s unless pagehide marks this client
+    // as zombied. A reload that wins that race keeps the next tab on a stale
+    // cache, or on the plan-loading state, until the lease expires. That window
+    // is the same 5s as the assertion timeout.
+    await this.page.evaluate(() => {
+      window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }))
+    })
+  }
+
+  async seedPlan(plan: WorkoutPlan) {
+    await seedPlan(this.page.request, this.uid, plan)
+    // The emulator write stays invisible to this tab until its listener applies it.
+    // A reload before that reads an empty persistent cache, and the new tab can keep
+    // showing that empty snapshot for the whole 5s primary-lease window. Return only
+    // once this tab renders the plan, so the cache already contains it.
+    await expect(this.page.getByRole('heading', { name: plan.nameSnapshot, exact: true })).toBeVisible()
+  }
   async readSessions() { return readSessions(this.page.request, this.uid) }
 
   async createPlan(name = 'Plan E2E', roundDurationLabel: '1:00' | '3:00' = '1:00') {
