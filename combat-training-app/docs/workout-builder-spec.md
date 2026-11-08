@@ -11,7 +11,20 @@ Nazwa automatyczna po rozpoczęciu: „{Dyscyplina} — {data}”.
 
 ## Oś treningu
 
-Kreator prezentuje bloki i elementy w kolejności odtwarzania. Użytkownik może:
+Kreator prezentuje bloki i elementy w kolejności odtwarzania. Rodzaje bloków, w kolejności na liście:
+
+- Rozgrzewka;
+- Technika;
+- Tarcze;
+- Worek;
+- Sparing;
+- Kondycja;
+- Siła i motoryka;
+- Rozluźnienie.
+
+Rozluźnienie ma ten sam wygląd karty i te same ustawienia początkowe nowego ćwiczenia co rozgrzewka. Nie zmienia rodzaju treningu w dzienniku.
+
+Użytkownik może:
 
 - dodać blok;
 - dodać ćwiczenie;

@@ -31,7 +31,8 @@ Dyscyplinę można zmienić do momentu dodania pierwszego ćwiczenia. Później 
 - Worek;
 - Sparing;
 - Kondycja;
-- Siła i motoryka.
+- Siła i motoryka;
+- Rozluźnienie.
 
 Blok grupuje elementy w logiczną sekcję. Elementy zachowują kolejność.
 
@@ -133,7 +134,7 @@ Lokalny storage v2 zachowuje kompatybilność wsteczną: dokumenty `schemaVersio
 - `workSeconds`: czas wyłącznie dokończonych etapów ćwiczeń; `sparringSeconds`: wyłącznie dokończone ćwiczenia w blokach `sparring`;
 - `completion`: `{ completedExercises, plannedExercises }`, liczone po ćwiczeniach, nie rundach, czasie ani ocenach; `null` oznacza „nie dotyczy” dla przyszłego ręcznego wpisu;
 - `workoutDate`: dzień startu `YYYY-MM-DD` w zapisanej strefie IANA `timezone`;
-- `category`: wspólny typ bloków bez rozgrzewki albo `mixed`; plan z samą rozgrzewką także dostaje `mixed`.
+- `category`: wspólny typ bloków bez rozgrzewki i rozluźnienia albo `mixed`; plan z samą rozgrzewką, samym rozluźnieniem albo tylko z tych dwóch bloków także dostaje `mixed`.
 
 Czas treningu v3 może zawierać ułamki sekund, aby zachować realny czas przerwanych prób w `durationSeconds`. Dla przyszłego ręcznego wpisu `workSeconds` i `sparringSeconds` mogą być `null` (nieznane). Odtwarzacz zwraca jawny wynik „nie zapisuj”, gdy żaden etap ćwiczenia nie został dokończony, i pokazuje komunikat zamiast dodawać wpis.
 

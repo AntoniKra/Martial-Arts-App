@@ -8,6 +8,7 @@ export type WorkoutBlockType =
   | 'sparring'
   | 'conditioning'
   | 'strengthAndConditioning'
+  | 'cooldown'
 
 export type ExerciseMode = 'rounds' | 'continuous' | 'strength'
 
