@@ -13,10 +13,11 @@ interface WorkoutPlayerExitControlsProps {
   onResume: () => void
   onFinishExercise: () => void
   onEndEarly: () => void
+  onDiscard: () => void
 }
 
 export function WorkoutPlayerExitControls({
-  status, canFinishExercise, workoutDetailsPath, onPause, onResume, onFinishExercise, onEndEarly,
+  status, canFinishExercise, workoutDetailsPath, onPause, onResume, onFinishExercise, onEndEarly, onDiscard,
 }: WorkoutPlayerExitControlsProps) {
   const navigate = useNavigate()
   const menuId = useId()
@@ -32,7 +33,11 @@ export function WorkoutPlayerExitControls({
   const [menuOpen, setMenuOpen] = useState(false)
   const [exitOpen, setExitOpen] = useState(false)
   const active = status === 'running' || status === 'paused'
-  const blocker = useBlocker(() => active && !allowExitRef.current)
+  const blocker = useBlocker(() => {
+    // Clear preparation before navigation commits, including a browser back followed by reload.
+    if (status === 'preparing') onDiscard()
+    return active && !allowExitRef.current
+  })
   const handledBlockerRef = useRef<typeof blocker | null>(null)
 
   const openExit = useCallback(() => {
@@ -173,6 +178,7 @@ export function WorkoutPlayerExitControls({
           <button type="button"
             className={getButtonClassName({ variant: 'danger', size: 'lg', className: 'flex-col gap-1 whitespace-normal border-2 py-3' })}
             onClick={() => {
+              onDiscard()
               if (blocker.state === 'blocked') {
                 blocker.proceed()
                 return

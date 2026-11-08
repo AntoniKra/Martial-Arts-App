@@ -26,6 +26,17 @@ beforeEach(() => {
 })
 
 describe('Firebase AuthService', () => {
+  it('clears only the signing-out account active workout', async () => {
+    const values = new Map([
+      ['combat-training.activeWorkout.athlete', '{}'], ['combat-training.activeWorkout.other', '{}'],
+    ])
+    vi.stubGlobal('localStorage', { removeItem: (key: string) => { values.delete(key) } })
+    try {
+      await createFirebaseAuthService(config).signOut()
+      expect(values.has('combat-training.activeWorkout.athlete')).toBe(false)
+      expect(values.has('combat-training.activeWorkout.other')).toBe(true)
+    } finally { vi.unstubAllGlobals() }
+  })
   it('uses only IndexedDB persistence and explicitly connects the emulator', () => {
     createFirebaseAuthService(config)
     expect(initializeApp).toHaveBeenCalledWith({ apiKey: 'demo-config', authDomain: 'demo.example.test', projectId: 'demo-combat-training', appId: 'demo-app' })

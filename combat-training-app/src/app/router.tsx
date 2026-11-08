@@ -13,6 +13,7 @@ import { WorkoutsPage } from '@/pages/WorkoutsPage'
 import { AuthGate } from '@/features/auth/AuthGate'
 import { AuthFormPage } from '@/features/auth/AuthFormPage'
 import { VerifyEmailPage } from '@/features/auth/VerifyEmailPage'
+import { ActiveWorkoutGate } from '@/features/workout-player/ActiveWorkoutGate'
 
 export const router = createBrowserRouter([
   {
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
           { path: '/register', element: <AuthFormPage key="register" mode="register" /> },
           { path: '/forgot-password', element: <AuthFormPage key="forgot-password" mode="forgot-password" /> },
           { path: '/verify-email', element: <VerifyEmailPage /> },
+          { element: <ActiveWorkoutGate />, children: [
           {
             element: <WorkoutDataProvider><Outlet /></WorkoutDataProvider>,
             children: [
@@ -44,6 +46,7 @@ export const router = createBrowserRouter([
           { path: '/workouts/:workoutId/feedback', element: <PlaceholderPage title="Podsumowanie treningu" fullscreen /> },
             ],
           },
+          ] },
         ],
       },
     ],

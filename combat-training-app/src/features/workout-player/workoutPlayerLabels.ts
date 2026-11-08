@@ -1,4 +1,9 @@
 export const workoutPlayerLabels = {
+  enableSound: 'Dźwięk wyłączony — stuknij, aby włączyć',
+  interruptedTitle: 'Niedokończony trening',
+  lastActivity: 'Ostatnia aktywność',
+  saveInterrupted: 'Zapisz to, co zrobione',
+  saving: 'Zapisywanie treningu…',
   preparationSetting: 'Przygotowanie przed startem',
   preparing: 'PRZYGOTUJ SIĘ',
   startNow: 'Zacznij teraz',

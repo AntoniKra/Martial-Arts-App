@@ -8,6 +8,7 @@ import {
 
 import type { AuthService, AuthSession } from '@/application/auth/authService'
 import type { FirebaseConfig } from './firebaseConfig'
+import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
 
 function toSession(user: User | null): AuthSession | null {
   if (!user) return null
@@ -32,6 +33,7 @@ export function createFirebaseAuthService(config: FirebaseConfig): AuthService {
       await signInWithEmailAndPassword(auth, email, password)
     },
     async signOut() {
+      if (auth.currentUser) createActiveWorkoutRepository(auth.currentUser.uid).clear()
       try {
         const { clearFirestoreCache } = await import('./createFirestoreRepositories')
         await clearFirestoreCache()
