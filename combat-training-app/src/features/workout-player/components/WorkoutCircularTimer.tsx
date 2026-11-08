@@ -77,7 +77,7 @@ export function WorkoutCircularTimer({
 
       <div className="relative flex h-full flex-col items-center justify-center px-4 text-center">
         {paused ? (
-          <span className="mb-1 font-display text-[9px] font-semibold uppercase tracking-[0.14em] text-muted">
+          <span className="mb-1 font-display text-[16px] font-semibold uppercase tracking-[0.14em] text-muted">
             WSTRZYMANO
           </span>
         ) : null}
@@ -89,7 +89,7 @@ export function WorkoutCircularTimer({
         </span>
         <span className="sr-only">{formatRemainingSecondsAccessiblePl(remainingSeconds)}</span>
         <span
-          className={`mt-2 font-display text-[10px] font-semibold uppercase tracking-[0.18em] ${presentation.labelClass}`}
+          className={`mt-2 font-display text-[16px] font-semibold uppercase tracking-[0.18em] ${presentation.labelClass}`}
         >
           {presentation.stateLabel}
         </span>

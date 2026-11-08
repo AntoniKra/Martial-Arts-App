@@ -27,10 +27,10 @@ export function WorkoutPlayerNextPreview({ nextStep, isLastStep }: WorkoutPlayer
 
   return (
     <div className="shrink-0 px-5 pb-3 text-center">
-      <p className="font-display text-[9px] font-semibold uppercase tracking-[0.12em] text-faint">
+      <p className="font-display text-[12px] font-semibold uppercase tracking-[0.12em] text-faint">
         Następnie
       </p>
-      <p className="mt-1 text-[11px] text-muted">
+      <p className="mt-1 text-[14px] text-muted">
         <span className="font-semibold text-ink">{nextStep.name}</span>
         <span className="text-muted">
           {' '}
