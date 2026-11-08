@@ -31,7 +31,15 @@ export function createFirebaseAuthService(config: FirebaseConfig): AuthService {
     async signIn(email, password) {
       await signInWithEmailAndPassword(auth, email, password)
     },
-    signOut: () => signOut(auth),
+    async signOut() {
+      try {
+        const { clearFirestoreCache } = await import('./createFirestoreRepositories')
+        await clearFirestoreCache()
+      } catch (error) {
+        console.error('Failed to clear Firestore cache during sign-out', error)
+      }
+      await signOut(auth)
+    },
     async sendVerificationEmail() {
       if (!auth.currentUser) throw new Error('Missing authentication session')
       await sendEmailVerification(auth.currentUser)

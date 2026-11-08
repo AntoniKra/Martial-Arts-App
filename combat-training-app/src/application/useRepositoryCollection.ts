@@ -7,7 +7,7 @@ export interface CollectionState<T> extends RepositorySnapshot<T> {
 
 export function useRepositoryCollection<T>(repository: SubscribableRepository<T>): CollectionState<T> {
   const [state, setState] = useState<CollectionState<T>>({
-    status: 'loading', items: [], pendingIds: new Set(), invalidDocumentIds: [],
+    status: 'loading', items: [], pendingIds: new Set(), hasPendingWrites: false, invalidDocumentIds: [],
   })
   useEffect(() => repository.subscribe(
     (snapshot) => setState({ ...snapshot, status: 'ready' }),

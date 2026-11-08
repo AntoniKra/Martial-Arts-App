@@ -28,7 +28,10 @@ Ta opcja nie ma wpływu na weryfikację sesji ani blokadę projektu demo.
 
 Polskie komunikaty błędów znajdują się w `src/features/auth`, poza adapterem.
 Stare pokazowe klucze localStorage są usuwane raz, bez importowania danych (D2).
-Zmiana konta odłącza subskrypcje poprzedniego UID. Ostrzeżenie o niewysłanych danych
-przy wylogowaniu i czyszczenie pamięci Firestore pozostają w issue #51.
+Zmiana konta odłącza subskrypcje poprzedniego UID. Wylogowanie z niewysłanymi zmianami
+pokazuje ostrzeżenie z możliwością anulowania. Po potwierdzeniu `AuthService` zamyka
+subskrypcje, wywołuje `terminate`, czyści IndexedDB przez `clearIndexedDbPersistence`
+i dopiero wylogowuje konto. Błąd czyszczenia jest zgłaszany w konsoli i nie blokuje
+wylogowania. Kolejne konto otrzymuje nową instancję Firestore, bez poprzedniej pamięci.
 
 Nie wywołuj Firebase w komponentach React. Zasady: `AGENTS.md` (Data and backend) i `docs/adr/0004-firebase-as-baas.md`.
