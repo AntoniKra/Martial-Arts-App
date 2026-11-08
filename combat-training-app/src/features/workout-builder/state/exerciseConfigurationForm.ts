@@ -151,11 +151,37 @@ function readOptionalSeconds(
   return computeDurationSeconds(fields.minutes, fields.seconds, allowZero).seconds
 }
 
+export function readRoundCount(state: ExerciseConfigurationFormState): number | null {
+  if (state.roundCountPreset === 'custom') {
+    return parseRequiredNonNegativeInteger(state.roundCountInput)
+  }
+
+  return state.roundCountPreset
+}
+
+/** One round has no rest between rounds, so the rest controls stay hidden. The stored rest is kept. */
+export function showsRestBetweenRounds(state: ExerciseConfigurationFormState): boolean {
+  return readRoundCount(state) !== 1
+}
+
+export function resolveRestBetweenRoundsSeconds(
+  roundCount: number,
+  parsed: { seconds: number | null; error: string | null },
+  preservedSeconds: number,
+): { ok: true; seconds: number } | { ok: false; error: string } {
+  if (parsed.error === null && parsed.seconds !== null) {
+    return { ok: true, seconds: parsed.seconds }
+  }
+
+  if (roundCount === 1) {
+    return { ok: true, seconds: preservedSeconds }
+  }
+
+  return { ok: false, error: parsed.error ?? 'Minuty i sekundy muszą być liczbami całkowitymi od 0.' }
+}
+
 export function selectedRoundFormat(state: ExerciseConfigurationFormState): RoundFormatPreset | null {
-  const roundCount =
-    state.roundCountPreset === 'custom'
-      ? parseRequiredNonNegativeInteger(state.roundCountInput)
-      : state.roundCountPreset
+  const roundCount = readRoundCount(state)
   const roundDurationSeconds = readOptionalSeconds(state.roundDurationPreset, state.roundDurationCustom, false)
   const restBetweenRoundsSeconds = readOptionalSeconds(state.restPreset, state.restCustom, true)
 

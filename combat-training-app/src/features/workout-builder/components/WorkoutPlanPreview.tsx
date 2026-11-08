@@ -9,6 +9,7 @@ import { calculateWorkoutPlanSummary } from '@/domain/workout/workoutCalculation
 import type { WorkoutExercise, WorkoutItem } from '@/domain/workout/workout.types'
 import type { WorkoutPlanSaveState } from '@/features/workout-builder/components/workoutBuilderUi.types'
 import type { WorkoutBuilderState } from '@/features/workout-builder/state/workoutBuilder.types'
+import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderLabels'
 import { formatEstimatedDuration, formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { formatPolishCount, polishPlural } from '@/domain/language/polishPlural'
 
@@ -89,11 +90,11 @@ export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPrev
               className="mb-6 inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronRightIcon className="rotate-180" />
-              Wróć do edycji
+              {workoutBuilderLabels.returnToEditing}
             </button>
 
             <p className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
-              Podgląd planu
+              {workoutBuilderLabels.previewPlan}
             </p>
             <h1
               ref={headingRef}
@@ -196,7 +197,7 @@ export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPrev
                   tabIndex={-1}
                   className="border border-bd bg-surface px-4 py-4 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--app-focus-ring)]"
                 >
-                  <p className="font-display text-[14px] font-semibold text-ink">Nie udało się zapisać planu</p>
+                  <p className="font-display text-[14px] font-semibold text-ink">{workoutBuilderLabels.saveFailed}</p>
                   <p className="mt-2 break-words text-[13px] leading-relaxed text-muted">{saveErrorMessage}</p>
                 </div>
               ) : null}
@@ -209,11 +210,11 @@ export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPrev
                 disabled={isSaving}
                 onClick={onSave}
               >
-                {isSaving ? 'Zapisywanie…' : 'Zapisz plan'}
+                {isSaving ? workoutBuilderLabels.saving : workoutBuilderLabels.savePlan}
               </Button>
 
               <Button type="button" variant="secondary" className="w-full" disabled={isSaving} onClick={onBack}>
-                Wróć do edycji
+                {workoutBuilderLabels.returnToEditing}
               </Button>
             </section>
           </div>

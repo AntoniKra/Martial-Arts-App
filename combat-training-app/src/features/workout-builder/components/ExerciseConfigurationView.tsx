@@ -18,16 +18,20 @@ import {
   createExerciseConfigurationFormState,
   emptyExerciseConfigurationFieldErrors,
   exerciseConfigurationFormReducer,
+  resolveRestBetweenRoundsSeconds,
   REST_PRESETS,
   ROUND_COUNT_PRESETS,
   ROUND_DURATION_PRESETS,
   ROUND_FORMAT_PRESETS,
   selectedRoundFormat,
+  showsRestBetweenRounds,
 } from '@/features/workout-builder/state/exerciseConfigurationForm'
 import {
+  DEFAULT_ROUND_EXERCISE_CONFIGURATION,
   EXERCISE_INSTRUCTION_MAX_LENGTH,
   ROUND_COUNT_MAX,
 } from '@/features/workout-builder/state/workoutBuilder.types'
+import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderLabels'
 import {
   computeDurationSeconds,
   parseRequiredNonNegativeInteger,
@@ -271,7 +275,7 @@ export function ExerciseConfigurationView({
 
   const backLabel = variant === 'new' ? 'Wróć do biblioteki' : 'Wróć do osi treningu'
   const heading = variant === 'new' ? 'Konfiguracja ćwiczenia' : 'Edycja ćwiczenia'
-  const submitLabel = variant === 'new' ? 'Dodaj ćwiczenie' : 'Zapisz zmiany'
+  const submitLabel = variant === 'new' ? 'Dodaj ćwiczenie' : workoutBuilderLabels.saveChanges
   const initialMode = initialConfiguration.mode
   const initialRoundCount = initialConfiguration.mode === 'rounds' ? initialConfiguration.roundCount : null
 
@@ -355,11 +359,17 @@ export function ExerciseConfigurationView({
       form.restPreset === 'custom'
         ? computeDurationSeconds(form.restCustom.minutes, form.restCustom.seconds, true)
         : { seconds: form.restPreset, error: null }
+    const preservedRestSeconds =
+      initialConfiguration.mode === 'rounds'
+        ? initialConfiguration.restBetweenRoundsSeconds
+        : (initialRoundSettings?.restBetweenRoundsSeconds ??
+          DEFAULT_ROUND_EXERCISE_CONFIGURATION.restBetweenRoundsSeconds)
+    const resolvedRest = resolveRestBetweenRoundsSeconds(roundCount, restDuration, preservedRestSeconds)
 
-    if (restDuration.error) {
+    if (!resolvedRest.ok) {
       dispatch({
         type: 'replaceFieldErrors',
-        errors: { ...clearedErrors, rest: restDuration.error },
+        errors: { ...clearedErrors, rest: resolvedRest.error },
       })
       focusField(restCustomMinutesRef.current)
       return
@@ -370,7 +380,7 @@ export function ExerciseConfigurationView({
         mode: 'rounds',
         roundCount,
         roundDurationSeconds: roundDuration.seconds ?? 0,
-        restBetweenRoundsSeconds: restDuration.seconds ?? 0,
+        restBetweenRoundsSeconds: resolvedRest.seconds,
       },
       normalizeInstruction(form.instructionInput),
     )
@@ -508,30 +518,34 @@ export function ExerciseConfigurationView({
                   }
                 />
 
-                <PresetRadioGroup
-                  legend="Przerwa między rundami"
-                  name="round-rest"
-                  presets={REST_PRESETS.map((value) => ({
-                    label: formatSecondsAsClock(value),
-                    value,
-                  }))}
-                  selectedPreset={form.restPreset}
-                  onSelectPreset={(value) => dispatch({ type: 'selectRestPreset', value })}
-                  customFields={
-                    <CustomDurationFields
-                      minutesId={restCustomMinutesId}
-                      secondsId={restCustomSecondsId}
-                      errorId={restCustomErrorId}
-                      minutes={form.restCustom.minutes}
-                      seconds={form.restCustom.seconds}
-                      minutesRef={restCustomMinutesRef}
-                      onMinutesChange={(value) => dispatch({ type: 'setRestMinutes', value })}
-                      onSecondsChange={(value) => dispatch({ type: 'setRestSeconds', value })}
-                      errorMessage={form.errors.rest}
-                      allowZeroTotal
-                    />
-                  }
-                />
+                {showsRestBetweenRounds(form) ? (
+                  <PresetRadioGroup
+                    legend={workoutBuilderLabels.restBetweenRounds}
+                    name="round-rest"
+                    presets={REST_PRESETS.map((value) => ({
+                      label: formatSecondsAsClock(value),
+                      value,
+                    }))}
+                    selectedPreset={form.restPreset}
+                    onSelectPreset={(value) => dispatch({ type: 'selectRestPreset', value })}
+                    customFields={
+                      <CustomDurationFields
+                        minutesId={restCustomMinutesId}
+                        secondsId={restCustomSecondsId}
+                        errorId={restCustomErrorId}
+                        minutes={form.restCustom.minutes}
+                        seconds={form.restCustom.seconds}
+                        minutesRef={restCustomMinutesRef}
+                        onMinutesChange={(value) => dispatch({ type: 'setRestMinutes', value })}
+                        onSecondsChange={(value) => dispatch({ type: 'setRestSeconds', value })}
+                        errorMessage={form.errors.rest}
+                        allowZeroTotal
+                      />
+                    }
+                  />
+                ) : (
+                  <p className="text-[13px] leading-relaxed text-muted">{workoutBuilderLabels.singleRoundRest}</p>
+                )}
               </>
             ) : (
               <div>
