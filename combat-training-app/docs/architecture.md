@@ -28,7 +28,7 @@ src/
 ## Stan
 
 - routing: React Router;
-- dane serwerowe: docelowo TanStack Query;
+- dane z Firestore: subskrypcje `onSnapshot` w repozytoriach i mały własny hook, bez TanStack Query (ADR 0007);
 - formularze: kontrolowane pola Reacta i walidacja w czystej funkcji ze schematami `zod/mini` (ADR 0006);
 - kreator: reducer lub wyspecjalizowany hook domenowy;
 - aktywny timer: osobny moduł stanów, nie ogólny globalny store;
@@ -38,11 +38,12 @@ src/
 
 Nowe moduły przyszłe trafiają do `features`, np.:
 
-- `goals`;
-- `strength-training`;
-- `athlete-profile`;
-- `weight-tracking`;
-- `analytics`;
-- `combination-builder`.
+- `focus-skills` (ćwiczenia celu);
+- `week-plan` (plan tygodnia, czyli cele);
+- `readiness`;
+- `athlete-profile` (waga i statystyki);
+- `control-tests`;
+- `analytics` (podsumowanie tygodnia i trendy);
+- `strength-training` i `combination-builder` w kierunkach rozwoju.
 
 Nie dodawaj pustych abstrakcji wyłącznie „na przyszłość”. Model ma nie blokować rozbudowy, ale implementujemy tylko potrzebne interfejsy.

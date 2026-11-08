@@ -83,6 +83,10 @@ Jedno ćwiczenie zawiera jedną kombinację lub jedną instrukcję.
 - częściowo wykonane ćwiczenie przechowuje rzeczywistą liczbę ukończonych rund;
 - jakość i ilość wykonania są prezentowane oddzielnie.
 
+## Wersja w Firestore
+
+Po przejściu na Firestore obowiązuje `database-model.md` (ADR 0008). Najważniejsze zmiany wobec opisu poniżej: wpis jest unią według źródła (`plan`, `quickTimer`, `manual`), `completion` ma postać `{ completed, planned, unit }`, a sesja przechowuje RPE, intensywność sparingu i oceny ćwiczeń celu. Sekcje o wersjach v1–v3 opisują dawny `localStorage`.
+
 ## WorkoutPlan i WorkoutSession
 
 `WorkoutPlan` opisuje zapisany, zatwierdzony plan treningowy bez pól wykonania.
