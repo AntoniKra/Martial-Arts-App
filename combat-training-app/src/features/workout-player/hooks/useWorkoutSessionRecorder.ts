@@ -1,4 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
+import type { WorkoutSessionRecording } from '@/application/workout/activeWorkoutRepository'
+import { buildRecordedWorkoutSession } from '../utils/workoutSessionRecording'
 
 import type { WorkoutSession, WorkoutSessionStepOutcome } from '@/domain/workout-session/workoutSession.types'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
@@ -27,30 +29,52 @@ interface UseWorkoutSessionRecorderResult {
   hasRecorderError: boolean
   hasNoWork: boolean
   endedEarly: boolean
+  getRecording: () => WorkoutSessionRecording
 }
 
 export function useWorkoutSessionRecorder(
   plan: WorkoutPlan,
   timeline: WorkoutPlaybackTimeline,
+  initial?: WorkoutSessionRecording,
 ): UseWorkoutSessionRecorderResult {
-  const sessionIdRef = useRef<string | null>(null)
-  const startedAtRef = useRef<string | null>(null)
-  const stepResultsRef = useRef<Map<string, TrackedStepResult>>(new Map())
-  const attemptsRef = useRef<WorkoutSessionAttempt[]>([])
-  const isFinalizedRef = useRef(false)
+  const sessionIdRef = useRef<string | null>(initial?.sessionId ?? null)
+  const timezoneRef = useRef(initial?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone)
+  const startedAtRef = useRef<string | null>(initial?.startedAt ?? null)
+  const stepResultsRef = useRef<Map<string, TrackedStepResult>>(new Map(initial?.stepResults.map((result) => [result.playbackStepId, result])))
+  const attemptsRef = useRef<WorkoutSessionAttempt[]>(initial?.attempts ?? [])
+  const completedAtRef = useRef<number | null>(initial?.completedAt ?? null)
+  const ratingsRef = useRef({ exerciseRatings: initial?.exerciseRatings ?? [], focusRatings: initial?.focusRatings ?? [] })
+  const endedEarlyRef = useRef(initial?.endedEarly ?? false)
+  const isFinalizedRef = useRef(initial?.completedAt !== null && initial?.completedAt !== undefined)
   const runGenerationRef = useRef(0)
   const [runGeneration, setRunGeneration] = useState(0)
-  const [completedSession, setCompletedSession] = useState<WorkoutSession | null>(null)
+  const [completedSession, setCompletedSession] = useState<WorkoutSession | null>(() => {
+    if (!initial || initial.completedAt === null) return null
+    const result = buildRecordedWorkoutSession(plan, timeline.steps, initial, initial.completedAt, initial.endedEarly)
+    return result.kind === 'save' ? result.session : null
+  })
   const [hasRecorderError, setHasRecorderError] = useState(false)
-  const [hasNoWork, setHasNoWork] = useState(false)
-  const [endedEarly, setEndedEarly] = useState(false)
+  const [hasNoWork, setHasNoWork] = useState(() => !!initial && initial.completedAt !== null
+    && buildRecordedWorkoutSession(plan, timeline.steps, initial, initial.completedAt, initial.endedEarly).kind === 'noWork')
+  const [endedEarly, setEndedEarly] = useState(initial?.endedEarly ?? false)
+
+  const getRecording = useCallback((): WorkoutSessionRecording => ({
+    timezone: timezoneRef.current,
+    sessionId: sessionIdRef.current, startedAt: startedAtRef.current,
+    stepResults: [...stepResultsRef.current.values()], attempts: [...attemptsRef.current],
+    ...ratingsRef.current, completedAt: completedAtRef.current, endedEarly: endedEarlyRef.current,
+  }), [])
 
   const resetRecorder = useCallback(() => {
     sessionIdRef.current = null
+    timezoneRef.current = Intl.DateTimeFormat().resolvedOptions().timeZone
     startedAtRef.current = null
     stepResultsRef.current = new Map()
     attemptsRef.current = []
     isFinalizedRef.current = false
+    completedAtRef.current = null
+    endedEarlyRef.current = false
+    ratingsRef.current = { exerciseRatings: [], focusRatings: [] }
     runGenerationRef.current += 1
     setRunGeneration(runGenerationRef.current)
     setCompletedSession(null)
@@ -112,7 +136,7 @@ export function useWorkoutSessionRecorder(
         )
       })
 
-      return createPlanWorkoutSession({
+      const result = createPlanWorkoutSession({
         id: sessionId,
         workoutPlanId: plan.id,
         workoutPlanNameSnapshot: plan.nameSnapshot,
@@ -122,12 +146,14 @@ export function useWorkoutSessionRecorder(
         stepResults,
         note: null,
       }, {
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezone: timezoneRef.current,
         blockTypes: plan.blocks.map((block) => block.blockType),
         blocks: plan.blocks,
         endedEarly,
         durations: calculateWorkoutSessionDurations(attemptsRef.current),
       })
+      if (result.kind === 'save') Object.assign(result.session, ratingsRef.current)
+      return result
     },
     [plan, timeline.steps],
   )
@@ -173,6 +199,8 @@ export function useWorkoutSessionRecorder(
           }
 
           try {
+            completedAtRef.current = event.timestampMs
+            endedEarlyRef.current = event.endedEarly === true
             setEndedEarly(event.endedEarly === true)
             const result = buildCompletedSession(event.timestampMs, event.endedEarly === true)
 
@@ -205,5 +233,6 @@ export function useWorkoutSessionRecorder(
     hasRecorderError,
     hasNoWork,
     endedEarly,
+    getRecording,
   }
 }

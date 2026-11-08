@@ -1,4 +1,6 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import type { ActiveWorkout, ActiveWorkoutRepository } from '@/application/workout/activeWorkoutRepository'
+import { useActiveWorkoutPersistence } from '../hooks/useActiveWorkoutPersistence'
 import { Link } from 'react-router-dom'
 
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
@@ -29,6 +31,8 @@ import { getWorkoutStepKindShortLabelPl } from '@/features/workout-player/utils/
 import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
 
 interface WorkoutPlayerViewProps {
+  initialWorkout?: ActiveWorkout
+  activeWorkoutRepository?: ActiveWorkoutRepository
   loadState: WorkoutPlayerLoadState
   workoutsListPath: string
   workoutDetailsPath: string
@@ -135,12 +139,16 @@ function buildStepAnnouncement(step: WorkoutPlaybackStep, stepIndex: number, tot
 }
 
 interface WorkoutPlayerActiveContentProps {
+  initialWorkout?: ActiveWorkout
+  activeWorkoutRepository?: ActiveWorkoutRepository
   plan: WorkoutPlan
   workoutDetailsPath: string
   saveWorkoutSession: (session: WorkoutSession) => Promise<void>
 }
 
 interface WorkoutPlayerRuntimeProps {
+  initialWorkout?: ActiveWorkout
+  activeWorkoutRepository?: ActiveWorkoutRepository
   plan: WorkoutPlan
   timeline: WorkoutPlaybackTimeline
   workoutDetailsPath: string
@@ -260,14 +268,18 @@ function WorkoutPlayerCompletedPanel({
 }
 
 function WorkoutPlayerRuntime({
+  initialWorkout,
+  activeWorkoutRepository,
   plan,
   timeline,
   workoutDetailsPath,
   saveWorkoutSession,
 }: WorkoutPlayerRuntimeProps) {
   const [preparation] = useState(readStoredWorkoutPreparation)
-  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly } = useWorkoutSessionRecorder(plan, timeline)
+  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly, getRecording } = useWorkoutSessionRecorder(plan, timeline, initialWorkout?.recorder)
   const { unlockGong, onGongPlaybackEvent } = useWorkoutGong(timeline)
+  const [soundMuted, setSoundMuted] = useState(!!initialWorkout)
+  const enableSound = useCallback(() => { unlockGong(); setSoundMuted(false) }, [unlockGong])
   const handlePlaybackEvent = useCallback((event: WorkoutPlaybackEvent) => {
     onPlaybackEvent(event)
     onGongPlaybackEvent(event)
@@ -292,7 +304,14 @@ function WorkoutPlayerRuntime({
     finishCurrentExercise,
     endEarly,
     restart,
-  } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent, preparation })
+    getPlaybackSnapshot,
+  } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent, preparation, initialWorkout })
+
+  const discard = useActiveWorkoutPersistence(plan, playback, getPlaybackSnapshot, getRecording, activeWorkoutRepository,
+    saveState.status === 'saved' || hasNoWork)
+  useEffect(() => {
+    if (saveState.status === 'saved' || hasNoWork) activeWorkoutRepository?.clear()
+  }, [saveState.status, hasNoWork, activeWorkoutRepository])
 
   useWorkoutScreenWakeLock(playback.status !== 'completed')
 
@@ -317,7 +336,7 @@ function WorkoutPlayerRuntime({
           hasRecorderError={hasRecorderError}
           hasNoWork={hasNoWork}
           endedEarly={endedEarly}
-          onRestart={() => { unlockGong(); restart() }}
+          onRestart={() => { enableSound(); restart() }}
           onRetrySave={retrySave}
           isRestartDisabled={hasRecorderError || (!hasNoWork && saveState.status !== 'saved')}
         />
@@ -346,7 +365,8 @@ function WorkoutPlayerRuntime({
               canFinishExercise={currentStep.kind !== 'break'}
               workoutDetailsPath={workoutDetailsPath}
               onPause={pause}
-              onResume={() => { unlockGong(); resume() }}
+              onResume={() => { enableSound(); resume() }}
+              onDiscard={discard}
               onFinishExercise={() => finishCurrentExercise({
                 expectedStepIndex: playback.currentStepIndex,
                 expectedStepRevision: playback.stepRevision,
@@ -366,6 +386,10 @@ function WorkoutPlayerRuntime({
             </p>
           </div>
         </header>
+
+        {soundMuted ? <button type="button" onClick={enableSound}
+          className={getButtonClassName({ variant: 'secondary', className: 'mx-5 whitespace-normal text-center' })}
+        >{workoutPlayerLabels.enableSound}</button> : null}
 
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <div className="shrink-0 px-5 py-3 text-center">
@@ -403,13 +427,13 @@ function WorkoutPlayerRuntime({
           canGoPrevious={canGoPrevious}
           canGoNext={canGoNext}
           onStart={() => {
-            unlockGong()
+            enableSound()
             start()
           }}
-          onStartNow={() => { unlockGong(); startNow() }}
+          onStartNow={() => { enableSound(); startNow() }}
           onPause={pause}
           onResume={() => {
-            unlockGong()
+            enableSound()
             resume()
           }}
           onPrevious={() =>
@@ -433,6 +457,8 @@ function WorkoutPlayerRuntime({
 }
 
 function WorkoutPlayerActiveContent({
+  initialWorkout,
+  activeWorkoutRepository,
   plan,
   workoutDetailsPath,
   saveWorkoutSession,
@@ -441,6 +467,8 @@ function WorkoutPlayerActiveContent({
 
   return (
     <WorkoutPlayerRuntime
+      initialWorkout={initialWorkout}
+      activeWorkoutRepository={activeWorkoutRepository}
       key={timeline.identity}
       plan={plan}
       timeline={timeline}
@@ -451,6 +479,8 @@ function WorkoutPlayerActiveContent({
 }
 
 export function WorkoutPlayerView({
+  initialWorkout,
+  activeWorkoutRepository,
   loadState,
   workoutsListPath,
   workoutDetailsPath,
@@ -478,6 +508,8 @@ export function WorkoutPlayerView({
 
     return (
       <WorkoutPlayerActiveContent
+        initialWorkout={initialWorkout}
+        activeWorkoutRepository={activeWorkoutRepository}
         plan={loadState.plan}
         workoutDetailsPath={workoutDetailsPath}
         saveWorkoutSession={saveWorkoutSession}

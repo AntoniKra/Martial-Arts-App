@@ -24,7 +24,7 @@ export function WorkoutsPage() {
   const { plans, sessions, sessionRepository, retry } = useWorkoutData()
   return <>
     <WorkoutDataWarning />
-    <WorkoutsView planDeleted={planDeleted}
+    <WorkoutsView planDeleted={planDeleted} initialTab={new URLSearchParams(location.search).get('tab') === 'history' ? 'history' : 'plans'}
       plansLoadState={plans.status === 'ready' ? { status: 'success', plans: mapWorkoutPlansToListItems(plans.items) }
         : plans.status === 'loading' ? { status: 'loading' } : { status: 'error', message: workoutDataLabels.plansLoadError }}
       historyLoadState={sessions.status === 'ready' ? { status: 'success', sessions: mapWorkoutSessionsToHistoryListItems(sessions.items, sessions.pendingIds) }

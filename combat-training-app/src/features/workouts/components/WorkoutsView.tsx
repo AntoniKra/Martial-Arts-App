@@ -24,6 +24,7 @@ import {
 } from '@/features/workouts/utils/workoutsFilters'
 
 interface WorkoutsViewProps {
+  initialTab?: WorkoutsTab
   planDeleted?: boolean
   plansLoadState: WorkoutPlansLoadState
   historyLoadState: WorkoutHistoryLoadState
@@ -100,6 +101,7 @@ function WorkoutHistoryErrorState({ message, onRetry }: WorkoutHistoryErrorState
 }
 
 export function WorkoutsView({
+  initialTab = 'plans',
   planDeleted = false,
   plansLoadState,
   historyLoadState,
@@ -109,7 +111,7 @@ export function WorkoutsView({
   onUpdateSessionNote,
   onDeleteSession,
 }: WorkoutsViewProps) {
-  const [tab, setTab] = useState<WorkoutsTab>('plans')
+  const [tab, setTab] = useState<WorkoutsTab>(initialTab)
   const [filters, setFilters] = useState(DEFAULT_WORKOUTS_FILTERS)
 
   function handleTabChange(nextTab: WorkoutsTab): void {

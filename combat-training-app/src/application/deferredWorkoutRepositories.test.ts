@@ -1,0 +1,23 @@
+import { describe, expect, it } from 'vitest'
+import { createDeferredWorkoutRepositories, type WorkoutRepositories } from './deferredWorkoutRepositories'
+
+describe('deferred workout repositories', () => {
+  it('can render and unsubscribe while the external repositories are still loading', async () => {
+    let connect!: (value: WorkoutRepositories) => void
+    const ready = new Promise<WorkoutRepositories>((resolve) => { connect = resolve })
+    const repositories = createDeferredWorkoutRepositories(ready)
+    let subscriptions = 0
+    const subscribe = () => { subscriptions += 1; return () => { subscriptions -= 1 } }
+    const unsubscribe = repositories.plans.subscribe(() => {}, () => {})
+    unsubscribe()
+    connect({ plans: { subscribe, save: async () => {}, delete: async () => {} },
+      sessions: { subscribe, save: async () => {}, delete: async () => true, updateNote: async () => true } })
+    await ready
+    expect(subscriptions).toBe(0)
+    const stop = repositories.sessions.subscribe(() => {}, () => {})
+    await ready
+    expect(subscriptions).toBe(1)
+    stop()
+    expect(subscriptions).toBe(0)
+  })
+})

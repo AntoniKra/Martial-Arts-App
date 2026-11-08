@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { ActiveWorkout } from '@/application/workout/activeWorkoutRepository'
 
 import type {
   ExpectedStepNavigation,
@@ -32,6 +33,7 @@ const INITIAL_STEP_REVISION = 1
 interface UseWorkoutPlaybackOptions {
   onPlaybackEvent?: (event: WorkoutPlaybackEvent) => void
   preparation?: WorkoutPreparation
+  initialWorkout?: ActiveWorkout
 }
 
 interface UseWorkoutPlaybackResult {
@@ -50,6 +52,7 @@ interface UseWorkoutPlaybackResult {
   finishCurrentExercise: (expected: ExpectedStepNavigation) => void
   endEarly: () => void
   restart: () => void
+  getPlaybackSnapshot: () => Pick<ActiveWorkout, 'playback' | 'deadlineMs' | 'pausedRemainingMs'>
 }
 
 function getStepDurationSeconds(steps: readonly WorkoutPlaybackStep[], index: number): number {
@@ -181,13 +184,20 @@ export function useWorkoutPlayback(
 
   useEffect(() => { onPlaybackEventRef.current = options?.onPlaybackEvent }, [options?.onPlaybackEvent])
 
-  const playbackRef = useRef<WorkoutPlaybackState>(buildInitialPlaybackState(timeline.steps, INITIAL_STEP_REVISION))
-  const [playback, setPlayback] = useState<WorkoutPlaybackState>(() => buildInitialPlaybackState(timeline.steps, INITIAL_STEP_REVISION))
+  const playbackRef = useRef<WorkoutPlaybackState>(options?.initialWorkout?.playback ?? buildInitialPlaybackState(timeline.steps, INITIAL_STEP_REVISION))
+  const [playback, setPlayback] = useState<WorkoutPlaybackState>(() => options?.initialWorkout?.playback ?? buildInitialPlaybackState(timeline.steps, INITIAL_STEP_REVISION))
 
-  const deadlineRef = useRef<number | null>(null)
-  const pausedPlaybackRef = useRef<PausedPlayback | null>(null)
+  const deadlineRef = useRef<number | null>(options?.initialWorkout?.deadlineMs ?? null)
+  const pausedPlaybackRef = useRef<PausedPlayback | null>(options?.initialWorkout?.playback.status === 'paused'
+    ? { playback: options.initialWorkout.playback, remainingMs: options.initialWorkout.pausedRemainingMs ?? options.initialWorkout.playback.remainingSeconds * 1000 } : null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const generationRef = useRef(0)
+  const getPlaybackSnapshot = useCallback(() => ({
+    playback: playbackRef.current,
+    deadlineMs: deadlineRef.current,
+    pausedRemainingMs: playbackRef.current.status === 'paused'
+      ? getResumeDeadlineMs(playbackRef.current, pausedPlaybackRef.current, 0) : null,
+  }), [])
 
   const emitEvent = useCallback((event: WorkoutPlaybackEvent) => {
     onPlaybackEventRef.current?.(event)
@@ -222,7 +232,6 @@ export function useWorkoutPlayback(
     return () => {
       invalidateRuntime()
       clearTimer()
-      deadlineRef.current = null
     }
   }, [clearTimer, invalidateRuntime])
 
@@ -674,5 +683,6 @@ export function useWorkoutPlayback(
     finishCurrentExercise,
     endEarly,
     restart,
+    getPlaybackSnapshot,
   }
 }

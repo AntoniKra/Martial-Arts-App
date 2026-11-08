@@ -56,9 +56,19 @@ Podczas przerwy po ćwiczeniu widoczny jest opcjonalny przycisk „Oceń”. Ska
 
 ## Odzyskiwanie aktywnego treningu
 
-Stan aktywnego treningu powinien umożliwiać wznowienie po odświeżeniu:
+Decyzje właściciela i techniczne z 8 listopada 2026, issue #65 (Q8):
 
-- bieżący element;
-- czas końcowy lub pozostały czas przy pauzie;
-- wykonane rundy i pominięcia;
-- oceny podane na gorąco.
+- Po zalogowaniu i potwierdzeniu adresu e-mail aplikacja sprawdza zapis dla bieżącego `uid`. Jeśli trening można odzyskać, od razu otwiera `/workouts/:workoutId/active`.
+- Krótka przerwa nie zatrzymuje zegara. Przykład: w rundzie 2 z 3 zostało 1:20; po zamknięciu aplikacji na 40 s zostaje 0:40. Odtwarzacz nadrabia także kolejne etapy, według ich terminów końcowych. Nie odtwarza gongów z czasu nieobecności.
+- Pauza zachowuje dokładny pozostały czas w milisekundach. Przygotowanie zachowuje swój termin końcowy; jego upływ rozpoczyna sesję w oryginalnym terminie, bez doliczania przygotowania do pracy ani czasu treningu.
+- Długa przerwa oznacza, że podczas nieobecności skończyłby się cały plan albo od ostatniej aktywności minęło ponad 12 h, także podczas pauzy. Wtedy modalne okno „Niedokończony trening” pokazuje nazwę planu, datę i godzinę ostatniej aktywności oraz dwa przyciski: „Zapisz to, co zrobione” i „Porzuć”.
+- „Zapisz to, co zrobione” tworzy wpis `partial`, liczony wyłącznie do `lastSeenAt`, i otwiera Historię. Praca po tej chwili nie jest doliczana. Dokończone rundy, pominięcia i powtórzone próby zachowują zasady ADR 0005. Bez żadnej dokończonej pracy zapis jest kasowany bez pytania. „Porzuć” kasuje zapis i otwiera ekran główny.
+
+### Zapis lokalny
+
+- Repozytorium z `src/application` ma implementację w `src/infrastructure/storage`. Dane trafiają do `localStorage` pod kluczem `combat-training.activeWorkout.<uid>`, z `schemaVersion: 1` i walidacją `zod/mini`. Błędny, niezgodny ze schematem lub nieczytelny zapis jest usuwany bez komunikatu; niedostępna pamięć nie zatrzymuje odtwarzacza.
+- Zapis zawiera niezmienną kopię planu, bieżący etap, status (także `preparing`), termin końca lub dokładny czas pauzy oraz stan rejestratora: identyfikator sesji, `startedAt`, strefę czasową, próby, wyniki etapów, pominięcia i oceny. Zachowuje też `lastSeenAt` oraz zakończoną sesję oczekującą na zapis. Edycja lub usunięcie planu nie wpływa na wznowienie; lokalny odtwarzacz nie czeka na załadowanie Firestore.
+- Stan jest zapisywany przy zmianach odtwarzacza i rejestratora (start, pauza, wznowienie, przejście, pominięcie, ocena), przy `visibilitychange` do `hidden` i przy `pagehide`, z `lastSeenAt = now`. Odliczanie w ukrytej karcie nie nadpisuje zapisu ostatniej widocznej aktywności.
+- Zapis znika po przyjęciu wpisu przez lokalną pamięć Firestore, bez czekania na serwer, po „Porzuć”, po wylogowaniu (razem z czyszczeniem pamięci Firestore) i przy wyjściu z przygotowania. Błąd zapisu wpisu pozostawia możliwość ponowienia z tym samym identyfikatorem sesji.
+- Po wznowieniu widoczny jest przycisk „Dźwięk wyłączony — stuknij, aby włączyć”. Stuknięcie wywołuje `unlockGong` i usuwa przycisk. Inne sterowanie wymagające dźwięku również może go odblokować gestem użytkownika.
+- Kilka kart z tym samym treningiem i synchronizacja między urządzeniami pozostają poza zakresem: wygrywa ostatni zapis. Powrót z ukrytej karty bez przeładowania zachowuje dotychczasowe zasady nadrabiania czasu.
