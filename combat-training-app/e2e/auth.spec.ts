@@ -94,11 +94,13 @@ test('allows resending verification only after sixty seconds', async ({ page }) 
 
 test('session loss in another tab does not interrupt an admitted workout', async ({ app, page, context }) => {
   await app.createPlan('Plan utraty sesji')
+  const otherPage = await context.newPage()
+  await otherPage.goto('/')
+  // Load both subscriptions before freezing the clock of Firestore's primary tab.
+  await expect(otherPage.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
   await app.openPlayer()
   await app.freezeClock()
   await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
-  const otherPage = await context.newPage()
-  await otherPage.goto('/')
   await otherPage.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   await expect(otherPage).toHaveURL('/login')
   await otherPage.close()

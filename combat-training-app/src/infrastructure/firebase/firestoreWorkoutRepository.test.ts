@@ -7,7 +7,7 @@ import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
 import { block, continuousExercise, workoutPlan } from '@/test/workoutBuilders'
 
 const sdk = vi.hoisted(() => ({
-  change: null as null | ((value: { docs: unknown[] }) => void), stop: vi.fn(),
+  change: null as null | ((value: { docs: unknown[]; metadata: { hasPendingWrites: boolean } }) => void), stop: vi.fn(),
   set: vi.fn<() => Promise<void>>(), remove: vi.fn<() => Promise<void>>(), update: vi.fn<(path: string, fields: Record<string, unknown>) => Promise<void>>(),
 }))
 vi.mock('firebase/firestore', () => ({
@@ -19,7 +19,10 @@ const plan = workoutPlan([block('block', [continuousExercise('exercise', 60)])])
 const document = (value = { ...plan, schemaVersion: 1 }, pending = false, documentId = plan.id) => ({
   id: documentId, data: () => value, metadata: { hasPendingWrites: pending },
 })
-const emit = (docs: unknown[]) => { if (!sdk.change) throw new Error('No listener'); sdk.change({ docs }) }
+const emit = (docs: unknown[], hasPendingWrites = false) => {
+  if (!sdk.change) throw new Error('No listener')
+  sdk.change({ docs, metadata: { hasPendingWrites } })
+}
 const parse = (value: unknown) => {
   const { schemaVersion: _version, ...item } = workoutPlanDocumentSchema.parse(value)
   return item
@@ -34,13 +37,22 @@ describe('Firestore collection repository', () => {
     const stop = repository.subscribe(onChange, vi.fn())
     emit([document(), document({ ...plan, schemaVersion: 2 }), document(undefined, false, 'different-id')])
     expect(onChange.mock.lastCall?.[0]).toMatchObject({ items: [plan], invalidDocumentIds: [plan.id, 'different-id'] })
-    emit([document(undefined, true)])
+    emit([document(undefined, true)], true)
     expect(onChange.mock.lastCall?.[0].pendingIds).toEqual(new Set([plan.id]))
+    expect(onChange.mock.lastCall?.[0].hasPendingWrites).toBe(true)
     emit([document()])
     expect(onChange.mock.lastCall?.[0].pendingIds).toEqual(new Set())
+    expect(onChange.mock.lastCall?.[0].hasPendingWrites).toBe(false)
     expect(() => repository.subscribe(vi.fn(), vi.fn())).toThrow('already subscribed')
     stop()
     expect(sdk.stop).toHaveBeenCalledOnce()
+  })
+  it('preserves pending-write metadata even when document validation filters out the document', () => {
+    const repository = new FirestoreWorkoutRepository({} as Firestore, 'athlete', 'workoutPlans', parse)
+    const onChange = vi.fn()
+    repository.subscribe(onChange, vi.fn())
+    emit([document({ ...plan, schemaVersion: 2 }, true)], true)
+    expect(onChange.mock.lastCall?.[0]).toMatchObject({ items: [], pendingIds: new Set(), hasPendingWrites: true })
   })
   it('resolves writes and deletions from local snapshots while the server promise is pending', async () => {
     const repository = new FirestoreWorkoutRepository({} as Firestore, 'athlete', 'workoutPlans', parse)

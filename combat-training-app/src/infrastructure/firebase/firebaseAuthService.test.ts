@@ -6,7 +6,9 @@ import { createFirebaseAuthService } from './firebaseAuthService'
 const fake = vi.hoisted(() => ({
   user: { uid: 'athlete', email: 'athlete@example.test', emailVerified: false },
   auth: { currentUser: null as unknown, languageCode: '' },
+  clearCache: vi.fn<() => Promise<void>>(),
 }))
+vi.mock('./createFirestoreRepositories', () => ({ clearFirestoreCache: fake.clearCache }))
 vi.mock('firebase/app', () => ({ initializeApp: vi.fn(() => 'app') }))
 vi.mock('firebase/auth', () => ({
   initializeAuth: vi.fn(() => fake.auth), indexedDBLocalPersistence: 'indexed-db',
@@ -46,6 +48,27 @@ describe('Firebase AuthService', () => {
     vi.mocked(sdk.reload).mockImplementation(async () => { fake.user.emailVerified = true })
     expect(await service.refreshVerification()).toEqual({ ...fake.user })
     expect(sdk.sendEmailVerification).toHaveBeenCalledWith(fake.user)
+  })
+  it('waits for cache cleanup before signing out', async () => {
+    let finishCleanup = () => {}
+    fake.clearCache.mockImplementation(() => new Promise((resolve) => { finishCleanup = resolve }))
+    const service = createFirebaseAuthService(config)
+    const signingOut = service.signOut()
+    await vi.waitFor(() => expect(fake.clearCache).toHaveBeenCalledOnce())
+    expect(sdk.signOut).not.toHaveBeenCalled()
+    finishCleanup()
+    await signingOut
+    expect(sdk.signOut).toHaveBeenCalledOnce()
+  })
+  it('logs a cleanup failure and still signs out', async () => {
+    const error = new Error('Cache is held by another tab')
+    fake.clearCache.mockRejectedValue(error)
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      await expect(createFirebaseAuthService(config).signOut()).resolves.toBeUndefined()
+      expect(log).toHaveBeenCalledWith('Failed to clear Firestore cache during sign-out', error)
+      expect(sdk.signOut).toHaveBeenCalledOnce()
+    } finally { log.mockRestore() }
   })
   it('handles a missing session', async () => {
     const service = createFirebaseAuthService(config)

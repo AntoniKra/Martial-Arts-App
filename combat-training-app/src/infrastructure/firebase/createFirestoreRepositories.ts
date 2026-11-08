@@ -1,5 +1,6 @@
 import { getApp } from 'firebase/app'
-import { connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, type Firestore } from 'firebase/firestore'
+import { clearIndexedDbPersistence, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, type Firestore } from 'firebase/firestore'
+import type { SubscribableRepository } from '@/application/repositorySubscription'
 import type { WorkoutPlanRepository } from '@/application/workout/workoutPlanRepository'
 import type { WorkoutSessionRepository } from '@/application/workout-session/workoutSessionRepository'
 import { readFirebaseConfig } from './firebaseConfig'
@@ -7,6 +8,32 @@ import { FirestoreWorkoutRepository } from './firestoreWorkoutRepository'
 import { workoutPlanDocumentSchema, workoutSessionDocumentSchema } from './workoutDocumentSchemas'
 
 let database: Firestore | undefined
+const subscriptions = new Set<() => void>()
+
+function trackedSubscribe<T>(repository: SubscribableRepository<T>): SubscribableRepository<T>['subscribe'] {
+  return (onChange, onError) => {
+    const unsubscribe = repository.subscribe(onChange, onError)
+    const stop = () => {
+      // React's later effect cleanup must not close the same listener twice.
+      if (subscriptions.delete(stop)) unsubscribe()
+    }
+    subscriptions.add(stop)
+    return stop
+  }
+}
+
+export async function clearFirestoreCache(): Promise<void> {
+  if (!database) return
+  const current = database
+  for (const stop of subscriptions) stop()
+  try {
+    await terminate(current)
+    await clearIndexedDbPersistence(current)
+  } finally {
+    // The next signed-in account needs a fresh instance, including its memory cache.
+    database = undefined
+  }
+}
 
 export function createFirestoreRepositories(uid: string): { plans: WorkoutPlanRepository; sessions: WorkoutSessionRepository } {
   if (!database) {
@@ -28,6 +55,14 @@ export function createFirestoreRepositories(uid: string): { plans: WorkoutPlanRe
     const { schemaVersion: _version, ...session } = workoutSessionDocumentSchema.parse(value)
     return session
   })
-  return { plans: { subscribe: plans.subscribe.bind(plans), save: plans.save.bind(plans),
-    delete: async (id) => { await plans.delete(id) } }, sessions }
+  return {
+    plans: {
+      subscribe: trackedSubscribe(plans), save: plans.save.bind(plans),
+      delete: async (id) => { await plans.delete(id) },
+    },
+    sessions: {
+      subscribe: trackedSubscribe(sessions), save: sessions.save.bind(sessions),
+      updateNote: sessions.updateNote.bind(sessions), delete: sessions.delete.bind(sessions),
+    },
+  }
 }
