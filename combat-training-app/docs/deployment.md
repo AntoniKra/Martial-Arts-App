@@ -23,6 +23,21 @@ W folderze `combat-training-app/`:
 
 Kolejne wdrożenia to tylko krok 3, po scaleniu zmian do `main` i `git pull`.
 
+## Reguły Firestore
+
+Plik `firestore.rules` dopuszcza tylko plany i sesje pod `users/{uid}`, wyłącznie dla właściciela z potwierdzonym e-mailem. Pozostałe kolekcje są zabronione do czasu wdrożenia ich funkcji. Reguły sprawdzają dokument płytko; elementy list sprawdzają schematy `zod/mini` w aplikacji (`database-model.md`).
+
+Przed wdrożeniem uruchom `npm run test:rules` (Node.js 24.12.0 lub nowszy i Java 21). Skrypt startuje wyłącznie emulator Firestore na `127.0.0.1:8080`, z projektem `demo-combat-training`, uruchamia osobny zestaw testów i zatrzymuje emulator. Nie korzysta z produkcji ani z kont Firebase. `npm test` nadal uruchamia tylko testy aplikacji, bez Javy. CI wykonuje oba zestawy.
+
+Reguły na produkcję wdraża ręcznie właściciel, osobno od Hostingu, po sprawdzeniu wyników testów i scaleniu PR. Polecenie zapisane poniżej nie jest częścią testów ani CI:
+
+```powershell
+& {
+  Set-Location -LiteralPath 'C:\dev\Martial-Arts-App\combat-training-app'
+  npx firebase deploy --only firestore:rules -P prod
+}
+```
+
 ## Nagłówki i pamięć podręczna
 
 | Ścieżka | `Cache-Control` | Powód |
