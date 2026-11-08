@@ -2,6 +2,7 @@ import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import type { WorkoutPlaybackStepKind } from '@/features/workout-player/types/workoutPlayback.types'
 import { formatRemainingSecondsAccessiblePl } from '@/features/workout-player/utils/formatRemainingSecondsAccessiblePl'
 import { getWorkoutStepTimerPresentation } from '@/features/workout-player/utils/workoutStepTimerPresentation'
+import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 
 const BASE_SIZE = 260
 const STROKE_WIDTH = 10
@@ -12,6 +13,7 @@ interface WorkoutCircularTimerProps {
   remainingSeconds: number
   stepKind: WorkoutPlaybackStepKind
   paused?: boolean
+  preparing?: boolean
 }
 
 function clampProgressRatio(totalSeconds: number, remainingSeconds: number): number {
@@ -24,6 +26,7 @@ export function WorkoutCircularTimer({
   remainingSeconds,
   stepKind,
   paused = false,
+  preparing = false,
 }: WorkoutCircularTimerProps) {
   const presentation = getWorkoutStepTimerPresentation(stepKind)
   const radius = (BASE_SIZE - STROKE_WIDTH) / 2
@@ -85,13 +88,13 @@ export function WorkoutCircularTimer({
           className="font-display text-[48px] font-bold tabular-nums leading-none text-ink min-[360px]:text-[56px] sm:text-[64px]"
           aria-hidden="true"
         >
-          {formatSecondsAsClock(remainingSeconds)}
+          {preparing ? remainingSeconds : formatSecondsAsClock(remainingSeconds)}
         </span>
         <span className="sr-only">{formatRemainingSecondsAccessiblePl(remainingSeconds)}</span>
         <span
           className={`mt-2 font-display text-[16px] font-semibold uppercase tracking-[0.18em] ${presentation.labelClass}`}
         >
-          {presentation.stateLabel}
+          {preparing ? workoutPlayerLabels.preparing : presentation.stateLabel}
         </span>
       </div>
     </div>

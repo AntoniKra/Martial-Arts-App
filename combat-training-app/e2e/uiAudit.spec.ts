@@ -35,7 +35,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open(`/workouts/${plan.id}`)
     await app.openPlayer()
     await app.freezeClock()
-    await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+    await app.startWorkout()
     await expect(page.getByText('PRACA', { exact: true })).toHaveClass(/text-crimson-ink/)
     await screenshot('player-work')
     await page.clock.fastForward(90_000)
@@ -78,7 +78,7 @@ for (const theme of ['dark', 'light'] as const) {
 
     await app.open(`/workouts/${plan.id}`)
     await app.openPlayer()
-    await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+    await app.startWorkout()
     for (let index = 0; index < 3; index += 1) {
       await page.getByRole('button', { name: 'Następny etap', exact: true }).click()
     }

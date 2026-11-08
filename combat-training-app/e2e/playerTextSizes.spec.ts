@@ -22,7 +22,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open(`/workouts/${plan.id}`)
     await app.openPlayer()
     await app.freezeClock()
-    await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+    await app.startWorkout()
     await page.evaluate(() => document.fonts.ready)
 
     const measurements: Record<string, unknown> = {}

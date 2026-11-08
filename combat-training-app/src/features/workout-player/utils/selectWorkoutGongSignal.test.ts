@@ -33,9 +33,12 @@ describe('selectWorkoutGongSignal', () => {
     expect(selectWorkoutGongSignal([finalized(0, reason)], steps)).toBeNull()
   })
 
-  it('stays silent without transitions, on start and on restart', () => {
+  it('signals the first step after preparation with the round-start gong', () => {
+    expect(selectWorkoutGongSignal([{ type: 'started', timestampMs: 10_000 }], steps)).toBe('restEnd')
+  })
+
+  it('stays silent without transitions and on restart', () => {
     expect(selectWorkoutGongSignal([], steps)).toBeNull()
-    expect(selectWorkoutGongSignal([{ type: 'started', timestampMs: 0 }], steps)).toBeNull()
     expect(selectWorkoutGongSignal([finalized(0), { type: 'restarted' }], steps)).toBeNull()
   })
 
@@ -78,6 +81,18 @@ describe('workout gong event batching', () => {
     controller.onPlaybackEvent(finalized(1))
     controller.onPlaybackEvent(finalized(2))
     expect(gong.play).not.toHaveBeenCalled()
+    await Promise.resolve()
+    expect(gong.play).toHaveBeenCalledExactlyOnceWith('workEnd')
+  })
+
+  it('plays one start gong and follows only the reached state after hidden preparation', async () => {
+    const { controller, gong } = setup()
+    controller.onPlaybackEvent({ type: 'started', timestampMs: 10_000 })
+    await Promise.resolve()
+    expect(gong.play).toHaveBeenCalledExactlyOnceWith('restEnd')
+    vi.mocked(gong.play).mockClear()
+    controller.onPlaybackEvent({ type: 'started', timestampMs: 10_000 })
+    controller.onPlaybackEvent(finalized(0))
     await Promise.resolve()
     expect(gong.play).toHaveBeenCalledExactlyOnceWith('workEnd')
   })

@@ -2,7 +2,7 @@ import type { WorkoutBlockType, WorkoutPlan } from '@/domain/workout/workout.typ
 
 export type WorkoutPlaybackStepKind = 'exercise' | 'roundRest' | 'break'
 
-export type WorkoutPlaybackStatus = 'idle' | 'running' | 'paused' | 'completed'
+export type WorkoutPlaybackStatus = 'idle' | 'preparing' | 'running' | 'paused' | 'completed'
 
 export interface WorkoutPlaybackStep {
   id: string

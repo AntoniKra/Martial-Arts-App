@@ -111,7 +111,7 @@ for (const theme of ['dark', 'light'] as const) {
     await capture('plan-details')
     await app.openPlayer()
     await app.freezeClock()
-    await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+    await app.startWorkout()
     await page.getByRole('button', { name: 'Menu treningu', exact: true }).click()
     samples.menuFinishExercise = await typography(page.getByRole('menuitem', { name: 'Zakończ ćwiczenie', exact: true }))
     samples.menuFinishWorkout = await typography(page.getByRole('menuitem', { name: 'Zakończ trening', exact: true }))

@@ -4,6 +4,16 @@
 
 Po jednym kliknięciu „Start” aplikacja automatycznie przeprowadza użytkownika przez całą oś treningu. Gong sygnalizuje przejścia. Komunikaty głosowe nie należą do MVP.
 
+## Przygotowanie przed startem
+
+- Na ekranie planu, nad „Rozpocznij trening”, ustawienie „Przygotowanie przed startem” ma opcje 5, 10, 15 i 30 s. Domyślnie 10 s (decyzja właściciela z 8 listopada 2026).
+- Wybór jest zapamiętany na urządzeniu w `localStorage`, z walidacją `zod/mini`. Brak, błędna wartość lub niedostępna pamięć oznacza 10 s.
+- Pierwszy „Start” uruchamia przygotowanie. „Uruchom ponownie” od razu rozpoczyna nowe przygotowanie. Nie ma go po pauzie ani między etapami czy blokami.
+- Pierścień pokazuje pozostałe sekundy dużymi cyframi i napis „PRZYGOTUJ SIĘ”. Przycisk z ikoną startu „Zacznij teraz” pozwala od razu rozpocząć pierwszy etap.
+- Przygotowanie kończy się gongiem startowym rundy i automatycznym przejściem do pierwszego etapu. Bez dodatkowych dźwięków odliczania.
+- Czas wynika z terminu końcowego i bieżącego zegara. Po powrocie z ukrytej karty odtwarzacz nadrabia także czas pierwszego i kolejnych etapów. Wake Lock działa tak jak podczas treningu.
+- Przygotowanie nie jest etapem sesji: nie trafia do `stepResults`, czasu pracy ani `durationSeconds`. `startedAt` wskazuje start pierwszego etapu (termin końca przygotowania albo wcześniejsze „Zacznij teraz”). Wyjście podczas przygotowania nie zapisuje treningu.
+
 ## Timer
 
 - duży okrągły timer;

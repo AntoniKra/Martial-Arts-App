@@ -89,9 +89,16 @@ class WorkoutApp {
     await this.page.clock.pauseAt(new Date('2026-11-03T10:00:00Z'))
   }
 
+  async startWorkout() {
+    const start = this.page.getByRole('button', { name: 'Rozpocznij trening', exact: true })
+    if (await start.isVisible()) await start.click()
+    await this.page.getByRole('button', { name: 'Zacznij teraz', exact: true }).click()
+    await expect(this.page.getByRole('button', { name: 'Pauza', exact: true })).toBeVisible()
+  }
+
   async finishWorkout() {
     await this.freezeClock()
-    await this.page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+    await this.startWorkout()
     await this.page.clock.fastForward(210_000)
     await this.expectWorkoutSaved()
   }
