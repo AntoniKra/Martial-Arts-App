@@ -1,3 +1,4 @@
+import { formatBreakDuration } from '@/features/workout-builder/utils/formatBreakDuration'
 import type { Dispatch } from 'react'
 
 import { Button } from '@/components/ui/Button'
@@ -8,7 +9,6 @@ import {
   MoveIconButton,
 } from '@/features/workout-builder/components/MoveIcons'
 import {
-  formatBreakDuration,
   WorkoutBreakForm,
 } from '@/features/workout-builder/components/WorkoutBreakForm'
 import type {

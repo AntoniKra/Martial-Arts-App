@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
-import { getButtonClassName } from '@/components/ui/Button'
+import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
@@ -293,15 +293,8 @@ function WorkoutPlayerRuntime({
 
   useWorkoutScreenWakeLock(playback.status !== 'completed')
 
-  const [stepAnnouncement, setStepAnnouncement] = useState('')
-
-  useEffect(() => {
-    if (!currentStep || playback.status === 'idle' || playback.status === 'completed') {
-      return
-    }
-
-    setStepAnnouncement(buildStepAnnouncement(currentStep, playback.currentStepIndex, timeline.steps.length))
-  }, [currentStep, playback.currentStepIndex, playback.status, timeline.steps.length])
+  const stepAnnouncement = currentStep && playback.status !== 'idle' && playback.status !== 'completed'
+    ? buildStepAnnouncement(currentStep, playback.currentStepIndex, timeline.steps.length) : ''
 
   const totalSteps = timeline.steps.length
   const isCompleted = playback.status === 'completed'

@@ -81,9 +81,8 @@ export function WorkoutTimeline({
   const summary = calculateWorkoutPlanSummary(state.draft)
   const canAddExercise = state.draft.disciplineKey !== null
 
-  useEffect(() => {
-    setActiveInlinePanel((currentPanel) => resolveActiveInlinePanel(blocks, currentPanel))
-  }, [blocks])
+  const resolvedPanel = resolveActiveInlinePanel(blocks, activeInlinePanel)
+  if (resolvedPanel !== activeInlinePanel) setActiveInlinePanel(resolvedPanel)
 
   useEffect(() => {
     if (!pendingFocus) {

@@ -18,7 +18,7 @@ for (const theme of ['dark', 'light'] as const) {
     const exercise = { ...roundsExercise('exercise-1', 2, 60, 30), exerciseNameSnapshot: 'Praca na nogach' }
     const nextExercise = { ...continuousExercise('exercise-2', 60), exerciseNameSnapshot: 'Walka z cieniem' }
     const plan = { ...workoutPlan([block('block-1', [exercise, workoutBreak('break-1', 30), nextExercise])]), nameSnapshot: 'Technika bokserska' }
-    await page.evaluate((plan) => localStorage.setItem('combat-training.workout-plans', JSON.stringify({ schemaVersion: 1, plans: [plan] })), plan)
+    await app.seedPlan(plan)
     await app.open(`/workouts/${plan.id}`)
     await app.openPlayer()
     await app.freezeClock()

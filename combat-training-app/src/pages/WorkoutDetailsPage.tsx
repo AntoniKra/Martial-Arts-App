@@ -1,82 +1,20 @@
-import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-
-import { createWorkoutPlanRepository } from '@/app/createWorkoutPlanRepository'
-import { mapWorkoutPlanReadError } from '@/app/mapWorkoutPlanReadError'
+import { useWorkoutData, useWorkoutPlan } from '@/application/workoutDataContext'
 import { routes } from '@/app/routes'
 import { WorkoutPlanDetailsView } from '@/features/workout-details/components/WorkoutPlanDetailsView'
-import type { WorkoutPlanDetailsLoadState } from '@/features/workout-details/types/workoutPlanDetails.types'
+import { WorkoutDataWarning } from '@/features/workouts/components/WorkoutDataWarning'
 
 export function WorkoutDetailsPage() {
   const navigate = useNavigate()
-  const { workoutId } = useParams()
-  const resolvedWorkoutId = workoutId?.trim() ?? ''
-  const [workoutPlanRepository] = useState(createWorkoutPlanRepository)
-  const [loadState, setLoadState] = useState<WorkoutPlanDetailsLoadState>({ status: 'loading' })
-  const [reloadCounter, setReloadCounter] = useState(0)
-
-  const loadWorkoutPlan = useCallback(
-    async (isCancelled: () => boolean) => {
-      if (!resolvedWorkoutId) {
-        setLoadState({ status: 'notFound' })
-        return
-      }
-
-      setLoadState({ status: 'loading' })
-
-      try {
-        const plan = await workoutPlanRepository.getById(resolvedWorkoutId)
-
-        if (isCancelled()) {
-          return
-        }
-
-        if (plan === null) {
-          setLoadState({ status: 'notFound' })
-          return
-        }
-
-        setLoadState({ status: 'success', plan })
-      } catch (error) {
-        if (isCancelled()) {
-          return
-        }
-
-        setLoadState({
-          status: 'error',
-          message: mapWorkoutPlanReadError(error),
-        })
-      }
-    },
-    [resolvedWorkoutId, workoutPlanRepository],
-  )
-
-  useEffect(() => {
-    let cancelled = false
-
-    void loadWorkoutPlan(() => cancelled)
-
-    return () => {
-      cancelled = true
-    }
-  }, [loadWorkoutPlan, reloadCounter])
-
-  function handleRetry(): void {
-    setReloadCounter((current) => current + 1)
-  }
-
-  return (
-    <WorkoutPlanDetailsView
-      loadState={loadState}
-      workoutsListPath={routes.workouts}
-      newWorkoutPath={routes.newWorkout}
-      workoutActivePath={routes.workoutActive(resolvedWorkoutId)}
-      workoutEditPath={routes.workoutEdit(resolvedWorkoutId)}
-      onDelete={async () => {
-        await workoutPlanRepository.delete(resolvedWorkoutId)
-        navigate(routes.workouts, { replace: true, state: { planDeleted: true } })
-      }}
-      onRetry={handleRetry}
-    />
-  )
+  const { workoutId = '' } = useParams()
+  const { loadState, retry } = useWorkoutPlan(workoutId)
+  const { planRepository } = useWorkoutData()
+  return <><WorkoutDataWarning /><WorkoutPlanDetailsView loadState={loadState}
+    workoutsListPath={routes.workouts} newWorkoutPath={routes.newWorkout}
+    workoutActivePath={routes.workoutActive(workoutId)} workoutEditPath={routes.workoutEdit(workoutId)}
+    onDelete={async () => {
+      await planRepository.delete(workoutId)
+      navigate(routes.workouts, { replace: true, state: { planDeleted: true } })
+    }} onRetry={retry}
+  /></>
 }

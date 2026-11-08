@@ -1,7 +1,7 @@
-import { useReducer, useState } from 'react'
+import { useReducer } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { createWorkoutPlanRepository } from '@/app/createWorkoutPlanRepository'
+import { useWorkoutData } from '@/application/workoutDataContext'
 import { routes } from '@/app/routes'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import { WorkoutBuilderView } from '@/features/workout-builder/components/WorkoutBuilderView'
@@ -17,7 +17,7 @@ export function NewWorkoutPage() {
     undefined,
     createInitialWorkoutBuilderState,
   )
-  const [workoutPlanRepository] = useState(createWorkoutPlanRepository)
+  const { planRepository: workoutPlanRepository } = useWorkoutData()
 
   function handlePlanSaved(_plan: WorkoutPlan): void {
     navigate(routes.workouts, { replace: true })

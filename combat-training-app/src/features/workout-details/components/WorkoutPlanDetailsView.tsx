@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
-import { getButtonClassName } from '@/components/ui/Button'
+import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { calculateWorkoutPlanSummary } from '@/domain/workout/workoutCalculations'
 import type { WorkoutExercise, WorkoutItem, WorkoutPlan } from '@/domain/workout/workout.types'

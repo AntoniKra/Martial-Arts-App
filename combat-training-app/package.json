@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:rules": "firebase emulators:exec --only firestore --project demo-combat-training --config firebase.json --non-interactive \"vitest run --config firestore-tests/vitest.config.ts\"",
-    "test:e2e": "firebase emulators:exec --only auth --project demo-combat-training --config firebase.json --non-interactive \"playwright test\"",
+    "test:e2e": "firebase emulators:exec --only auth,firestore --project demo-combat-training --config firebase.json --non-interactive \"playwright test\"",
     "spike:firestore:typecheck": "tsc --noEmit --project spikes/firestore-offline/tsconfig.json",
     "spike:firestore:build": "vite build --config spikes/firestore-offline/vite.config.ts",
     "spike:firestore:test": "firebase emulators:exec --only firestore --project demo-combat-training --config spikes/firestore-offline/firebase.json --non-interactive \"playwright test --config spikes/firestore-offline/playwright.config.ts\"",

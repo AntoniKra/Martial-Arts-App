@@ -32,6 +32,7 @@ export interface WorkoutExercise {
   id: string
   type: 'exercise'
   combinationId: string | null
+  focusSkillId: string | null
   exerciseNameSnapshot: string
   instruction: string | null
   configuration: ExerciseConfiguration
@@ -46,11 +47,17 @@ export interface WorkoutBreak {
 
 export type WorkoutItem = WorkoutExercise | WorkoutBreak
 
-export interface WorkoutBlock {
+export type SparringIntensity = 'light' | 'technical' | 'hard'
+
+interface WorkoutBlockFields {
   id: string
-  blockType: WorkoutBlockType
   items: WorkoutItem[]
 }
+
+export type WorkoutBlock = WorkoutBlockFields & (
+  | { blockType: 'sparring'; sparringIntensity: SparringIntensity | null }
+  | { blockType: Exclude<WorkoutBlockType, 'sparring'> }
+)
 
 interface WorkoutPlanSharedFields {
   id: string
@@ -69,4 +76,5 @@ export interface WorkoutPlanDraft extends WorkoutPlanSharedFields {
 export interface WorkoutPlan extends WorkoutPlanSharedFields {
   disciplineKey: DisciplineKey
   nameSnapshot: string
+  updatedAt: string
 }

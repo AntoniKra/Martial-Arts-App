@@ -1,13 +1,17 @@
 import { test as base, expect, type Page } from '@playwright/test'
 import { createVerifiedAccount, signIn } from './authEmulator'
+import { seedPlan, readSessions } from './firestoreEmulator'
+import type { WorkoutPlan } from '../src/domain/workout/workout.types'
 
 class WorkoutApp {
   private authenticated = false
+  private uid = ''
   constructor(readonly page: Page) {}
 
   async open(path = '/') {
     if (!this.authenticated) {
       const account = await createVerifiedAccount(this.page.request)
+      this.uid = account.uid
       await this.page.goto(path)
       await expect(this.page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
       await signIn(this.page, account)
@@ -17,6 +21,9 @@ class WorkoutApp {
     await this.page.goto(path)
     await expect(this.page.getByRole('main')).toBeVisible()
   }
+
+  async seedPlan(plan: WorkoutPlan) { await seedPlan(this.page.request, this.uid, plan) }
+  async readSessions() { return readSessions(this.page.request, this.uid) }
 
   async createPlan(name = 'Plan E2E', roundDurationLabel: '1:00' | '3:00' = '1:00') {
     const { page } = this
@@ -65,8 +72,10 @@ class WorkoutApp {
   }
 
   async savePlan() {
+    const builderUrl = this.page.url()
     await this.page.getByRole('button', { name: 'Podgląd planu', exact: true }).click()
     await this.page.getByRole('button', { name: 'Zapisz plan', exact: true }).click()
+    await expect(this.page).not.toHaveURL(builderUrl)
   }
 
   async openPlayer() {
@@ -88,8 +97,13 @@ class WorkoutApp {
   }
 
   async expectWorkoutSaved() {
+    // The controlled playback clock also freezes Firestore's task queue; release it after playback.
+    await this.page.clock.resume()
     await expect(this.page.getByRole('heading', { name: 'Trening zakończony', exact: true })).toBeVisible()
     await expect(this.page.getByRole('status')).toHaveText('Trening został zapisany.')
+    if (await this.page.evaluate(() => navigator.onLine)) {
+      await expect.poll(async () => (await this.readSessions()).length).toBeGreaterThan(0)
+    }
   }
 
   async openHistory() {

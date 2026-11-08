@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
-import { getButtonClassName } from '@/components/ui/Button'
+import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'

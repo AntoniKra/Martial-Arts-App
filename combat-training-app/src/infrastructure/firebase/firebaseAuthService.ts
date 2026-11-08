@@ -17,7 +17,7 @@ function toSession(user: User | null): AuthSession | null {
 }
 
 export function createFirebaseAuthService(config: FirebaseConfig): AuthService {
-  const { emulatorHost, ...options } = config
+  const { emulatorHost, firestoreEmulatorHost: _firestoreHost, ...options } = config
   const auth = initializeAuth(initializeApp(options), { persistence: indexedDBLocalPersistence })
   // Emulator configuration accepts only demo projects. The SDK's fixed DOM banner covers controls
   // and sits outside landmarks; keep emulator diagnostics in the console instead.

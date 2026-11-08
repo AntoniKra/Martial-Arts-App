@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures'
 
-test('persists v3 timings including repeated work and excluding a pause', async ({ app, page }) => {
+test('persists Firestore timings including repeated work and excluding a pause', async ({ app, page }) => {
   await app.createPlan('Powtorzona runda')
   await app.openPlayer()
   await app.freezeClock()
@@ -16,10 +16,11 @@ test('persists v3 timings including repeated work and excluding a pause', async 
   await page.getByRole('button', { name: 'Poprzedni etap', exact: true }).click()
   await page.clock.fastForward(210_000)
   await app.expectWorkoutSaved()
-  const envelope = await page.evaluate(() => JSON.parse(localStorage.getItem('combat-training.workout-sessions') ?? 'null'))
-  expect(envelope).toMatchObject({ schemaVersion: 3, sessions: [{
+  await expect.poll(async () => (await app.readSessions()).length).toBe(1)
+  const envelope = { sessions: await app.readSessions() }
+  expect(envelope).toMatchObject({ sessions: [{
     source: 'plan', status: 'completed', durationSeconds: 280, workSeconds: 240, sparringSeconds: 0,
-    completion: { completedExercises: 2, plannedExercises: 2 },
+    completion: { completed: 2, planned: 2, unit: 'exercise' },
     workoutDate: '2026-11-03', timezone: 'Europe/Warsaw', category: 'technique',
   }] })
   expect(envelope.sessions).toHaveLength(1)
@@ -36,7 +37,7 @@ test('does not save a run without work and resets the message on restart', async
   await expect(page.getByRole('heading', { name: 'Nie zapisano treningu', exact: true })).toBeVisible()
   await expect(page.getByText('Trening niezapisany', { exact: true })).toBeVisible()
   await expect(page.getByRole('status')).toHaveText('Zapisujemy tylko rundy i ćwiczenia, które dobiegły do końca czasu. Tym razem żadne nie dobiegło.')
-  expect(await page.evaluate(() => localStorage.getItem('combat-training.workout-sessions'))).toBeNull()
+  expect(await app.readSessions()).toHaveLength(0)
   await page.screenshot({ path: testInfo.outputPath('no-work.png'), fullPage: true })
   await page.getByRole('button', { name: 'Uruchom ponownie', exact: true }).click()
   await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
@@ -52,10 +53,11 @@ test('saves partial completion when an exercise round is skipped without work', 
   await page.getByRole('button', { name: 'Następny etap', exact: true }).click()
   await page.clock.fastForward(150_000)
   await app.expectWorkoutSaved()
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('combat-training.workout-sessions') ?? 'null')))
-    .toMatchObject({ schemaVersion: 3, sessions: [{
+  await expect.poll(async () => (await app.readSessions()).length).toBe(1)
+  expect({ sessions: await app.readSessions() })
+    .toMatchObject({ sessions: [{
       status: 'partial', durationSeconds: 150, workSeconds: 120,
-      completion: { completedExercises: 1, plannedExercises: 2 },
+      completion: { completed: 1, planned: 2, unit: 'exercise' },
     }] })
 })
 
@@ -70,7 +72,7 @@ test('does not save a run clicked through after half a second of each exercise',
   }
   await expect(page.getByRole('heading', { name: 'Nie zapisano treningu', exact: true })).toBeVisible()
   await expect(page.getByRole('status')).toHaveText('Zapisujemy tylko rundy i ćwiczenia, które dobiegły do końca czasu. Tym razem żadne nie dobiegło.')
-  expect(await page.evaluate(() => localStorage.getItem('combat-training.workout-sessions'))).toBeNull()
+  expect(await app.readSessions()).toHaveLength(0)
 })
 
 test('keeps two interrupted minutes of a three-minute round in duration but excludes them from work', async ({ app, page }) => {
@@ -83,12 +85,13 @@ test('keeps two interrupted minutes of a three-minute round in duration but excl
   await page.getByRole('button', { name: 'Następny etap', exact: true }).click()
   await page.clock.fastForward(270_000)
   await app.expectWorkoutSaved()
-  const envelope = await page.evaluate(() => JSON.parse(localStorage.getItem('combat-training.workout-sessions') ?? 'null'))
-  expect(envelope).toMatchObject({ schemaVersion: 3, sessions: [{
+  await expect.poll(async () => (await app.readSessions()).length).toBe(1)
+  const envelope = { sessions: await app.readSessions() }
+  expect(envelope).toMatchObject({ sessions: [{
     status: 'partial', durationSeconds: 390, workSeconds: 240, sparringSeconds: 0,
-    completion: { completedExercises: 1, plannedExercises: 2 },
+    completion: { completed: 1, planned: 2, unit: 'exercise' },
   }] })
-  expect(envelope.sessions[0].stepResults[0]).toMatchObject({
+  expect((envelope.sessions[0].source === 'manual' ? [] : envelope.sessions[0].stepResults)[0]).toMatchObject({
     kind: 'exercise', plannedDurationSeconds: 180, performedDurationSeconds: 0, outcome: 'skipped',
   })
 })

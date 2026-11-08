@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import type { WorkoutPlanRepository } from '@/application/workout/workoutPlanRepository'
 import { routes } from '@/app/routes'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
-import { getButtonClassName } from '@/components/ui/Button'
+import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { finalizeWorkoutPlan } from '@/domain/workout/finalizeWorkoutPlan'
 import type { ExerciseConfiguration, WorkoutPlan } from '@/domain/workout/workout.types'
@@ -174,34 +174,19 @@ export function WorkoutBuilderView({
     }
   }
 
-  useEffect(() => {
+  const [validatedDraft, setValidatedDraft] = useState(state.draft)
+  if (validatedDraft !== state.draft) {
+    setValidatedDraft(state.draft)
     setValidationIssues(null)
-  }, [state.draft])
+  }
 
-  useEffect(() => {
-    if (
-      screen.type !== 'library' &&
-      screen.type !== 'configureNew' &&
-      screen.type !== 'configureExisting'
-    ) {
-      return
-    }
-
+  if (screen.type === 'library' || screen.type === 'configureNew' || screen.type === 'configureExisting') {
     const block = selectBlockById(state.draft.blocks, screen.blockId)
-
-    if (!block || state.draft.disciplineKey === null) {
+    if (!block || state.draft.disciplineKey === null
+      || (screen.type === 'configureExisting' && !selectExerciseById(block, screen.exerciseId))) {
       setScreen({ type: 'edit' })
-      return
     }
-
-    if (screen.type === 'configureExisting') {
-      const exercise = selectExerciseById(block, screen.exerciseId)
-
-      if (!exercise) {
-        setScreen({ type: 'edit' })
-      }
-    }
-  }, [screen, state.draft.blocks, state.draft.disciplineKey])
+  }
 
   useEffect(() => {
     if (!pendingPreviewHeadingFocus) {

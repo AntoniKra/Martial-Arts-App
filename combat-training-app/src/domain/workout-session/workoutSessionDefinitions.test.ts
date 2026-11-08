@@ -4,11 +4,13 @@ import {
   calculateWorkoutDate,
   calculateWorkoutSessionCategory,
   calculateWorkoutSessionDurations,
+  calculateWorkoutSessionSparring,
   createPlanWorkoutSession,
 } from '@/domain/workout-session/workoutSessionDefinitions'
 import { calculateWorkoutSessionSummary } from '@/domain/workout-session/workoutSessionCalculations'
 import type { WorkoutBlockType } from '@/domain/workout/workout.types'
 import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
+import { block } from '@/test/workoutBuilders'
 
 const exercise = sessionStep()
 const rest = sessionStep({ playbackStepId: 'rest', kind: 'roundRest' })
@@ -26,6 +28,30 @@ function build(steps = [exercise], endedEarly = false) {
 }
 
 describe('plan journal entries', () => {
+  it('snapshots each sparring block, counts only completed planned rounds and includes empty blocks', () => {
+    const blocks = [
+      { ...block('sparring', [], 'sparring'), blockType: 'sparring' as const, sparringIntensity: 'hard' as const },
+      block('empty', [], 'sparring'), block('bag', [], 'bag'),
+    ]
+    const steps = [
+      sessionStep({ blockId: 'sparring', blockType: 'sparring', roundNumber: 1, roundCount: 2 }),
+      sessionStep({ blockId: 'sparring', blockType: 'sparring', playbackStepId: 'skipped', roundNumber: 2, roundCount: 2, outcome: 'skipped', performedDurationSeconds: 0 }),
+      sessionStep({ blockId: 'sparring', blockType: 'sparring', playbackStepId: 'continuous' }),
+      sessionStep({ blockId: 'sparring', blockType: 'sparring', playbackStepId: 'rest', kind: 'roundRest' }),
+      sessionStep({ blockId: 'bag', playbackStepId: 'bag', roundNumber: 1, roundCount: 1 }),
+    ]
+    expect(calculateWorkoutSessionSparring(blocks, steps)).toEqual([
+      { blockId: 'sparring', intensity: 'hard', rounds: 1 }, { blockId: 'empty', intensity: null, rounds: 0 },
+    ])
+    const result = createPlanWorkoutSession(workoutSession({ stepResults: steps }), {
+      timezone: 'Europe/Warsaw', blockTypes: ['sparring'], blocks, endedEarly: false,
+      durations: { durationSeconds: 240, workSeconds: 180, sparringSeconds: 120 },
+    })
+    expect(result).toMatchObject({ kind: 'save', session: { sparring: [
+      { blockId: 'sparring', intensity: 'hard', rounds: 1 }, { blockId: 'empty', intensity: null, rounds: 0 },
+    ], rpe: null, rpeRecordedAt: null, focusRatings: [], exerciseRatings: [],
+    createdAt: '2026-11-02T10:00:00.000Z', updatedAt: '2026-11-02T10:00:00.000Z' } })
+  })
   it('saves a completed plan with exercise completion independent of rounds and time', () => {
     const result = build([
       sessionStep({ playbackStepId: 'round-1', roundNumber: 1, roundCount: 2 }),
@@ -35,7 +61,7 @@ describe('plan journal entries', () => {
     ])
     expect(result).toMatchObject({ kind: 'save', session: {
       source: 'plan', status: 'completed', durationSeconds: 240, workSeconds: 180,
-      sparringSeconds: 0, completion: { completedExercises: 2, plannedExercises: 2 },
+      sparringSeconds: 0, completion: { completed: 2, planned: 2, unit: 'exercise' },
       category: 'technique', workoutDate: '2026-11-02', timezone: 'Europe/Warsaw',
     } })
   })
@@ -49,7 +75,7 @@ describe('plan journal entries', () => {
     expect(build([exercise, { ...skipped, performedDurationSeconds, outcome: performedDurationSeconds === 0 ? 'skipped' : 'partial' }]))
       .toMatchObject({ kind: 'save', session: {
         status: 'partial', durationSeconds: 60 + performedDurationSeconds, workSeconds: 60,
-        completion: { completedExercises: 1, plannedExercises: 2 },
+        completion: { completed: 1, planned: 2, unit: 'exercise' },
       } })
   })
 
@@ -86,7 +112,7 @@ describe('plan journal entries', () => {
     })
     expect(result).toMatchObject({ kind: 'save', session: {
       durationSeconds: 160, workSeconds: 120,
-      completion: { completedExercises: 1, plannedExercises: 1 },
+      completion: { completed: 1, planned: 1, unit: 'exercise' },
     } })
     if (result.kind !== 'save') throw new Error('Expected a saved entry')
     expect(calculateWorkoutSessionSummary(result.session).activeDurationSeconds).toBe(160)

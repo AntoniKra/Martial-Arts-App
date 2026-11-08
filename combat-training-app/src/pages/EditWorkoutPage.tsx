@@ -1,7 +1,7 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useReducer } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { createWorkoutPlanRepository } from '@/app/createWorkoutPlanRepository'
+import { useWorkoutData, useWorkoutPlan } from '@/application/workoutDataContext'
 import { routes } from '@/app/routes'
 import type { WorkoutPlanRepository } from '@/application/workout/workoutPlanRepository'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
@@ -26,33 +26,9 @@ function PlanEditor({ plan, repository }: { plan: WorkoutPlan; repository: Worko
   )
 }
 
-type EditPlanLoadState =
-  | { status: 'loading' | 'notFound' }
-  | { status: 'success'; plan: WorkoutPlan }
-
 function EditWorkoutLoader({ workoutId }: { workoutId: string }) {
-  const [repository] = useState(createWorkoutPlanRepository)
-  const [loadState, setLoadState] = useState<EditPlanLoadState>({ status: 'loading' })
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadPlan() {
-      try {
-        const plan = await repository.getById(workoutId)
-        if (!cancelled) {
-          setLoadState(plan ? { status: 'success', plan } : { status: 'notFound' })
-        }
-      } catch {
-        if (!cancelled) {
-          setLoadState({ status: 'notFound' })
-        }
-      }
-    }
-
-    void loadPlan()
-    return () => { cancelled = true }
-  }, [repository, workoutId])
+  const { planRepository: repository } = useWorkoutData()
+  const { loadState } = useWorkoutPlan(workoutId)
 
   if (loadState.status === 'success') {
     return <PlanEditor key={workoutId} plan={loadState.plan} repository={repository} />

@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 
-import { getNavigationIcon } from '@/components/layout/NavIcons'
+import { NavigationIcon } from '@/components/layout/NavIcons'
 import {
   isNavigationItemActive,
   type NavigationItemConfig,
@@ -14,7 +14,7 @@ interface NavigationLinkProps {
 export function NavigationLink({ item, variant }: NavigationLinkProps) {
   const { pathname } = useLocation()
   const active = isNavigationItemActive(pathname, item)
-  const icon = getNavigationIcon(item.id)
+  const icon = <NavigationIcon id={item.id} />
 
   if (variant === 'mobile-create') {
     return (

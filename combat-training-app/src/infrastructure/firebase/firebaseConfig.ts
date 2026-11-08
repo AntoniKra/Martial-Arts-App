@@ -4,6 +4,7 @@ export interface FirebaseConfig {
   projectId: string
   appId: string
   emulatorHost?: string
+  firestoreEmulatorHost?: string
 }
 
 export function readFirebaseConfig(env: Record<string, unknown>): FirebaseConfig {
@@ -26,13 +27,20 @@ export function readFirebaseConfig(env: Record<string, unknown>): FirebaseConfig
     config.emulatorHost = host
   }
   if (config.projectId.startsWith('demo-') && !config.emulatorHost) throw new Error('Demo project requires an emulator')
+  const firestoreHost = env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST
+  if (firestoreHost !== undefined && firestoreHost !== '') {
+    if (typeof firestoreHost !== 'string' || !/^(localhost|127\.0\.0\.1):\d{1,5}$/.test(firestoreHost)) throw new Error('Invalid Firestore emulator host')
+    const port = Number(firestoreHost.split(':')[1])
+    if (port < 1 || port > 65535 || !config.projectId.startsWith('demo-') || !config.emulatorHost) throw new Error('Invalid Firestore emulator configuration')
+    config.firestoreEmulatorHost = firestoreHost
+  }
   return config
 }
 
 /** Configuration for a production deployment: the real project only, never the emulator. */
 export function readDeployFirebaseConfig(env: Record<string, unknown>, expectedProjectId: string): FirebaseConfig {
   const config = readFirebaseConfig(env)
-  if (config.emulatorHost) throw new Error('Deploy build must not use the emulator')
+  if (config.emulatorHost || config.firestoreEmulatorHost) throw new Error('Deploy build must not use the emulator')
   if (config.projectId !== expectedProjectId) throw new Error(`Deploy build targets ${config.projectId}, expected ${expectedProjectId}`)
   return config
 }

@@ -1,5 +1,6 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Outlet } from 'react-router-dom'
 
+import { WorkoutDataProvider } from '@/app/WorkoutDataProvider'
 import { AppRoot } from '@/app/AppRoot'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
@@ -25,6 +26,9 @@ export const router = createBrowserRouter([
           { path: '/forgot-password', element: <AuthFormPage key="forgot-password" mode="forgot-password" /> },
           { path: '/verify-email', element: <VerifyEmailPage /> },
           {
+            element: <WorkoutDataProvider><Outlet /></WorkoutDataProvider>,
+            children: [
+          {
             element: <AppLayout />,
             children: [
               { path: '/', element: <HomePage /> },
@@ -38,6 +42,8 @@ export const router = createBrowserRouter([
           },
           { path: '/workouts/:workoutId/active', element: <WorkoutPlayerPage /> },
           { path: '/workouts/:workoutId/feedback', element: <PlaceholderPage title="Podsumowanie treningu" fullscreen /> },
+            ],
+          },
         ],
       },
     ],

@@ -173,10 +173,10 @@ export function useWorkoutPlayback(
   const stepsRef = useRef(timeline.steps)
   const onPlaybackEventRef = useRef(options?.onPlaybackEvent)
 
-  onPlaybackEventRef.current = options?.onPlaybackEvent
+  useEffect(() => { onPlaybackEventRef.current = options?.onPlaybackEvent }, [options?.onPlaybackEvent])
 
-  const playbackRef = useRef<WorkoutPlaybackState>(buildInitialPlaybackState(stepsRef.current, INITIAL_STEP_REVISION))
-  const [playback, setPlayback] = useState<WorkoutPlaybackState>(() => playbackRef.current)
+  const playbackRef = useRef<WorkoutPlaybackState>(buildInitialPlaybackState(timeline.steps, INITIAL_STEP_REVISION))
+  const [playback, setPlayback] = useState<WorkoutPlaybackState>(() => buildInitialPlaybackState(timeline.steps, INITIAL_STEP_REVISION))
 
   const deadlineRef = useRef<number | null>(null)
   const pausedPlaybackRef = useRef<PausedPlayback | null>(null)
@@ -623,13 +623,13 @@ export function useWorkoutPlayback(
     )
   }, [clearTimer, commitPlayback, emitEvent, invalidateRuntime])
 
-  const currentStep = stepsRef.current[playback.currentStepIndex] ?? null
+  const currentStep = timeline.steps[playback.currentStepIndex] ?? null
   const stepNavigationEnabled = playback.status === 'running' || playback.status === 'paused'
   // On the first step "Poprzedni" restarts it, so it is available whenever navigation is.
   const canGoPrevious = stepNavigationEnabled
   const canGoNext = stepNavigationEnabled
   const progressRatio =
-    stepsRef.current.length === 0 ? 1 : (playback.currentStepIndex + 1) / stepsRef.current.length
+    timeline.steps.length === 0 ? 1 : (playback.currentStepIndex + 1) / timeline.steps.length
 
   return {
     playback,

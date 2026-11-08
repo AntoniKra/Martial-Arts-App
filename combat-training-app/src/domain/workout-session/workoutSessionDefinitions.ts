@@ -1,6 +1,7 @@
-import type { WorkoutBlockType } from '@/domain/workout/workout.types'
+import type { WorkoutBlock, WorkoutBlockType } from '@/domain/workout/workout.types'
 import type {
-  WorkoutSession,
+  PlanWorkoutSession,
+  SparringEntry,
   WorkoutSessionCategory,
   WorkoutSessionCompletion,
   WorkoutSessionStatus,
@@ -43,15 +44,16 @@ export function calculateWorkoutSessionDurations(attempts: readonly WorkoutSessi
   }
 }
 
-export function calculateWorkoutSessionCompletion(steps: readonly WorkoutSessionStepResult[]): WorkoutSessionCompletion {
+export function calculateWorkoutSessionCompletion(steps: readonly WorkoutSessionStepResult[]): WorkoutSessionCompletion & { unit: 'exercise' } {
   const exercises = new Map<string, boolean>()
   for (const step of steps) {
     if (step.kind !== 'exercise') continue
     exercises.set(step.workoutItemId, (exercises.get(step.workoutItemId) ?? true) && step.outcome === 'completed')
   }
   return {
-    completedExercises: [...exercises.values()].filter(Boolean).length,
-    plannedExercises: exercises.size,
+    completed: [...exercises.values()].filter(Boolean).length,
+    planned: exercises.size,
+    unit: 'exercise',
   }
 }
 
@@ -80,7 +82,7 @@ export function calculateWorkoutDate(startedAt: string, timezone: string): strin
   return `${part('year')}-${part('month')}-${part('day')}`
 }
 
-type PlanSessionFields = Pick<WorkoutSession,
+type PlanSessionFields = Pick<PlanWorkoutSession,
   'id' | 'workoutPlanId' | 'workoutPlanNameSnapshot' | 'disciplineKey' |
   'startedAt' | 'completedAt' | 'stepResults' | 'note'>
 
@@ -89,10 +91,22 @@ interface PlanSessionOptions {
   blockTypes: readonly WorkoutBlockType[]
   endedEarly: boolean
   durations: WorkoutSessionDurations
+  blocks?: readonly WorkoutBlock[]
 }
 
-/** Also used by legacy migration, where only the best result of each step is available. */
-export function definePlanWorkoutSession(fields: PlanSessionFields, options: PlanSessionOptions): WorkoutSession {
+export function calculateWorkoutSessionSparring(
+  blocks: readonly WorkoutBlock[],
+  steps: readonly WorkoutSessionStepResult[],
+): SparringEntry[] {
+  return blocks.filter((block) => block.blockType === 'sparring').map((block) => ({
+    blockId: block.id,
+    intensity: block.sparringIntensity,
+    rounds: steps.filter((step) => step.blockId === block.id && step.kind === 'exercise'
+      && step.roundNumber !== null && step.outcome === 'completed').length,
+  }))
+}
+
+export function definePlanWorkoutSession(fields: PlanSessionFields, options: PlanSessionOptions): PlanWorkoutSession {
   return {
     ...fields,
     source: 'plan',
@@ -102,11 +116,18 @@ export function definePlanWorkoutSession(fields: PlanSessionFields, options: Pla
     workoutDate: calculateWorkoutDate(fields.startedAt, options.timezone),
     timezone: options.timezone,
     category: calculateWorkoutSessionCategory(options.blockTypes),
+    rpe: null,
+    rpeRecordedAt: null,
+    sparring: calculateWorkoutSessionSparring(options.blocks ?? [], fields.stepResults),
+    focusRatings: [],
+    exerciseRatings: [],
+    createdAt: fields.completedAt,
+    updatedAt: fields.completedAt,
   }
 }
 
 export type PlanWorkoutSessionResult =
-  | { kind: 'save'; session: WorkoutSession }
+  | { kind: 'save'; session: PlanWorkoutSession }
   | { kind: 'noWork' }
 
 export function createPlanWorkoutSession(fields: PlanSessionFields, options: PlanSessionOptions): PlanWorkoutSessionResult {
