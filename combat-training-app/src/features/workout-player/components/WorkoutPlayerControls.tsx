@@ -67,7 +67,7 @@ export function WorkoutPlayerControls({
 
   return (
     <div className="shrink-0 border-t border-bd bg-surface px-5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex h-16 items-center justify-between gap-3">
         <button
           type="button"
           onClick={onPrevious}
@@ -78,18 +78,18 @@ export function WorkoutPlayerControls({
           <SkipBackIcon />
         </button>
 
-        <div className="flex flex-col items-center gap-1">
+        <div className="relative h-16 w-32 shrink-0">
           <button
             type="button"
             onClick={handlePrimaryAction}
             aria-label={getPrimaryControlLabel(status)}
-            className="flex size-16 shrink-0 items-center justify-center rounded-full bg-crimson text-on-accent transition-colors hover:bg-crimson-hi active:bg-crimson"
+            className="absolute top-1/2 left-1/2 flex size-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-crimson text-on-accent ring-4 ring-bg transition-colors hover:bg-crimson-hi active:bg-crimson"
           >
-            {showPause ? <PauseIcon /> : <PlayIcon />}
+            {showPause ? <PauseIcon className="size-[38px]" /> : <PlayIcon className="size-[38px]" />}
+            {status === 'preparing' ? (
+              <span className="absolute inset-x-0 top-[calc(50%+1.5rem)] font-display text-[12px] font-semibold">{workoutPlayerLabels.startNow}</span>
+            ) : null}
           </button>
-          {status === 'preparing' ? (
-            <span className="font-display text-[12px] font-semibold text-ink">{workoutPlayerLabels.startNow}</span>
-          ) : null}
         </div>
 
         <button
