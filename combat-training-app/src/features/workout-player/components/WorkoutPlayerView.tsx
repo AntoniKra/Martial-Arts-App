@@ -332,7 +332,7 @@ function WorkoutPlayerRuntime({
   const stepDurationSeconds = isPreparing ? Number(preparation) : currentStep.durationSeconds
 
   return (
-    <main className="flex min-h-dvh flex-col overflow-hidden bg-bg">
+    <main className="flex min-h-dvh flex-col overflow-clip bg-bg">
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col safe-area-pt">
         <header className="shrink-0 px-5 pt-5 pb-2">
           <div className="flex items-start justify-between gap-4">

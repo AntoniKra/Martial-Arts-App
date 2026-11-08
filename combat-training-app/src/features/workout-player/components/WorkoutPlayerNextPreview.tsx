@@ -9,7 +9,7 @@ interface WorkoutPlayerNextPreviewProps {
 export function WorkoutPlayerNextPreview({ nextStep, isLastStep }: WorkoutPlayerNextPreviewProps) {
   if (isLastStep) {
     return (
-      <p className="px-5 pb-3 text-center text-[11px] text-muted">
+      <p className="shrink-0 px-5 pb-11 text-center text-[11px] text-muted">
         Koniec treningu
       </p>
     )
@@ -26,7 +26,7 @@ export function WorkoutPlayerNextPreview({ nextStep, isLastStep }: WorkoutPlayer
       : ''
 
   return (
-    <div className="shrink-0 px-5 pb-3 text-center">
+    <div className="shrink-0 px-5 pb-11 text-center">
       <p className="font-display text-[12px] font-semibold uppercase tracking-[0.12em] text-faint">
         Następnie
       </p>

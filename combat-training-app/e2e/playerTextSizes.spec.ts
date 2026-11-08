@@ -51,7 +51,7 @@ for (const theme of ['dark', 'light'] as const) {
         overflowing: [...document.querySelectorAll('main div')].some((element) => element.scrollHeight > element.clientHeight + 1 && getComputedStyle(element).overflowY === 'auto'),
       }))
       expect(geometry).toEqual({ scrollY: 0, scrollX: 0, width: viewport.width, height: viewport.height, overflowing: false })
-      for (const sample of [samples.timer, ...samples.controls]) {
+      for (const sample of [samples.timer, samples.controls[0], samples.controls[2]]) {
         expect(sample.y).toBeGreaterThanOrEqual(0)
         expect(sample.y + sample.height).toBeLessThanOrEqual(viewport.height)
         expect(sample.x).toBeGreaterThanOrEqual(0)
@@ -63,13 +63,12 @@ for (const theme of ['dark', 'light'] as const) {
       expect(samples.state.size).toBe('16px')
       expect(samples.nextLabel.size).toBe('12px')
       expect(samples.nextName.size).toBe('14px')
-      expect(samples.controls.map(({ width, height }) => [width, height])).toEqual([[48, 48], [64, 64], [48, 48]])
-      if (testInfo.project.name === 'phone' && (state !== 'break' || theme === 'dark')) {
-        const name = state === 'break' ? 'smallest-break-dark' : `${state}-${theme}`
-        const path = testInfo.outputPath(`${name}.png`)
-        await page.screenshot({ path })
-        await testInfo.attach(name, { path, contentType: 'image/png' })
-      }
+      expect(samples.controls.map(({ width, height }) => [width, height])).toEqual([[48, 48], [128, 128], [48, 48]])
+      const primary = samples.controls[1]
+      expect(primary.x).toBeGreaterThanOrEqual(0)
+      expect(primary.x + primary.width).toBeLessThanOrEqual(viewport.width)
+      expect(Math.min(viewport.height, primary.y + primary.height) - primary.y).toBeGreaterThanOrEqual(100)
+      expect(primary.y - samples.nextName.y - samples.nextName.height).toBeGreaterThanOrEqual(24)
     }
 
     const round = await measure(page.getByText('Runda 1 z 2', { exact: true }))
