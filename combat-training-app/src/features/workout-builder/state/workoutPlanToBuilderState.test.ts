@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, vi, describe, expect, it } from 'vitest'
 
 import { finalizeWorkoutPlan } from '@/domain/workout/finalizeWorkoutPlan'
 import { workoutBuilderReducer } from '@/features/workout-builder/state/workoutBuilder.reducer'
@@ -6,6 +6,8 @@ import { workoutPlanToBuilderState } from '@/features/workout-builder/state/work
 import { block, continuousExercise, roundsExercise, workoutBreak, workoutPlan } from '@/test/workoutBuilders'
 
 describe('workoutPlanToBuilderState', () => {
+  beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-02T10:00:00.000Z')) })
+  afterEach(() => vi.useRealTimers())
   it.each([null, 'Trening techniczny'])('round-trips a plan with customName %s without changes', (customName) => {
     const rounds = { ...roundsExercise('rounds', 3, 180, 60), combinationId: 'jab_cross', instruction: 'Keep guard up' }
     const plan = workoutPlan([
@@ -35,9 +37,10 @@ describe('workoutPlanToBuilderState', () => {
     const state = workoutPlanToBuilderState(plan)
     expect(workoutBuilderReducer(state, { type: 'setDiscipline', disciplineKey: 'muay_thai' })).toBe(state)
 
+    vi.setSystemTime(new Date('2026-11-03T12:00:00.000Z'))
     const edited = workoutBuilderReducer(state, { type: 'setCustomName', customName: 'Nowa nazwa' })
     const result = finalizeWorkoutPlan(edited.draft)
-    expect(result).toEqual({ ok: true, plan: { ...plan, customName: 'Nowa nazwa', nameSnapshot: 'Nowa nazwa' } })
+    expect(result).toEqual({ ok: true, plan: { ...plan, customName: 'Nowa nazwa', nameSnapshot: 'Nowa nazwa', updatedAt: '2026-11-03T12:00:00.000Z' } })
   })
 
   it('allows changing the discipline when a plan contains only breaks', () => {

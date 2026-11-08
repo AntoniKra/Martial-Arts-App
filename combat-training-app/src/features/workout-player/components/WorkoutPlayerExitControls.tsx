@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useBlocker, useNavigate } from 'react-router-dom'
 
-import { getButtonClassName } from '@/components/ui/Button'
+import { getButtonClassName } from '@/components/ui/buttonStyles'
 import type { WorkoutPlaybackStatus } from '@/features/workout-player/types/workoutPlayback.types'
 import { workoutPlayerLabels as labels } from '@/features/workout-player/workoutPlayerLabels'
 

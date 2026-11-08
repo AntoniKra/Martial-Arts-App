@@ -1,84 +1,21 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
-
-import { createWorkoutPlanRepository } from '@/app/createWorkoutPlanRepository'
-import { createWorkoutSessionRepository } from '@/app/createWorkoutSessionRepository'
-import { mapWorkoutPlanReadError } from '@/app/mapWorkoutPlanReadError'
+import { useWorkoutData, useWorkoutPlan } from '@/application/workoutDataContext'
 import { routes } from '@/app/routes'
+import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { WorkoutPlayerView } from '@/features/workout-player/components/WorkoutPlayerView'
-import type { WorkoutPlayerLoadState } from '@/features/workout-player/types/workoutPlayback.types'
 
 export function WorkoutPlayerPage() {
-  const { workoutId } = useParams()
-  const resolvedWorkoutId = workoutId?.trim() ?? ''
-  const [workoutPlanRepository] = useState(createWorkoutPlanRepository)
-  const [workoutSessionRepository] = useState(createWorkoutSessionRepository)
-  const [loadState, setLoadState] = useState<WorkoutPlayerLoadState>({ status: 'loading' })
-  const [reloadCounter, setReloadCounter] = useState(0)
-
-  const saveWorkoutSession = useCallback(
-    (session: WorkoutSession) => workoutSessionRepository.save(session),
-    [workoutSessionRepository],
-  )
-
-  const loadWorkoutPlan = useCallback(
-    async (isCancelled: () => boolean) => {
-      if (!resolvedWorkoutId) {
-        setLoadState({ status: 'notFound' })
-        return
-      }
-
-      setLoadState({ status: 'loading' })
-
-      try {
-        const plan = await workoutPlanRepository.getById(resolvedWorkoutId)
-
-        if (isCancelled()) {
-          return
-        }
-
-        if (plan === null) {
-          setLoadState({ status: 'notFound' })
-          return
-        }
-
-        setLoadState({ status: 'success', plan })
-      } catch (error) {
-        if (isCancelled()) {
-          return
-        }
-
-        setLoadState({
-          status: 'error',
-          message: mapWorkoutPlanReadError(error),
-        })
-      }
-    },
-    [resolvedWorkoutId, workoutPlanRepository],
-  )
-
-  useEffect(() => {
-    let cancelled = false
-
-    void loadWorkoutPlan(() => cancelled)
-
-    return () => {
-      cancelled = true
-    }
-  }, [loadWorkoutPlan, reloadCounter])
-
-  function handleRetry(): void {
-    setReloadCounter((current) => current + 1)
-  }
-
-  return (
-    <WorkoutPlayerView
-      loadState={loadState}
-      workoutsListPath={routes.workouts}
-      workoutDetailsPath={routes.workoutDetails(resolvedWorkoutId)}
-      onRetry={handleRetry}
-      saveWorkoutSession={saveWorkoutSession}
-    />
-  )
+  const { workoutId = '' } = useParams()
+  const { loadState: latest, retry } = useWorkoutPlan(workoutId)
+  const [snapshot, setSnapshot] = useState<{ id: string; plan: WorkoutPlan | null }>({ id: workoutId, plan: null })
+  if (snapshot.id !== workoutId) setSnapshot({ id: workoutId, plan: null })
+  else if (!snapshot.plan && latest.status === 'success') setSnapshot({ id: workoutId, plan: latest.plan })
+  // An admitted workout keeps its immutable plan even if the account or library changes elsewhere.
+  const loadState = snapshot.id === workoutId && snapshot.plan ? { status: 'success' as const, plan: snapshot.plan } : latest
+  const { sessionRepository } = useWorkoutData()
+  const saveWorkoutSession = useCallback((session: WorkoutSession) => sessionRepository.save(session), [sessionRepository])
+  return <WorkoutPlayerView loadState={loadState} workoutsListPath={routes.workouts}
+    workoutDetailsPath={routes.workoutDetails(workoutId)} onRetry={retry} saveWorkoutSession={saveWorkoutSession} />
 }

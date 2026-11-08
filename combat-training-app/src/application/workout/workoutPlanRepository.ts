@@ -1,8 +1,7 @@
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
+import type { SubscribableRepository } from '@/application/repositorySubscription'
 
-export interface WorkoutPlanRepository {
+export interface WorkoutPlanRepository extends SubscribableRepository<WorkoutPlan> {
   save(plan: WorkoutPlan): Promise<void>
-  list(): Promise<WorkoutPlan[]>
-  getById(id: string): Promise<WorkoutPlan | null>
   delete(id: string): Promise<void>
 }

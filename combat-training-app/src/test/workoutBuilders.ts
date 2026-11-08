@@ -17,6 +17,7 @@ export function roundsExercise(
     id,
     type: 'exercise',
     combinationId: null,
+    focusSkillId: null,
     exerciseNameSnapshot: `Exercise ${id}`,
     instruction: null,
     configuration: { mode: 'rounds', roundCount, roundDurationSeconds, restBetweenRoundsSeconds },
@@ -28,6 +29,7 @@ export function continuousExercise(id: string, durationSeconds: number): Workout
     id,
     type: 'exercise',
     combinationId: null,
+    focusSkillId: null,
     exerciseNameSnapshot: `Exercise ${id}`,
     instruction: null,
     configuration: { mode: 'continuous', durationSeconds },
@@ -43,7 +45,7 @@ export function block(
   items: WorkoutBlock['items'],
   blockType: WorkoutBlockType = 'technique',
 ): WorkoutBlock {
-  return { id, blockType, items }
+  return blockType === 'sparring' ? { id, blockType, items, sparringIntensity: null } : { id, blockType, items }
 }
 
 export function workoutPlan(blocks: WorkoutBlock[]): WorkoutPlan {
@@ -53,6 +55,7 @@ export function workoutPlan(blocks: WorkoutBlock[]): WorkoutPlan {
     mainGoal: null,
     blocks,
     createdAt: '2026-11-02T10:00:00.000Z',
+    updatedAt: '2026-11-02T10:00:00.000Z',
     disciplineKey: 'boxing',
     nameSnapshot: 'Boks — 02.11.2026',
   }

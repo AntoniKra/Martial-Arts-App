@@ -1,3 +1,4 @@
+import { workoutSessionName, workoutSessionDate } from '@/features/workouts/utils/workoutSessionPresentation'
 import { calculateWorkoutSessionSummary } from '@/domain/workout-session/workoutSessionCalculations'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { WorkoutHistoryListItem } from '@/features/workouts/types/workoutsView.types'
@@ -7,18 +8,18 @@ import {
   formatWorkoutSessionTimePl,
 } from '@/features/workouts/utils/formatWorkoutSessionLabels'
 
-export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession): WorkoutHistoryListItem {
+export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession, hasPendingWrites = false): WorkoutHistoryListItem {
   const summary = calculateWorkoutSessionSummary(session)
   const hasRounds = summary.plannedRoundCount > 0
 
   return {
     id: session.id,
     status: session.status,
-    name: session.workoutPlanNameSnapshot,
+    name: workoutSessionName(session),
     disciplineKey: session.disciplineKey,
-    dateLabelPl: formatWorkoutSessionDatePl(session.completedAt),
-    timeLabelPl: formatWorkoutSessionTimePl(session.completedAt),
-    completedAt: session.completedAt,
+    dateLabelPl: formatWorkoutSessionDatePl(workoutSessionDate(session)),
+    timeLabelPl: session.source === 'manual' ? '' : formatWorkoutSessionTimePl(session.completedAt),
+    completedAt: workoutSessionDate(session),
     durationLabelPl: formatActiveDurationSecondsPl(summary.activeDurationSeconds),
     completedExercises: summary.completedExerciseCount,
     plannedExercises: summary.plannedExerciseCount,
@@ -26,13 +27,15 @@ export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession): Wor
     completedRounds: hasRounds ? summary.completedRoundCount : null,
     plannedRounds: hasRounds ? summary.plannedRoundCount : null,
     note: session.note,
+    hasPendingWrites,
   }
 }
 
 export function mapWorkoutSessionsToHistoryListItems(
   sessions: readonly WorkoutSession[],
+  pendingIds: ReadonlySet<string> = new Set(),
 ): WorkoutHistoryListItem[] {
   return [...sessions]
-    .map(mapWorkoutSessionToHistoryListItem)
+    .map((session) => mapWorkoutSessionToHistoryListItem(session, pendingIds.has(session.id)))
     .sort((left, right) => right.completedAt.localeCompare(left.completedAt))
 }

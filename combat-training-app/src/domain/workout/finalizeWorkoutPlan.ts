@@ -39,6 +39,7 @@ export function finalizeWorkoutPlan(draft: WorkoutPlanDraft): FinalizeWorkoutPla
     mainGoal: draft.mainGoal,
     blocks: structuredClone(draft.blocks),
     createdAt: draft.createdAt,
+    updatedAt: new Date().toISOString(),
     nameSnapshot: resolveWorkoutPlanDisplayName(draft),
   }
 

@@ -29,6 +29,7 @@ export type WorkoutHistoryMutationResult = 'applied' | 'stale'
 export const WORKOUT_HISTORY_NOTE_MAX_LENGTH = 1000
 
 export interface WorkoutHistoryListItem {
+  hasPendingWrites: boolean
   id: string
   status: WorkoutSessionStatus
   name: string

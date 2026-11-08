@@ -18,7 +18,7 @@ export async function createVerifiedAccount(request: APIRequestContext) {
     data: { localId, emailVerified: true },
   })
   expect(verified.ok()).toBe(true)
-  return { email, password: testPassword }
+  return { email, password: testPassword, uid: localId }
 }
 
 export async function signIn(page: Page, account: { email: string; password: string }) {

@@ -1,3 +1,4 @@
+import { workoutSessionName, workoutSessionDate } from '@/features/workouts/utils/workoutSessionPresentation'
 import { calculateWorkoutSessionSummary } from '@/domain/workout-session/workoutSessionCalculations'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { HomeRecentSession } from '@/features/home/types/homeView.types'
@@ -12,9 +13,9 @@ export function mapWorkoutSessionToHomeRecentSession(session: WorkoutSession): H
   return {
     id: session.id,
     status: session.status,
-    name: session.workoutPlanNameSnapshot,
+    name: workoutSessionName(session),
     disciplineKey: session.disciplineKey,
-    dateLabelPl: formatWorkoutSessionDatePl(session.completedAt),
+    dateLabelPl: formatWorkoutSessionDatePl(workoutSessionDate(session)),
     durationLabelPl: formatActiveDurationSecondsPl(summary.activeDurationSeconds),
     completedExercises: summary.completedExerciseCount,
     plannedExercises: summary.plannedExerciseCount,

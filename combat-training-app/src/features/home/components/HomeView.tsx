@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
-import { getButtonClassName } from '@/components/ui/Button'
+import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { FeaturedPlanCard } from '@/features/home/components/FeaturedPlanCard'
 import { HomeSectionLabel } from '@/features/home/components/HomeSectionLabel'

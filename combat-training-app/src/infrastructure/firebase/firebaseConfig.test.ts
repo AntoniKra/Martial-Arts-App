@@ -9,6 +9,13 @@ const env = {
 it('reads explicit demo emulator configuration', () => {
   expect(readFirebaseConfig(env)).toMatchObject({ projectId: 'demo-combat-training', emulatorHost: '127.0.0.1:9099' })
 })
+it('accepts only a local Firestore emulator paired with demo Authentication', () => {
+  expect(readFirebaseConfig({ ...env, VITE_FIREBASE_FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080' }).firestoreEmulatorHost).toBe('127.0.0.1:8080')
+  for (const host of ['example.test:8080', 'https://127.0.0.1:8080', '127.0.0.1:0', 'localhost:65536']) {
+    expect(() => readFirebaseConfig({ ...env, VITE_FIREBASE_FIRESTORE_EMULATOR_HOST: host })).toThrow()
+  }
+  expect(() => readFirebaseConfig({ ...env, VITE_FIREBASE_PROJECT_ID: 'real', VITE_FIREBASE_AUTH_EMULATOR_HOST: '', VITE_FIREBASE_FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080' })).toThrow()
+})
 it.each(['VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_AUTH_DOMAIN', 'VITE_FIREBASE_PROJECT_ID', 'VITE_FIREBASE_APP_ID'])('rejects missing %s', (name) => {
   expect(() => readFirebaseConfig({ ...env, [name]: ' ' })).toThrow()
 })

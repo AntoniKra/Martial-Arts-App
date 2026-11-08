@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
-import { getButtonClassName } from '@/components/ui/Button'
+import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { polishPlural } from '@/domain/language/polishPlural'
 import type { WorkoutPlanListItem } from '@/features/workouts/types/workoutsView.types'

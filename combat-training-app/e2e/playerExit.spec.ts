@@ -5,7 +5,6 @@ import { test, expect } from './fixtures'
 
 const menu = (page: Page) => page.getByRole('button', { name: 'Menu treningu', exact: true })
 const exitDialog = (page: Page) => page.getByRole('dialog', { name: 'Zakończyć trening?', exact: true })
-const storedSessions = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('combat-training.workout-sessions') ?? '{"sessions":[]}').sessions)
 
 async function openExit(page: Page) {
   await menu(page).click()
@@ -24,13 +23,15 @@ test('ends early after a completed round, records every step and shows partial s
   await openExit(page)
   await page.clock.fastForward(120_000)
   await exitDialog(page).getByRole('button', { name: 'Zakończ wcześniej', exact: true }).click()
+  await page.clock.resume()
   await expect(page.getByRole('heading', { name: 'Trening zakończony wcześniej', exact: true })).toBeVisible()
   await expect(page.getByRole('status')).toHaveText('Trening zakończony wcześniej został zapisany.')
-  const sessions = await storedSessions(page)
+  await expect.poll(async () => (await app.readSessions()).length).toBe(1)
+  const sessions = await app.readSessions()
   expect(sessions).toHaveLength(1)
   expect(sessions[0]).toMatchObject({
     status: 'partial', durationSeconds: 95, workSeconds: 60,
-    completion: { completedExercises: 0, plannedExercises: 2 },
+    completion: { completed: 0, planned: 2, unit: 'exercise' },
     stepResults: [
       { kind: 'exercise', outcome: 'completed', performedDurationSeconds: 60 },
       { kind: 'roundRest', outcome: 'completed', performedDurationSeconds: 30 },
@@ -53,15 +54,16 @@ test('does not save an interrupted first round and allows a fresh completed run'
   await page.clock.runFor(500)
   await openExit(page)
   await exitDialog(page).getByRole('button', { name: 'Zakończ wcześniej', exact: true }).click()
+  await page.clock.resume()
   await expect(page.getByRole('heading', { name: 'Nie zapisano treningu', exact: true })).toBeVisible()
   await expect(page.getByText('Trening niezapisany', { exact: true })).toBeVisible()
   await expect(page.getByRole('status')).toHaveText('Zapisujemy tylko rundy i ćwiczenia, które dobiegły do końca czasu. Tym razem żadne nie dobiegło.')
-  expect(await storedSessions(page)).toHaveLength(0)
+  expect(await app.readSessions()).toHaveLength(0)
   await page.getByRole('button', { name: 'Uruchom ponownie', exact: true }).click()
   await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
   await page.clock.fastForward(210_000)
   await app.expectWorkoutSaved()
-  expect(await storedSessions(page)).toHaveLength(1)
+  expect(await app.readSessions()).toHaveLength(1)
 })
 
 test('blocks the header link and discards without saving even after completed work', async ({ app, page }) => {
@@ -75,7 +77,7 @@ test('blocks the header link and discards without saving even after completed wo
   await expect(page).toHaveURL(`${planUrl}/active`)
   await exitDialog(page).getByRole('button', { name: 'Porzuć', exact: false }).click()
   await expect(page).toHaveURL(planUrl)
-  expect(await storedSessions(page)).toHaveLength(0)
+  expect(await app.readSessions()).toHaveLength(0)
 })
 
 test('returns to the same running step, excludes dialog time and preserves a pre-existing pause', async ({ app, page }) => {
@@ -102,7 +104,7 @@ test('returns to the same running step, excludes dialog time and preserves a pre
   await page.getByRole('button', { name: 'Wznów', exact: true }).click()
   await page.clock.fastForward(195_000)
   await app.expectWorkoutSaved()
-  expect((await storedSessions(page))[0]).toMatchObject({ durationSeconds: 210, workSeconds: 180 })
+  expect((await app.readSessions())[0]).toMatchObject({ durationSeconds: 210, workSeconds: 180 })
 })
 
 test('blocks browser back, cancels it and can block it again before discarding', async ({ app, page }) => {
@@ -120,7 +122,7 @@ test('blocks browser back, cancels it and can block it again before discarding',
   await expect(exitDialog(page)).toBeVisible()
   await exitDialog(page).getByRole('button', { name: 'Porzuć', exact: false }).click()
   await expect(page).toHaveURL(planUrl)
-  expect(await storedSessions(page)).toHaveLength(0)
+  expect(await app.readSessions()).toHaveLength(0)
 })
 
 test('discards by continuing browser back without leaving the player behind in backward history', async ({ app, page }) => {
@@ -134,7 +136,7 @@ test('discards by continuing browser back without leaving the player behind in b
   await exitDialog(page).getByRole('button', { name: 'Porzuć', exact: false }).click()
   await expect(page).toHaveURL(planUrl)
   await expect(page.getByRole('heading', { name: 'Historia po porzuceniu', exact: true })).toBeVisible()
-  expect(await storedSessions(page)).toHaveLength(0)
+  expect(await app.readSessions()).toHaveLength(0)
   await page.goBack()
   await expect(page).toHaveURL('/workouts')
   await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
@@ -150,7 +152,7 @@ test('discards from the workout menu by navigating to the plan without saving', 
   await openExit(page)
   await exitDialog(page).getByRole('button', { name: 'Porzuć', exact: false }).click()
   await expect(page).toHaveURL(planUrl)
-  expect(await storedSessions(page)).toHaveLength(0)
+  expect(await app.readSessions()).toHaveLength(0)
 })
 
 test('leaves without confirmation before start and after completion and shows completed status in both histories', async ({ app, page }) => {
@@ -182,7 +184,7 @@ test('finishes the whole exercise instead of the next round and preserves earlie
   await expect(exitDialog(page)).not.toBeVisible()
   await page.clock.fastForward(60_000)
   await app.expectWorkoutSaved()
-  expect((await storedSessions(page))[0]).toMatchObject({ status: 'partial', durationSeconds: 155, workSeconds: 120,
+  expect((await app.readSessions())[0]).toMatchObject({ status: 'partial', durationSeconds: 155, workSeconds: 120,
     stepResults: [{ outcome: 'completed' }, { outcome: 'completed' }, { outcome: 'skipped', performedDurationSeconds: 0 }, { outcome: 'completed' }],
   })
 })
@@ -198,41 +200,31 @@ test('finishes all remaining rounds from the first round without crediting inter
   await expect(page.getByRole('heading', { name: 'Walka z cieniem', exact: true })).toBeVisible()
   await page.clock.fastForward(60_000)
   await app.expectWorkoutSaved()
-  expect((await storedSessions(page))[0]).toMatchObject({ status: 'partial', durationSeconds: 70, workSeconds: 60,
+  expect((await app.readSessions())[0]).toMatchObject({ status: 'partial', durationSeconds: 70, workSeconds: 60,
     stepResults: [{ outcome: 'skipped' }, { outcome: 'skipped' }, { outcome: 'skipped' }, { outcome: 'completed' }],
   })
 })
 
-test('retries a failed early save once and clears early completion on restart', async ({ app, page }) => {
-  await app.createPlan('Ponowienie zapisu')
+test('queues an early save offline and resets early completion on restart', async ({ app, page, context }) => {
+  await app.createPlan('Ponowienie treningu')
   await app.openPlayer()
   await app.freezeClock()
   await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
   await page.clock.fastForward(60_000)
-  await page.evaluate(() => {
-    const original = Storage.prototype.setItem
-    Storage.prototype.setItem = function (key, value) {
-      if (key === 'combat-training.workout-sessions' && !sessionStorage.getItem('allow-session-save')) {
-        throw new DOMException('Test storage failure', 'QuotaExceededError')
-      }
-      original.call(this, key, value)
-    }
-  })
+  await context.setOffline(true)
   await openExit(page)
   await exitDialog(page).getByRole('button', { name: 'Zakończ wcześniej', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Trening zakończony wcześniej', exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Uruchom ponownie', exact: true })).toBeDisabled()
-  await expect(page.getByRole('button', { name: 'Spróbuj ponownie', exact: true })).toBeVisible()
-  expect(await storedSessions(page)).toHaveLength(0)
-  await page.evaluate(() => sessionStorage.setItem('allow-session-save', 'true'))
-  await page.getByRole('button', { name: 'Spróbuj ponownie', exact: true }).click()
+  await page.clock.resume()
   await expect(page.getByRole('status')).toHaveText('Trening zakończony wcześniej został zapisany.')
-  expect(await storedSessions(page)).toHaveLength(1)
+  expect(await app.readSessions()).toHaveLength(0)
+  await context.setOffline(false)
+  await expect.poll(async () => (await app.readSessions()).length).toBe(1)
   await page.getByRole('button', { name: 'Uruchom ponownie', exact: true }).click()
   await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
   await page.clock.fastForward(210_000)
   await app.expectWorkoutSaved()
-  expect((await storedSessions(page)).map((session: { status: string }) => session.status).sort()).toEqual(['completed', 'partial'])
+  await expect.poll(async () => (await app.readSessions()).length).toBe(2)
+  expect((await app.readSessions()).map((session) => session.status).sort()).toEqual(['completed', 'partial'])
 })
 
 for (const theme of ['dark', 'light'] as const) {

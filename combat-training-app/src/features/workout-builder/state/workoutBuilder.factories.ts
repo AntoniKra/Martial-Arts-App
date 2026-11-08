@@ -9,7 +9,7 @@ import type { ExerciseConfiguration } from '@/domain/workout/workout.types'
 export function createWorkoutBlock(blockType: WorkoutBlockType): WorkoutBlock {
   return {
     id: crypto.randomUUID(),
-    blockType,
+    ...(blockType === 'sparring' ? { blockType, sparringIntensity: null } : { blockType }),
     items: [],
   }
 }
@@ -36,6 +36,7 @@ export function createWorkoutExercise(
     id: crypto.randomUUID(),
     type: 'exercise',
     combinationId,
+    focusSkillId: null,
     exerciseNameSnapshot,
     instruction,
     configuration,

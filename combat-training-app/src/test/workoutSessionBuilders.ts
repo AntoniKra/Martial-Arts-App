@@ -1,5 +1,5 @@
 import type {
-  WorkoutSession,
+  PlanWorkoutSession,
   WorkoutSessionStepResult,
 } from '@/domain/workout-session/workoutSession.types'
 import { definePlanWorkoutSession, calculateWorkoutSessionDurations } from '@/domain/workout-session/workoutSessionDefinitions'
@@ -21,7 +21,7 @@ export function sessionStep(overrides: Partial<WorkoutSessionStepResult> = {}): 
   }
 }
 
-export function workoutSession(overrides: Partial<WorkoutSession> = {}): WorkoutSession {
+export function workoutSession(overrides: Partial<PlanWorkoutSession> = {}): PlanWorkoutSession {
   const stepResults = overrides.stepResults ?? []
   return {
     ...definePlanWorkoutSession({

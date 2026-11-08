@@ -124,6 +124,7 @@ export function useWorkoutSessionRecorder(
       }, {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         blockTypes: plan.blocks.map((block) => block.blockType),
+        blocks: plan.blocks,
         endedEarly,
         durations: calculateWorkoutSessionDurations(attemptsRef.current),
       })

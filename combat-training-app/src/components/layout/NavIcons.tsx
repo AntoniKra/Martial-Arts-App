@@ -61,7 +61,7 @@ export function NavCreateIcon({ className, size = 20 }: NavIconProps) {
   )
 }
 
-export function getNavigationIcon(id: 'home' | 'workouts' | 'newWorkout'): ReactNode {
+export function NavigationIcon({ id }: { id: 'home' | 'workouts' | 'newWorkout' }) {
   switch (id) {
     case 'home':
       return <NavHomeIcon />

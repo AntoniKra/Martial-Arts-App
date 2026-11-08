@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
-import { getButtonClassName } from '@/components/ui/Button'
+import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { HomeSectionLabel } from '@/features/home/components/HomeSectionLabel'
 import type { HomeFeaturedPlan } from '@/features/home/types/homeView.types'

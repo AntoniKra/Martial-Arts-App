@@ -65,7 +65,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/')
     const exercise = { ...roundsExercise('exercise-1', 2, 60, 30), exerciseNameSnapshot: 'Praca na nogach' }
     const plan = { ...workoutPlan([block('block-1', [exercise])]), nameSnapshot: 'Technika bokserska' }
-    await page.evaluate((plan) => localStorage.setItem('combat-training.workout-plans', JSON.stringify({ schemaVersion: 1, plans: [plan] })), plan)
+    await app.seedPlan(plan)
     await app.open('/')
     await expect(page.getByRole('heading', { name: plan.nameSnapshot, exact: true })).toBeVisible()
     await capture('home')

@@ -30,7 +30,7 @@ function isCompletedRound(step: WorkoutSessionStepResult): boolean {
 }
 
 export function calculateWorkoutSessionSummary(session: WorkoutSession): WorkoutSessionSummary {
-  const stepResults = session.stepResults
+  const stepResults = session.source === 'manual' ? [] : session.stepResults
 
   let completedStepCount = 0
   let partialStepCount = 0

@@ -1,7 +1,8 @@
 import { useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { Button, getButtonClassName } from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
+import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 
 interface WorkoutPlanActionsProps {

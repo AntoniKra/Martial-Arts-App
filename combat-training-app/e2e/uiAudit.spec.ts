@@ -7,7 +7,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
     const exercise = { ...roundsExercise('exercise-1', 2, 60, 30), exerciseNameSnapshot: 'Praca na nogach' }
     const plan = { ...workoutPlan([block('block-1', [exercise])]), nameSnapshot: 'Technika bokserska' }
-    await page.evaluate((plan) => localStorage.setItem('combat-training.workout-plans', JSON.stringify({ schemaVersion: 1, plans: [plan] })), plan)
+    await app.seedPlan(plan)
     const screenshot = async (name: string) => {
       if (testInfo.project.name !== 'phone') return
       await page.evaluate(() => document.fonts.ready)
@@ -40,7 +40,7 @@ for (const theme of ['dark', 'light'] as const) {
     await screenshot('player-work')
     await page.clock.fastForward(90_000)
     await page.getByRole('button', { name: 'Następny etap', exact: true }).click()
-    await expect(page.getByRole('status')).toHaveText('Trening został zapisany.')
+    await app.expectWorkoutSaved()
 
     const history = await app.openHistory()
     const card = history.getByRole('article')
