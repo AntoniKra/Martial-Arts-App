@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
 import { VitePWA } from 'vite-plugin-pwa'
-import { readDeployFirebaseConfig } from './src/infrastructure/firebase/firebaseConfig'
+import { readDeployFirebaseConfig } from './src/infrastructure/firebase/firebaseConfig.ts'
 
 // Project in .firebaserc under the "prod" alias. `npm run build:deploy` refuses any other target.
 const deployProjectId = 'combat-training-830fb'
