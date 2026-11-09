@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent } from 'react'
+import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
@@ -11,6 +11,7 @@ import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { CorrectionNote } from './CorrectionNote'
 import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
 import { workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
+import { rpeLabels } from './rpeLabels'
 
 function AssessmentScale({ question, descriptions, value, onChange, unable = false }: {
   question: string; descriptions: readonly string[]; value: number | 'unableToRate' | null
@@ -83,8 +84,9 @@ function FocusCard({ session, rating, skills, first, onChange, error }: {
   </article>
 }
 
-export function WorkoutFeedbackForm({ session, skills, pending, onSave }: {
+export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard }: {
   session: PlanWorkoutSession; skills: readonly FocusSkill[]; pending: boolean
+  rpeCard: ReactNode
   onSave: (draft: WorkoutFeedbackDraft) => Promise<void>
 }) {
   const [draft, setDraft] = useState<WorkoutFeedbackDraft>(() => ({ focusRatings: structuredClone(session.focusRatings), exerciseRatings: structuredClone(session.exerciseRatings), note: session.note }))
@@ -127,6 +129,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave }: {
         </div>)}
       </dl>
     </header>
+    {rpeCard}
     <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-6">
       <fieldset disabled={saving} className="min-w-0 space-y-6">
         <section aria-labelledby="focus-feedback-heading" className="space-y-4">
@@ -164,6 +167,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave }: {
       </fieldset>
       {saveError && <p role="alert" className="text-[13px] text-crimson-ink">{labels.saveError}</p>}
       <Button type="submit" loading={saving} size="lg" className="w-full uppercase tracking-[0.1em]">{labels.done}</Button>
+      <p className="text-center text-[12px] leading-relaxed text-muted">{rpeLabels.reminderHint}</p>
     </form>
   </div>
 }

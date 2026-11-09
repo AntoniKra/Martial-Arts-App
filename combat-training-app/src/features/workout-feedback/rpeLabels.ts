@@ -1,0 +1,20 @@
+// CR-10 labels await verification against a published Polish translation (issue #70).
+export const rpeLabels = {
+  heading: 'RPE · zmęczenie całym treningiem',
+  countdown: 'Zapytamy za',
+  rateNow: 'Oceń teraz',
+  timingHint: 'Ocena ok. 10 minut po treningu jest pewniejsza. Gong da znać.',
+  reminderHint: 'RPE przypomnimy na stronie głównej, jeśli zamkniesz ekran wcześniej.',
+  back: 'Podsumowanie',
+  due: 'Minęło 10 minut',
+  question: 'Jak ciężki był cały trening?',
+  hint: 'Pomyśl o całym treningu, od rozgrzewki do ostatniej rundy, a nie tylko o końcówce.',
+  scale: 'RPE od 0 do 10',
+  descriptions: ['Odpoczynek', 'Bardzo, bardzo lekko', 'Lekko', 'Umiarkowanie', 'Dość ciężko', 'Ciężko', '', 'Bardzo ciężko', '', '', 'Maksymalnie'],
+  save: (value: number | null) => value === null ? 'Zapisz RPE' : `Zapisz RPE ${value}`,
+  skip: 'Pomiń',
+  saved: (value: number) => `Zapisano RPE ${value}`,
+  saveError: 'Nie udało się zapisać RPE. Spróbuj ponownie.',
+  skipError: 'Nie udało się zapamiętać pominięcia na tym urządzeniu. Spróbuj ponownie.',
+  reminder: (plan: string, day: string) => `Uzupełnij RPE: ${plan}, ${day}`,
+} as const

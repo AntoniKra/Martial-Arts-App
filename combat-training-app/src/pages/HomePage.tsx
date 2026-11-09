@@ -6,13 +6,18 @@ import { mapWorkoutSessionToHomeRecentSession } from '@/features/home/mappers/wo
 import { selectLatestWorkoutPlan } from '@/features/home/utils/selectLatestWorkoutPlan'
 import { selectRecentWorkoutSessions } from '@/features/home/utils/selectRecentWorkoutSessions'
 import { WorkoutDataWarning } from '@/features/workouts/components/WorkoutDataWarning'
+import { RpeReminder } from '@/features/home/components/RpeReminder'
+import { useAuth } from '@/features/auth/authContext'
 
 export function HomePage() {
   const { plans, sessions, retry } = useWorkoutData()
+  const { state } = useAuth()
+  const uid = state.status === 'ready' ? state.session?.uid : undefined
   const latest = selectLatestWorkoutPlan(plans.items)
   return <>
     <WorkoutDataWarning />
     <HomeView
+      rpeReminder={uid && sessions.status === 'ready' ? <RpeReminder key={uid} uid={uid} sessions={sessions.items} /> : null}
       featuredPlanLoadState={plans.status === 'ready'
         ? { status: 'success', plan: latest ? mapWorkoutPlanToFeaturedPlan(latest) : null }
         : plans.status === 'loading' ? { status: 'loading' } : { status: 'error', message: workoutDataLabels.plansLoadError }}

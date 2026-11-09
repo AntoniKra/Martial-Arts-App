@@ -4,6 +4,7 @@ import { WorkoutDataContext } from '@/application/workoutDataContext'
 import { useRepositoryCollection } from '@/application/useRepositoryCollection'
 import { useAuth } from '@/features/auth/authContext'
 import { removeLegacyWorkouts } from '@/infrastructure/storage/removeLegacyWorkouts'
+import { WorkoutGongProvider } from './WorkoutGongProvider'
 
 function SubscribedData({ repositories, retry, children }: PropsWithChildren<{ repositories: WorkoutRepositories; retry: () => void }>) {
   const plans = useRepositoryCollection(repositories.plans)
@@ -36,7 +37,7 @@ function LoadingAccountData({ uid, retry, children }: PropsWithChildren<{ uid: s
 
 function AccountData({ uid, children }: PropsWithChildren<{ uid: string }>) {
   const [attempt, setAttempt] = useState(0)
-  return <LoadingAccountData key={attempt} uid={uid} retry={() => setAttempt((value) => value + 1)}>{children}</LoadingAccountData>
+  return <WorkoutGongProvider><LoadingAccountData key={attempt} uid={uid} retry={() => setAttempt((value) => value + 1)}>{children}</LoadingAccountData></WorkoutGongProvider>
 }
 
 export function WorkoutDataProvider({ children }: PropsWithChildren) {

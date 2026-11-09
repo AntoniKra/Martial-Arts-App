@@ -1,0 +1,41 @@
+import { afterEach, expect, it, vi } from 'vitest'
+import { startRpeCountdown } from './rpeCountdown'
+
+afterEach(() => vi.useRealTimers())
+
+it('recalculates from the deadline when a hidden tab returns and opens RPE once at ten minutes', () => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date('2026-11-09T10:00:00Z'))
+  const tick = vi.fn()
+  const open = vi.fn()
+  const countdown = startRpeCountdown('2026-11-09T10:00:00Z', tick, open)
+  expect(tick).toHaveBeenLastCalledWith(600)
+  // No interval callbacks run while the browser suspends the tab.
+  vi.setSystemTime(new Date('2026-11-09T10:07:18Z'))
+  countdown.refresh()
+  expect(tick).toHaveBeenLastCalledWith(162)
+  expect(open).not.toHaveBeenCalled()
+  vi.setSystemTime(new Date('2026-11-09T10:10:00Z'))
+  countdown.refresh()
+  countdown.refresh()
+  expect(tick).toHaveBeenLastCalledWith(0)
+  expect(open).toHaveBeenCalledOnce()
+  countdown.dispose()
+})
+
+it('opens at the deadline without a visibility event and stops after leaving the summary', () => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date('2026-11-09T10:09:59.001Z'))
+  const tick = vi.fn()
+  const open = vi.fn()
+  const countdown = startRpeCountdown('2026-11-09T10:00:00Z', tick, open)
+  expect(tick).toHaveBeenLastCalledWith(1)
+  vi.advanceTimersByTime(998)
+  expect(open).not.toHaveBeenCalled()
+  vi.advanceTimersByTime(1)
+  expect(open).toHaveBeenCalledOnce()
+  countdown.dispose()
+  vi.advanceTimersByTime(60_000)
+  expect(open).toHaveBeenCalledOnce()
+  expect(vi.getTimerCount()).toBe(0)
+})
