@@ -6,5 +6,6 @@ export interface WorkoutSessionRepository extends SubscribableRepository<Workout
   save(session: WorkoutSession): Promise<void>
   updateNote(id: string, note: string | null): Promise<boolean>
   saveFeedback(id: string, feedback: WorkoutFeedbackUpdate): Promise<boolean>
+  saveRpe(id: string, rpe: number, recordedAt: string): Promise<boolean>
   delete(id: string): Promise<boolean>
 }

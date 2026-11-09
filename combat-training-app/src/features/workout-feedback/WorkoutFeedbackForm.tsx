@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent } from 'react'
+import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
@@ -11,6 +11,7 @@ import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { CorrectionNote } from './CorrectionNote'
 import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
 import { workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
+import { rpeLabels } from './rpeLabels'
 
 function AssessmentScale({ question, descriptions, value, onChange, unable = false }: {
   question: string; descriptions: readonly string[]; value: number | 'unableToRate' | null
@@ -83,8 +84,9 @@ function FocusCard({ session, rating, skills, first, onChange, error }: {
   </article>
 }
 
-export function WorkoutFeedbackForm({ session, skills, pending, onSave }: {
+export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard }: {
   session: PlanWorkoutSession; skills: readonly FocusSkill[]; pending: boolean
+  rpeCard: ReactNode
   onSave: (draft: WorkoutFeedbackDraft) => Promise<void>
 }) {
   const [draft, setDraft] = useState<WorkoutFeedbackDraft>(() => ({ focusRatings: structuredClone(session.focusRatings), exerciseRatings: structuredClone(session.exerciseRatings), note: session.note }))
@@ -127,9 +129,10 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave }: {
         </div>)}
       </dl>
     </header>
+    {rpeCard}
     <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-6">
       <fieldset disabled={saving} className="min-w-0 space-y-6">
-        <section aria-labelledby="focus-feedback-heading" className="space-y-4">
+        {draft.focusRatings.length > 0 && <section aria-labelledby="focus-feedback-heading" className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="focus-feedback-heading" className="font-display text-[12px] font-semibold uppercase tracking-[0.1em] text-ink">{labels.focusHeading}</h2>
             <p className="text-[11px] tabular-nums text-muted">{labels.assessed(assessed, draft.focusRatings.length)}</p>
@@ -140,7 +143,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave }: {
               setDraft((current) => ({ ...current, focusRatings: current.focusRatings.map((value) => value.workoutItemId === edited.workoutItemId ? edited : value) }))
               setErrors((current) => ({ ...current, corrections: { ...current.corrections, [edited.workoutItemId]: '' } }))
             }} />)}
-        </section>
+        </section>}
         <details className="border-y border-bd">
           <summary className="min-h-touch cursor-pointer py-4 text-[12px] font-semibold text-muted">{labels.othersHeading(others.length)}</summary>
           <div className="space-y-5 pb-4">{others.map((exercise) => <article key={exercise.workoutItemId} aria-label={exercise.nameSnapshot} className="space-y-3 border border-bd bg-surface p-4">
@@ -164,6 +167,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave }: {
       </fieldset>
       {saveError && <p role="alert" className="text-[13px] text-crimson-ink">{labels.saveError}</p>}
       <Button type="submit" loading={saving} size="lg" className="w-full uppercase tracking-[0.1em]">{labels.done}</Button>
+      <p className="text-center text-[12px] leading-relaxed text-muted">{rpeLabels.reminderHint}</p>
     </form>
   </div>
 }

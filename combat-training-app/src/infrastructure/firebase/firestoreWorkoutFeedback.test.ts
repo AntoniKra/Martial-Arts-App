@@ -3,7 +3,7 @@ import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
 
 const sdk = vi.hoisted(() => ({
   listeners: new Map<string, (value: unknown) => void>(),
-  update: vi.fn(), commit: vi.fn<() => Promise<void>>(() => new Promise(() => {})),
+  update: vi.fn(), updateDoc: vi.fn<() => Promise<void>>(() => new Promise(() => {})), commit: vi.fn<() => Promise<void>>(() => new Promise(() => {})),
 }))
 vi.mock('firebase/app', () => ({ getApp: () => 'app' }))
 vi.mock('./firebaseConfig', () => ({ readFirebaseConfig: () => ({ projectId: 'demo-combat-training', firestoreEmulatorHost: '127.0.0.1:8080' }) }))
@@ -13,7 +13,7 @@ vi.mock('firebase/firestore', () => ({
   collection: (_db: unknown, ...path: string[]) => path.join('/'),
   doc: (path: string, id: string) => `${path}/${id}`,
   onSnapshot: (path: string, _options: unknown, change: (value: unknown) => void) => { sdk.listeners.set(path, change); return () => sdk.listeners.delete(path) },
-  setDoc: vi.fn(), updateDoc: vi.fn(), deleteDoc: vi.fn(),
+  setDoc: vi.fn(), updateDoc: sdk.updateDoc, deleteDoc: vi.fn(),
   writeBatch: () => ({ update: sdk.update, commit: sdk.commit }),
 }))
 import { createFirestoreRepositories, clearFirestoreCache } from './createFirestoreRepositories'
@@ -28,6 +28,22 @@ function emit<T extends { id: string }>(collection: string, items: T[], pending 
 afterEach(async () => { await clearFirestoreCache(); vi.clearAllMocks() })
 
 describe('workout feedback repository', () => {
+  it('saves RPE and the response time locally before server confirmation without overwriting feedback', async () => {
+    const { sessions } = createFirestoreRepositories('athlete')
+    const changed = vi.fn()
+    sessions.subscribe(changed, vi.fn())
+    const entry = workoutSession({ stepResults: [sessionStep()], note: 'Keep this note' })
+    emit('workoutSessions', [entry])
+    const saved = sessions.saveRpe(entry.id, 6, instant)
+    expect(sdk.updateDoc).toHaveBeenCalledWith('users/athlete/workoutSessions/session-1', { rpe: 6, rpeRecordedAt: instant, updatedAt: instant })
+    emit('workoutSessions', [{ ...entry, rpe: 6, rpeRecordedAt: instant, updatedAt: instant }], true)
+    await expect(saved).resolves.toBe(true)
+    expect(changed.mock.lastCall?.[0]).toMatchObject({ items: [{ note: 'Keep this note', rpe: 6, rpeRecordedAt: instant }], hasPendingWrites: true })
+    await expect(sessions.saveRpe(entry.id, 11, instant)).rejects.toThrow()
+    await expect(sessions.saveRpe(entry.id, 6, 'invalid')).rejects.toThrow()
+    await expect(sessions.saveRpe('missing', 6, instant)).resolves.toBe(false)
+    expect(sdk.updateDoc).toHaveBeenCalledOnce()
+  })
   it('rejects an invalid correction before committing any part of the batch', async () => {
     const repositories = createFirestoreRepositories('athlete')
     repositories.sessions.subscribe(vi.fn(), vi.fn())

@@ -5,3 +5,7 @@
 `unlock()` tworzy i wznawia kontekst oraz uruchamia cichy bufor bezpośrednio w obsłudze kliknięcia „Rozpocznij trening” lub „Wznów”. `dispose()` zamyka kontekst. Brak API lub odmowa odtwarzania nie przerywa timera. Opóźnione wznowienie kontekstu nie odtwarza kolejki starych sygnałów.
 
 Wybór sygnału i scalenie zdarzeń nadrobionych kroków należą do modułu odtwarzacza. Adapter nie zna osi treningu.
+
+`WorkoutGongProvider` utrzymuje jeden adapter dla zalogowanego konta. Odtwarzacz
+i podsumowanie RPE korzystają z tego samego odblokowania; przejście między
+ekranami nie zamyka kontekstu. Wylogowanie usuwa provider i wywołuje `dispose()`.

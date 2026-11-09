@@ -3,20 +3,22 @@ import { useCallback, useEffect, useRef } from 'react'
 import type { WorkoutPlaybackTimeline } from '@/features/workout-player/types/workoutPlayback.types'
 import type { WorkoutPlaybackEvent } from '@/features/workout-player/types/workoutPlaybackEvents.types'
 import { createWorkoutGongController } from '@/features/workout-player/utils/createWorkoutGongController'
-import { createWebAudioWorkoutGong } from '@/infrastructure/audio/webAudioWorkoutGong'
+import { useSharedWorkoutGong } from '@/application/audio/workoutGongContext'
 
 export function useWorkoutGong(timeline: WorkoutPlaybackTimeline) {
+  const gong = useSharedWorkoutGong()
   const controllerRef = useRef<ReturnType<typeof createWorkoutGongController> | null>(null)
 
   useEffect(() => {
-    const controller = createWorkoutGongController(timeline.steps, createWebAudioWorkoutGong())
+    // Account provider owns audio disposal; controller cleanup only cancels playback events.
+    const controller = createWorkoutGongController(timeline.steps, { ...gong, dispose: () => {} })
     controllerRef.current = controller
 
     return () => {
       controllerRef.current = null
       controller.dispose()
     }
-  }, [timeline.steps])
+  }, [timeline.steps, gong])
 
   const unlockGong = useCallback(() => controllerRef.current?.unlock(), [])
   const onGongPlaybackEvent = useCallback((event: WorkoutPlaybackEvent) => {

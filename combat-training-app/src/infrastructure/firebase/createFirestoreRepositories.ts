@@ -1,5 +1,5 @@
 import { getApp } from 'firebase/app'
-import { clearIndexedDbPersistence, collection, doc, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, writeBatch, type Firestore } from 'firebase/firestore'
+import { clearIndexedDbPersistence, collection, doc, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, updateDoc, writeBatch, type Firestore } from 'firebase/firestore'
 import type { SubscribableRepository } from '@/application/repositorySubscription'
 import type { WorkoutRepositories } from '@/application/deferredWorkoutRepositories'
 import { readFirebaseConfig } from './firebaseConfig'
@@ -68,6 +68,10 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     sessions: {
       subscribe: trackedSubscribe(sessions), save: sessions.save.bind(sessions),
       updateNote: sessions.updateNote.bind(sessions), delete: sessions.delete.bind(sessions),
+      saveRpe: async (id, rpe, recordedAt) => {
+        const fields = { rpe, rpeRecordedAt: recordedAt, updatedAt: recordedAt }
+        return sessions.updateFields(id, fields, () => updateDoc(doc(collection(db, 'users', uid, 'workoutSessions'), id), fields))
+      },
       saveFeedback: async (id, feedback) => {
         const { correctionUpdates, ...fields } = feedback
         // Validate every resulting document before committing the single offline-capable batch.
