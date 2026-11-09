@@ -7,12 +7,16 @@ const noteSchema = z.string().check(z.maxLength(1000))
 export type FeedbackErrors = { note?: string; corrections: Record<string, string> }
 export type FeedbackValidation = { ok: true; values: WorkoutFeedbackDraft } | { ok: false; errors: FeedbackErrors }
 
+export function isValidCorrectionText(value: string): boolean {
+  return correctionText.safeParse(value.trim()).success
+}
+
 export function validateWorkoutFeedback(draft: WorkoutFeedbackDraft): FeedbackValidation {
   const errors: FeedbackErrors = { corrections: {} }
   const focusRatings = draft.focusRatings.map((rating) => {
     const problem = rating.correction?.problem.trim() ?? ''
     const fix = rating.correction?.fix.trim() ?? ''
-    if ((problem || fix) && (!correctionText.safeParse(problem).success || !correctionText.safeParse(fix).success)) {
+    if ((problem || fix) && (!isValidCorrectionText(problem) || !isValidCorrectionText(fix))) {
       errors.corrections[rating.workoutItemId] = labels.correctionError
     }
     return { ...rating, correction: problem || fix ? { problem, fix } : null }

@@ -9,7 +9,7 @@ import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { Button } from '@/components/ui/Button'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { CorrectionNote } from './CorrectionNote'
-import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
+import { isValidCorrectionText, validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
 import { workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
 import { rpeLabels } from './rpeLabels'
 
@@ -72,7 +72,8 @@ function FocusCard({ session, rating, skills, first, onChange, error }: {
         <legend className="max-w-full pt-3 font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{labels.correctionHeading}</legend>
         {(['problem', 'fix'] as const).map((field) => <label key={field} className="block text-[12px] font-semibold text-ink">
           {labels[field]}
-          <textarea rows={2} value={rating.correction?.[field] ?? ''} maxLength={200} aria-invalid={!!error} aria-describedby={error ? `${id}-error` : undefined}
+          <textarea rows={2} value={rating.correction?.[field] ?? ''} maxLength={200}
+            aria-invalid={!!error && !isValidCorrectionText(rating.correction?.[field] ?? '')} aria-describedby={error ? `${id}-error` : undefined}
             placeholder={field === 'problem' ? labels.problemPlaceholder : labels.fixPlaceholder}
             className="mt-1 block min-h-touch w-full resize-y border border-bd bg-input p-3 text-[16px] font-normal text-ink"
             onChange={(event) => onChange({ ...rating, correction: { problem: rating.correction?.problem ?? '', fix: rating.correction?.fix ?? '', [field]: event.target.value } })} />
