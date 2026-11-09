@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useWorkoutData, useWorkoutPlan } from '@/application/workoutDataContext'
 import { routes } from '@/app/routes'
@@ -8,6 +8,7 @@ import type { WorkoutSession } from '@/domain/workout-session/workoutSession.typ
 import { WorkoutPlayerView } from '@/features/workout-player/components/WorkoutPlayerView'
 import { useActiveWorkout } from '@/features/workout-player/activeWorkoutContext'
 import { InterruptedWorkoutDialog } from '@/features/workout-player/components/InterruptedWorkoutDialog'
+import { selectWorkoutFocusSkills, WORKOUT_FOCUS_SKILLS_WAIT_MS } from '@/features/workout-player/utils/selectWorkoutFocusSkills'
 
 export function WorkoutPlayerPage() {
   const navigate = useNavigate()
@@ -19,13 +20,22 @@ export function WorkoutPlayerPage() {
   const [snapshot, setSnapshot] = useState<{ id: string; plan: WorkoutPlan | null; skills: FocusSkill[] | null }>({
     id: workoutId, plan: restored?.workout.plan ?? null, skills: restored ? [] : null,
   })
+  const [expiredWait, setExpiredWait] = useState<WorkoutPlan | null>(null)
   if (snapshot.id !== workoutId) setSnapshot({ id: workoutId, plan: null, skills: null })
   else if (!snapshot.plan && latest.status === 'success') setSnapshot({ id: workoutId, plan: latest.plan,
-    skills: focusSkills.status === 'ready' ? structuredClone(focusSkills.items) : null })
-  else if (snapshot.skills === null && focusSkills.status === 'ready') setSnapshot({ ...snapshot, skills: structuredClone(focusSkills.items) })
+    skills: null })
+  else if (snapshot.plan && snapshot.skills === null) {
+    const skills = selectWorkoutFocusSkills(snapshot.plan.blocks, focusSkills, expiredWait === snapshot.plan)
+    if (skills !== null) setSnapshot({ ...snapshot, skills: structuredClone(skills) })
+  }
+  const waitingPlan = snapshot.id === workoutId && snapshot.skills === null ? snapshot.plan : null
+  useEffect(() => {
+    if (!waitingPlan) return
+    const timeout = window.setTimeout(() => setExpiredWait(waitingPlan), WORKOUT_FOCUS_SKILLS_WAIT_MS)
+    return () => window.clearTimeout(timeout)
+  }, [waitingPlan])
   // An admitted workout keeps its immutable plan even if the account or library changes elsewhere.
-  const needsSkills = !restored && snapshot.plan?.blocks.some((block) => block.items.some((item) => item.type === 'exercise' && item.focusSkillId))
-  const loadState = needsSkills && snapshot.skills === null
+  const loadState = snapshot.id === workoutId && snapshot.plan && snapshot.skills === null
     ? focusSkills.status === 'error' ? { status: 'error' as const, message: 'Nie udało się wczytać ćwiczeń celu.' } : { status: 'loading' as const }
     : snapshot.id === workoutId && snapshot.plan ? { status: 'success' as const, plan: snapshot.plan } : latest
   const { sessionRepository } = useWorkoutData()

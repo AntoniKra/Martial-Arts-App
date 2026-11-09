@@ -7,7 +7,7 @@ import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
 import { block, continuousExercise, workoutPlan } from '@/test/workoutBuilders'
 
 const sdk = vi.hoisted(() => ({
-  change: null as null | ((value: { docs: unknown[]; metadata: { hasPendingWrites: boolean } }) => void), stop: vi.fn(),
+  change: null as null | ((value: { docs: unknown[]; metadata: { hasPendingWrites: boolean; fromCache: boolean } }) => void), stop: vi.fn(),
   set: vi.fn<() => Promise<void>>(), remove: vi.fn<() => Promise<void>>(), update: vi.fn<(path: string, fields: Record<string, unknown>) => Promise<void>>(),
 }))
 vi.mock('firebase/firestore', () => ({
@@ -19,9 +19,9 @@ const plan = workoutPlan([block('block', [continuousExercise('exercise', 60)])])
 const document = (value = { ...plan, schemaVersion: 1 }, pending = false, documentId = plan.id) => ({
   id: documentId, data: () => value, metadata: { hasPendingWrites: pending },
 })
-const emit = (docs: unknown[], hasPendingWrites = false) => {
+const emit = (docs: unknown[], hasPendingWrites = false, fromCache = false) => {
   if (!sdk.change) throw new Error('No listener')
-  sdk.change({ docs, metadata: { hasPendingWrites } })
+  sdk.change({ docs, metadata: { hasPendingWrites, fromCache } })
 }
 const parse = (value: unknown) => {
   const { schemaVersion: _version, ...item } = workoutPlanDocumentSchema.parse(value)
@@ -31,6 +31,15 @@ beforeEach(() => { sdk.set.mockImplementation(() => new Promise(() => {})); sdk.
 afterEach(() => vi.clearAllMocks())
 
 describe('Firestore collection repository', () => {
+  it('distinguishes the cached collection from server-confirmed metadata-only snapshots', () => {
+    const repository = new FirestoreWorkoutRepository({} as Firestore, 'athlete', 'focusSkills', parse)
+    const onChange = vi.fn()
+    repository.subscribe(onChange, vi.fn())
+    emit([], false, true)
+    expect(onChange.mock.lastCall?.[0]).toMatchObject({ items: [], fromCache: true })
+    emit([])
+    expect(onChange.mock.lastCall?.[0]).toMatchObject({ items: [], fromCache: false })
+  })
   it('isolates the UID path, validates each document and forwards metadata-only changes', () => {
     const repository = new FirestoreWorkoutRepository({} as Firestore, 'athlete', 'workoutPlans', parse)
     const onChange = vi.fn()

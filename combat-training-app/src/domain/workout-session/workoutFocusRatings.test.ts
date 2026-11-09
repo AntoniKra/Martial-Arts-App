@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createPlanWorkoutSession } from './workoutSessionDefinitions'
+import { createWorkoutFocusRatings } from './workoutFocusRatings'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { block, continuousExercise } from '@/test/workoutBuilders'
 import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
@@ -10,6 +11,17 @@ const skill: FocusSkill = {
 }
 
 describe('focus ratings in a plan session', () => {
+  it('skips missing focus skills and preserves ratings for available occurrences', () => {
+    const blocks = [block('bag', [
+      { ...continuousExercise('missing', 60), focusSkillId: 'missing' },
+      { ...continuousExercise('available', 60), focusSkillId: skill.id },
+      continuousExercise('unfocused', 60),
+    ], 'bag')]
+    expect(createWorkoutFocusRatings(blocks, [])).toEqual([])
+    expect(createWorkoutFocusRatings(blocks, [skill])).toMatchObject([
+      { workoutItemId: 'available', focusSkillId: skill.id, assessment: null },
+    ])
+  })
   it('snapshots every focus occurrence in plan order, including skipped exercises', () => {
     const blocks = [
       block('bag', [{ ...continuousExercise('first', 60), focusSkillId: 'guard' }], 'bag'),

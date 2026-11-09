@@ -25,7 +25,7 @@ async function accessibility(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 }
 async function capture(page: Page, info: TestInfo, name: string, scrolled = false) {
-  if (info.project.name !== 'phone') return
+  if (info.project.name !== 'phone' || process.env.CAPTURE_SCREENSHOTS !== '1') return
   const folder = path.resolve('docs/screenshots/issue-69')
   await mkdir(folder, { recursive: true })
   await page.evaluate(() => document.fonts.ready)

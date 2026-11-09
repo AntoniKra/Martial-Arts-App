@@ -35,7 +35,8 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
         } catch { invalidDocumentIds.push(document.id) }
       }
       this.items = items
-      onChange({ items: [...items.values()], pendingIds, hasPendingWrites: snapshot.metadata.hasPendingWrites, invalidDocumentIds })
+      onChange({ items: [...items.values()], pendingIds, hasPendingWrites: snapshot.metadata.hasPendingWrites,
+        fromCache: snapshot.metadata.fromCache, invalidDocumentIds })
       for (const write of this.writes) {
         if (write.matches(items)) { this.writes.delete(write); write.resolve() }
       }
