@@ -28,8 +28,10 @@ export function WorkoutRpeSummary({ session, uid, initialOpen, onSave, children 
     {session.rpe === null ? <>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-[12px] text-muted">{labels.countdown}</p>
-          <p role="timer" aria-label={`${labels.countdown} ${formatSecondsAsClock(remaining)}`} className="font-display text-[36px] font-bold leading-tight tabular-nums text-ink">{formatSecondsAsClock(remaining)}</p>
+          {remaining > 0 ? <>
+            <p className="text-[12px] text-muted">{labels.countdown}</p>
+            <p role="timer" aria-label={`${labels.countdown} ${formatSecondsAsClock(remaining)}`} className="font-display text-[36px] font-bold leading-tight tabular-nums text-ink">{formatSecondsAsClock(remaining)}</p>
+          </> : <p className="font-display text-lg font-semibold text-ink">{labels.ready}</p>}
         </div>
         <button ref={rateButton} type="button" onClick={() => { gong.unlock(); setOpen(true) }} className={getButtonClassName({ variant: 'secondary', className: 'uppercase tracking-[0.08em]' })}>{labels.rateNow}</button>
       </div>

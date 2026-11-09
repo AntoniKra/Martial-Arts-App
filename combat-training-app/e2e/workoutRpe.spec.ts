@@ -74,6 +74,22 @@ test('rates early without losing the summary draft and queues RPE offline', asyn
   expect((await app.readSessions())[0].rpe).toBe(0)
 })
 
+test('keeps a next-day history summary open until RPE is requested and omits the empty focus section', async ({ app, page }) => {
+  const entry = (await app.readSessions())[0]
+  if (entry.source !== 'plan') throw new Error('Expected plan entry')
+  const history = await app.openHistory()
+  await page.clock.setFixedTime(new Date(Date.parse(entry.completedAt) + 86_400_000))
+  await history.getByRole('link', { name: 'Podsumowanie', exact: true }).click()
+  await expect(page.getByRole('heading', { name: plan.nameSnapshot, exact: true })).toBeVisible()
+  await expect(page.getByText('Czas na ocenę', { exact: true })).toBeVisible()
+  await expect(page.getByRole('timer')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Ćwiczenia celu', exact: true })).toHaveCount(0)
+  await expect(page.getByText('oceniono 0 z 0', { exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toBeVisible()
+})
+
 test('reminds at home, opens RPE directly, and persists a device dismissal without changing Firestore', async ({ app, page }) => {
   const summaryPath = new URL(page.url()).pathname
   for (const theme of ['dark', 'light'] as const) {
@@ -115,5 +131,8 @@ test('reminds at home, opens RPE directly, and persists a device dismissal witho
   expect((await app.readSessions())[0]).toMatchObject({ rpe: null, rpeRecordedAt: null })
   // Dismissing the reminder never prevents rating from the history summary.
   await app.open(summaryPath)
+  await expect(page.getByText('Czas na ocenę', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toBeVisible()
 })

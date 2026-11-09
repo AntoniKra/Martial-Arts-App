@@ -2,6 +2,7 @@
 export const rpeLabels = {
   heading: 'RPE · zmęczenie całym treningiem',
   countdown: 'Zapytamy za',
+  ready: 'Czas na ocenę',
   rateNow: 'Oceń teraz',
   timingHint: 'Ocena ok. 10 minut po treningu jest pewniejsza. Gong da znać.',
   reminderHint: 'RPE przypomnimy na stronie głównej, jeśli zamkniesz ekran wcześniej.',

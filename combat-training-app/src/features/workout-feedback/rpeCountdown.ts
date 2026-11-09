@@ -4,7 +4,8 @@ export function rpeRemainingSeconds(completedAt: string, now: number): number {
 
 /** Re-read the clock on visibilitychange; browsers may suspend interval callbacks. */
 export function startRpeCountdown(completedAt: string, onTick: (seconds: number) => void, onDue: () => void) {
-  let announced = false
+  // Only a deadline still in the future when entering the summary can announce.
+  let announced = rpeRemainingSeconds(completedAt, Date.now()) === 0
   const refresh = () => {
     const remaining = rpeRemainingSeconds(completedAt, Date.now())
     onTick(remaining)

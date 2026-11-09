@@ -18,8 +18,11 @@ z `hasPendingWrites`. Istniejące reguły dopuszczają te aktualizacje i ogranic
 
 `WorkoutRpeSummary` dodaje kartę RPE nad ćwiczeniami celu. Odliczanie wynika z
 `completedAt + 10 min` oraz zegara; powrót do widocznej karty odświeża pozostały
-czas. Termin końcowy otwiera panel raz i odtwarza gong, jeśli użytkownik odblokował
-dźwięk. `WorkoutGongProvider` zachowuje kontekst audio między odtwarzaczem a
+czas. Termin końcowy otwiera panel raz i odtwarza gong, jeśli przy wejściu do
+podsumowania pozostawał czas, a użytkownik odblokował dźwięk. Wejście po terminie
+pokazuje „Czas na ocenę” i „Oceń teraz”, bez gongu ani automatycznego panelu.
+Link `?rpe=1` nadal otwiera panel od razu. Pusta sekcja ćwiczeń celu jest ukryta.
+`WorkoutGongProvider` zachowuje kontekst audio między odtwarzaczem a
 podsumowaniem, a zamyka go po wylogowaniu. Można też wybrać „Oceń teraz”.
 
 Formularz podsumowania pozostaje zamontowany pod panelem RPE, dzięki czemu nie

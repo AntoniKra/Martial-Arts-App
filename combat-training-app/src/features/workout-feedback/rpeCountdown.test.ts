@@ -3,6 +3,21 @@ import { startRpeCountdown } from './rpeCountdown'
 
 afterEach(() => vi.useRealTimers())
 
+it.each(['2026-11-09T10:10:00Z', '2026-11-10T10:00:00Z'])('keeps an expired summary quiet when opened at %s', (openedAt) => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date(openedAt))
+  const tick = vi.fn()
+  const gong = vi.fn()
+  const open = vi.fn()
+  const countdown = startRpeCountdown('2026-11-09T10:00:00Z', tick, () => { gong(); open() })
+  expect(tick).toHaveBeenLastCalledWith(0)
+  countdown.refresh()
+  vi.advanceTimersByTime(1000)
+  expect(gong).not.toHaveBeenCalled()
+  expect(open).not.toHaveBeenCalled()
+  countdown.dispose()
+})
+
 it('recalculates from the deadline when a hidden tab returns and opens RPE once at ten minutes', () => {
   vi.useFakeTimers()
   vi.setSystemTime(new Date('2026-11-09T10:00:00Z'))
