@@ -35,7 +35,7 @@ export function WorkoutRpeSummary({ session, uid, initialOpen, onSave, children 
         </div>
         <button ref={rateButton} type="button" onClick={() => { gong.unlock(); setOpen(true) }} className={getButtonClassName({ variant: 'secondary', className: 'uppercase tracking-[0.08em]' })}>{labels.rateNow}</button>
       </div>
-      <p className="text-[12px] leading-relaxed text-muted">{labels.timingHint}</p>
+      {remaining > 0 && <p className="text-[12px] leading-relaxed text-muted">{labels.timingHint}</p>}
     </> : <p role="status" className="text-sm font-semibold tabular-nums text-ink">{labels.saved(session.rpe)}</p>}
   </section>
   return <>

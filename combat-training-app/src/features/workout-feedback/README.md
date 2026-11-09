@@ -21,6 +21,7 @@ z `hasPendingWrites`. Istniejące reguły dopuszczają te aktualizacje i ogranic
 czas. Termin końcowy otwiera panel raz i odtwarza gong, jeśli przy wejściu do
 podsumowania pozostawał czas, a użytkownik odblokował dźwięk. Wejście po terminie
 pokazuje „Czas na ocenę” i „Oceń teraz”, bez gongu ani automatycznego panelu.
+Wskazówka „Gong da znać” jest widoczna tylko w czasie odliczania.
 Link `?rpe=1` nadal otwiera panel od razu. Pusta sekcja ćwiczeń celu jest ukryta.
 `WorkoutGongProvider` zachowuje kontekst audio między odtwarzaczem a
 podsumowaniem, a zamyka go po wylogowaniu. Można też wybrać „Oceń teraz”.
