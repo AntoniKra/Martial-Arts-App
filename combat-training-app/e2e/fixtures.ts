@@ -48,6 +48,8 @@ class WorkoutApp {
     await expect(this.page.getByRole('heading', { name: plan.nameSnapshot, exact: true })).toBeVisible()
   }
   async readSessions() { return readSessions(this.page.request, this.uid) }
+  // This write may reach the tab after seedPlan. openPlayer waits for the player's
+  // referenced-skill admission, so callers do not depend on listener order.
   async seedFocusSkill(skill: FocusSkill) { await seedFocusSkill(this.page.request, this.uid, skill) }
   async readFocusSkills() { return readFocusSkills(this.page.request, this.uid) }
 

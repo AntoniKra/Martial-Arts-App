@@ -25,7 +25,7 @@ async function accessibility(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 }
 async function capture(page: Page, info: TestInfo, name: string, scrolled = false) {
-  if (info.project.name !== 'phone') return
+  if (info.project.name !== 'phone' || process.env.CAPTURE_SCREENSHOTS !== '1') return
   const folder = path.resolve('docs/screenshots/issue-69')
   await mkdir(folder, { recursive: true })
   await page.evaluate(() => document.fonts.ready)
@@ -67,6 +67,7 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   // Incomplete corrections are validated without submitting a partial batch.
   await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
   await expect(card(page).getByRole('alert')).toHaveText('Problem i poprawka muszą mieć po 1–200 znaków.')
+  await expect(card(page).getByRole('textbox', { name: 'Poprawka', exact: true })).toBeFocused()
   await card(page).getByRole('textbox', { name: 'Poprawka', exact: true }).fill('Dotykam rękawicą policzka.')
   await page.getByText('Oceń pozostałe ćwiczenia · 1, opcjonalnie', { exact: true }).click()
   await page.getByRole('article', { name: 'Praca na nogach', exact: true }).getByRole('radio', { name: /^4 / }).check()

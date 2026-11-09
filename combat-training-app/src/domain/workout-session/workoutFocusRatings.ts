@@ -6,7 +6,7 @@ export function createWorkoutFocusRatings(blocks: readonly WorkoutBlock[], skill
   return blocks.flatMap((block) => block.items.flatMap((item): FocusRating[] => {
     if (item.type !== 'exercise' || !item.focusSkillId) return []
     const skill = skills.find((value) => value.id === item.focusSkillId)
-    if (!skill) throw new Error('Missing focus skill snapshot')
+    if (!skill) return []
     return [{
       workoutItemId: item.id, focusSkillId: skill.id, skillNameSnapshot: skill.name,
       criterionSnapshot: skill.criterion, blockType: block.blockType,
