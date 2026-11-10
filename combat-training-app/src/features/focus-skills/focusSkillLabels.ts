@@ -31,4 +31,6 @@ export const focusSkillLabels = {
   missing: 'Wybrane ćwiczenie celu jest niedostępne. Wybierz inne albo wyłącz oznaczenie.',
   pending: workoutDataLabels.pending,
   badge: 'CEL',
+  archived: 'Schowane',
+  archivedHint: 'Możesz zmienić ćwiczenie celu albo wyłączyć oznaczenie. Ten plan nadal można zapisać.',
 } as const

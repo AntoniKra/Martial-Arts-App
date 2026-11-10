@@ -1,5 +1,7 @@
+import { focusSkillLabels } from '@/features/focus-skills/focusSkillLabels'
+
 export const progressLabels = {
-  title: 'Postęp', skills: 'Ćwiczenia celu', archived: 'Schowane', noRatings: 'Brak ocen',
+  title: 'Postęp', skills: 'Ćwiczenia celu', archived: focusSkillLabels.archived, noRatings: 'Brak ocen',
   empty: 'Ćwiczenie celu oznaczysz w kreatorze przy ćwiczeniu. Po treningu możesz je ocenić, a tutaj zobaczysz swoje oceny.',
   newPlan: 'Nowy plan', loading: 'Ładowanie…', retry: 'Spróbuj ponownie', back: 'Wróć do listy',
   notFound: 'Nie znaleziono ćwiczenia celu', allRatings: 'Wszystkie oceny', summary: 'Podsumowanie ocen',

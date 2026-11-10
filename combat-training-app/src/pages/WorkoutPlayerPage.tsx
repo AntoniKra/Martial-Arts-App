@@ -4,6 +4,7 @@ import { useWorkoutData, useWorkoutPlan } from '@/application/workoutDataContext
 import { routes } from '@/app/routes'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
+import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { WorkoutPlayerView } from '@/features/workout-player/components/WorkoutPlayerView'
 import { useActiveWorkout } from '@/features/workout-player/activeWorkoutContext'
@@ -17,7 +18,7 @@ export function WorkoutPlayerPage() {
   const [restored] = useState(() => recovery.kind !== 'none' && recovery.workout.plan.id === workoutId ? recovery : null)
   const { loadState: latest, retry } = useWorkoutPlan(workoutId)
   const { focusSkills } = useWorkoutData()
-  const [snapshot, setSnapshot] = useState<{ id: string; plan: WorkoutPlan | null; skills: FocusSkill[] | null }>({
+  const [snapshot, setSnapshot] = useState<{ id: string; plan: WorkoutPlan | null; skills: FocusSkill[] | null; focusSkillsUnavailable?: boolean }>({
     id: workoutId, plan: restored?.workout.plan ?? null, skills: restored ? [] : null,
   })
   const [expiredWait, setExpiredWait] = useState<WorkoutPlan | null>(null)
@@ -26,7 +27,8 @@ export function WorkoutPlayerPage() {
     skills: null })
   else if (snapshot.plan && snapshot.skills === null) {
     const skills = selectWorkoutFocusSkills(snapshot.plan.blocks, focusSkills, expiredWait === snapshot.plan)
-    if (skills !== null) setSnapshot({ ...snapshot, skills: structuredClone(skills) })
+    if (skills !== null) setSnapshot({ ...snapshot, skills: structuredClone(skills),
+      focusSkillsUnavailable: focusSkills.status === 'error' && countFocusExercises(snapshot.plan.blocks) > 0 })
   }
   const waitingPlan = snapshot.id === workoutId && snapshot.skills === null ? snapshot.plan : null
   useEffect(() => {
@@ -36,7 +38,7 @@ export function WorkoutPlayerPage() {
   }, [waitingPlan])
   // An admitted workout keeps its immutable plan even if the account or library changes elsewhere.
   const loadState = snapshot.id === workoutId && snapshot.plan && snapshot.skills === null
-    ? focusSkills.status === 'error' ? { status: 'error' as const, message: 'Nie udało się wczytać ćwiczeń celu.' } : { status: 'loading' as const }
+    ? { status: 'loading' as const }
     : snapshot.id === workoutId && snapshot.plan ? { status: 'success' as const, plan: snapshot.plan } : latest
   const { sessionRepository } = useWorkoutData()
   const saveWorkoutSession = useCallback((session: WorkoutSession) => sessionRepository.save(session), [sessionRepository])
@@ -51,7 +53,7 @@ export function WorkoutPlayerPage() {
     onDiscard={() => { repository.clear(); void navigate(routes.home, { replace: true }) }}
   />
   return <WorkoutPlayerView loadState={loadState} workoutsListPath={routes.workouts}
-    focusSkills={snapshot.skills ?? []} onSessionSaved={onSessionSaved}
+    focusSkills={snapshot.skills ?? []} focusSkillsUnavailable={snapshot.focusSkillsUnavailable} onSessionSaved={onSessionSaved}
     initialWorkout={restored?.kind === 'resume' ? restored.workout : undefined} activeWorkoutRepository={repository}
     workoutDetailsPath={routes.workoutDetails(workoutId)} onRetry={retry} saveWorkoutSession={saveWorkoutSession} />
 }

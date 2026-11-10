@@ -8,6 +8,12 @@ function focusedExercise(id: string, focusSkillId = 'guard') {
 }
 
 describe('workout plan focus skills', () => {
+  it('validates and saves an existing archived skill reference', () => {
+    const draft = workoutPlan([block('bag', [focusedExercise('one')], 'bag')])
+    const archived = { id: 'guard', archivedAt: '2026-11-10T10:00:00.000Z' }
+    expect(validateWorkoutPlanDraft(draft, [archived])).toEqual({ isValid: true, issues: [] })
+    expect(finalizeWorkoutPlan(draft, [archived])).toMatchObject({ ok: true, plan: { blocks: draft.blocks } })
+  })
   it('rejects a fourth focus exercise across blocks, even when all use the same skill', () => {
     const draft = workoutPlan([
       block('bag', [focusedExercise('one'), focusedExercise('two')], 'bag'),

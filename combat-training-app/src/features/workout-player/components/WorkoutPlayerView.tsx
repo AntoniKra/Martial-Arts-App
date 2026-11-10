@@ -33,6 +33,7 @@ import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPr
 
 interface WorkoutSummaryOptions {
   focusSkills?: readonly FocusSkill[]
+  focusSkillsUnavailable?: boolean
   onSessionSaved?: (sessionId: string) => void
 }
 
@@ -275,6 +276,7 @@ function WorkoutPlayerCompletedPanel({
 
 function WorkoutPlayerRuntime({
   focusSkills,
+  focusSkillsUnavailable,
   onSessionSaved,
   initialWorkout,
   activeWorkoutRepository,
@@ -364,6 +366,7 @@ function WorkoutPlayerRuntime({
   return (
     <main className="flex min-h-dvh flex-col overflow-clip bg-bg">
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col safe-area-pt">
+        {focusSkillsUnavailable && <p role="status" className="px-5 pt-3 text-sm leading-relaxed text-muted">{workoutPlayerLabels.focusSkillsUnavailable}</p>}
         <header className="shrink-0 px-5 pt-5 pb-2">
           <div className="flex items-start justify-between gap-4">
             <BackToPlanLink to={workoutDetailsPath} />
@@ -469,6 +472,7 @@ function WorkoutPlayerRuntime({
 
 function WorkoutPlayerActiveContent({
   focusSkills,
+  focusSkillsUnavailable,
   onSessionSaved,
   initialWorkout,
   activeWorkoutRepository,
@@ -481,6 +485,7 @@ function WorkoutPlayerActiveContent({
   return (
     <WorkoutPlayerRuntime
       focusSkills={focusSkills}
+      focusSkillsUnavailable={focusSkillsUnavailable}
       onSessionSaved={onSessionSaved}
       initialWorkout={initialWorkout}
       activeWorkoutRepository={activeWorkoutRepository}
@@ -495,6 +500,7 @@ function WorkoutPlayerActiveContent({
 
 export function WorkoutPlayerView({
   focusSkills,
+  focusSkillsUnavailable,
   onSessionSaved,
   initialWorkout,
   activeWorkoutRepository,
@@ -526,6 +532,7 @@ export function WorkoutPlayerView({
     return (
       <WorkoutPlayerActiveContent
         focusSkills={focusSkills}
+        focusSkillsUnavailable={focusSkillsUnavailable}
         onSessionSaved={onSessionSaved}
         initialWorkout={initialWorkout}
         activeWorkoutRepository={activeWorkoutRepository}

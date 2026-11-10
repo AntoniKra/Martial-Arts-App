@@ -10,6 +10,8 @@ export function selectWorkoutFocusSkills(
   collection: Pick<CollectionState<FocusSkill>, 'items' | 'status' | 'fromCache'>,
   waitExpired: boolean,
 ): FocusSkill[] | null {
+  // A failed listener cannot complete the admission race. Do not use stale partial data.
+  if (collection.status === 'error') return []
   const referencedIds = new Set(blocks.flatMap((block) => block.items.flatMap((item) =>
     item.type === 'exercise' && item.focusSkillId ? [item.focusSkillId] : [])))
   const skills = collection.items.filter((skill) => referencedIds.has(skill.id))

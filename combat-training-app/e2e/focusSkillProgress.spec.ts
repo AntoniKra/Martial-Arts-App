@@ -126,12 +126,19 @@ test('archives offline with two plans, keeps history, and restores without resto
   await expect.poll(async () => (await app.readFocusSkills())[0]?.archivedAt).not.toBeNull()
   await expect.poll(async () => (await app.readPlans()).flatMap((entry) => entry.blocks.flatMap((value) => value.items))
     .filter((item) => item.type === 'exercise' && item.focusSkillId !== null)).toHaveLength(0)
-  for (const id of ['bag-plan', 'pads-plan']) {
-    await app.open(`/workouts/${id}`)
+  // Keep the same Firestore client through this user flow. Repeated page reloads
+  // transfer its IndexedDB primary lease and can defer server writes for five seconds.
+  const nav = page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true })
+  for (const name of ['Worek', 'Tarcze']) {
+    await nav.getByRole('link', { name: 'Treningi', exact: true }).click()
+    await page.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) })
+      .getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     await expect(page.getByText('CEL', { exact: true })).toHaveCount(0)
     await expect(page.getByText('Exercise first', { exact: true })).toBeVisible()
   }
-  await app.open('/progress/focus-skills/guard')
+  await nav.getByRole('link', { name: 'Postęp', exact: true }).click()
+  await page.getByText('Schowane (1)', { exact: true }).click()
+  await page.getByRole('link', { name: /Powrót do gardy/ }).click()
   await page.getByRole('button', { name: 'Przywróć', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Schowaj ćwiczenie celu', exact: true })).toBeVisible()
   await expect.poll(async () => (await app.readFocusSkills())[0]?.archivedAt).toBeNull()
@@ -161,4 +168,23 @@ test('deletes only a skill without session entries and preserves its plan exerci
   await app.open('/progress/focus-skills/guard')
   await expect(page.getByRole('button', { name: 'Schowaj ćwiczenie celu', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Usuń ćwiczenie celu', exact: true })).toHaveCount(0)
+})
+
+test('shows and saves an existing archived reference but never offers it as a new selection', async ({ app, page }, info) => {
+  await app.open('/workouts')
+  await app.seedFocusSkill({ ...skill, archivedAt: instant })
+  await app.seedPlan(plan)
+  await app.open('/workouts/bag-plan/edit')
+  await expect(page.getByText('Powrót do gardy · Schowane', { exact: true })).toBeVisible()
+  await expect(page.getByText(/Wybrane ćwiczenie celu jest niedostępne/)).toHaveCount(0)
+  await expect(page.getByRole('radio', { name: /^Powrót do gardy/ })).toHaveCount(0)
+  await accessible(page)
+  await capture(page, info, 'builder-archived')
+  await app.savePlan()
+  await expect(page.getByText('CEL', { exact: true })).toBeVisible()
+  await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
+  await page.getByRole('switch', { name: 'Ćwiczenie celu · Oceniaj po treningu', exact: true }).click()
+  await page.getByRole('switch', { name: 'Ćwiczenie celu · Oceniaj po treningu', exact: true }).click()
+  await expect(page.getByRole('radio', { name: /^Powrót do gardy/ })).toHaveCount(0)
+  await expect(page.getByText('Powrót do gardy · Schowane', { exact: true })).toHaveCount(0)
 })

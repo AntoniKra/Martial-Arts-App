@@ -22,7 +22,7 @@ export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange }:
   const limitReached = focusSkillId === null && focusExerciseCount >= MAX_PLAN_FOCUS_EXERCISES
   const ready = focusSkills.status === 'ready'
   const skills = selectAvailableFocusSkills(focusSkills.items)
-  const selected = skills.find((skill) => skill.id === focusSkillId)
+  const selected = focusSkills.items.find((skill) => skill.id === focusSkillId)
 
   function closeEditor() {
     setEditor(null)
@@ -65,6 +65,11 @@ export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange }:
     {focusSkills.invalidDocumentIds.length > 0 && <p role="status" className="mt-2 text-[12px] text-muted">{labels.invalidData}</p>}
     {enabled && <>
       {focusSkillId !== null && ready && !selected && <p role="alert" className="mt-2 text-[13px] text-crimson-ink">{labels.missing}</p>}
+      {selected?.archivedAt && <div className="mt-3 space-y-1 border border-bd bg-surface p-3 text-sm">
+        <p className="break-words font-semibold">{selected.name} · {labels.archived}</p>
+        <p className="break-words text-muted">{selected.criterion}</p>
+        <p className="text-xs text-muted">{labels.archivedHint}</p>
+      </div>}
       <fieldset disabled={!ready || saving || limitReached} className="mt-3 min-w-0 space-y-2">
         <legend className="mb-2 text-[13px] font-semibold text-ink">{labels.question}</legend>
         {skills.map((skill) => <label key={skill.id} className={`flex min-h-touch cursor-pointer items-start gap-3 border p-3 ${focusSkillId === skill.id && !editor ? 'border-crimson bg-surface' : 'border-bd'}`}>
@@ -82,7 +87,7 @@ export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange }:
             <span className="mt-1 block text-[12px] text-muted">{labels.newDescription}</span></span>
         </label>
       </fieldset>
-      {selected && !editor && <Button type="button" size="sm" variant="ghost" disabled={!ready || saving} onClick={() => setEditor({ skill: selected })}>{labels.edit}</Button>}
+      {selected && selected.archivedAt === null && !editor && <Button type="button" size="sm" variant="ghost" disabled={!ready || saving} onClick={() => setEditor({ skill: selected })}>{labels.edit}</Button>}
       {editor && !limitReached && <FocusSkillForm key={editor.skill?.id ?? 'new'} initialValues={editor.skill ?? undefined}
         busy={saving} onSave={saveSkill} onCancel={closeEditor} />}
     </>}

@@ -1,4 +1,5 @@
 export const workoutPlayerLabels = {
+  focusSkillsUnavailable: 'Nie udało się wczytać ćwiczeń celu. W tym treningu ćwiczenia celu nie zostaną ocenione.',
   enableSound: 'Dźwięk wyłączony — stuknij, aby włączyć',
   interruptedTitle: 'Niedokończony trening',
   lastActivity: 'Ostatnia aktywność',
