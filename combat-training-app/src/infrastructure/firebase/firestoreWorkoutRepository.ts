@@ -12,6 +12,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
   private items = new Map<string, T>()
   private writes = new Set<PendingWrite<T>>()
   private reportError: ((error: unknown) => void) | null = null
+  private readable = false
   private readonly path
 
   constructor(db: Firestore, uid: string, collectionName: 'workoutPlans' | 'workoutSessions' | 'focusSkills', private parse: (value: unknown) => T) {
@@ -35,12 +36,14 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
         } catch { invalidDocumentIds.push(document.id) }
       }
       this.items = items
+      this.readable = invalidDocumentIds.length === 0
       onChange({ items: [...items.values()], pendingIds, hasPendingWrites: snapshot.metadata.hasPendingWrites,
         fromCache: snapshot.metadata.fromCache, invalidDocumentIds })
       for (const write of this.writes) {
         if (write.matches(items)) { this.writes.delete(write); write.resolve() }
       }
     }, (error) => {
+      this.readable = false
       this.rejectWrites(error)
       onError(error)
     })
@@ -48,6 +51,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
       stop()
       this.reportError = null
       this.items.clear()
+      this.readable = false
       this.rejectWrites(new Error('Repository subscription closed'))
     }
   }
@@ -85,9 +89,14 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
       (items) => JSON.stringify(items.get(item.id)) === expected)
   }
 
-  async delete(id: string): Promise<boolean> {
+  getItems(): readonly T[] {
+    if (!this.reportError || !this.readable) throw new Error('Collection is not completely available')
+    return [...this.items.values()]
+  }
+
+  async delete(id: string, action: () => Promise<void> = () => deleteDoc(doc(this.path, id))): Promise<boolean> {
     if (!this.items.has(id)) return false
-    await this.write(() => deleteDoc(doc(this.path, id)), (items) => !items.has(id))
+    await this.write(action, (items) => !items.has(id))
     return true
   }
 

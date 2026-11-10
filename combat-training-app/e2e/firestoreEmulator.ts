@@ -49,3 +49,17 @@ export async function readSessions(request: APIRequestContext, uid: string): Pro
   const body = await response.json() as { documents?: { fields: Record<string, Value> }[] }
   return (body.documents ?? []).map((document) => decode({ mapValue: { fields: document.fields } }) as WorkoutSession)
 }
+
+export async function seedSession(request: APIRequestContext, uid: string, session: WorkoutSession) {
+  const response = await request.patch(`${root}/users/${uid}/workoutSessions/${session.id}`, {
+    headers: { Authorization: 'Bearer owner' }, data: encode({ ...session, schemaVersion: 1 }).mapValue,
+  })
+  expect(response.ok()).toBe(true)
+}
+
+export async function readPlans(request: APIRequestContext, uid: string): Promise<WorkoutPlan[]> {
+  const response = await request.get(`${root}/users/${uid}/workoutPlans`, { headers: { Authorization: 'Bearer owner' } })
+  expect(response.ok()).toBe(true)
+  const body = await response.json() as { documents?: { fields: Record<string, Value> }[] }
+  return (body.documents ?? []).map((document) => decode({ mapValue: { fields: document.fields } }) as WorkoutPlan)
+}

@@ -1,0 +1,3 @@
+# ADR 0009: Wykres ocen ćwiczenia celu jako SVG i leniwe trasy Postępu
+
+Status: zaakceptowane, 10 listopada 2026 (issue #76). Wykres ocen ćwiczenia celu tworzymy jako własny komponent SVG: punkty bez linii łączących, skala 1–5, daty treningów, kształty według miejsca i oznaczenie zmiany kryterium; pełna lista ocen zapewnia wersję tekstową. To niewielki, określony zakres, który nie wymaga biblioteki wykresów. Trasy `/progress` i `/progress/focus-skills/:focusSkillId` ładujemy przez `lazy` w `createBrowserRouter`, wewnątrz `WorkoutDataProvider`, aby utrzymać główną paczkę blisko bazowych 189,21 kB gzip (próg podziału około 200 kB). Decyzja dotyczy wyłącznie tego wykresu; wybór biblioteki do wykresu 8–12 tygodni pozostaje do ustalenia przy podsumowaniu tygodnia.

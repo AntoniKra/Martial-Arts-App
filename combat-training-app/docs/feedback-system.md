@@ -1,6 +1,6 @@
 # Oceny po treningu i analiza postępu
 
-Stan: 8 listopada 2026. Decyzje właściciela z 4–8 listopada (Q1–Q5, R1–R4). Uzasadnienie: research A i C w projekcie pracy. Pola w bazie: `database-model.md`.
+Stan: 10 listopada 2026. Decyzje właściciela z 4–10 listopada (Q1–Q5, R1–R4, issue #76). Uzasadnienie: research A i C w projekcie pracy. Pola w bazie: `database-model.md`.
 
 Zasada: każda funkcja ma pomagać kontrolować postęp. Jakość wykonania i ilość pracy pokazujemy osobno, nigdy jako jeden wynik.
 
@@ -43,10 +43,15 @@ Do tego **„Nie umiem ocenić”**. Ta odpowiedź zostaje zapisana, ale nie wch
 
 ### Trend
 
-- Tylko dla ćwiczeń celu (Q1).
-- Średnia to zwykła średnia arytmetyczna ocen z liczbą ocen obok.
-- Przy 1–2 ocenach nie pokazujemy strzałek „postępu”, tylko same oceny.
-- Zmiana kryterium jest zaznaczona na wykresie, bo oceny według innego kryterium nie są wprost porównywalne.
+- Zakładka **Postęp** pokazuje aktywne ćwiczenia celu alfabetycznie, liczbę ocen według obecnego kryterium i ostatnią taką ocenę z datą oraz miejscem. Schowane ćwiczenia są w osobnej, zwiniętej sekcji.
+- Ekran ćwiczenia celu pokazuje kryterium, otwartą notatkę „problem i poprawka”, wykres i wszystkie oceny od najnowszej. Wiersz oceny prowadzi do podsumowania treningu; lista jest też tekstową wersją wykresu.
+- Wykres to punkty bez linii łączących. Oś X: dzień treningu (`workoutDate`), oś Y: ocena 1–5. Każde miejsce (typ bloku) ma własny kształt punktu z legendą, niezależnie od koloru. Gdy liczba punktów przekracza pojemność szerokości ekranu, wykres pokazuje ostatnie 12 tygodni do daty ostatniej oceny; lista nadal zawiera wszystkie oceny.
+- Podsumowanie liczymy **osobno dla każdego miejsca**, tylko z ocen 1–5 według obecnego kryterium (`criterionSnapshot === criterion`). Dwa wystąpienia w jednym treningu są osobnymi ocenami.
+- Przy jednej ocenie: „Jedna ocena: 3 (12.11)”; przy dwóch: „Oceny: 2, 3”. Od trzech ocen pokazujemy **środkową ocenę (medianę)** i liczbę ocen, „Ostatnie 3” oraz maksymalnie trzy „Wcześniejsze”. Obie grupy zachowują kolejność chronologiczną. Przy parzystej liczbie ocen mediana jest średnią dwóch środkowych, zapisaną z przecinkiem, np. `3,5`.
+- Bez strzałek, kolorów sugerujących poprawę lub pogorszenie i bez ogłaszania postępu albo regresu na podstawie kilku samoocen.
+- Brak oceny (`null`) pomijamy całkowicie. „Nie umiem ocenić” zostaje na liście i w osobnym liczniku, poza wykresem i obliczeniami.
+- Oceny według poprzedniego kryterium mają puste punkty (sam obrys) i dopisek na liście. Pionowa przerywana linia „Zmiana kryterium” wskazuje pierwszą ocenę według obecnego kryterium po ostatniej ocenie według innego kryterium (także przy powrocie A → B → A). Starsze oceny nie wchodzą do podsumowania; pokazujemy ich liczbę.
+- „Schowaj” zdejmuje oznaczenie CEL we wszystkich wskazujących planach, zostawiając ćwiczenia, oceny i wykres. „Przywróć” przywraca ćwiczenie celu na listę w kreatorze, ale nie oznaczenia w planach. Usuwanie jest dostępne tylko bez jakichkolwiek wpisów w `focusRatings`, także tych z `assessment: null`.
 
 ## Pozostałe ćwiczenia
 

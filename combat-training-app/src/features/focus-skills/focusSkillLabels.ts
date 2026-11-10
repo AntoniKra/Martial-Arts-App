@@ -26,9 +26,11 @@ export const focusSkillLabels = {
   invalidCriterion: 'Podaj kryterium od 1 do 200 znaków.',
   saveError: 'Nie udało się zapisać ćwiczenia celu. Spróbuj ponownie.',
   loading: 'Ładowanie ćwiczeń celu…',
-  loadError: 'Nie udało się wczytać ćwiczeń celu.',
+  loadError: workoutDataLabels.focusSkillsLoadError,
   invalidData: 'Pominięto niepoprawne dane ćwiczeń celu.',
   missing: 'Wybrane ćwiczenie celu jest niedostępne. Wybierz inne albo wyłącz oznaczenie.',
   pending: workoutDataLabels.pending,
   badge: 'CEL',
+  archived: 'Schowane',
+  archivedHint: 'Możesz zmienić ćwiczenie celu albo wyłączyć oznaczenie. Ten plan nadal można zapisać.',
 } as const

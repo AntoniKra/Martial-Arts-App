@@ -2,6 +2,8 @@ export const routes = {
   home: '/',
   workouts: '/workouts',
   newWorkout: '/workouts/new',
+  progress: '/progress',
+  focusSkillProgress: (focusSkillId: string) => `/progress/focus-skills/${focusSkillId}`,
   workoutDetails: (workoutId: string) => `/workouts/${workoutId}`,
   workoutEdit: (workoutId: string) => `/workouts/${workoutId}/edit`,
   workoutPreview: (workoutId: string) => `/workouts/${workoutId}/preview`,

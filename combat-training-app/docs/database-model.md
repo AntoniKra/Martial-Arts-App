@@ -145,7 +145,10 @@ Zapis sesji z planu tworzy po jednym wpisie dla każdego ćwiczenia celu z `asse
 
 - Jedno ćwiczenie celu działa we wszystkich planach. Wykres ocen zbiera oceny ze wszystkich planów (decyzja z 8.11).
 - Zmiana kryterium nie zmienia starych ocen. Wykres zaznacza miejsce zmiany, bo oceny według innego kryterium nie są wprost porównywalne.
-- Usunąć można ćwiczenie celu bez ocen. Takie, które ma oceny, można tylko zarchiwizować.
+- Schowanie ustawia `archivedAt` i `updatedAt` oraz zdejmuje `focusSkillId` (ustawia `null`) ze wszystkich wystąpień we wszystkich planach, aktualizując ich `updatedAt`. Dokument ćwiczenia celu i zmiany planów zapisujemy jednym `writeBatch`, działającym również offline. Ćwiczenia pozostają w planach, historyczne oceny i wykres zostają. UI potwierdza zapis lokalny i pokazuje „Czeka na wysłanie” do potwierdzenia serwera.
+- Przywrócenie ustawia `archivedAt: null` i nowe `updatedAt`. Nie przywraca `focusSkillId` w planach; oznaczenie CEL można ponownie ustawić w kreatorze.
+- Usunąć można ćwiczenie celu bez **żadnego wpisu** w `focusRatings` jakiejkolwiek sesji (również `assessment: null` i `unableToRate` blokują usunięcie). Wtedy usunięcie dokumentu i zdjęcie `focusSkillId` w planach odbywa się jednym `writeBatch`. Ćwiczenie celu z wpisami można tylko schować.
+- Operacje te nie zmieniają lokalnej kopii planu i migawek ocen trwającego treningu. Plan ze schowanym ID, np. starszy szkic, pozostaje poprawny do zapisu, ale schowane ćwiczenie celu nie jest oferowane jako nowy wybór.
 - `openCorrection` zmienia się razem z zapisem ocen, w jednym zapisie zbiorczym (`writeBatch`), który działa także offline. Zasady: `feedback-system.md`.
 
 ## `weekPlans` (plan tygodnia i moduł celów)

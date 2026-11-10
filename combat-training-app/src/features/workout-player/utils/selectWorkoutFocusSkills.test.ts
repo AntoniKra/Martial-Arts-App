@@ -30,8 +30,12 @@ describe('selectWorkoutFocusSkills', () => {
     expect(selectWorkoutFocusSkills(blocks, { status: 'ready', fromCache: false, items: [guard] }, false)).toEqual([guard])
   })
 
-  it.each(['loading', 'ready', 'error'] as const)('admits available skills after the wait expires with status %s', (status) => {
+  it.each(['loading', 'ready'] as const)('admits available skills after the wait expires with status %s', (status) => {
     expect(selectWorkoutFocusSkills(blocks, { status, fromCache: true, items: [guard] }, true)).toEqual([guard])
+  })
+
+  it.each([false, true])('admits immediately without ratings after a listener error (expired: %s)', (waitExpired) => {
+    expect(selectWorkoutFocusSkills(blocks, { status: 'error', fromCache: true, items: [guard] }, waitExpired)).toEqual([])
   })
 
   it('does not wait for a collection that the plan does not use', () => {

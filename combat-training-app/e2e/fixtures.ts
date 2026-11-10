@@ -1,8 +1,9 @@
 import { test as base, expect, type Page } from '@playwright/test'
 import { createVerifiedAccount, signIn } from './authEmulator'
-import { seedPlan, readSessions, seedFocusSkill, readFocusSkills } from './firestoreEmulator'
+import { seedPlan, readSessions, seedFocusSkill, readFocusSkills, seedSession, readPlans } from './firestoreEmulator'
 import type { WorkoutPlan } from '../src/domain/workout/workout.types'
 import type { FocusSkill } from '../src/domain/focus-skill/focusSkill.types'
+import type { WorkoutSession } from '../src/domain/workout-session/workoutSession.types'
 
 class WorkoutApp {
   private authenticated = false
@@ -52,6 +53,8 @@ class WorkoutApp {
   // referenced-skill admission, so callers do not depend on listener order.
   async seedFocusSkill(skill: FocusSkill) { await seedFocusSkill(this.page.request, this.uid, skill) }
   async readFocusSkills() { return readFocusSkills(this.page.request, this.uid) }
+  async seedSession(session: WorkoutSession) { await seedSession(this.page.request, this.uid, session) }
+  async readPlans() { return readPlans(this.page.request, this.uid) }
 
   async createPlan(name = 'Plan E2E', roundDurationLabel: '1:00' | '3:00' = '1:00') {
     const { page } = this
