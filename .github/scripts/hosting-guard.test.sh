@@ -57,23 +57,16 @@ expect_fail "old CI is not current main" \
 expect_ok "CI at the main tip may continue" \
   bash "$guard" assert-head-is-main "$sha_a" "$sha_a"
 
-expect_eq "stored marker wins over older guesses" "$sha_a" \
-  "$(bash "$guard" pick-baseline "$sha_a" "$sha_b" "$sha_c")"
-expect_eq "without a marker, use the previous CI" "$sha_b" \
-  "$(bash "$guard" pick-baseline "" "$sha_b" "$sha_c")"
-expect_eq "without CI history, use the parent" "$sha_c" \
-  "$(bash "$guard" pick-baseline "" "" "$sha_c")"
-
 expect_eq "manual run deploys even when rules differ" "deploy" \
-  "$(bash "$guard" live-plan workflow_dispatch "$sha_a" "$sha_b" "" "" "" yes)"
+  "$(bash "$guard" live-plan workflow_dispatch "$sha_a" "$sha_b" "" yes)"
 expect_eq "rerun of an old CI is stale" "stale" \
-  "$(bash "$guard" live-plan workflow_run "$sha_a" "$sha_b" "$sha_c" "" "" no)"
-expect_eq "a rules change records the previous good commit" "block $sha_b" \
-  "$(bash "$guard" live-plan workflow_run "$sha_a" "$sha_a" "" "$sha_b" "$sha_c" yes)"
+  "$(bash "$guard" live-plan workflow_run "$sha_a" "$sha_b" "$sha_c" no)"
+expect_eq "missing marker blocks without guessing a baseline" "unmarked" \
+  "$(bash "$guard" live-plan workflow_run "$sha_a" "$sha_a" "" yes)"
 expect_eq "later commits stay blocked on the same marker" "block" \
-  "$(bash "$guard" live-plan workflow_run "$sha_a" "$sha_a" "$sha_b" "" "" yes)"
+  "$(bash "$guard" live-plan workflow_run "$sha_a" "$sha_a" "$sha_b" yes)"
 expect_eq "unchanged rules deploy" "deploy" \
-  "$(bash "$guard" live-plan workflow_run "$sha_a" "$sha_a" "$sha_b" "" "" no)"
+  "$(bash "$guard" live-plan workflow_run "$sha_a" "$sha_a" "$sha_b" no)"
 
 repo="$(mktemp -d)"
 git init -b main "$repo" >/dev/null
@@ -98,18 +91,24 @@ expect_eq "rules match when the file is unchanged" "no" \
   "$(bash "$guard" rules-differ "$m1" "$m2")"
 
 marker=""
-plan="$(bash "$guard" live-plan workflow_run "$m1" "$m1" "$marker" "$m0" "$m0" "$(bash "$guard" rules-differ "$m0" "$m1")")"
-expect_eq "first rules change blocks and keeps the previous commit" "block $m0" "$plan"
-marker="$m0"
-plan="$(bash "$guard" live-plan workflow_run "$m2" "$m2" "$marker" "$m1" "$m1" "$(bash "$guard" rules-differ "$marker" "$m2")")"
-expect_eq "the next commit stays blocked" "block" "$plan"
-plan="$(bash "$guard" live-plan workflow_run "$m0" "$m2" "$marker" "" "" no)"
+plan="$(bash "$guard" live-plan workflow_run "$m1" "$m1" "$marker" "$(bash "$guard" rules-differ "$m0" "$m1")")"
+expect_eq "A changes rules and hosting does not proceed" "unmarked" "$plan"
+expect_eq "A does not invent a marker" "" "$marker"
+plan="$(bash "$guard" live-plan workflow_run "$m2" "$m2" "$marker" "$(bash "$guard" rules-differ "$m1" "$m2")")"
+expect_eq "B leaves the rules file alone and stays blocked" "unmarked" "$plan"
+plan="$(bash "$guard" live-plan workflow_run "$m0" "$m2" "$marker" no)"
 expect_eq "rerunning the old CI does not move the marker" "stale" "$plan"
-plan="$(bash "$guard" live-plan workflow_dispatch "$m2" "$m2" "$marker" "" "" yes)"
+plan="$(bash "$guard" live-plan workflow_dispatch "$m2" "$m2" "$marker" yes)"
 expect_eq "manual confirmation clears the block" "deploy" "$plan"
 marker="$m2"
-plan="$(bash "$guard" live-plan workflow_run "$m2" "$m2" "$marker" "$m1" "$m1" "$(bash "$guard" rules-differ "$marker" "$m2")")"
+plan="$(bash "$guard" live-plan workflow_run "$m2" "$m2" "$marker" "$(bash "$guard" rules-differ "$marker" "$m2")")"
 expect_eq "after confirmation, the same rules can deploy" "deploy" "$plan"
+printf 'rules v3\n' > "$repo/combat-training-app/firestore.rules"
+git -C "$repo" commit -am M3 >/dev/null
+m3="$(git -C "$repo" rev-parse HEAD)"
+plan="$(bash "$guard" live-plan workflow_run "$m3" "$m3" "$marker" "$(bash "$guard" rules-differ "$marker" "$m3")")"
+expect_eq "a later rules change blocks again without moving the marker" "block" "$plan"
+expect_eq "the failed rules change leaves the confirmed marker" "$m2" "$marker"
 
 tmpdir="$(mktemp -d)"
 export GITHUB_REPOSITORY="example/app"
@@ -124,6 +123,10 @@ cat > "$tmpdir/bin/gh" << 'EOF'
 set -euo pipefail
 args="$*"
 if [[ "$args" == *"/actions/runs/"* ]]; then
+  if [[ "$args" =~ /actions/runs/[0-9]+/ ]]; then
+    echo "404 Not Found" >&2
+    exit 1
+  fi
   printf '%s\n' "${FAKE_RUN_PRS:-}"
 elif [[ "$args" == *"/commits/"*"/pulls"* ]]; then
   printf '%s\n' "${FAKE_COMMIT_PRS:-}"
@@ -145,14 +148,18 @@ elif [[ "$args" == *"/statuses"* ]]; then
   else
     printf 'success\n'
   fi
-elif [[ "$args" == *"/actions/workflows/ci.yml/runs"* ]]; then
-  printf '%s\n' "${FAKE_CI_RUNS:-}"
 else
   echo "unexpected gh: $args" >&2
   exit 1
 fi
 EOF
 chmod +x "$tmpdir/bin/gh"
+
+export FAKE_RUN_PRS="79"
+expect_fail "workflow run URL with a trailing slash is not the run" \
+  "$tmpdir/bin/gh" api "repos/example/app/actions/runs/42915642514/" --jq ".pull_requests[].number"
+expect_eq "workflow run URL without a trailing slash returns the pull request" "79" \
+  "$("$tmpdir/bin/gh" api "repos/example/app/actions/runs/42915642514" --jq ".pull_requests[].number")"
 
 printf '79\n' > "$ARTIFACT_PR_FILE"
 : > "$GITHUB_ENV"
@@ -186,9 +193,12 @@ export FAKE_DEPLOYMENTS=$'1 '"$sha_b"$'\n2 '"$sha_a"
 expect_eq "baseline skips an inactive newer deployment" "$sha_a" \
   "$(bash "$guard" read-baseline)"
 
-export FAKE_CI_RUNS=$'100 '"$sha_b"$'\n90 '"$sha_a"
-expect_eq "previous CI skips the current run" "$sha_a" \
-  "$(bash "$guard" previous-ci 100)"
+if grep -n -E "previous-ci|pick-baseline" "$guard" "$root/.github/workflows/firebase-hosting-live.yml"; then
+  printf 'FAIL rules baseline is still guessed from CI\n'
+  failures=$((failures + 1))
+else
+  printf 'ok  rules baseline is not guessed from CI\n'
+fi
 
 export FAKE_DEPLOY_BODY="$tmpdir/deployment.json"
 expect_ok "record baseline calls GitHub" \

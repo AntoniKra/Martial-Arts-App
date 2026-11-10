@@ -43,27 +43,10 @@ assert_head_is_main() {
   fi
 }
 
-pick_baseline() {
-  if [ -n "$1" ]; then
-    printf '%s\n' "$1"
-    return 0
-  fi
-  if [ -n "$2" ]; then
-    printf '%s\n' "$2"
-    return 0
-  fi
-  if [ -n "$3" ]; then
-    printf '%s\n' "$3"
-    return 0
-  fi
-  echo "::error::Brak punktu odniesienia dla reguł Firestore."
-  return 1
-}
-
-# Line 1 is deploy, block, or stale.
-# A block that still needs a marker prints "block <sha>".
+# Prints deploy, stale, block, or unmarked.
+# unmarked means there is no owner confirmation yet; nothing is guessed from CI.
 live_plan() {
-  local event="$1" build="$2" main="$3" stored="$4" previous="$5" parent="$6" differ="$7"
+  local event="$1" build="$2" main="$3" stored="$4" differ="$5"
   if [ "$event" = "workflow_dispatch" ]; then
     printf 'deploy\n'
     return 0
@@ -72,14 +55,12 @@ live_plan() {
     printf 'stale\n'
     return 0
   fi
+  if [ -z "$stored" ]; then
+    printf 'unmarked\n'
+    return 0
+  fi
   if [ "$differ" = "yes" ]; then
-    if [ -z "$stored" ]; then
-      local baseline
-      baseline="$(pick_baseline "$stored" "$previous" "$parent")"
-      printf 'block %s\n' "$baseline"
-    else
-      printf 'block\n'
-    fi
+    printf 'block\n'
     return 0
   fi
   printf 'deploy\n'
@@ -111,18 +92,6 @@ read_baseline() {
   return 0
 }
 
-previous_ci() {
-  local current="$1" id sha list
-  list="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&event=push&status=success&per_page=20" --jq '.workflow_runs[] | "\(.id) \(.head_sha)"')"
-  while read -r id sha; do
-    if [ -n "$id" ] && [ "$id" != "$current" ] && [ -n "$sha" ]; then
-      printf '%s\n' "$sha"
-      return 0
-    fi
-  done <<< "$list"
-  return 0
-}
-
 record_baseline() {
   local sha="$1" payload id
   sha="$(printf '%s' "$sha" | tr -d '[:space:]')"
@@ -147,7 +116,7 @@ preview_guard() {
     return 1
   fi
   artifact_pr="$(tr -d '[:space:]' < "$ARTIFACT_PR_FILE")"
-  trusted="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/" --jq '.pull_requests[].number')"
+  trusted="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}" --jq '.pull_requests[].number')"
   if [ -z "$trusted" ]; then
     trusted="$(gh api -H "Accept: application/vnd.github+json" "repos/${GITHUB_REPOSITORY}/commits/${BUILD_SHA}/pulls" --jq '.[].number')"
   fi
@@ -180,11 +149,9 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     preview-accept) preview_accept "$@" >/dev/null ;;
     preview-guard) preview_guard ;;
     assert-head-is-main) assert_head_is_main "$@" ;;
-    pick-baseline) pick_baseline "$@" ;;
     live-plan) live_plan "$@" ;;
     rules-differ) rules_differ "$@" ;;
     read-baseline) read_baseline ;;
-    previous-ci) previous_ci "$@" ;;
     record-baseline) record_baseline "$@" ;;
     *)
       echo "::error::Nieznane polecenie hosting-guard: $cmd"

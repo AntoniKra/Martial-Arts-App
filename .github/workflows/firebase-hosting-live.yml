@@ -12,7 +12,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: read
   contents: read
   deployments: write
 
@@ -38,14 +37,14 @@ jobs:
       - name: Skip hosting when rules changed
         id: check
         env:
+          GH_TOKEN: ${{ github.token }}
           EVENT_NAME: ${{ github.event_name }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-          CI_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
           guard=".github/scripts/hosting-guard.sh"
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            plan="$(bash "$guard" live-plan workflow_dispatch "" "" "" "" "" no)"
+            plan="$(bash "$guard" live-plan workflow_dispatch "" "" "" no)"
           else
             main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
             if [ "$(git rev-parse HEAD)" != "$HEAD_SHA" ]; then
@@ -57,15 +56,12 @@ jobs:
               exit 1
             fi
             stored="$(bash "$guard" read-baseline)"
-            previous=""
-            parent=""
             if [ -z "$stored" ]; then
-              previous="$(bash "$guard" previous-ci "$CI_RUN_ID")"
-              parent="$(git rev-parse "${HEAD_SHA}^")"
+              plan="$(bash "$guard" live-plan workflow_run "$HEAD_SHA" "$main_sha" "" no)"
+            else
+              differ="$(bash "$guard" rules-differ "$stored" "$HEAD_SHA")"
+              plan="$(bash "$guard" live-plan workflow_run "$HEAD_SHA" "$main_sha" "$stored" "$differ")"
             fi
-            baseline="$(bash "$guard" pick-baseline "$stored" "$previous" "$parent")"
-            differ="$(bash "$guard" rules-differ "$baseline" "$HEAD_SHA")"
-            plan="$(bash "$guard" live-plan workflow_run "$HEAD_SHA" "$main_sha" "$stored" "$previous" "$parent" "$differ")"
           fi
           case "$plan" in
             stale)
@@ -77,21 +73,21 @@ jobs:
               ;;
             block)
               echo "deploy=false" >> "$GITHUB_OUTPUT"
+              message="Reguły Firestore różnią się od ostatnio potwierdzonej wersji. Wdróż najpierw reguły ręcznie (\`npx firebase deploy --only firestore:rules -P prod\`), potem uruchom ten workflow ręcznie (Run workflow). Do tego czasu kolejne commity też nie wgrywają hostingu."
+              echo "::warning::${message}"
+              printf '%s\n' "$message" >> "$GITHUB_STEP_SUMMARY"
               ;;
-            block\ *)
-              bash "$guard" record-baseline "${plan#block }"
+            unmarked)
               echo "deploy=false" >> "$GITHUB_OUTPUT"
+              message="Nie ma jeszcze potwierdzenia, że reguły Firestore na produkcji są tymi z repozytorium. Wdróż je ręcznie (\`npx firebase deploy --only firestore:rules -P prod\`), potem uruchom ten workflow ręcznie (Run workflow). Dopóki tego nie zrobisz, automatyczny hosting pozostaje zablokowany, także gdy kolejne commity nie zmieniają pliku reguł."
+              echo "::warning::${message}"
+              printf '%s\n' "$message" >> "$GITHUB_STEP_SUMMARY"
               ;;
             *)
               echo "::error::Nieznany wynik sprawdzenia reguł."
               exit 1
               ;;
           esac
-          if [ "${plan#block}" != "$plan" ] || [ "$plan" = "block" ]; then
-            message="Reguły Firestore różnią się od ostatnio potwierdzonej wersji. Wdróż najpierw reguły ręcznie (\`npx firebase deploy --only firestore:rules -P prod\`), potem uruchom ten workflow ręcznie (Run workflow). Do tego czasu kolejne commity też nie wgrywają hostingu."
-            echo "::warning::${message}"
-            printf '%s\n' "$message" >> "$GITHUB_STEP_SUMMARY"
-          fi
 
   deploy:
     name: Build and deploy live hosting
@@ -152,6 +148,7 @@ jobs:
         if: github.event_name != 'workflow_dispatch'
         working-directory: ${{ github.workspace }}
         env:
+          GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
@@ -172,4 +169,6 @@ jobs:
 
       - name: Remember acknowledged rules
         working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: bash .github/scripts/hosting-guard.sh record-baseline "$(git rev-parse HEAD)"

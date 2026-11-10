@@ -10,13 +10,11 @@ Ręczne uruchomienie: Actions → `Hosting live deploy` → Run workflow. Wdraż
 
 ## Najpierw reguły
 
-Automat nie wdraża reguł. Przed hostingiem porównuje `combat-training-app/firestore.rules` w commicie przeznaczonym do wdrożenia z ostatnim commitem, którego reguły są uznane za wdrożone.
+Automat nie wdraża reguł. Zanim wgra hosting, szuka znacznika `firestore-rules-acknowledged`: ostatniego commita, którego reguły właściciel uznał za wdrożone. To zapis w GitHubie, nie wgranie pliku reguł. Zapis używa `deployments: write`.
 
-Ten punkt odniesienia to wdrożenie GitHub w środowisku `firestore-rules-acknowledged`. To tylko znacznik w GitHubie, nie wgranie pliku reguł. Dopóki plik się różni, workflow pomija hosting. Dotyczy to też kolejnych commitów, które samego pliku już nie zmieniają: znacznik zostaje przy starszym commicie, więc różnica nie znika. W podsumowaniu joba jest ostrzeżenie: najpierw ręcznie `npx firebase deploy --only firestore:rules -P prod`, potem Run workflow.
+Pierwsze uruchomienie nie ma tego znacznika. Poprzednie udane CI i pierwszy rodzic commita nie są potwierdzeniem, więc automatyczny hosting jest zablokowany. W podsumowaniu joba jest instrukcja: wdróż reguły ręcznie (`npx firebase deploy --only firestore:rules -P prod`), potem uruchom `Hosting live deploy` przez Run workflow. To ręczne uruchomienie pomija porównanie, wgrywa hosting z bieżącego `main` i dopiero wtedy zapisuje znacznik. Do tego momentu zablokowany jest też commit, który pliku reguł już nie zmienia.
 
-Run workflow pomija porównanie, wgrywa hosting z bieżącego `main` i przesuwa znacznik na ten commit. Następna blokada liczy się dopiero od kolejnej zmiany reguł względem niego.
-
-Gdy znacznika jeszcze nie ma, porównanie sięga poprzedniego udanego CI na `main` (albo pierwszego rodzica, jeśli wcześniejszego CI nie ma). Jeden push z kilkoma commitami nie chowa wtedy zmiany reguł w starszym z nich. Odczyt listy przebiegów CI używa uprawnienia `actions: read`. Zapis znacznika używa `deployments: write`.
+Gdy znacznik jest, a `combat-training-app/firestore.rules` różni się od tamtego commita, hosting też jest pomijany. Blokada zostaje przy starym znaczniku, więc obejmuje kolejne commity, które samego pliku nie ruszają. Ostrzeżenie każe najpierw wgrać reguły ręcznie i uruchomić workflow ponownie. Znacznik przesuwa się dopiero po tym udanym wdrożeniu hostingu.
 
 ## Podgląd pull requesta
 

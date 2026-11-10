@@ -40,6 +40,7 @@ jobs:
 
       - name: Reject a mismatched or stale preview
         env:
+          GH_TOKEN: ${{ github.token }}
           ARTIFACT_PR_FILE: ${{ github.workspace }}/preview-pr/hosting-preview-pr.txt
           RUN_ID: ${{ github.event.workflow_run.id }}
           BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
