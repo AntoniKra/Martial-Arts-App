@@ -8,6 +8,7 @@ import { selectRecentWorkoutSessions } from '@/features/home/utils/selectRecentW
 import { WorkoutDataWarning } from '@/features/workouts/components/WorkoutDataWarning'
 import { RpeReminder } from '@/features/home/components/RpeReminder'
 import { useAuth } from '@/features/auth/authContext'
+import { WeekPlanSummary } from '@/features/week-plan/WeekPlanSummary'
 
 export function HomePage() {
   const { plans, sessions, retry } = useWorkoutData()
@@ -17,6 +18,7 @@ export function HomePage() {
   return <>
     <WorkoutDataWarning />
     <HomeView
+      weekPlan={<WeekPlanSummary />}
       rpeReminder={uid && sessions.status === 'ready' ? <RpeReminder key={uid} uid={uid} sessions={sessions.items} /> : null}
       featuredPlanLoadState={plans.status === 'ready'
         ? { status: 'success', plan: latest ? mapWorkoutPlanToFeaturedPlan(latest) : null }

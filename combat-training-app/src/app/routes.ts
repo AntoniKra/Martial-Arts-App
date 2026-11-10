@@ -3,6 +3,7 @@ export const routes = {
   workouts: '/workouts',
   newWorkout: '/workouts/new',
   progress: '/progress',
+  weekPlan: (weekStart: string) => `/progress/week/${weekStart}`,
   focusSkillProgress: (focusSkillId: string) => `/progress/focus-skills/${focusSkillId}`,
   workoutDetails: (workoutId: string) => `/workouts/${workoutId}`,
   workoutEdit: (workoutId: string) => `/workouts/${workoutId}/edit`,
