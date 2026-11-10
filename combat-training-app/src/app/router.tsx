@@ -36,6 +36,8 @@ export const router = createBrowserRouter([
             children: [
               { path: '/', element: <HomePage /> },
               { path: '/workouts', element: <WorkoutsPage /> },
+              { path: '/progress', lazy: () => import('@/pages/ProgressPage') },
+              { path: '/progress/focus-skills/:focusSkillId', lazy: () => import('@/pages/FocusSkillProgressPage') },
               { path: '/workout-sessions/:sessionId/feedback', element: <WorkoutFeedbackPage /> },
               { path: '/workouts/new', element: <NewWorkoutPage /> },
               { path: '/workouts/:workoutId', element: <WorkoutDetailsPage /> },

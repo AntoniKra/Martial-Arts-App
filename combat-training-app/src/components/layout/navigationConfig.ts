@@ -1,8 +1,8 @@
 import { routes } from '@/app/routes'
 
-export type NavigationItemId = 'home' | 'workouts' | 'newWorkout'
+export type NavigationItemId = 'home' | 'workouts' | 'newWorkout' | 'progress'
 
-export type NavigationMatchMode = 'exact' | 'workoutsSection'
+export type NavigationMatchMode = 'exact' | 'workoutsSection' | 'section'
 
 export interface NavigationItemConfig {
   id: NavigationItemId
@@ -24,6 +24,8 @@ export function isNavigationItemActive(pathname: string, item: NavigationItemCon
   const normalizedNewWorkout = normalizeNavigationPathname(routes.newWorkout)
 
   switch (item.match) {
+    case 'section':
+      return normalizedPath === normalizedTarget || normalizedPath.startsWith(`${normalizedTarget}/`)
     case 'exact':
       return normalizedPath === normalizedTarget
     case 'workoutsSection':
@@ -62,9 +64,10 @@ export const primaryNavigationItems: readonly NavigationItemConfig[] = [
     match: 'exact',
     mobileVariant: 'create',
   },
+  { id: 'progress', to: routes.progress, label: 'Postęp', match: 'section', mobileVariant: 'default' },
 ] as const
 
-export const mobileNavigationOrder = ['home', 'newWorkout', 'workouts'] as const satisfies readonly NavigationItemId[]
+export const mobileNavigationOrder = ['home', 'newWorkout', 'workouts', 'progress'] as const satisfies readonly NavigationItemId[]
 
 function getNavigationItemById(id: NavigationItemId): NavigationItemConfig {
   const item = primaryNavigationItems.find((entry) => entry.id === id)
