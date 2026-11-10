@@ -4,21 +4,25 @@ Aplikacja działa pod adresem `https://combat-training-830fb.web.app`. Po zielon
 
 ## Automatyczne wdrożenie po scaleniu
 
-Po udanym workflow `CI` na `main` (zdarzenie `push`) workflow `Hosting live deploy` wdraża hosting z commita, który właśnie przeszedł CI, na kanał `live`. Najpierw buduje aplikację raz (`npm ci` i `npm run build:deploy`), potem wgrywa gotowy katalog `dist`. Żeby CLI nie zbudowało aplikacji drugi raz, job usuwa `predeploy` tylko w swojej kopii `firebase.json`. Plik w repozytorium się nie zmienia. Reguł Firestore ten workflow nie wdraża.
+Po udanym workflow `CI` na `main` (zdarzenie `push`) workflow `Hosting live deploy` wdraża hosting z tego commita na kanał `live`, ale tylko gdy commit jest nadal czubkiem `main`. Ponowne uruchomienie starszego CI nie wgrywa hostingu i nie cofa strony. Wdrożenia idą po kolei i nie przerywają trwającego. Najpierw buduje aplikację raz (`npm ci` i `npm run build:deploy`), potem wgrywa gotowy katalog `dist`. Żeby CLI nie zbudowało aplikacji drugi raz, job usuwa `predeploy` tylko w swojej kopii `firebase.json`. Plik w repozytorium się nie zmienia. Reguł Firestore ten workflow nie wdraża.
 
-Ręczne uruchomienie: Actions → `Hosting live deploy` → Run workflow. Wdraża bieżący `main` i nie sprawdza, czy commit zmienia reguły. Służy do powtórzenia wdrożenia po ręcznym wgraniu reguł albo gdy automatyczne wdrożenie zostało pominięte.
+Ręczne uruchomienie: Actions → `Hosting live deploy` → Run workflow. Wdraża bieżący `main`, pomija porównanie reguł i zapisuje nowy znacznik opisany niżej. Służy do powtórzenia wdrożenia po ręcznym wgraniu reguł albo gdy automatyczne wdrożenie zostało pominięte.
 
 ## Najpierw reguły
 
-Gdy commit wdrażany po CI zmienia `combat-training-app/firestore.rules` względem pierwszego rodzica, workflow nie wdraża hostingu. W podsumowaniu joba jest ostrzeżenie: najpierw ręcznie `npx firebase deploy --only firestore:rules -P prod`, potem Run workflow. Ręczne uruchomienie tego sprawdzenia nie wykonuje.
+Automat nie wdraża reguł. Przed hostingiem porównuje `combat-training-app/firestore.rules` w commicie przeznaczonym do wdrożenia z ostatnim commitem, którego reguły są uznane za wdrożone.
+
+Ten punkt odniesienia to wdrożenie GitHub w środowisku `firestore-rules-acknowledged`. To tylko znacznik w GitHubie, nie wgranie pliku reguł. Dopóki plik się różni, workflow pomija hosting. Dotyczy to też kolejnych commitów, które samego pliku już nie zmieniają: znacznik zostaje przy starszym commicie, więc różnica nie znika. W podsumowaniu joba jest ostrzeżenie: najpierw ręcznie `npx firebase deploy --only firestore:rules -P prod`, potem Run workflow.
+
+Run workflow pomija porównanie, wgrywa hosting z bieżącego `main` i przesuwa znacznik na ten commit. Następna blokada liczy się dopiero od kolejnej zmiany reguł względem niego.
+
+Gdy znacznika jeszcze nie ma, porównanie sięga poprzedniego udanego CI na `main` (albo pierwszego rodzica, jeśli wcześniejszego CI nie ma). Jeden push z kilkoma commitami nie chowa wtedy zmiany reguł w starszym z nich. Odczyt listy przebiegów CI używa uprawnienia `actions: read`. Zapis znacznika używa `deployments: write`.
 
 ## Podgląd pull requesta
 
-PR z tego repozytorium uruchamia `Hosting preview build`. Ten workflow nie dostaje sekretów. Buduje aplikację i na 3 dni zapisuje dwa artefakty: `hosting-preview-dist` (gotowy `dist`) oraz `hosting-preview-pr` (numer PR, zapisany w osobnym jobie po budowaniu).
+PR z tego repozytorium uruchamia `Hosting preview build`. Ten workflow nie dostaje sekretów i ma tylko `contents: read`, tak jak CI. To wystarcza, żeby zapisać artefakt. Buduje aplikację i na 3 dni zapisuje dwa artefakty: `hosting-preview-dist` (gotowy `dist`) oraz `hosting-preview-pr` (numer PR, zapisany w osobnym jobie po budowaniu).
 
-Uprawnienia budowania to `contents: read` i `actions: write`. Sam odczyt zawartości nie pozwala zapisać artefaktu.
-
-Po udanym budowaniu `Hosting preview deploy` (musi być już na `main`) robi checkout tylko domyślnej gałęzi, pobiera artefakty i wgrywa same pliki statyczne na kanał `pr-<numer>`. Kanał wygasa po 7 dniach. Job nie uruchamia `npm ci`, `build:deploy` ani niczego z artefaktu. Akcja Firebase wywołuje u siebie `npx firebase-tools`, żeby wysłać pliki. Hook `predeploy` jest usuwany tylko w kopii roboczej joba (`jq 'del(.hosting.predeploy)'`), więc podgląd nie buduje kodu z `main`. Ręczne `npx firebase deploy --only hosting -P prod` nadal samo buduje aplikację.
+Po udanym budowaniu `Hosting preview deploy` (musi być już na `main`) robi checkout tylko domyślnej gałęzi. Numer PR z artefaktu musi być liczbą i musi należeć do metadanych tego przebiegu: do pull requestów zapisanych przy runie, a gdy GitHub zostawi tę listę pustą — do pull requestów commita `head_sha`. Dodatkowo HEAD pull requesta musi być nadal tym commitem. Niezgodność albo starszy build zatrzymuje workflow przed wgraniem i przed komentarzem. Wgrania jednego PR idą po kolei i nie przerywają trwającego. Potem workflow pobiera `dist` i wgrywa same pliki statyczne na kanał `pr-<numer>`. Kanał wygasa po 7 dniach. Job nie uruchamia `npm ci`, `build:deploy` ani niczego z artefaktu. Akcja Firebase wywołuje u siebie `npx firebase-tools`, żeby wysłać pliki. Hook `predeploy` jest usuwany tylko w kopii roboczej joba (`jq 'del(.hosting.predeploy)'`), więc podgląd nie buduje kodu z `main`. Ręczne `npx firebase deploy --only hosting -P prod` nadal samo buduje aplikację.
 
 Link jest w jednym komentarzu pod PR i jest aktualizowany przy kolejnym wgraniu, a nie dopisywany od nowa. Podgląd używa prawdziwego projektu Firebase i prawdziwych danych konta: testując PR z błędem, można zepsuć własne dane.
 

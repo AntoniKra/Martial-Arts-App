@@ -1,6 +1,6 @@
-# Builds a pull request without secrets. The Firebase service account is used
-# only by the workflow_run upload, which runs from the default branch.
-# actions: write is required to store the artifact; contents stays read-only.
+# Builds a pull request without secrets. The service account is used only by
+# the workflow_run upload from the default branch.
+# contents: read matches CI and is enough to upload the build artifact.
 
 name: Hosting preview build
 
@@ -8,7 +8,6 @@ on:
   pull_request:
 
 permissions:
-  actions: write
   contents: read
 
 jobs:

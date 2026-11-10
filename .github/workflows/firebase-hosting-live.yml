@@ -1,5 +1,6 @@
 # Deploys hosting after CI succeeds on main. This workflow never deploys
-# Firestore rules.
+# Firestore rules. Deploys are serialized; a rerun of an older CI does not
+# roll hosting back. A rules change blocks later commits until a manual run.
 
 name: Hosting live deploy
 
@@ -11,7 +12,9 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
+  deployments: write
 
 concurrency:
   group: hosting-live
@@ -27,10 +30,8 @@ jobs:
       deploy: ${{ steps.check.outputs.deploy }}
     steps:
       - uses: actions/checkout@v7
-        if: github.event_name != 'workflow_dispatch'
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-          # Merge commits need the first parent, which a depth of 2 does not guarantee.
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.event.workflow_run.head_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -38,20 +39,58 @@ jobs:
         id: check
         env:
           EVENT_NAME: ${{ github.event_name }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          CI_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
+          guard=".github/scripts/hosting-guard.sh"
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            echo "deploy=true" >> "$GITHUB_OUTPUT"
-            exit 0
+            plan="$(bash "$guard" live-plan workflow_dispatch "" "" "" "" "" no)"
+          else
+            main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+            if [ "$(git rev-parse HEAD)" != "$HEAD_SHA" ]; then
+              echo "::error::Checkout nie jest commitem CI."
+              exit 1
+            fi
+            if [ "$HEAD_SHA" != "$main_sha" ]; then
+              echo "::error::To przebieg starego CI ($HEAD_SHA), a aktualny main to $main_sha. Nie cofam hostingu."
+              exit 1
+            fi
+            stored="$(bash "$guard" read-baseline)"
+            previous=""
+            parent=""
+            if [ -z "$stored" ]; then
+              previous="$(bash "$guard" previous-ci "$CI_RUN_ID")"
+              parent="$(git rev-parse "${HEAD_SHA}^")"
+            fi
+            baseline="$(bash "$guard" pick-baseline "$stored" "$previous" "$parent")"
+            differ="$(bash "$guard" rules-differ "$baseline" "$HEAD_SHA")"
+            plan="$(bash "$guard" live-plan workflow_run "$HEAD_SHA" "$main_sha" "$stored" "$previous" "$parent" "$differ")"
           fi
-          changed="$(git diff --name-only HEAD^ HEAD -- combat-training-app/firestore.rules)"
-          if [ -n "$changed" ]; then
-            echo "deploy=false" >> "$GITHUB_OUTPUT"
-            message="Ten commit zmienia firestore.rules. Wdróż najpierw reguły ręcznie (\`npx firebase deploy --only firestore:rules -P prod\`), potem uruchom ten workflow ręcznie (Run workflow)."
+          case "$plan" in
+            stale)
+              echo "::error::To przebieg starego CI. Nie cofam hostingu."
+              exit 1
+              ;;
+            deploy)
+              echo "deploy=true" >> "$GITHUB_OUTPUT"
+              ;;
+            block)
+              echo "deploy=false" >> "$GITHUB_OUTPUT"
+              ;;
+            block\ *)
+              bash "$guard" record-baseline "${plan#block }"
+              echo "deploy=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::Nieznany wynik sprawdzenia reguł."
+              exit 1
+              ;;
+          esac
+          if [ "${plan#block}" != "$plan" ] || [ "$plan" = "block" ]; then
+            message="Reguły Firestore różnią się od ostatnio potwierdzonej wersji. Wdróż najpierw reguły ręcznie (\`npx firebase deploy --only firestore:rules -P prod\`), potem uruchom ten workflow ręcznie (Run workflow). Do tego czasu kolejne commity też nie wgrywają hostingu."
             echo "::warning::${message}"
             printf '%s\n' "$message" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "deploy=true" >> "$GITHUB_OUTPUT"
           fi
 
   deploy:
@@ -109,6 +148,20 @@ jobs:
             exit 1
           fi
 
+      - name: Reject a stale main before upload
+        if: github.event_name != 'workflow_dispatch'
+        working-directory: ${{ github.workspace }}
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+          if [ "$(git rev-parse HEAD)" != "$HEAD_SHA" ]; then
+            echo "::error::Checkout nie jest commitem CI."
+            exit 1
+          fi
+          bash .github/scripts/hosting-guard.sh assert-head-is-main "$HEAD_SHA" "$main_sha"
+
       - name: Deploy live channel
         uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0.11.0
         with:
@@ -116,3 +169,7 @@ jobs:
           projectId: combat-training-830fb
           channelId: live
           entryPoint: combat-training-app
+
+      - name: Remember acknowledged rules
+        working-directory: ${{ github.workspace }}
+        run: bash .github/scripts/hosting-guard.sh record-baseline "$(git rev-parse HEAD)"

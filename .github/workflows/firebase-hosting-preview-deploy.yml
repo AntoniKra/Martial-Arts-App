@@ -1,5 +1,6 @@
 # Uploads a preview from the default branch. It checks out that branch for
 # firebase.json, copies the built files, and does not run project scripts.
+# Deploys for one pull request are serialized and a stale build is rejected.
 
 name: Hosting preview deploy
 
@@ -29,14 +30,6 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
-      - name: Download built site
-        uses: actions/download-artifact@v7
-        with:
-          name: hosting-preview-dist
-          path: preview-artifact
-          github-token: ${{ github.token }}
-          run-id: ${{ github.event.workflow_run.id }}
-
       - name: Download pull request number
         uses: actions/download-artifact@v7
         with:
@@ -45,20 +38,24 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Reject a mismatched or stale preview
+        env:
+          ARTIFACT_PR_FILE: ${{ github.workspace }}/preview-pr/hosting-preview-pr.txt
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: bash .github/scripts/hosting-guard.sh preview-guard
+
+      - name: Download built site
+        uses: actions/download-artifact@v7
+        with:
+          name: hosting-preview-dist
+          path: preview-artifact
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
       - name: Prepare untrusted artifact
         run: |
           set -euo pipefail
-          pr_file="$GITHUB_WORKSPACE/preview-pr/hosting-preview-pr.txt"
-          if [ ! -f "$pr_file" ]; then
-            echo "::error::Brak pliku z numerem PR."
-            exit 1
-          fi
-          pr_number="$(tr -d '[:space:]' < "$pr_file")"
-          if ! [[ "$pr_number" =~ ^[0-9]+$ ]]; then
-            echo "::error::Numer PR w artefakcie nie jest liczbą."
-            exit 1
-          fi
-
           src="$GITHUB_WORKSPACE/preview-artifact"
           if [ -f "$src/index.html" ]; then
             dist_src="$src"
@@ -75,8 +72,6 @@ jobs:
             echo "::error::Artefakt zawiera dowiązanie. Przerywam."
             exit 1
           fi
-
-          echo "PR_NUMBER=$pr_number" >> "$GITHUB_ENV"
           rm -rf "$GITHUB_WORKSPACE/combat-training-app/dist"
           mkdir -p "$GITHUB_WORKSPACE/combat-training-app/dist"
           cp -R "$dist_src"/. "$GITHUB_WORKSPACE/combat-training-app/dist/"
