@@ -39,8 +39,8 @@ describe('focus skill progress', () => {
     const summary = summarizeFocusSkill(selected)
     expect(summary).toMatchObject({ count: 2, unableToRateCount: 1, previousCriterionCount: 1,
       places: [{ blockType: 'bag', median: 4 }, { blockType: 'pads', median: 2 }] })
-    expect(selectFocusSkillChart(selected, 20, '2026-11-10')).toMatchObject({ limited: false, criterionChangedAt: '2026-11-05' })
-    expect(selectFocusSkillChart(selected, 20, '2026-11-10').points.map((entry) => entry.assessment)).toEqual([1, 4, 2])
+    expect(selectFocusSkillChart(selected, 20)).toMatchObject({ limited: false, criterionChangedAt: '2026-11-05' })
+    expect(selectFocusSkillChart(selected, 20).points.map((entry) => entry.assessment)).toEqual([1, 4, 2])
     expect(entries.map((entry) => entry.id)).toEqual(['latest', 'old', 'middle'])
   })
 
@@ -49,8 +49,33 @@ describe('focus skill progress', () => {
       workoutSession({ workoutDate: '2026-01-01', focusRatings: [rating(1)] }),
       workoutSession({ id: 'new', workoutDate: '2026-11-10', focusRatings: [rating(4)] }),
     ])
-    expect(selectFocusSkillChart(selected, 1, '2026-11-10')).toMatchObject({ limited: true, points: [{ assessment: 4 }] })
+    expect(selectFocusSkillChart(selected, 1)).toMatchObject({ limited: true, points: [{ assessment: 4 }] })
     expect(selected).toHaveLength(2)
+  })
+
+  it('keeps twenty assessments from six months ago visible in a crowded chart', () => {
+    const selected = selectFocusSkillAssessments(skill, Array.from({ length: 20 }, (_, index) => workoutSession({
+      id: `old-${index}`, workoutDate: `2026-05-${String(index + 1).padStart(2, '0')}`, focusRatings: [rating(3)],
+    })))
+    const chart = selectFocusSkillChart(selected, 10)
+    expect(chart).toMatchObject({ limited: true, start: '2026-02-25', end: '2026-05-20' })
+    expect(chart.points).toHaveLength(20)
+    expect(chart.points.at(-1)?.workoutDate).toBe('2026-05-20')
+  })
+
+  it.each([
+    [['Chin', 'Other', 'Chin', 'Chin'], '2026-11-03'],
+    [['Chin', 'Other', 'Chin', 'Other'], null],
+    [['Chin', 'Chin'], null],
+  ] as const)('marks the return to the current criterion after the last different one: %j', (criteria, expected) => {
+    const selected = selectFocusSkillAssessments(skill, criteria.map((criterionSnapshot, index) => workoutSession({
+      id: `criterion-${index}`, workoutDate: `2026-11-0${index + 1}`, focusRatings: [rating(3, { criterionSnapshot })],
+    })))
+    expect(selectFocusSkillChart(selected, 20).criterionChangedAt).toBe(expected)
+  })
+
+  it('handles an empty chart without a clock fallback', () => {
+    expect(selectFocusSkillChart([], 10)).toEqual({ points: [], limited: false, start: null, end: null, criterionChangedAt: null })
   })
 
   it('finds affected plans and detaches every occurrence without removing exercises or changing other skills', () => {

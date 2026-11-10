@@ -41,16 +41,18 @@ export function summarizeFocusSkill(assessments: readonly FocusSkillAssessment[]
     previousCriterionCount: assessments.filter((rating) => !rating.currentCriterion).length }
 }
 
-export function selectFocusSkillChart(assessments: readonly FocusSkillAssessment[], capacity: number, today: string) {
+export function selectFocusSkillChart(assessments: readonly FocusSkillAssessment[], capacity: number) {
   const points = assessments.filter((rating) => typeof rating.assessment === 'number')
   const limited = points.length > capacity
-  const cutoff = new Date(`${today}T00:00:00Z`)
-  cutoff.setUTCDate(cutoff.getUTCDate() - 84)
-  const start = cutoff.toISOString().slice(0, 10)
-  const criterionChangedAt = assessments.some((rating) => !rating.currentCriterion)
-    ? assessments.find((rating) => rating.currentCriterion)?.workoutDate ?? null : null
-  return { points: limited ? points.filter((rating) => rating.workoutDate >= start && rating.workoutDate <= today) : points,
-    limited, criterionChangedAt, start: limited ? start : null }
+  const end = points.at(-1)?.workoutDate ?? null
+  const cutoff = limited && end ? new Date(`${end}T00:00:00Z`) : null
+  if (cutoff) cutoff.setUTCDate(cutoff.getUTCDate() - 84)
+  const start = cutoff?.toISOString().slice(0, 10) ?? null
+  const lastOtherIndex = assessments.reduce((last, rating, index) => rating.currentCriterion ? last : index, -1)
+  const criterionChangedAt = lastOtherIndex >= 0
+    ? assessments.slice(lastOtherIndex + 1).find((rating) => rating.currentCriterion)?.workoutDate ?? null : null
+  return { points: start ? points.filter((rating) => rating.workoutDate >= start) : points,
+    limited, criterionChangedAt, start, end }
 }
 
 export function hasFocusSkillEntries(id: string, sessions: readonly WorkoutSession[]): boolean {

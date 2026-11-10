@@ -8,7 +8,7 @@ import { selectAvailableFocusSkills } from '@/domain/focus-skill/focusSkillSelec
 import { selectFocusSkillAssessments, summarizeFocusSkill } from '@/domain/focus-skill/focusSkillProgress'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { ProgressDataState, ProgressDataWarning } from '@/features/progress/ProgressDataState'
-import { formatProgressDate, progressLabels as labels } from '@/features/progress/progressLabels'
+import { progressLabels as labels } from '@/features/progress/progressLabels'
 
 function SkillCard({ skill }: { skill: FocusSkill }) {
   const { sessions, focusSkills } = useWorkoutData()
@@ -18,7 +18,7 @@ function SkillCard({ skill }: { skill: FocusSkill }) {
     <p className="break-words text-sm text-muted">{skill.criterion}</p>
     <p className="text-xs text-muted">{labels.currentCount(summary.count)}</p>
     <p className="text-sm">{summary.latest
-      ? `Ostatnia ocena: ${summary.latest.assessment} · ${formatProgressDate(summary.latest.workoutDate)} · ${getWorkoutBlockLabelPl(summary.latest.blockType)}`
+      ? labels.latest(summary.latest.assessment, summary.latest.workoutDate, getWorkoutBlockLabelPl(summary.latest.blockType))
       : labels.noRatings}</p>
     {focusSkills.pendingIds.has(skill.id) && <p className="text-xs text-muted">{workoutDataLabels.pending}</p>}
   </Link></li>
@@ -38,7 +38,8 @@ export function Component() {
       {focusSkills.items.length === 0 ? <div className="space-y-4 border border-bd bg-surface p-4">
         <p className="text-sm leading-relaxed text-muted">{labels.empty}</p>
         <Link to={routes.newWorkout} className={getButtonClassName()}>{labels.newPlan}</Link>
-      </div> : <ul className="space-y-3">{active.map((skill) => <SkillCard key={skill.id} skill={skill} />)}</ul>}
+      </div> : active.length === 0 ? <p className="text-sm text-muted">{labels.noActiveSkills}</p>
+        : <ul className="space-y-3">{active.map((skill) => <SkillCard key={skill.id} skill={skill} />)}</ul>}
       {archived.length > 0 && <details className="border-t border-bd pt-2">
         <summary className="min-h-touch cursor-pointer py-3 font-display font-semibold">{labels.archived} ({archived.length})</summary>
         <ul className="mt-2 space-y-3">{archived.map((skill) => <SkillCard key={skill.id} skill={skill} />)}</ul>

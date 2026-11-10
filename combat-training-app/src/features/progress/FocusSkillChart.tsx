@@ -34,43 +34,48 @@ export function FocusSkillChart({ assessments }: { assessments: readonly FocusSk
     if (ref.current) observer.observe(ref.current)
     return () => observer.disconnect()
   }, [])
-  const now = new Date()
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-  const chart = selectFocusSkillChart(assessments, Math.floor((width - 60) / 18), today)
+  const chart = selectFocusSkillChart(assessments, Math.floor((width - 60) / 18))
+  const coincidentGroups = chart.points.map((rating) => chart.points.filter((entry) =>
+    entry.workoutDate === rating.workoutDate && entry.assessment === rating.assessment))
+  const spacing = 14
+  const plotWidth = Math.max(width, ...coincidentGroups.map((group) => (group.length - 1) * spacing + 54))
   const places = [...new Set(chart.points.map((rating) => rating.blockType))]
   const day = (date: string) => Date.parse(`${date}T00:00:00Z`)
-  const first = chart.start ?? chart.points[0]?.workoutDate ?? today
-  const last = chart.limited ? today : chart.points.at(-1)?.workoutDate ?? today
+  const first = chart.start ?? chart.points[0]?.workoutDate ?? ''
+  const last = chart.end ?? first
   const start = day(first), end = day(last)
-  const x = (date: string) => end === start ? width / 2 : 34 + (day(date) - start) / (end - start) * (width - 54)
+  const x = (date: string) => end === start ? plotWidth / 2 : 34 + (day(date) - start) / (end - start) * (plotWidth - 54)
   const y = (value: number) => 184 - (value - 1) * 34
   const marker = chart.criterionChangedAt
   return <section aria-label={labels.chart} ref={ref} className="space-y-3 border border-bd bg-surface p-3">
     <h2 className="font-display font-semibold">{labels.chart}</h2>
     {chart.limited && <p className="text-xs text-muted">{labels.lastWeeks}</p>}
     {chart.points.length === 0 ? <p className="text-sm text-muted">{labels.noRatings}</p> : <>
-      <svg viewBox={`0 0 ${width} 230`} className="block w-full text-ink" aria-hidden="true">
-        <text x="4" y="12" fontSize="11" fill="var(--app-muted)">Ocena</text>
+      <div className="overflow-x-auto">
+      <svg width={plotWidth} height="230" viewBox={`0 0 ${plotWidth} 230`} className="block max-w-none text-ink" aria-hidden="true">
+        <text x="4" y="12" fontSize="11" fill="var(--app-muted)">{labels.assessmentAxis}</text>
         {[1, 2, 3, 4, 5].map((value) => <g key={value}>
-          <line x1="28" x2={width - 12} y1={y(value)} y2={y(value)} stroke="var(--app-border)" />
+          <line x1="28" x2={plotWidth - 12} y1={y(value)} y2={y(value)} stroke="var(--app-border)" />
           <text x="8" y={y(value) + 4} fontSize="12" fill="currentColor">{value}</text>
         </g>)}
         {marker && day(marker) >= start && day(marker) <= end && <g>
           <line x1={x(marker)} x2={x(marker)} y1="36" y2="194" stroke="var(--app-muted)" strokeDasharray="4 4" />
-          <text x={Math.max(30, Math.min(width - 116, x(marker)))} y="30" fontSize="11" fill="var(--app-muted)">{labels.change}</text>
+          <text x={Math.max(30, Math.min(plotWidth - 116, x(marker)))} y="30" fontSize="11" fill="var(--app-muted)">{labels.change}</text>
         </g>}
         {chart.points.map((rating, index) => {
-          // Offset coincident occurrences without changing their date on the axis.
-          const coincident = chart.points.filter((entry) => entry.workoutDate === rating.workoutDate && entry.assessment === rating.assessment)
-          const offset = (coincident.indexOf(rating) - (coincident.length - 1) / 2) * 8
+          // Clamp the whole group so edge points retain their minimum spacing.
+          const coincident = coincidentGroups[index]
+          const groupWidth = (coincident.length - 1) * spacing
+          const groupStart = Math.max(34, Math.min(plotWidth - 20 - groupWidth, x(rating.workoutDate) - groupWidth / 2))
           return <Point key={`${rating.sessionId}-${rating.workoutItemId}-${index}`} place={rating.blockType}
-            x={Math.max(34, Math.min(width - 20, x(rating.workoutDate) + offset))} y={y(Number(rating.assessment))} hollow={!rating.currentCriterion} />
+            x={groupStart + coincident.indexOf(rating) * spacing} y={y(Number(rating.assessment))} hollow={!rating.currentCriterion} />
         })}
         <text x="28" y="210" fontSize="10" fill="var(--app-muted)">{formatProgressDate(first)}</text>
-        {first !== last && <text x={width - 12} y="210" textAnchor="end" fontSize="10" fill="var(--app-muted)">{formatProgressDate(last)}</text>}
-        <text x={width / 2} y="228" textAnchor="middle" fontSize="11" fill="var(--app-muted)">Data treningu</text>
+        {first !== last && <text x={plotWidth - 12} y="210" textAnchor="end" fontSize="10" fill="var(--app-muted)">{formatProgressDate(last)}</text>}
+        <text x={plotWidth / 2} y="228" textAnchor="middle" fontSize="11" fill="var(--app-muted)">{labels.dateAxis}</text>
       </svg>
-      <ul aria-label="Legenda miejsc" className="flex flex-wrap gap-x-4 gap-y-2 text-sm">{places.map((place) => <li key={place}><PlaceMarker place={place} /></li>)}</ul>
+      </div>
+      <ul aria-label={labels.placesLegend} className="flex flex-wrap gap-x-4 gap-y-2 text-sm">{places.map((place) => <li key={place}><PlaceMarker place={place} /></li>)}</ul>
       {assessments.some((rating) => !rating.currentCriterion && typeof rating.assessment === 'number') && <p className="text-xs text-muted">{labels.oldPoint}</p>}
     </>}
   </section>
