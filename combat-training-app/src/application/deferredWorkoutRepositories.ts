@@ -2,8 +2,9 @@ import type { SubscribableRepository } from './repositorySubscription'
 import type { WorkoutPlanRepository } from './workout/workoutPlanRepository'
 import type { WorkoutSessionRepository } from './workout-session/workoutSessionRepository'
 import type { FocusSkillRepository } from './focus-skill/focusSkillRepository'
+import type { WeekPlanRepository } from './week-plan/weekPlanRepository'
 
-export interface WorkoutRepositories { plans: WorkoutPlanRepository; sessions: WorkoutSessionRepository; focusSkills: FocusSkillRepository }
+export interface WorkoutRepositories { plans: WorkoutPlanRepository; sessions: WorkoutSessionRepository; focusSkills: FocusSkillRepository; weekPlans: WeekPlanRepository }
 
 function deferredSubscription<T>(ready: Promise<SubscribableRepository<T>>): SubscribableRepository<T>['subscribe'] {
   return (onChange, onError) => {
@@ -21,7 +22,19 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
   const plans = ready.then((repositories) => repositories.plans)
   const sessions = ready.then((repositories) => repositories.sessions)
   const focusSkills = ready.then((repositories) => repositories.focusSkills)
+  const weekPlans = ready.then((repositories) => repositories.weekPlans)
   return {
+    weekPlans: {
+      subscribe: (currentWeek, onChange, onError) => {
+        let cancelled = false
+        let unsubscribe: (() => void) | undefined
+        void weekPlans.then((repository) => {
+          if (!cancelled) unsubscribe = repository.subscribe(currentWeek, onChange, onError)
+        }).catch((error: unknown) => { if (!cancelled) onError(error) })
+        return () => { cancelled = true; unsubscribe?.() }
+      },
+      save: async (plan) => (await weekPlans).save(plan),
+    },
     plans: {
       subscribe: deferredSubscription(plans),
       save: async (plan) => (await plans).save(plan),

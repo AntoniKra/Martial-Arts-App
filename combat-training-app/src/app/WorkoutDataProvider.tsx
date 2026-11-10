@@ -5,12 +5,17 @@ import { useRepositoryCollection } from '@/application/useRepositoryCollection'
 import { useAuth } from '@/features/auth/authContext'
 import { removeLegacyWorkouts } from '@/infrastructure/storage/removeLegacyWorkouts'
 import { WorkoutGongProvider } from './WorkoutGongProvider'
+import { useCurrentWeek } from '@/application/week-plan/useCurrentWeek'
+import { useWeekPlanCollection } from '@/application/week-plan/useWeekPlanCollection'
 
 function SubscribedData({ repositories, retry, children }: PropsWithChildren<{ repositories: WorkoutRepositories; retry: () => void }>) {
+  const [sessionAttempt, setSessionAttempt] = useState(0)
   const plans = useRepositoryCollection(repositories.plans)
-  const sessions = useRepositoryCollection(repositories.sessions)
+  const sessions = useRepositoryCollection(repositories.sessions, sessionAttempt)
   const focusSkills = useRepositoryCollection(repositories.focusSkills)
-  return <WorkoutDataContext.Provider value={{ plans, sessions, focusSkills, planRepository: repositories.plans, sessionRepository: repositories.sessions, focusSkillRepository: repositories.focusSkills, retry }}>
+  const currentWeek = useCurrentWeek()
+  const { state: weekPlans, retry: retryWeekPlans } = useWeekPlanCollection(repositories.weekPlans, currentWeek, retry)
+  return <WorkoutDataContext.Provider value={{ plans, sessions, focusSkills, weekPlans, currentWeek, retryWeekPlans, retrySessions: () => setSessionAttempt((value) => value + 1), weekPlanRepository: repositories.weekPlans, planRepository: repositories.plans, sessionRepository: repositories.sessions, focusSkillRepository: repositories.focusSkills, retry }}>
     {children}
   </WorkoutDataContext.Provider>
 }

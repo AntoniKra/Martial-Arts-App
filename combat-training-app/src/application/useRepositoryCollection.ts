@@ -3,15 +3,23 @@ import type { RepositorySnapshot, SubscribableRepository } from './repositorySub
 
 export interface CollectionState<T> extends RepositorySnapshot<T> {
   status: 'loading' | 'ready' | 'error'
+  complete?: boolean
 }
 
-export function useRepositoryCollection<T>(repository: SubscribableRepository<T>): CollectionState<T> {
-  const [state, setState] = useState<CollectionState<T>>({
+function loadingState<T>(): CollectionState<T> {
+  return {
     status: 'loading', items: [], pendingIds: new Set(), hasPendingWrites: false, fromCache: true, invalidDocumentIds: [],
-  })
+  }
+}
+
+export function useRepositoryCollection<T>(repository: SubscribableRepository<T>, attempt = 0): CollectionState<T> {
+  const [result, setResult] = useState(() => ({ repository, attempt, state: loadingState<T>() }))
   useEffect(() => repository.subscribe(
-    (snapshot) => setState({ ...snapshot, status: 'ready' }),
-    () => setState((current) => ({ ...current, status: 'error' })),
-  ), [repository])
-  return state
+    (snapshot) => setResult((current) => ({ repository, attempt, state: { ...snapshot, status: 'ready',
+      complete: current.repository === repository && current.attempt === attempt && current.state.complete === true || !snapshot.fromCache } })),
+    () => setResult((current) => ({ repository, attempt, state: {
+      ...(current.repository === repository && current.attempt === attempt ? current.state : loadingState<T>()), status: 'error',
+    } })),
+  ), [repository, attempt])
+  return result.repository === repository && result.attempt === attempt ? result.state : loadingState<T>()
 }

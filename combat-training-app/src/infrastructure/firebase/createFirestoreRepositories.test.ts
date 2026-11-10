@@ -14,6 +14,7 @@ vi.mock('firebase/firestore', () => ({
   persistentLocalCache: (options: unknown) => options, persistentMultipleTabManager: () => 'tabs',
   terminate: sdk.terminate, clearIndexedDbPersistence: sdk.clear,
   collection: (_db: unknown, ...path: string[]) => path.join('/'),
+  query: (path: string) => path, where: vi.fn(),
   onSnapshot: () => sdk.stop, setDoc: vi.fn(), updateDoc: vi.fn(), deleteDoc: vi.fn(), doc: vi.fn(),
 }))
 
@@ -36,9 +37,10 @@ describe('Firestore sign-out lifecycle', () => {
     const stopPlans = first.plans.subscribe(vi.fn(), vi.fn())
     const stopSessions = first.sessions.subscribe(vi.fn(), vi.fn())
     const stopSkills = first.focusSkills.subscribe(vi.fn(), vi.fn())
+    const stopWeeks = first.weekPlans.subscribe('2026-11-09', vi.fn(), vi.fn())
     const cleaning = clearFirestoreCache()
-    expect(sdk.stop).toHaveBeenCalledTimes(3)
-    expect(sdk.stop.mock.invocationCallOrder[2]).toBeLessThan(sdk.terminate.mock.invocationCallOrder[0])
+    expect(sdk.stop).toHaveBeenCalledTimes(4)
+    expect(sdk.stop.mock.invocationCallOrder[3]).toBeLessThan(sdk.terminate.mock.invocationCallOrder[0])
     expect(sdk.clear).not.toHaveBeenCalled()
     finishTermination()
     await cleaning
@@ -46,7 +48,8 @@ describe('Firestore sign-out lifecycle', () => {
     stopPlans()
     stopSessions()
     stopSkills()
-    expect(sdk.stop).toHaveBeenCalledTimes(3)
+    stopWeeks()
+    expect(sdk.stop).toHaveBeenCalledTimes(4)
     createFirestoreRepositories('second-account')
     expect(sdk.initialize).toHaveBeenCalledTimes(2)
     expect(sdk.connect).toHaveBeenCalledTimes(2)
