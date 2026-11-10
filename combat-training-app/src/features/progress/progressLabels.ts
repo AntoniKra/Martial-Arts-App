@@ -21,3 +21,17 @@ export function formatProgressDate(date: string, year = true): string {
   const [y, m, d] = date.split('-')
   return year ? `${d}.${m}.${y}` : `${d}.${m}`
 }
+
+export const progressActionLabels = {
+  archive: 'Schowaj ćwiczenie celu', delete: 'Usuń ćwiczenie celu', restore: 'Przywróć',
+  archiveShort: 'Schowaj', archiveAndDetach: 'Schowaj i zdejmij CEL', deleteShort: 'Usuń', cancel: 'Anuluj',
+  deleteQuestion: 'Usunąć ćwiczenie celu? Nie ma jeszcze ocen.',
+  inPlans: 'To ćwiczenie celu jest w planach:',
+  archivePlans: 'Po schowaniu zdejmiemy w nich oznaczenie CEL. Ćwiczenia zostaną w planach, a oceny i wykres zostaną w „Postępie”.',
+  deletePlans: 'Po usunięciu zdejmiemy w nich oznaczenie CEL. Ćwiczenia zostaną w planach.',
+  archiveUnused: 'Schowane ćwiczenie celu nie pojawi się w kreatorze. Oceny i wykres zostaną.',
+  restoreHint: 'Ćwiczenie celu wróci do listy w kreatorze. Oznaczenie CEL w planach ustawisz ponownie w kreatorze.',
+  error: 'Nie udało się zapisać zmiany. Spróbuj ponownie.',
+  unavailable: 'Do tej operacji potrzebne są poprawnie wczytane plany, historia i ćwiczenia celu.',
+  retry: progressLabels.retry,
+} as const

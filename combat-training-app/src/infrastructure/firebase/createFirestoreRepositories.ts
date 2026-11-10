@@ -6,6 +6,7 @@ import { readFirebaseConfig } from './firebaseConfig'
 import { FirestoreWorkoutRepository } from './firestoreWorkoutRepository'
 import { workoutPlanDocumentSchema, workoutSessionDocumentSchema } from './workoutDocumentSchemas'
 import { focusSkillDocumentSchema } from './focusSkillDocumentSchema'
+import { detachFocusSkill, hasFocusSkillEntries, selectFocusSkillPlans } from '@/domain/focus-skill/focusSkillProgress'
 
 let database: Firestore | undefined
 const subscriptions = new Set<() => void>()
@@ -60,6 +61,34 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     return skill
   })
   const db = database
+  async function changeFocusSkill(id: string, updatedAt: string, action: 'archive' | 'delete' | 'restore') {
+    if (!focusSkills.getItems().some((skill) => skill.id === id)) throw new Error('Focus skill no longer available')
+    if (action === 'delete' && hasFocusSkillEntries(id, sessions.getItems())) throw new Error('Focus skill has session entries')
+    const affected = action === 'restore' ? [] : selectFocusSkillPlans(id, plans.getItems())
+    if (affected.length > 499) throw new Error('Too many plans for one batch')
+    const changedPlans = affected.map((plan) => {
+      const detached = detachFocusSkill(plan, id, updatedAt)
+      const fields = { blocks: detached.blocks, updatedAt }
+      plans.validateUpdate(plan.id, fields)
+      return { id: plan.id, fields }
+    })
+    const fields = { archivedAt: action === 'archive' ? updatedAt : null, updatedAt }
+    // Validate timestamps even for a deletion, before constructing any write.
+    focusSkills.validateUpdate(id, fields)
+    const batch = writeBatch(db)
+    const skillRef = doc(collection(db, 'users', uid, 'focusSkills'), id)
+    if (action === 'delete') batch.delete(skillRef)
+    else batch.update(skillRef, fields)
+    for (const plan of changedPlans) batch.update(doc(collection(db, 'users', uid, 'workoutPlans'), plan.id), plan.fields)
+    let resolveServer!: () => void
+    let rejectServer!: (error: unknown) => void
+    const server = new Promise<void>((resolve, reject) => { resolveServer = resolve; rejectServer = reject })
+    // Observe every local change before commit; the server may be offline indefinitely.
+    const localWrites = [action === 'delete' ? focusSkills.delete(id, () => server) : focusSkills.updateFields(id, fields, () => server),
+      ...changedPlans.map((plan) => plans.updateFields(plan.id, plan.fields, () => server))]
+    try { void batch.commit().then(resolveServer, rejectServer) } catch (error) { rejectServer(error) }
+    if (!(await Promise.all(localWrites)).every(Boolean)) throw new Error('Focus skill change was not applied')
+  }
   return {
     plans: {
       subscribe: trackedSubscribe(plans), save: plans.save.bind(plans),
@@ -96,6 +125,9 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     },
     focusSkills: {
       subscribe: trackedSubscribe(focusSkills), save: focusSkills.save.bind(focusSkills),
+      archive: (id, updatedAt) => changeFocusSkill(id, updatedAt, 'archive'),
+      deleteUnused: (id, updatedAt) => changeFocusSkill(id, updatedAt, 'delete'),
+      restore: (id, updatedAt) => changeFocusSkill(id, updatedAt, 'restore'),
     },
   }
 }

@@ -38,6 +38,9 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
     focusSkills: {
       subscribe: deferredSubscription(focusSkills),
       save: async (skill) => (await focusSkills).save(skill),
+      archive: async (id, updatedAt) => (await focusSkills).archive(id, updatedAt),
+      deleteUnused: async (id, updatedAt) => (await focusSkills).deleteUnused(id, updatedAt),
+      restore: async (id, updatedAt) => (await focusSkills).restore(id, updatedAt),
     },
   }
 }

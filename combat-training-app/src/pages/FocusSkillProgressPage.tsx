@@ -6,6 +6,7 @@ import { selectFocusSkillAssessments, summarizeFocusSkill } from '@/domain/focus
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { CorrectionNote } from '@/features/workout-feedback/CorrectionNote'
 import { FocusSkillChart, PlaceMarker } from '@/features/progress/FocusSkillChart'
+import { FocusSkillActions } from '@/features/progress/FocusSkillActions'
 import { ProgressDataState, ProgressDataWarning } from '@/features/progress/ProgressDataState'
 import { formatProgressDate, progressLabels as labels } from '@/features/progress/progressLabels'
 
@@ -51,6 +52,7 @@ export function Component() {
           </Link>
         </li>)}</ul>
       </section>
+      <FocusSkillActions skill={skill} />
     </>}
   </div>
 }
