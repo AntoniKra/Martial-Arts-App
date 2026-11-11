@@ -1,5 +1,5 @@
 import { formatSecondsAsClock } from '@/domain/time/formatDuration'
-import type { WorkoutPlaybackStepKind } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackStepKind } from '@/domain/workout-playback/workoutPlayback.types'
 import { formatRemainingSecondsAccessiblePl } from '@/features/workout-player/utils/formatRemainingSecondsAccessiblePl'
 import { getWorkoutStepTimerPresentation } from '@/features/workout-player/utils/workoutStepTimerPresentation'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'

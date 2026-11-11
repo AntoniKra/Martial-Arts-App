@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import type { WorkoutGong } from '@/application/audio/workoutGong'
-import type { WorkoutPlaybackStepKind } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackStepKind } from '@/domain/workout-playback/workoutPlayback.types'
 import type { WorkoutPlaybackEvent, WorkoutPlaybackStepFinalizeReason } from '@/features/workout-player/types/workoutPlaybackEvents.types'
 import { createWorkoutGongController } from '@/features/workout-player/utils/createWorkoutGongController'
 import { selectWorkoutGongSignal } from '@/features/workout-player/utils/selectWorkoutGongSignal'

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createWorkoutPlaybackTimeline } from '@/features/workout-player/utils/createWorkoutPlaybackTimeline'
+import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 import { block, continuousExercise, roundsExercise, workoutBreak, workoutPlan } from '@/test/workoutBuilders'
 
 describe('createWorkoutPlaybackTimeline', () => {

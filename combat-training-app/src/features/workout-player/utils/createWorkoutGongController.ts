@@ -1,5 +1,5 @@
 import type { WorkoutGong } from '@/application/audio/workoutGong'
-import type { WorkoutPlaybackStep } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackStep } from '@/domain/workout-playback/workoutPlayback.types'
 import type { WorkoutPlaybackEvent } from '@/features/workout-player/types/workoutPlaybackEvents.types'
 import { selectWorkoutGongSignal } from '@/features/workout-player/utils/selectWorkoutGongSignal'
 

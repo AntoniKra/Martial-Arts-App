@@ -1,8 +1,8 @@
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { ExerciseRating, FocusRating } from '@/domain/workout-session/workoutSession.types'
 import type { WorkoutSessionAttempt } from '@/domain/workout-session/workoutSessionDefinitions'
-import type { WorkoutPlaybackState } from '@/features/workout-player/types/workoutPlayback.types'
-import type { TrackedStepResult } from '@/features/workout-player/utils/mergeTrackedStepResult'
+import type { WorkoutPlaybackState } from '@/domain/workout-playback/workoutPlayback.types'
+import type { TrackedStepResult } from '@/domain/workout-playback/workoutPlayback.types'
 
 export interface WorkoutSessionRecording {
   timezone: string

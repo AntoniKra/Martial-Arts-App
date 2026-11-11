@@ -1,5 +1,5 @@
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
-import type { WorkoutPlaybackStep, WorkoutPlaybackTimeline } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackStep, WorkoutPlaybackTimeline } from '@/domain/workout-playback/workoutPlayback.types'
 
 function createPlaybackStepId(parts: unknown[]): string {
   return JSON.stringify(parts)

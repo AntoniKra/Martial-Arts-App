@@ -1,5 +1,5 @@
 import type { WorkoutSessionStepResult, WorkoutSessionStepOutcome } from '@/domain/workout-session/workoutSession.types'
-import type { WorkoutPlaybackStep } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackStep } from '@/domain/workout-playback/workoutPlayback.types'
 
 export function mapPlaybackStepToSessionStepResult(
   step: WorkoutPlaybackStep,

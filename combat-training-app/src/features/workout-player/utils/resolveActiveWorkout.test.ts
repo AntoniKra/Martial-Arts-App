@@ -1,8 +1,9 @@
+import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ActiveWorkout } from '@/application/workout/activeWorkoutRepository'
 import { block, roundsExercise, workoutPlan } from '@/test/workoutBuilders'
 import { resolveActiveWorkout } from './resolveActiveWorkout'
-import { createWorkoutPlaybackTimeline } from './createWorkoutPlaybackTimeline'
+import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 
 const now = Date.parse('2026-11-08T10:00:00.000Z')
 
@@ -23,9 +24,41 @@ function savedWorkout(): ActiveWorkout {
 }
 
 beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(now) })
-afterEach(() => vi.useRealTimers())
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
 
 describe('active workout recovery', () => {
+  it('reads the historical v1 contract without rewriting it and resumes its exact state', () => {
+    const values = new Map<string, string>()
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => { values.set(key, value) },
+      removeItem: (key: string) => { values.delete(key) },
+    })
+    // Literal pre-refactor payload: never derive persisted IDs from the current timeline.
+    const raw = `{"schemaVersion":1,"plan":{"id":"plan-1","customName":null,"mainGoal":null,"blocks":[{"id":"bag","blockType":"bag","items":[{"id":"jab","type":"exercise","combinationId":null,"focusSkillId":null,"exerciseNameSnapshot":"Historical Jab","instruction":"Keep guard","configuration":{"mode":"rounds","roundCount":2,"roundDurationSeconds":120,"restBetweenRoundsSeconds":30}}]}],"createdAt":"2026-11-02T10:00:00.000Z","updatedAt":"2026-11-02T10:00:00.000Z","disciplineKey":"boxing","nameSnapshot":"Historical plan"},"playback":{"status":"running","currentStepIndex":2,"remainingSeconds":80,"stepRevision":3},"deadlineMs":1794132080000,"pausedRemainingMs":null,"lastSeenAt":1794132000000,"recorder":{"timezone":"Europe/Warsaw","sessionId":"historical-session","startedAt":"2026-11-08T09:56:50.000Z","stepResults":[{"stepIndex":0,"playbackStepId":"[\\"bag\\",\\"jab\\",\\"exercise\\",1]","plannedDurationSeconds":120,"performedDurationSeconds":120,"outcome":"completed"},{"stepIndex":1,"playbackStepId":"[\\"bag\\",\\"jab\\",\\"roundRest\\",1]","plannedDurationSeconds":30,"performedDurationSeconds":30,"outcome":"completed"}],"attempts":[{"kind":"exercise","blockType":"bag","performedDurationMs":120000,"outcome":"completed"},{"kind":"roundRest","blockType":"bag","performedDurationMs":30000,"outcome":"completed"}],"exerciseRatings":[{"workoutItemId":"jab","nameSnapshot":"Historical Jab","blockType":"bag","rating":4}],"focusRatings":[],"completedAt":null,"endedEarly":false}}`
+    const key = 'combat-training.activeWorkout.historical-owner'
+    localStorage.setItem(key, raw)
+    const saved = createActiveWorkoutRepository('historical-owner').read()
+    expect(saved).toEqual(JSON.parse(raw))
+    expect(localStorage.getItem(key)).toBe(raw)
+    if (!saved) throw new Error('Historical snapshot was rejected')
+    const timeline = createWorkoutPlaybackTimeline(saved.plan)
+    expect(timeline.steps.map(({ id, name, instruction }) => [id, name, instruction])).toEqual([
+      ['["bag","jab","exercise",1]', 'Historical Jab', 'Keep guard'],
+      ['["bag","jab","roundRest",1]', 'Historical Jab', 'Keep guard'],
+      ['["bag","jab","exercise",2]', 'Historical Jab', 'Keep guard'],
+    ])
+    expect(timeline.totalDurationSeconds).toBe(270)
+    expect(timeline.identity).toBe('{"planId":"plan-1","steps":[["[\\"bag\\",\\"jab\\",\\"exercise\\",1]",120],["[\\"bag\\",\\"jab\\",\\"roundRest\\",1]",30],["[\\"bag\\",\\"jab\\",\\"exercise\\",2]",120]]}')
+    expect(resolveActiveWorkout(saved, 1794132040000)).toEqual({
+      kind: 'resume', workout: { ...saved, playback: { ...saved.playback, remainingSeconds: 40 } },
+    })
+    const paused = { ...saved, playback: { ...saved.playback, status: 'paused' as const }, deadlineMs: null, pausedRemainingMs: 79_625 }
+    localStorage.setItem(key, JSON.stringify(paused))
+    expect(resolveActiveWorkout(createActiveWorkoutRepository('historical-owner').read(), 1794132040000))
+      .toEqual({ kind: 'resume', workout: paused })
+  })
+
   function withPriorWork() {
     const saved = savedWorkout()
     const steps = createWorkoutPlaybackTimeline(saved.plan).steps

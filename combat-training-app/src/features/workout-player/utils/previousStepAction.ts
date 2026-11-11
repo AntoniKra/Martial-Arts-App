@@ -1,4 +1,4 @@
-import type { WorkoutPlaybackState } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackState } from '@/domain/workout-playback/workoutPlayback.types'
 import type { PausedPlayback } from '@/features/workout-player/utils/playbackPause'
 
 /** docs/workout-player-spec.md: after more than 3 seconds "Poprzedni" restarts the current step. */

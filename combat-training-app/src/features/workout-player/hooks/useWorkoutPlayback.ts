@@ -7,7 +7,7 @@ import type {
   WorkoutPlaybackStatus,
   WorkoutPlaybackStep,
   WorkoutPlaybackTimeline,
-} from '@/features/workout-player/types/workoutPlayback.types'
+} from '@/domain/workout-playback/workoutPlayback.types'
 import type {
   WorkoutPlaybackEvent,
   WorkoutPlaybackStepFinalizeReason,
@@ -20,7 +20,7 @@ import {
 import { choosePreviousStepAction, getElapsedInStepMs } from '@/features/workout-player/utils/previousStepAction'
 import { resolveRunningPlaybackAtTime } from '@/features/workout-player/utils/resolveRunningPlaybackAtTime'
 import { resolveWorkoutPreparation } from '@/features/workout-player/utils/resolveWorkoutPreparation'
-import { WORKOUT_PREPARATION_DEFAULT, type WorkoutPreparation } from '@/features/workout-player/workoutPreparation'
+import { WORKOUT_PREPARATION_DEFAULT, type WorkoutPreparation } from '@/domain/workout-playback/workoutPreparation'
 import { finalizePlaybackSteps, getNextWorkoutItemStepIndex } from '@/features/workout-player/utils/finishPlaybackSteps'
 import {
   calculatePerformedDurationSeconds,

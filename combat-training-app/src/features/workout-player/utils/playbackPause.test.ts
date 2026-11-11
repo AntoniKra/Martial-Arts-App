@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { WorkoutPlaybackState } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackState } from '@/domain/workout-playback/workoutPlayback.types'
 import { getResumeDeadlineMs, pauseRunningStep } from '@/features/workout-player/utils/playbackPause'
 import { getElapsedInStepMs } from '@/features/workout-player/utils/previousStepAction'
 import { calculateWorkoutSessionDurations } from '@/domain/workout-session/workoutSessionDefinitions'

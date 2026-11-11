@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 
-import type { WorkoutPlaybackTimeline } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackTimeline } from '@/domain/workout-playback/workoutPlayback.types'
 import type { WorkoutPlaybackEvent } from '@/features/workout-player/types/workoutPlaybackEvents.types'
 import { createWorkoutGongController } from '@/features/workout-player/utils/createWorkoutGongController'
 import { useSharedWorkoutGong } from '@/application/audio/workoutGongContext'

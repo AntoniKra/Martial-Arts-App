@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { calculateWorkoutSessionDurations } from '@/domain/workout-session/workoutSessionDefinitions'
-import type { WorkoutPlaybackState } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackState } from '@/domain/workout-playback/workoutPlayback.types'
 import { resolveWorkoutPreparation } from '@/features/workout-player/utils/resolveWorkoutPreparation'
 import { playbackStep } from '@/test/workoutBuilders'
 

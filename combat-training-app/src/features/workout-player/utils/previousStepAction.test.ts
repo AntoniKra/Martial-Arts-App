@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { WorkoutPlaybackState } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackState } from '@/domain/workout-playback/workoutPlayback.types'
 import { choosePreviousStepAction, getElapsedInStepMs, PREVIOUS_RESTART_THRESHOLD_MS } from './previousStepAction'
 
 describe('choosePreviousStepAction', () => {

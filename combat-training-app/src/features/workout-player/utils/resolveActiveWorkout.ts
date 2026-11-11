@@ -1,6 +1,6 @@
 import type { ActiveWorkout } from '@/application/workout/activeWorkoutRepository'
 import type { PlanWorkoutSession } from '@/domain/workout-session/workoutSession.types'
-import { createWorkoutPlaybackTimeline } from './createWorkoutPlaybackTimeline'
+import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 import { resolveRunningPlaybackAtTime } from './resolveRunningPlaybackAtTime'
 import { buildRecordedWorkoutSession, recordFinalizedStep } from './workoutSessionRecording'
 import { resolveWorkoutPreparation } from './resolveWorkoutPreparation'

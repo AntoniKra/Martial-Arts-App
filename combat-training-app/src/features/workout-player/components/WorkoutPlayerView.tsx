@@ -25,9 +25,9 @@ import type {
   WorkoutPlaybackStep,
   WorkoutPlaybackStepKind,
   WorkoutPlaybackTimeline,
-  WorkoutPlayerLoadState,
-} from '@/features/workout-player/types/workoutPlayback.types'
-import { createWorkoutPlaybackTimeline } from '@/features/workout-player/utils/createWorkoutPlaybackTimeline'
+} from '@/domain/workout-playback/workoutPlayback.types'
+import type { WorkoutPlayerLoadState } from '@/features/workout-player/types/workoutPlayback.types'
+import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 import { getWorkoutStepKindShortLabelPl } from '@/features/workout-player/utils/workoutStepTimerPresentation'
 import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
 

@@ -1,4 +1,4 @@
-import type { WorkoutPlaybackStepKind } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackStepKind } from '@/domain/workout-playback/workoutPlayback.types'
 
 export interface WorkoutStepTimerPresentation {
   stateLabel: string
