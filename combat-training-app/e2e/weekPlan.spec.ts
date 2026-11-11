@@ -25,6 +25,26 @@ async function accessible(page: Page) {
   expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 }
+async function readableSelects(page: Page, info: TestInfo, theme: 'dark' | 'light') {
+  if (info.project.name !== 'phone') return
+  const measurements = []
+  for (const name of ['Tydzień', 'Wybierz plan lub rodzaj', 'Zastąp pozycję 1']) {
+    const control = page.getByRole('combobox', { name, exact: true })
+    await expect(control).toBeVisible()
+    const typography = await control.evaluate((element) => {
+      const label = element.closest('label')
+      return { control: Number.parseFloat(getComputedStyle(element).fontSize),
+        label: label ? Number.parseFloat(getComputedStyle(label).fontSize) : null }
+    })
+    expect(typography.control, `${theme}: ${name}`).toBeGreaterThanOrEqual(16)
+    expect(typography.label, `${theme}: ${name} label`).toBe(14)
+    measurements.push({ name, ...typography })
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await info.attach(`week-plan-select-font-sizes-${theme}`, {
+    body: JSON.stringify({ viewport: page.viewportSize(), theme, measurements }, null, 2), contentType: 'application/json',
+  })
+}
 async function capture(page: Page, info: TestInfo, name: string) {
   if (process.env.CAPTURE_WEEK_PLAN_SCREENSHOTS !== '1' || info.project.name !== 'phone') return
   const folder = path.join(tmpdir(), 'week-plan-goals', 'screenshots')
@@ -59,9 +79,11 @@ test('creates repeated plans, recalculates 2/3, persists and copies selected com
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2')
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '3')
   await expect(page.getByText('Częściowe: 1 · Niewykonane: 0 · Dodatkowe: 0', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Edytuj plan tygodnia', exact: true }).click()
   for (const theme of ['dark', 'light'] as const) {
-    await app.setTheme(theme); await accessible(page); await capture(page, info, `week-details-${theme}`)
+    await app.setTheme(theme); await readableSelects(page, info, theme); await accessible(page); await capture(page, info, `week-details-${theme}`)
   }
+  await page.getByRole('button', { name: 'Anuluj edycję', exact: true }).click()
   await nav(page).getByRole('link', { name: 'Start', exact: true }).click()
   const summary = page.getByRole('region', { name: 'Plan tygodnia', exact: true })
   await expect(summary.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2')

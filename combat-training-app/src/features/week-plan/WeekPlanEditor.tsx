@@ -10,7 +10,7 @@ import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/U
 import { WeekPlanDataMessage } from './WeekPlanSummary'
 import { categoryLabel, WEEK_PLAN_CATEGORIES, weekItemLabel, weekPlanLabels as labels } from './weekPlanLabels'
 
-const selectClass = 'min-h-touch w-full min-w-0 border border-bd bg-bg px-3 py-2 text-sm text-ink'
+const selectClass = 'min-h-touch w-full min-w-0 border border-bd bg-bg px-3 py-2 text-base text-ink'
 
 export function WeekPlanEditor({ weekStart, initial, onClose }: { weekStart: string; initial: WeekPlan | undefined; onClose: (saved: boolean) => void }) {
   const { plans, weekPlans, weekPlanRepository } = useWorkoutData()

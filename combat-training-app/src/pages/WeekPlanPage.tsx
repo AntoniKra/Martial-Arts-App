@@ -56,7 +56,7 @@ export function Component() {
     <Link to={routes.progress} className={getButtonClassName({ variant: 'ghost' })}>Wróć do Postępu</Link>
     <h1 className="font-display text-3xl font-bold">{labels.title}</h1>
     <nav aria-label="Wybór tygodnia" className="space-y-3">
-      <label className="block space-y-2 text-sm">Tydzień<select aria-label="Tydzień" value={weekStart} onChange={(event) => void navigate(routes.weekPlan(event.target.value))} className="min-h-touch w-full border border-bd bg-surface px-3 text-ink">
+      <label className="block space-y-2 text-sm">Tydzień<select aria-label="Tydzień" value={weekStart} onChange={(event) => void navigate(routes.weekPlan(event.target.value))} className="min-h-touch w-full border border-bd bg-surface px-3 text-base text-ink">
         {options.map((week) => <option key={week} value={week}>{weekLabel(week)}{week === currentWeek ? ' · bieżący' : ''}</option>)}
       </select></label>
       <div className="flex flex-wrap gap-2">
