@@ -291,13 +291,14 @@ test('keeps long plan names readable and reserves the clear-goal warning for a r
   const ids = [chooser.id, replacement.id]
   expect(new Set(ids).size).toBe(ids.length)
   for (const id of ids) await expect(page.locator(`[id="${id}"]`)).toHaveCount(1)
-  if (info.project.name === 'phone') {
-    for (const viewport of frames) {
-      await page.setViewportSize(viewport)
+  for (const viewport of frames) {
+    await page.setViewportSize(viewport)
+    for (const theme of themes) {
+      if (info.project.name === 'phone') await app.setTheme(theme)
       const current = await described('Zastąp pozycję 1')
       await expect(current.target).toHaveText(`1. ${nameB}`)
-      expect(await current.target.evaluate((element) => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1)).toBe(true)
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+      expect(await current.target.evaluate((element) => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1), `${viewport.width}: ${theme}`).toBe(true)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${viewport.width}: ${theme}`).toBe(true)
     }
   }
   await save(page)
@@ -318,6 +319,77 @@ test('keeps long plan names readable and reserves the clear-goal warning for a r
   await add(page, 'c:bag')
   await expect(form(page).getByText(removed, { exact: true })).toHaveCount(0)
   await expect(form(page).getByText(neutral, { exact: true })).toHaveCount(0)
+})
+
+test('shows the current library name without rewriting a saved plan snapshot', async ({ app, page }, info) => {
+  const saved = 'Worek techniczny — długa seria ciosów na ciężki worek, wersja A'
+  const renamed = 'Worek techniczny — długa seria ciosów na ciężki worek, wersja B'
+  const heard = 'Worek techniczny — długa seria ciosów na ciężki worek, wersja C'
+  const named = (nameSnapshot: string) => ({ ...workoutPlan([block('bag', [continuousExercise('plan-a', 60)], 'bag')]), id: 'plan-a', nameSnapshot })
+  const stored: WeekPlanItem = { id: 'item-1', kind: 'plan', workoutPlanId: 'plan-a', planNameSnapshot: saved }
+  const described = async (name: string) => {
+    const control = form(page).getByRole('combobox', { name, exact: true })
+    const id = await control.getAttribute('aria-describedby')
+    expect(id, name).toBeTruthy()
+    expect(id?.includes(' ')).toBe(false)
+    const target = page.locator(`[id="${id}"]`)
+    await expect(target).toHaveCount(1)
+    return { control, target }
+  }
+  await app.open('/workouts')
+  await app.seedPlan(named(saved))
+  await app.seedWeekPlan(goal([stored]))
+  await app.seedPlan(named(renamed))
+  await app.open('/progress/week/2026-11-09')
+  await page.getByRole('button', { name: 'Edytuj plan tygodnia', exact: true }).click()
+
+  const opened = await described('Zastąp pozycję 1')
+  await expect(opened.control).toHaveValue('p:plan-a')
+  await expect(opened.control.locator('option:checked')).toHaveText(renamed)
+  await expect(opened.target).toHaveText(renamed)
+  await expect(form(page).getByText(`1. Zapisana nazwa: ${saved}`, { exact: true })).toBeVisible()
+  expect((await app.readWeekPlans()).find((entry) => entry.weekStart === weekStart)?.items[0]).toMatchObject({ id: 'item-1', workoutPlanId: 'plan-a', planNameSnapshot: saved })
+
+  const frames = info.project.name === 'phone'
+    ? [{ width: 360, height: 800 }, { width: 390, height: 844 }]
+    : [page.viewportSize() ?? { width: 1440, height: 900 }]
+  const themes = info.project.name === 'phone' ? ['dark', 'light'] as const : ['dark'] as const
+  for (const viewport of frames) {
+    await page.setViewportSize(viewport)
+    for (const theme of themes) {
+      if (info.project.name === 'phone') await app.setTheme(theme)
+      const current = await described('Zastąp pozycję 1')
+      const checked = await current.control.locator('option:checked').innerText()
+      await expect(current.target).toHaveText(checked)
+      const metrics = await current.control.evaluate((element) => ({ font: Number.parseFloat(getComputedStyle(element).fontSize), height: element.getBoundingClientRect().height }))
+      expect(metrics.font, `${viewport.width}: ${theme}`).toBeGreaterThanOrEqual(16)
+      expect(metrics.height, `${viewport.width}: ${theme}`).toBeGreaterThanOrEqual(44)
+      const fits = (element: Element) => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1
+      expect(await current.target.evaluate(fits), `${viewport.width}: ${theme} current`).toBe(true)
+      expect(await form(page).getByText(`1. Zapisana nazwa: ${saved}`, { exact: true }).evaluate(fits), `${viewport.width}: ${theme} snapshot`).toBe(true)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${viewport.width}: ${theme}`).toBe(true)
+    }
+  }
+
+  await add(page, 'c:sparring')
+  await expect(form(page).getByRole('listitem')).toHaveCount(2)
+  await app.seedPlan(named(heard), { waitUntilRendered: false })
+  const live = await described('Zastąp pozycję 1')
+  await expect(live.control).toHaveValue('p:plan-a')
+  await expect(live.control.locator('option:checked')).toHaveText(heard)
+  await expect(live.target).toHaveText(heard)
+  await expect(form(page).getByText(`1. Zapisana nazwa: ${saved}`, { exact: true })).toBeVisible()
+  await expect(form(page).getByRole('listitem')).toHaveCount(2)
+  await expect(form(page).getByRole('combobox', { name: 'Zastąp pozycję 2', exact: true })).toHaveValue('c:sparring')
+  expect((await app.readWeekPlans()).find((entry) => entry.weekStart === weekStart)?.items).toEqual([stored])
+
+  await save(page)
+  await expect.poll(async () => (await app.readWeekPlans()).find((entry) => entry.weekStart === weekStart)?.items.map((item) => (
+    item.kind === 'plan' ? { id: item.id, kind: item.kind, workoutPlanId: item.workoutPlanId, planNameSnapshot: item.planNameSnapshot } : { kind: item.kind, category: item.category }
+  ))).toEqual([
+    { id: 'item-1', kind: 'plan', workoutPlanId: 'plan-a', planNameSnapshot: saved },
+    { kind: 'category', category: 'sparring' },
+  ])
 })
 
 test('preserves an unsaved draft through a bad document and listener retry', async ({ app, page }) => {

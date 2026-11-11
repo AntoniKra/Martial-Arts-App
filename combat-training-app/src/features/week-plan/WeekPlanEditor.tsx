@@ -74,9 +74,12 @@ export function WeekPlanEditor({ weekStart, initial, onClose }: { weekStart: str
           const value = item.kind === 'plan' ? `p:${item.workoutPlanId}` : `c:${item.category}`
           const unavailable = item.kind === 'plan' && (!libraryReady || !plans.items.some((plan) => plan.id === item.workoutPlanId))
           const descriptionId = `${descriptionBaseId}-item-${item.id}`
-          const selectedName = unavailable && item.kind === 'plan' ? `${item.planNameSnapshot} · ${labels.unavailable}` : weekItemLabel(item)
+          const snapshotName = weekItemLabel(item)
+          const selectedName = unavailable && item.kind === 'plan' ? `${item.planNameSnapshot} · ${labels.unavailable}` : choiceLabel(value) || snapshotName
+          const renamed = !unavailable && selectedName !== snapshotName
           return <li key={item.id} className="space-y-2 border-b border-bd pb-3">
-            <p id={descriptionId} className="break-words text-sm">{index + 1}. {selectedName}</p>
+            {renamed && <p className="break-words text-sm text-muted">{index + 1}. {labels.savedName}: {snapshotName}</p>}
+            <p id={descriptionId} className="break-words text-sm">{renamed ? selectedName : `${index + 1}. ${selectedName}`}</p>
             <label className="block text-sm">Zastąp pozycję {index + 1}
               <select aria-label={`Zastąp pozycję ${index + 1}`} aria-describedby={descriptionId} className={selectClass} value={value} onChange={(event) => {
                 const replacement = itemFor(event.target.value, item.id)

@@ -30,4 +30,5 @@ export const weekPlanLabels = {
   failed: 'Nie udało się zapisać planu. Szkic pozostaje w formularzu.',
   noItems: 'Lista jest pusta. Dodaj plan lub rodzaj treningu.',
   removedGoal: 'Lista jest pusta. Zapis usunie cel, zachowując treningi w dzienniku.',
+  savedName: 'Zapisana nazwa',
 } as const
