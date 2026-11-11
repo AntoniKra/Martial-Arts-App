@@ -224,6 +224,102 @@ test('refreshes an open home at Monday and after returning from the background w
   expect((await app.readWeekPlans()).map((entry) => entry.weekStart)).toEqual([weekStart])
 })
 
+test('keeps long plan names readable and reserves the clear-goal warning for a removed list', async ({ app, page }, info) => {
+  const nameA = 'Worek techniczny — długa seria ciosów na ciężki worek, wersja A'
+  const nameB = 'Worek techniczny — długa seria ciosów na ciężki worek, wersja B'
+  const named = (id: string, nameSnapshot: string) => ({ ...workoutPlan([block('bag', [continuousExercise(id, 60)], 'bag')]), id, nameSnapshot })
+  const neutral = 'Lista jest pusta. Dodaj plan lub rodzaj treningu.'
+  const removed = 'Lista jest pusta. Zapis usunie cel, zachowując treningi w dzienniku.'
+  await app.open('/workouts')
+  await app.seedPlan(named('plan-a', nameA))
+  await app.seedPlan(named('plan-b', nameB))
+  await app.seedWeekPlan(goal([], '2026-11-16'))
+  await app.open('/progress/week/2026-11-09')
+  await page.getByRole('button', { name: 'Ułóż plan tygodnia', exact: true }).click()
+  await expect(form(page).getByText(neutral, { exact: true })).toBeVisible()
+  await expect(form(page).getByText(removed, { exact: true })).toHaveCount(0)
+  await page.getByRole('link', { name: 'Następny tydzień', exact: true }).click()
+  await page.getByRole('button', { name: 'Ułóż plan tygodnia', exact: true }).click()
+  await expect(form(page).getByText(neutral, { exact: true })).toBeVisible()
+  await expect(form(page).getByText(removed, { exact: true })).toHaveCount(0)
+  await page.getByRole('link', { name: 'Bieżący tydzień', exact: true }).click()
+  await page.getByRole('button', { name: 'Ułóż plan tygodnia', exact: true }).click()
+
+  const described = async (name: string) => {
+    const control = form(page).getByRole('combobox', { name, exact: true })
+    const id = await control.getAttribute('aria-describedby')
+    expect(id, name).toBeTruthy()
+    const target = page.locator(`[id="${id}"]`)
+    await expect(target).toHaveCount(1)
+    return { control, id: id ?? '', target }
+  }
+  const chooser = await described('Wybierz plan lub rodzaj')
+  await chooser.control.selectOption('p:plan-a')
+  await expect(chooser.target).toHaveText(nameA)
+  await expect(chooser.control.locator('option:checked')).toHaveText(nameA)
+  await chooser.control.selectOption('p:plan-b')
+  await expect(chooser.target).toHaveText(nameB)
+  await expect(chooser.control.locator('option:checked')).toHaveText(nameB)
+  expect(await page.evaluate((descriptionId) => {
+    const description = document.getElementById(descriptionId)
+    const button = [...document.querySelectorAll('button')].find((entry) => entry.textContent?.trim() === 'Dodaj pozycję')
+    return Boolean(description && button && (description.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING))
+  }, chooser.id)).toBe(true)
+
+  const frames = info.project.name === 'phone'
+    ? [{ width: 360, height: 800 }, { width: 390, height: 844 }]
+    : [page.viewportSize() ?? { width: 1440, height: 900 }]
+  const themes = info.project.name === 'phone' ? ['dark', 'light'] as const : ['dark'] as const
+  for (const viewport of frames) {
+    await page.setViewportSize(viewport)
+    for (const theme of themes) {
+      if (info.project.name === 'phone') await app.setTheme(theme)
+      const current = await described('Wybierz plan lub rodzaj')
+      await expect(current.target).toHaveText(nameB)
+      const metrics = await current.control.evaluate((element) => ({ font: Number.parseFloat(getComputedStyle(element).fontSize), height: element.getBoundingClientRect().height }))
+      expect(metrics.font, `${viewport.width}: ${theme}`).toBeGreaterThanOrEqual(16)
+      expect(metrics.height, `${viewport.width}: ${theme}`).toBeGreaterThanOrEqual(44)
+      expect(await current.target.evaluate((element) => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1)).toBe(true)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    }
+  }
+
+  await add(page, 'p:plan-b')
+  const replacement = await described('Zastąp pozycję 1')
+  await expect(replacement.target).toHaveText(`1. ${nameB}`)
+  await expect(replacement.control.locator('option:checked')).toHaveText(nameB)
+  const ids = [chooser.id, replacement.id]
+  expect(new Set(ids).size).toBe(ids.length)
+  for (const id of ids) await expect(page.locator(`[id="${id}"]`)).toHaveCount(1)
+  if (info.project.name === 'phone') {
+    for (const viewport of frames) {
+      await page.setViewportSize(viewport)
+      const current = await described('Zastąp pozycję 1')
+      await expect(current.target).toHaveText(`1. ${nameB}`)
+      expect(await current.target.evaluate((element) => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1)).toBe(true)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    }
+  }
+  await save(page)
+  await expect.poll(async () => (await app.readWeekPlans()).find((entry) => entry.weekStart === weekStart)?.items[0]).toMatchObject({ kind: 'plan', workoutPlanId: 'plan-b', planNameSnapshot: nameB })
+
+  await page.getByRole('button', { name: 'Edytuj plan tygodnia', exact: true }).click()
+  const replace = form(page).getByRole('combobox', { name: 'Zastąp pozycję 1', exact: true })
+  await replace.selectOption('p:plan-a')
+  await expect((await described('Zastąp pozycję 1')).target).toHaveText(`1. ${nameA}`)
+  await expect(replace.locator('option:checked')).toHaveText(nameA)
+  await save(page)
+  await expect.poll(async () => (await app.readWeekPlans()).find((entry) => entry.weekStart === weekStart)?.items[0]).toMatchObject({ kind: 'plan', workoutPlanId: 'plan-a', planNameSnapshot: nameA })
+
+  await page.getByRole('button', { name: 'Edytuj plan tygodnia', exact: true }).click()
+  await page.getByRole('button', { name: 'Usuń pozycję 1', exact: true }).click()
+  await expect(form(page).getByText(removed, { exact: true })).toBeVisible()
+  await expect(form(page).getByText(neutral, { exact: true })).toHaveCount(0)
+  await add(page, 'c:bag')
+  await expect(form(page).getByText(removed, { exact: true })).toHaveCount(0)
+  await expect(form(page).getByText(neutral, { exact: true })).toHaveCount(0)
+})
+
 test('preserves an unsaved draft through a bad document and listener retry', async ({ app, page }) => {
   const original = goal([category('one')])
   await app.open('/workouts'); await app.seedWeekPlan(original)
