@@ -10,7 +10,7 @@ describe('deferred workout repositories', () => {
     const subscribe = () => { subscriptions += 1; return () => { subscriptions -= 1 } }
     const unsubscribe = repositories.plans.subscribe(() => {}, () => {})
     unsubscribe()
-    connect({ plans: { subscribe, save: async () => {}, delete: async () => {} },
+    connect({ weekPlans: { subscribe, save: async () => {} }, plans: { subscribe, save: async () => {}, delete: async () => {} },
       sessions: { subscribe, save: async () => {}, delete: async () => true, updateNote: async () => true, saveFeedback: async () => true, saveRpe: async () => true },
       focusSkills: { subscribe, save: async () => {}, archive: async () => {}, deleteUnused: async () => {}, restore: async () => {} } })
     await ready
@@ -24,6 +24,11 @@ describe('deferred workout repositories', () => {
     await ready
     expect(subscriptions).toBe(1)
     stopSkills()
+    expect(subscriptions).toBe(0)
+    const stopWeeks = repositories.weekPlans.subscribe('2026-11-09', () => {}, () => {})
+    await ready
+    expect(subscriptions).toBe(1)
+    stopWeeks()
     expect(subscriptions).toBe(0)
   })
 })

@@ -37,6 +37,7 @@ export const router = createBrowserRouter([
               { path: '/', element: <HomePage /> },
               { path: '/workouts', element: <WorkoutsPage /> },
               { path: '/progress', lazy: () => import('@/pages/ProgressPage') },
+              { path: '/progress/week/:weekStart', lazy: () => import('@/pages/WeekPlanPage') },
               { path: '/progress/focus-skills/:focusSkillId', lazy: () => import('@/pages/FocusSkillProgressPage') },
               { path: '/workout-sessions/:sessionId/feedback', element: <WorkoutFeedbackPage /> },
               { path: '/workouts/new', element: <NewWorkoutPage /> },

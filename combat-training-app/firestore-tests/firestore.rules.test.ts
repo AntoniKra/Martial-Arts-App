@@ -374,14 +374,16 @@ describe('default denial', () => {
   it.each([
     `users/${ownerId}`,
     `users/${ownerId}/inne/${documentId}`,
-    ...['weekPlans', 'readiness', 'bodyWeights', 'controlTests', 'controlTestResults']
+    ...['readiness', 'bodyWeights', 'controlTests', 'controlTestResults']
       .map((collection) => `users/${ownerId}/${collection}/${documentId}`),
     `users/${ownerId}/workoutPlans/${documentId}/nested/${documentId}`,
     `users/${ownerId}/workoutSessions/${documentId}/nested/${documentId}`,
     `users/${ownerId}/focusSkills/${documentId}/nested/${documentId}`,
+    `users/${ownerId}/weekPlans/2026-11-09/nested/${documentId}`,
     `workoutPlans/${documentId}`,
     `workoutSessions/${documentId}`,
     `focusSkills/${documentId}`,
+    `weekPlans/2026-11-09`,
   ])('denies all operations outside the allowed collections: %s', async (path) => {
     const reference = ownerDatabase().doc(path)
     await assertFails(reference.set({ id: documentId }))
@@ -397,5 +399,68 @@ describe('default denial', () => {
     await assertFails(ownerDatabase().collectionGroup('workoutPlans').get())
     await assertFails(ownerDatabase().collectionGroup('workoutSessions').get())
     await assertFails(ownerDatabase().collectionGroup('focusSkills').get())
+    await assertFails(ownerDatabase().collectionGroup('weekPlans').get())
+  })
+})
+
+describe('week plan ownership and shallow validation', () => {
+  const weekStart = '2026-11-09'
+  const path = `users/${ownerId}/weekPlans/${weekStart}`
+  const create = (): Document => ({ schemaVersion: 1, weekStart,
+    items: [{ id: 'one', kind: 'plan', workoutPlanId: documentId, planNameSnapshot: 'Bag' }],
+    createdAt: instant, updatedAt: instant, editedAfterWeekEnd: false })
+
+  it('allows owner create, read, bounded query, update and delete with preserved history', async () => {
+    const db = ownerDatabase(), reference = db.doc(path)
+    await assertSucceeds(reference.set(create()))
+    expect((await assertSucceeds(reference.get())).data()).toEqual(create())
+    expect((await assertSucceeds(db.collection(`users/${ownerId}/weekPlans`).where('weekStart', '>=', '2026-08-17').get())).size).toBe(1)
+    await assertSucceeds(reference.update({ items: [], updatedAt: '2026-11-10T10:00:00.000Z', editedAfterWeekEnd: true }))
+    await assertFails(reference.update({ editedAfterWeekEnd: false }))
+    await assertFails(reference.update({ createdAt: '2026-11-10T10:00:00.000Z' }))
+    await assertSucceeds(reference.delete())
+    expect((await reference.get()).exists).toBe(false)
+  })
+
+  it.each(['other', 'signedOut', 'unverified', 'missingClaim'])('denies every operation for %s', async (actor) => {
+    await ownerDatabase().doc(path).set(create())
+    const context = actor === 'signedOut' ? environment.unauthenticatedContext()
+      : actor === 'other' ? environment.authenticatedContext('athlete-two', { email_verified: true })
+        : actor === 'unverified' ? environment.authenticatedContext(ownerId, { email_verified: false })
+          : environment.authenticatedContext(ownerId)
+    const db = context.firestore(), reference = db.doc(path)
+    await assertFails(db.doc(`users/${ownerId}/weekPlans/2026-11-16`).set({ ...create(), weekStart: '2026-11-16' }))
+    await assertFails(reference.get())
+    await assertFails(db.collection(`users/${ownerId}/weekPlans`).where('weekStart', '>=', '2026-08-17').get())
+    await assertFails(reference.update({ items: [] }))
+    await assertFails(reference.delete())
+  })
+
+  it.each([
+    ['schemaVersion', 2], ['schemaVersion', '1'], ['weekStart', '2026-11-16'], ['weekStart', 42],
+    ['weekStart', '09.11.2026'], ['createdAt', new Date(instant)], ['createdAt', '2026-11-08'],
+    ['updatedAt', null], ['updatedAt', 42], ['editedAfterWeekEnd', 'true'], ['editedAfterWeekEnd', null],
+    ['items', {}], ['items', null], ['items', Array.from({ length: 15 }, () => ({}))], ['extra', true],
+  ] as [string, unknown][])('rejects invalid %s (%j) on create and update', async (field, value) => {
+    const reference = ownerDatabase().doc(path)
+    await assertFails(reference.set({ ...create(), [field]: value }))
+    await assertSucceeds(reference.set(create()))
+    await assertFails(reference.update({ [field]: value }))
+  })
+
+  it.each(Object.keys(create()))('requires %s on creation and replacement', async (field) => {
+    const reference = ownerDatabase().doc(path), incomplete = create()
+    delete incomplete[field]
+    await assertFails(reference.set(incomplete))
+    await assertSucceeds(reference.set(create()))
+    await assertFails(reference.set(incomplete))
+  })
+
+  it('checks the document key date format, but leaves actual Monday and list entries to the app schema', async () => {
+    const db = ownerDatabase()
+    await assertFails(db.doc(`users/${ownerId}/weekPlans/not-a-date`).set({ ...create(), weekStart: 'not-a-date' }))
+    const reference = db.doc(path)
+    await assertSucceeds(reference.set({ ...create(), items: Array.from({ length: 14 }, () => ({})) }))
+    await assertSucceeds(reference.update({ items: [] }))
   })
 })

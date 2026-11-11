@@ -30,7 +30,7 @@ Model zastępuje lokalny storage. Dane z `localStorage` to dane pokazowe: nie im
 | `users/{uid}/controlTests/{testId}` | testy kontrolne z paszportem | UUID | testy (R4) |
 | `users/{uid}/controlTestResults/{resultId}` | wyniki testów | UUID | testy (R4) |
 
-Lista jest zamknięta. Kod trzyma ją w jednej stałej (`USER_COLLECTIONS`), z której korzystają eksport i usunięcie konta. Nowa kolekcja wymaga dopisania jej do tej stałej, do reguł i do testów reguł.
+Lista jest zamknięta. Kod trzyma ją w `src/infrastructure/firebase/userCollections.ts` (`USER_COLLECTIONS`). Wdrożone w kodzie kolekcje to `workoutPlans`, `workoutSessions`, `focusSkills` i `weekPlans`; pozostałe nazwy opisują przyszłe funkcje. Sam rejestr nie otwiera reguł ani nasłuchów. Eksport i usunięcie konta, kiedy powstaną, mają korzystać z pełnej listy; dokument `users/{uid}` obsługują osobno. Nowa kolekcja wymaga dopisania jej do rejestru, reguł i testów reguł.
 
 ## `users/{uid}`
 
@@ -158,17 +158,32 @@ Zapis sesji z planu tworzy po jednym wpisie dla każdego ćwiczenia celu z `asse
 | `schemaVersion` | `1` | |
 | `weekStart` | poniedziałek `YYYY-MM-DD` | Równy ID dokumentu |
 | `items` | lista `WeekPlanItem`, ≤ 14 | |
+| `editedAfterWeekEnd` | boolean | Trwałe oznaczenie zapisu zakończonego tygodnia |
 | `createdAt`, `updatedAt` | chwila | |
 
 `WeekPlanItem` to jedno z dwóch:
 - `{ id, kind: 'plan', workoutPlanId, planNameSnapshot }`: plan z aplikacji;
 - `{ id, kind: 'category', category }`: trening spoza aplikacji wybrany po rodzaju, np. sparing w klubie (decyzja z 8.11).
 
-Dopasowanie liczymy w `src/domain`, nie zapisujemy go:
-1. Bierzemy wpisy z tygodnia (po `workoutDate`, poniedziałek–niedziela) w kolejności chronologicznej.
-2. Wpis zalicza wolną pozycję z tym samym planem. Gdy jej nie ma, zalicza wolną pozycję z tym samym rodzajem. Gdy jej też nie ma, jest „dodatkowy”.
-3. Pozycja jest ukończona, częściowa albo niewykonana, zależnie od statusu wpisu, który ją zaliczył.
-4. Pasek celu pokazuje zaliczone pozycje wobec zaplanowanych i nigdy nie przekracza 100%. Dodatkowe treningi pokazujemy osobno (R3).
+Dokument ma też wymagane `editedAfterWeekEnd: boolean`. Przy świadomym zapisie zakończonego tygodnia aplikacja ustawia `true` i później go nie zeruje. UI pokazuje wtedy „Plan zmieniony po zakończeniu tygodnia”. Nowy bieżący lub przyszły plan zaczyna z `false`; kopiowanie nie przenosi flagi źródła. Dopisanie lub poprawienie sesji nie zmienia flagi. Przy edycji zachowujemy `createdAt`, a zmieniamy `updatedAt`. Flaga jest trwała, więc zmiana strefy urządzenia nie usuwa oznaczenia.
+
+Lista zawiera 0–14 pozycji z unikalnymi ID. Ten sam plan można wybrać wielokrotnie. Schemat `zod/mini` sprawdza rzeczywistą datę poniedziałku, oba dokładne warianty pozycji, kategorie i identyfikatory zgodne z modelami planu/sesji. Reguły sprawdzają wymagane i dozwolone pola dokumentu, wersję, format daty oraz zgodność z ID ścieżki, znaczniki czasu, flagę i typ/limit listy; nie sprawdzają rzeczywistego dnia tygodnia ani elementów listy. Przy aktualizacji chronią `createdAt` i ustawioną flagę.
+
+Dopasowanie liczymy czysto w `src/domain`, bez zmieniania sesji ani planu:
+1. Wybieramy wpisy po utrwalonym `workoutDate` (poniedziałek–niedziela). Nie odtwarzamy dnia z UTC ani ze strefy urządzenia.
+2. Ukończone sesje `plan` przypisujemy do wolnych pozycji o identycznym `workoutPlanId`.
+3. Pozostałe ukończone sesje dowolnego źródła przypisujemy do wolnych pozycji rodzaju z identyczną `category`.
+4. Następnie analogicznie przypisujemy częściowe: najpierw dokładny plan, potem rodzaj.
+5. Każda sesja i pozycja uczestniczy najwyżej w jednym dopasowaniu. W każdej fazie kolejność to `workoutDate`, `startedAt` (sesje czasowe) lub `createdAt` (ręczne), następnie `id`; identyczne pozycje zachowują kolejność listy.
+6. Pasek to **wyłącznie ukończone / zaplanowane**, najwyżej 100%. Częściowe, niewykonane i dodatkowe mają osobne liczniki. Pozostałe sesje są dodatkowe tylko przy istniejącym celu. Brak dokumentu lub `items: []` oznacza brak celu: liczba treningów i możliwość ułożenia planu, bez paska i „dodatkowych”. Loading, błąd, niepoprawne lub niepełne dane nie oznaczają braku celu ani zera sesji.
+
+`mixed` nie jest dowolnym rodzajem, a podobna nazwa nie zastępuje ID planu. `planNameSnapshot` zachowuje historię po zmianie lub usunięciu planu treningowego. Niedostępny plan pozostaje na liście do świadomego usunięcia lub zastąpienia. Edycja celu (także pustej listy) nie usuwa sesji; realizacja przelicza się względem aktualnej listy.
+
+Nie ma automatycznego przenoszenia. Kopiowanie wybranych pozycji lub całej listy z poprzedniego tygodnia obejmuje także ukończone cele; nadaje nowe ID, dopisuje do szkicu celu i wymaga zapisu. Nie kopiuje sesji, statusów ani flagi, nie zmienia źródła. Przekroczenie 14 blokuje całą operację.
+
+Home pokazuje zwięzły cel, a „Postęp” prowadzi do leniwie ładowanych szczegółów z wyborem tygodnia i edycją. Jeden nasłuch na konto obejmuje bieżący i 12 poprzednich tygodni oraz przyszłość (`weekStart >=` dolna granica). Po zmianie tygodnia lub powrocie z tła granica odświeża się bez przeładowania; starszych dokumentów nie usuwamy. Tydzień spoza zakresu nie jest prezentowany jako pusty. Niepełny cache bez dokumentu blokuje tworzenie planu; poprawny dokument z cache można edytować offline. Liczniki sesji wymagają pełnego, poprawnego odczytu; błąd ćwiczeń celu nie blokuje niezależnego celu tygodnia.
+
+Zapis potwierdza lokalny snapshot i pokazuje „Czeka na wysłanie” do potwierdzenia serwera. Późniejsze odrzucenie pokazuje błąd i wymaga ponowienia odczytu, zamiast pozostawiać komunikat sukcesu. Zmiana konta i wylogowanie zamykają nasłuch oraz czyszczą jego dane; cel nie trafia do globalnego `localStorage`.
 
 ## `readiness` (gotowość, Q3)
 
@@ -255,7 +270,7 @@ Stare klucze `localStorage` z planami i sesjami aplikacja usuwa raz, po przejśc
 | Kolekcja | Co słuchamy przez `onSnapshot` |
 | --- | --- |
 | `workoutPlans`, `workoutSessions`, `focusSkills`, `bodyWeights`, `controlTests`, `controlTestResults` | całą kolekcję; sortowanie w `src/domain` |
-| `weekPlans` | ostatnie 13 tygodni (`weekStart >=`) |
+| `weekPlans` | bieżący i 12 poprzednich tygodni oraz wszystkie przyszłe plany (`weekStart >=` dolna granica) |
 | `readiness` | ostatnie 28 dni (`date >=`) |
 | `users/{uid}` | dokument |
 

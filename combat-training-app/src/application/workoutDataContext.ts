@@ -7,8 +7,15 @@ import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { FocusSkillRepository } from './focus-skill/focusSkillRepository'
+import type { WeekPlanRepository } from './week-plan/weekPlanRepository'
+import type { WeekPlanCollectionState } from './week-plan/useWeekPlanCollection'
 
 export interface WorkoutData {
+  weekPlans: WeekPlanCollectionState
+  currentWeek: string
+  weekPlanRepository: WeekPlanRepository
+  retryWeekPlans: () => void
+  retrySessions: () => void
   plans: CollectionState<WorkoutPlan>
   sessions: CollectionState<WorkoutSession>
   focusSkills: CollectionState<FocusSkill>

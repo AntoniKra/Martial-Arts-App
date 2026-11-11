@@ -2,6 +2,7 @@ import { expect, type APIRequestContext } from '@playwright/test'
 import type { WorkoutPlan } from '../src/domain/workout/workout.types'
 import type { WorkoutSession } from '../src/domain/workout-session/workoutSession.types'
 import type { FocusSkill } from '../src/domain/focus-skill/focusSkill.types'
+import type { WeekPlan } from '../src/domain/week-plan/weekPlan.types'
 
 // Fixed local demo endpoint. Test inspection/seeding bypasses rules; app writes always use its verified identity.
 const root = 'http://127.0.0.1:8080/v1/projects/demo-combat-training/databases/(default)/documents'
@@ -62,4 +63,30 @@ export async function readPlans(request: APIRequestContext, uid: string): Promis
   expect(response.ok()).toBe(true)
   const body = await response.json() as { documents?: { fields: Record<string, Value> }[] }
   return (body.documents ?? []).map((document) => decode({ mapValue: { fields: document.fields } }) as WorkoutPlan)
+}
+
+export async function seedWeekPlan(request: APIRequestContext, uid: string, plan: WeekPlan) {
+  const response = await request.patch(`${root}/users/${uid}/weekPlans/${plan.weekStart}`, {
+    headers: { Authorization: 'Bearer owner' }, data: encode({ ...plan, schemaVersion: 1 }).mapValue,
+  })
+  expect(response.ok()).toBe(true)
+}
+
+export async function seedInvalidWeekPlan(request: APIRequestContext, uid: string, weekStart: string) {
+  const response = await request.patch(`${root}/users/${uid}/weekPlans/${weekStart}`, {
+    headers: { Authorization: 'Bearer owner' }, data: encode({ schemaVersion: 2, weekStart, items: 'invalid' }).mapValue,
+  })
+  expect(response.ok()).toBe(true)
+}
+
+export async function readWeekPlans(request: APIRequestContext, uid: string): Promise<WeekPlan[]> {
+  const response = await request.get(`${root}/users/${uid}/weekPlans`, { headers: { Authorization: 'Bearer owner' } })
+  expect(response.ok()).toBe(true)
+  const body = await response.json() as { documents?: { fields: Record<string, Value> }[] }
+  return (body.documents ?? []).map((document) => decode({ mapValue: { fields: document.fields } }) as WeekPlan)
+}
+
+export async function removeWorkoutDocument(request: APIRequestContext, uid: string, collection: 'workoutPlans' | 'workoutSessions', id: string) {
+  const response = await request.delete(`${root}/users/${uid}/${collection}/${id}`, { headers: { Authorization: 'Bearer owner' } })
+  expect(response.ok()).toBe(true)
 }

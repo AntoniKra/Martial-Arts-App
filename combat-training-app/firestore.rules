@@ -92,6 +92,19 @@ service cloud.firestore {
       ];
     }
 
+    function isWeekPlan(data, documentId) {
+      return hasExactKeys(data, [
+          'schemaVersion', 'weekStart', 'items', 'createdAt', 'updatedAt', 'editedAfterWeekEnd'
+        ])
+        && data.schemaVersion is int && data.schemaVersion == 1
+        && data.weekStart is string && data.weekStart == documentId
+        && data.weekStart.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && isInstant(data.createdAt) && isInstant(data.updatedAt)
+        && data.editedAfterWeekEnd is bool
+        // Actual Monday, unique item IDs and item variants are checked by zod/mini.
+        && data.items is list && data.items.size() <= 14;
+    }
+
     function isCompletion(value, unit) {
       return value is map
         && hasExactKeys(value, ['completed', 'planned', 'unit'])
@@ -164,6 +177,14 @@ service cloud.firestore {
       allow read, delete: if isVerifiedOwner(uid);
       allow create, update: if isVerifiedOwner(uid)
         && isFocusSkill(request.resource.data, documentId);
+    }
+
+    match /users/{uid}/weekPlans/{documentId} {
+      allow read, delete: if isVerifiedOwner(uid);
+      allow create: if isVerifiedOwner(uid) && isWeekPlan(request.resource.data, documentId);
+      allow update: if isVerifiedOwner(uid) && isWeekPlan(request.resource.data, documentId)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (resource.data.editedAfterWeekEnd != true || request.resource.data.editedAfterWeekEnd == true);
     }
 
     // All other documents and subcollections are denied by default.

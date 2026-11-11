@@ -90,9 +90,17 @@ Jedno pole tekstowe (do 1000 znaków) z podpowiedziami: co zadziałało, jaki b�
 
 ## Podsumowanie tygodnia (Q5, R3)
 
+Zaimplementowany moduł R3 to lista celów na tydzień bez przypisywania dni: konkretne plany (także powtórzone) lub rodzaje treningu. Home pokazuje skrót, a „Postęp” szczegóły, wybór tygodnia, edycję i świadome kopiowanie wybranych lub wszystkich pozycji poprzedniego planu, także ukończonych. Kopia ma nowe ID i nie przenosi sesji ani statusów; niewykonane pozycje nie przechodzą automatycznie. Limit to 14 pozycji. Można zmienić dawny cel; trwała flaga `editedAfterWeekEnd` daje oznaczenie „Plan zmieniony po zakończeniu tygodnia”.
+
+Pasek R3 pokazuje **tylko ukończone pozycje**: dwa ukończone i jeden częściowy przy celu trzech dają 2 z 3. Najpierw dopasowujemy ukończone sesje do dokładnych planów, potem pozostałe ukończone do rodzaju. Dopiero potem częściowe: dokładny plan, następnie rodzaj. W fazach porządek to `workoutDate`, `startedAt` lub `createdAt` dla ręcznych, następnie `id`; pozycje zachowują kolejność listy. Sesja zalicza najwyżej jedną pozycję. Ukończony w piątek ma pierwszeństwo przed częściowym we wtorek; wtorkowy staje się dodatkowy. Kategorie muszą być identyczne (`mixed` nie jest dowolnym rodzajem), ID planu nie zastępujemy nazwą. Szczegóły modelu: `database-model.md`.
+
+Ukończone, częściowe, niewykonane i dodatkowe mają osobne liczniki; pasek nie przekracza 100%. Bez ustalonego celu (brak dokumentu lub pusta lista po poprawnym odczycie) pokazujemy liczbę treningów i ułożenie planu, bez paska i „dodatkowych”. Dane niepełne, loading i błąd nie są zerem. Liczenie opiera się wyłącznie na zapisanym `workoutDate`, bez przesuwania historii przy zmianie strefy. Edycja celu przelicza dotychczasowe sesje, nie zmieniając dziennika.
+
+Pełne podsumowanie Q5 poniżej pozostaje osobnym zakresem: moduł celów nie dodaje wykresu tygodniowego, RPE/obciążenia ani pełnych statystyk tygodnia.
+
 Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 
-- **plan tygodnia, czyli cel:** np. „zaplanowane 3: ukończone 2, częściowe 1, dodatkowe 1”, z paskiem, który nigdy nie przekracza 100%;
+- **plan tygodnia, czyli cel:** np. „zaplanowane 3: ukończone 2, częściowe 1, niewykonane 0, dodatkowe 1”, z paskiem 2 z 3, najwyżej 100%;
 - liczbę treningów;
 - czas treningu, pracy i sparingu;
 - sumę obciążenia, obok czas i RPE;

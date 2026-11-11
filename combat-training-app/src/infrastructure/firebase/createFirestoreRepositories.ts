@@ -6,6 +6,7 @@ import { readFirebaseConfig } from './firebaseConfig'
 import { FirestoreWorkoutRepository } from './firestoreWorkoutRepository'
 import { workoutPlanDocumentSchema, workoutSessionDocumentSchema } from './workoutDocumentSchemas'
 import { focusSkillDocumentSchema } from './focusSkillDocumentSchema'
+import { FirestoreWeekPlanRepository } from './firestoreWeekPlanRepository'
 import { detachFocusSkill, hasFocusSkillEntries, selectFocusSkillPlans } from '@/domain/focus-skill/focusSkillProgress'
 
 let database: Firestore | undefined
@@ -61,6 +62,7 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     return skill
   })
   const db = database
+  const weekPlans = new FirestoreWeekPlanRepository(db, uid)
   async function changeFocusSkill(id: string, updatedAt: string, action: 'archive' | 'delete' | 'restore') {
     if (!focusSkills.getItems().some((skill) => skill.id === id)) throw new Error('Focus skill no longer available')
     if (action === 'delete' && hasFocusSkillEntries(id, sessions.getItems())) throw new Error('Focus skill has session entries')
@@ -90,6 +92,15 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     if (!(await Promise.all(localWrites)).every(Boolean)) throw new Error('Focus skill change was not applied')
   }
   return {
+    weekPlans: {
+      subscribe: (currentWeek, onChange, onError) => {
+        const unsubscribe = weekPlans.subscribe(currentWeek, onChange, onError)
+        const stop = () => { if (subscriptions.delete(stop)) unsubscribe() }
+        subscriptions.add(stop)
+        return stop
+      },
+      save: weekPlans.save.bind(weekPlans),
+    },
     plans: {
       subscribe: trackedSubscribe(plans), save: plans.save.bind(plans),
       delete: async (id) => { await plans.delete(id) },

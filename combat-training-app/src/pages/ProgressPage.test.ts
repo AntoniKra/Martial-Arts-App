@@ -6,6 +6,8 @@ import { Component } from './ProgressPage'
 
 vi.mock('@/application/workoutDataContext', () => ({
   useWorkoutData: () => ({
+    currentWeek: '2026-11-09',
+    weekPlans: { status: 'ready', items: [], complete: true, rangeStart: '2026-08-17', pendingIds: new Set(), invalidDocumentIds: [] },
     focusSkills: { status: 'ready', items: [{ id: 'guard', name: 'Guard', criterion: 'Chin',
       archivedAt: '2026-11-10T10:00:00.000Z' }], pendingIds: new Set(), invalidDocumentIds: [], hasPendingWrites: false },
     sessions: { status: 'ready', items: [], invalidDocumentIds: [] },

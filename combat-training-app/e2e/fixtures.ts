@@ -4,6 +4,8 @@ import { seedPlan, readSessions, seedFocusSkill, readFocusSkills, seedSession, r
 import type { WorkoutPlan } from '../src/domain/workout/workout.types'
 import type { FocusSkill } from '../src/domain/focus-skill/focusSkill.types'
 import type { WorkoutSession } from '../src/domain/workout-session/workoutSession.types'
+import type { WeekPlan } from '../src/domain/week-plan/weekPlan.types'
+import { seedWeekPlan, seedInvalidWeekPlan, readWeekPlans, removeWorkoutDocument } from './firestoreEmulator'
 
 class WorkoutApp {
   private authenticated = false
@@ -55,6 +57,10 @@ class WorkoutApp {
   async readFocusSkills() { return readFocusSkills(this.page.request, this.uid) }
   async seedSession(session: WorkoutSession) { await seedSession(this.page.request, this.uid, session) }
   async readPlans() { return readPlans(this.page.request, this.uid) }
+  async seedWeekPlan(plan: WeekPlan) { await seedWeekPlan(this.page.request, this.uid, plan) }
+  async seedInvalidWeekPlan(weekStart: string) { await seedInvalidWeekPlan(this.page.request, this.uid, weekStart) }
+  async readWeekPlans() { return readWeekPlans(this.page.request, this.uid) }
+  async removeWorkoutDocument(collection: 'workoutPlans' | 'workoutSessions', id: string) { await removeWorkoutDocument(this.page.request, this.uid, collection, id) }
 
   async createPlan(name = 'Plan E2E', roundDurationLabel: '1:00' | '3:00' = '1:00') {
     const { page } = this
