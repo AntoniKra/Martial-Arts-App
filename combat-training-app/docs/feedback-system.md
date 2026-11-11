@@ -96,7 +96,9 @@ Pasek R3 pokazuje **tylko ukończone pozycje**: dwa ukończone i jeden częścio
 
 Ukończone, częściowe, niewykonane i dodatkowe mają osobne liczniki; pasek nie przekracza 100%. Bez ustalonego celu (brak dokumentu lub pusta lista po poprawnym odczycie) pokazujemy liczbę treningów i ułożenie planu, bez paska i „dodatkowych”. Dane niepełne, loading i błąd nie są zerem. Liczenie opiera się wyłącznie na zapisanym `workoutDate`, bez przesuwania historii przy zmianie strefy. Edycja celu przelicza dotychczasowe sesje, nie zmieniając dziennika.
 
-Pełne podsumowanie Q5 poniżej pozostaje osobnym zakresem: moduł celów nie dodaje wykresu tygodniowego, RPE/obciążenia ani pełnych statystyk tygodnia.
+Wdrożony **Q5 etap 1**: na ekranie wybranego tygodnia, także podczas edycji celu, podsumowanie treningów z dziennika pokazuje liczbę wszystkich, ukończonych i częściowych sesji, sumę czasu treningu, czas pracy i sparingu z pokryciem danych oraz „RPE w X z Y treningów” (0 jest oceną). Liczymy zapisany `workoutDate` od poniedziałku do niedzieli, niezależnie od celu. Nieznane czasy nie są zerami; niepełna lub błędna historia blokuje sumy, a lokalne zapisy zachowują oznaczenie oczekiwania na wysłanie.
+
+Dalszy zakres Q5 poniżej pozostaje niezrealizowany: wykres tygodniowy, obciążenie, twarde rundy, kompletność ocen ćwiczeń celu i porównania. Etap 1 nie oznacza ukończenia całego Q5.
 
 Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 
