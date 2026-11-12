@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
+import { manualWorkoutSession } from '@/test/manualWorkoutBuilder'
 
 const sdk = vi.hoisted(() => ({
   listeners: new Map<string, (value: unknown) => void>(),
-  update: vi.fn(), updateDoc: vi.fn<() => Promise<void>>(() => new Promise(() => {})), commit: vi.fn<() => Promise<void>>(() => new Promise(() => {})),
+  set: vi.fn(), update: vi.fn(), updateDoc: vi.fn<() => Promise<void>>(() => new Promise(() => {})), commit: vi.fn<() => Promise<void>>(() => new Promise(() => {})),
 }))
 vi.mock('firebase/app', () => ({ getApp: () => 'app' }))
 vi.mock('./firebaseConfig', () => ({ readFirebaseConfig: () => ({ projectId: 'demo-combat-training', firestoreEmulatorHost: '127.0.0.1:8080' }) }))
@@ -14,7 +15,7 @@ vi.mock('firebase/firestore', () => ({
   doc: (path: string, id: string) => `${path}/${id}`,
   onSnapshot: (path: string, _options: unknown, change: (value: unknown) => void) => { sdk.listeners.set(path, change); return () => sdk.listeners.delete(path) },
   setDoc: vi.fn(), updateDoc: sdk.updateDoc, deleteDoc: vi.fn(),
-  writeBatch: () => ({ update: sdk.update, commit: sdk.commit }),
+  writeBatch: () => ({ set: sdk.set, update: sdk.update, commit: sdk.commit }),
 }))
 import { createFirestoreRepositories, clearFirestoreCache } from './createFirestoreRepositories'
 
@@ -28,6 +29,24 @@ function emit<T extends { id: string }>(collection: string, items: T[], pending 
 afterEach(async () => { await clearFirestoreCache(); vi.clearAllMocks() })
 
 describe('workout feedback repository', () => {
+  it('creates a manual entry and closes a correction in one batch, waiting only for both local snapshots', async () => {
+    const repositories = createFirestoreRepositories('athlete')
+    repositories.sessions.subscribe(vi.fn(), vi.fn())
+    repositories.focusSkills.subscribe(vi.fn(), vi.fn())
+    emit('workoutSessions', [])
+    const skill = { id: 'guard', name: 'Guard', criterion: 'Chin', openCorrection: null, archivedAt: null, createdAt: instant, updatedAt: instant }
+    emit('focusSkills', [skill])
+    const entry = manualWorkoutSession()
+    const saved = repositories.sessions.saveManual(entry, [{ focusSkillId: skill.id, openCorrection: null }])
+    expect(sdk.set).toHaveBeenCalledWith('users/athlete/workoutSessions/manual', { ...entry, schemaVersion: 1 })
+    expect(sdk.commit).toHaveBeenCalledOnce()
+    emit('workoutSessions', [entry], true)
+    emit('focusSkills', [{ ...skill, updatedAt: entry.updatedAt }], true)
+    await expect(saved).resolves.toBeUndefined()
+    await expect(repositories.sessions.saveManual(entry, [{ focusSkillId: skill.id,
+      openCorrection: { problem: '', fix: 'Fix', sessionId: entry.id, workoutDate: entry.workoutDate } }])).rejects.toThrow()
+    expect(sdk.commit).toHaveBeenCalledOnce()
+  })
   it('saves RPE and the response time locally before server confirmation without overwriting feedback', async () => {
     const { sessions } = createFirestoreRepositories('athlete')
     const changed = vi.fn()

@@ -82,10 +82,10 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
     })
   }
 
-  async save(value: T): Promise<void> {
+  async save(value: T, action?: () => Promise<void>): Promise<void> {
     const item = this.parse({ ...value, schemaVersion: 1 })
     const expected = JSON.stringify(item)
-    await this.write(() => setDoc(doc(this.path, item.id), { ...item, schemaVersion: 1 }),
+    await this.write(action ?? (() => setDoc(doc(this.path, item.id), { ...item, schemaVersion: 1 })),
       (items) => JSON.stringify(items.get(item.id)) === expected)
   }
 

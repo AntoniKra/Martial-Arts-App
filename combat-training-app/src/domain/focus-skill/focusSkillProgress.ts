@@ -2,7 +2,8 @@ import type { WorkoutBlockType, WorkoutPlan } from '@/domain/workout/workout.typ
 import type { FocusRating, WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { FocusSkill } from './focusSkill.types'
 
-export interface FocusSkillAssessment extends Omit<FocusRating, 'assessment'> {
+export interface FocusSkillAssessment extends Omit<FocusRating, 'assessment' | 'workoutItemId'> {
+  workoutItemId: string | null
   assessment: number | 'unableToRate'
   sessionId: string
   workoutDate: string
@@ -12,12 +13,13 @@ export interface FocusSkillAssessment extends Omit<FocusRating, 'assessment'> {
 
 /** Oldest first, with stable ordering for multiple occurrences on the same day. */
 export function selectFocusSkillAssessments(skill: FocusSkill, sessions: readonly WorkoutSession[]): FocusSkillAssessment[] {
-  return sessions.filter((session) => session.source === 'plan')
-    .sort((a, b) => a.workoutDate.localeCompare(b.workoutDate) || a.startedAt.localeCompare(b.startedAt) || a.id.localeCompare(b.id))
+  return sessions.filter((session) => session.source !== 'quickTimer')
+    .sort((a, b) => a.workoutDate.localeCompare(b.workoutDate)
+      || (a.source === 'manual' ? a.createdAt : a.startedAt).localeCompare(b.source === 'manual' ? b.createdAt : b.startedAt) || a.id.localeCompare(b.id))
     .flatMap((session) => session.focusRatings.flatMap((rating) =>
       rating.focusSkillId === skill.id && rating.assessment !== null ? [{ ...rating,
         assessment: rating.assessment, sessionId: session.id, workoutDate: session.workoutDate,
-        planName: session.workoutPlanNameSnapshot, currentCriterion: rating.criterionSnapshot === skill.criterion,
+        planName: session.source === 'plan' ? session.workoutPlanNameSnapshot : 'Trening poza aplikacją', currentCriterion: rating.criterionSnapshot === skill.criterion,
       }] : []))
 }
 
@@ -56,7 +58,7 @@ export function selectFocusSkillChart(assessments: readonly FocusSkillAssessment
 }
 
 export function hasFocusSkillEntries(id: string, sessions: readonly WorkoutSession[]): boolean {
-  return sessions.some((session) => session.source === 'plan' && session.focusRatings.some((rating) => rating.focusSkillId === id))
+  return sessions.some((session) => session.source !== 'quickTimer' && session.focusRatings.some((rating) => rating.focusSkillId === id))
 }
 
 export function selectFocusSkillPlans(id: string, plans: readonly WorkoutPlan[]): WorkoutPlan[] {

@@ -11,7 +11,7 @@ describe('deferred workout repositories', () => {
     const unsubscribe = repositories.plans.subscribe(() => {}, () => {})
     unsubscribe()
     connect({ weekPlans: { subscribe, save: async () => {} }, plans: { subscribe, save: async () => {}, delete: async () => {} },
-      sessions: { subscribe, save: async () => {}, delete: async () => true, updateNote: async () => true, saveFeedback: async () => true, saveRpe: async () => true },
+      sessions: { subscribe, save: async () => {}, saveManual: async () => {}, delete: async () => true, updateNote: async () => true, saveFeedback: async () => true, saveRpe: async () => true },
       focusSkills: { subscribe, save: async () => {}, archive: async () => {}, deleteUnused: async () => {}, restore: async () => {} } })
     await ready
     expect(subscriptions).toBe(0)
