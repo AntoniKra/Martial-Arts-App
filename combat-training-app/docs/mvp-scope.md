@@ -12,7 +12,7 @@ Dokument nadrzędny to `thesis-card.md`. Wiąże temat pracy, a technologie i li
 - **Plany treningowe:** kreator, podgląd, zapis, edycja i usuwanie planu oraz odtwarzacz z okrągłym timerem. W planie do 3 ćwiczeń celu (Q1).
 - **Cele treningowe:** plan tygodnia z paskiem postępu. Pozycja to plan z aplikacji albo rodzaj treningu spoza aplikacji, np. sparing w klubie (R3, decyzja z 8.11). To moduł celów z karty pracy.
 - **Po treningu** (`feedback-system.md`): ocena ćwiczeń celu według kryterium z opisaną skalą 1–5 (R1), notatka „problem i poprawka” ze sprawdzeniem na kolejnym treningu (R2), ocena pozostałych ćwiczeń opcjonalnie, RPE po 10 minutach wyciszenia z przypomnieniem w aplikacji (Q2), intensywność sparingu i twarde rundy (Q4), notatka.
-- **Analiza:** podsumowanie tygodnia z kompletnością danych i wykres 8–12 tygodni (Q5), porównanie z poprzednim wykonaniem tego samego planu, trend ćwiczeń celu.
+- **Analiza:** podsumowanie tygodnia z kompletnością danych i wykres 12 tygodni (Q5): liczba treningów z przełącznikiem „Minuty”, własny SVG (`adr/0011-weekly-chart-svg.md`); porównanie z poprzednim wykonaniem tego samego planu, trend ćwiczeń celu.
 - **Gotowość przed treningiem:** 4 pytania 1–5, domyślnie wyłączona, włączana zgodą na dane o zdrowiu (Q3).
 - **Testy kontrolne:** test własny, burpees 3 min, KAST dla kickboxingu i K-1, z paszportem warunków (R4).
 - **Profil zawodnika:** historia wagi (za tą samą zgodą co gotowość) i statystyki z dziennika.
@@ -60,7 +60,6 @@ Funkcje społecznościowe, funkcje AI, integracje ze smartwatchami, komunikaty g
 
 ## Otwarte decyzje
 
-- Biblioteka wykresów i miary na wykresie 8–12 tygodni: przy projekcie ekranu podsumowania, z ADR.
 - Opisy stopni skali gotowości: w issue gotowości.
 - Rodzaj treningu w szybkim stoperze: w issue stopera.
 - Pytanie o trwałe przechowywanie w Firefoksie: zostaje po zalogowaniu albo przechodzi po pierwszym zapisanym treningu.
