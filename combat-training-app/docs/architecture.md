@@ -7,6 +7,7 @@ Kod jest organizowany według funkcji domenowych. Nie tworzymy jednego katalogu 
 ```text
 src/
 ├── app/                 konfiguracja, router, providery
+├── application/         interfejsy repozytoriów i usług, konteksty danych
 ├── components/          współdzielone UI i layout
 ├── domain/              stabilne typy i czyste obliczenia
 ├── features/            moduły funkcjonalne
@@ -21,11 +22,24 @@ src/
 - komponent UI nie wywołuje Firebase;
 - logika czasu i średnich nie znajduje się w JSX;
 - typy domenowe nie zależą od Reacta;
-- infrastruktura implementuje interfejsy repozytoriów;
+- infrastruktura implementuje interfejsy repozytoriów i usług z `src/application`;
 - mocki i seed nie są źródłem prawdy po podłączeniu bazy;
 - kod prototypu Figmy nie definiuje architektury produkcyjnej.
 
 Wspólne typy odtwarzania, czysta funkcja `createWorkoutPlaybackTimeline` oraz neutralne wartości przygotowania (5/10/15/30 s, domyślnie 10 s) znajdują się w `src/domain/workout-playback/`. Warstwy application i infrastructure importują je bezpośrednio z domeny. Etykiety opcji przygotowania i stan ładowania strony pozostają w `features/workout-player`.
+
+Warstwa `src/application/` definiuje interfejsy repozytoriów planów, sesji, ćwiczeń celu, planów tygodnia i aktywnego treningu oraz usług uwierzytelniania, gongu i Wake Lock. Zawiera też konteksty `WorkoutDataContext` i `WorkoutGongContext` oraz hooki subskrypcji danych.
+
+### Znany dług techniczny
+
+Granica między funkcjami a infrastrukturą nie jest wszędzie zachowana. Bezpośrednie importy z `src/infrastructure/` występują w:
+
+- `features/workout-details/components/WorkoutPlanDetailsView.tsx` i `features/workout-player/components/WorkoutPlayerView.tsx`: pamięć ustawienia przygotowania;
+- `features/workout-player/ActiveWorkoutGate.tsx`: lokalny zapis aktywnego treningu;
+- `features/home/components/RpeReminder.tsx` i `features/workout-feedback/WorkoutRpeSummary.tsx`: pamięć odłożenia przypomnienia RPE;
+- `features/workout-player/hooks/useWorkoutScreenWakeLock.ts`: implementacja przeglądarkowego Wake Lock.
+
+Ponadto `features/theme/themeStorage.ts` czyta i zapisuje motyw bezpośrednio w `localStorage`. To opis istniejących odstępstw od docelowej architektury; ich usunięcie wymaga osobnego zadania.
 
 ## Stan
 
@@ -36,16 +50,21 @@ Wspólne typy odtwarzania, czysta funkcja `createWorkoutPlaybackTimeline` oraz n
 - aktywny timer: osobny moduł stanów, nie ogólny globalny store;
 - szkic lokalny: storage adapter.
 
+## Istniejące moduły
+
+- `features/focus-skills`: tworzenie, edycja i wybór ćwiczeń celu z kryterium w kreatorze planu;
+- `features/progress`: lista ćwiczeń celu i wykresy ich ocen na ekranach `ProgressPage` i `FocusSkillProgressPage`;
+- `features/week-plan`: edycja planu tygodnia i prezentacja jego realizacji; szczegóły pokazuje `WeekPlanPage`;
+- `features/weekly-summary`: podsumowanie liczby treningów, czasu treningu, pracy i sparingu, obciążenia z RPE oraz wykres tygodni na ekranie `WeekPlanPage`.
+
 ## Rozbudowa
 
 Nowe moduły przyszłe trafiają do `features`, np.:
 
-- `focus-skills` (ćwiczenia celu);
-- `week-plan` (plan tygodnia, czyli cele);
 - `readiness`;
 - `athlete-profile` (waga i statystyki);
 - `control-tests`;
-- `analytics` (podsumowanie tygodnia i trendy);
+- `analytics` (dalsze analizy);
 - `strength-training` i `combination-builder` w kierunkach rozwoju.
 
 Nie dodawaj pustych abstrakcji wyłącznie „na przyszłość”. Model ma nie blokować rozbudowy, ale implementujemy tylko potrzebne interfejsy.

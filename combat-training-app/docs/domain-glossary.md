@@ -16,7 +16,7 @@
 | tryb rundowy | `rounds` |
 | tryb ciągły | `continuous` |
 | tryb siłowy | `strength` |
-| ocena wykonania | `executionRating` |
+| ocena wykonania pozostałych ćwiczeń | `exerciseRatings[].rating` (1–5, w sesji z planu) |
 | główny cel | `mainGoal` |
 | realizacja celu | `goalCompletionRating` |
 | odczuwany postęp | `perceivedProgress` |

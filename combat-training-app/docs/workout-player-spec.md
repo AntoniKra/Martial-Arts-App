@@ -43,9 +43,11 @@ Przykład:
 - „Jab → prawy prosty → low kick”;
 - „Start za 01:24”.
 
-## Ocena na gorąco
+## Oceny po treningu
 
-Podczas przerwy po ćwiczeniu widoczny jest opcjonalny przycisk „Oceń”. Skala pojawia się dopiero po kliknięciu. Timer nie zatrzymuje się. Brak reakcji przekłada ocenę na koniec treningu.
+Oceny ćwiczeń są zbierane po treningu na ekranie podsumowania (decyzja P1 z issue #72). W odtwarzaczu, także podczas przerwy, nie ma przycisku „Oceń”. Po ukończeniu albo wcześniejszym zakończeniu treningu z wykonaną pracą aplikacja zapisuje sesję, a następnie otwiera `/workout-sessions/:sessionId/feedback`.
+
+Podsumowanie pokazuje ćwiczenia celu z kryterium i skalą 1–5 lub opcją „Nie umiem ocenić”. Pozostałe ćwiczenia można opcjonalnie ocenić w rozwijanej sekcji „Oceń pozostałe ćwiczenia”; oceny trafiają do `exerciseRatings[].rating`. Oceniać można ćwiczenia z co najmniej jednym ukończonym etapem pracy. „Gotowe” dopisuje oceny i notatkę do istniejącej sesji, po czym otwiera Historię. Do podsumowania można wrócić z wpisu w Historii.
 
 ## Gong i ekran
 
@@ -62,7 +64,7 @@ Decyzje właściciela i techniczne z 8 listopada 2026, issue #65 (Q8):
 - Krótka przerwa nie zatrzymuje zegara. Przykład: w rundzie 2 z 3 zostało 1:20; po zamknięciu aplikacji na 40 s zostaje 0:40. Odtwarzacz nadrabia także kolejne etapy, według ich terminów końcowych. Nie odtwarza gongów z czasu nieobecności.
 - Pauza zachowuje dokładny pozostały czas w milisekundach. Przygotowanie zachowuje swój termin końcowy; jego upływ rozpoczyna sesję w oryginalnym terminie, bez doliczania przygotowania do pracy ani czasu treningu.
 - Długa przerwa oznacza, że podczas nieobecności skończyłby się cały plan albo od ostatniej aktywności minęło ponad 12 h, także podczas pauzy. Wtedy modalne okno „Niedokończony trening” pokazuje nazwę planu, datę i godzinę ostatniej aktywności oraz dwa przyciski: „Zapisz to, co zrobione” i „Porzuć”.
-- „Zapisz to, co zrobione” tworzy wpis `partial`, liczony wyłącznie do `lastSeenAt`, i otwiera Historię. Praca po tej chwili nie jest doliczana. Dokończone rundy, pominięcia i powtórzone próby zachowują zasady ADR 0005. Bez żadnej dokończonej pracy zapis jest kasowany bez pytania. „Porzuć” kasuje zapis i otwiera ekran główny.
+- „Zapisz to, co zrobione” tworzy wpis `partial`, liczony wyłącznie do `lastSeenAt`, i otwiera podsumowanie treningu (`/workout-sessions/:sessionId/feedback`), gdzie można uzupełnić oceny. Praca po tej chwili nie jest doliczana. Dokończone rundy, pominięcia i powtórzone próby zachowują zasady ADR 0005. Bez żadnej dokończonej pracy zapis jest kasowany bez pytania. „Porzuć” kasuje zapis i otwiera ekran główny.
 
 ### Zapis lokalny
 

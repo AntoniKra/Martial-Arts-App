@@ -1,6 +1,6 @@
 # Model danych w Firestore
 
-Stan: 8 listopada 2026. Decyzje: `adr/0008-firestore-document-model.md` (ten model), `adr/0007-firestore-reads-with-onsnapshot.md` (pobieranie danych), `adr/0005-journal-entry-definitions.md` (wpis w dzienniku). Funkcje i oceny opisuje `feedback-system.md`.
+Stan: 12 listopada 2026. Decyzje: `adr/0008-firestore-document-model.md` (ten model), `adr/0007-firestore-reads-with-onsnapshot.md` (pobieranie danych), `adr/0005-journal-entry-definitions.md` (wpis w dzienniku). Funkcje i oceny opisuje `feedback-system.md`.
 
 Model zastępuje lokalny storage. Dane z `localStorage` to dane pokazowe: nie importujemy ich, Firestore zaczyna od zera (decyzja D2). Opis dawnego storage v1–v3 jest w historii Gita i w `domain-model.md`.
 
@@ -8,7 +8,7 @@ Model zastępuje lokalny storage. Dane z `localStorage` to dane pokazowe: nie im
 
 - **Wszystko pod `users/{uid}`.** Konta nie dzielą żadnych danych. Biblioteka kombinacji i opisy testów wbudowanych są w kodzie, nie w bazie.
 - **`schemaVersion` w każdym dokumencie.** Każda kolekcja zaczyna od `1`, niezależnie od wersji dawnego `localStorage`. Zmiana kształtu dokumentu podnosi wersję, a odczyt obsługuje starsze wersje.
-- **Identyfikatory nadaje aplikacja** (`crypto.randomUUID()`), żeby zapis działał bez sieci. Pole `id` w dokumencie jest równe ID dokumentu. Wyjątek: dokumenty „jeden na dzień” albo „jeden na tydzień” mają ID równe dacie (`readiness`, `bodyWeights`, `weekPlans`).
+- **Identyfikatory nadaje aplikacja** (`crypto.randomUUID()`), żeby zapis działał bez sieci. Pole `id` w dokumencie jest równe ID dokumentu. Wyjątek: dokumenty „jeden na dzień” albo „jeden na tydzień” mają ID równe dacie (`weekPlans` oraz zaplanowane `readiness` i `bodyWeights`). Zapas zgodności dla ID sesji opisano w sekcji `workoutSessions`.
 - **Daty jako tekst.** Dzień: `YYYY-MM-DD`. Chwila: ISO 8601 w UTC z `toISOString()`, np. `2026-11-08T01:51:00.000Z`, więc sortuje się jak tekst. Nie używamy `serverTimestamp()`: dokument zapisany offline ma od razu komplet pól.
 - **`createdAt` i `updatedAt`** są w każdym dokumencie.
 - **Jednostki:** czasy w sekundach, waga w kg z dokładnością do 0,1.
@@ -18,21 +18,25 @@ Model zastępuje lokalny storage. Dane z `localStorage` to dane pokazowe: nie im
 
 ## Kolekcje
 
-| Ścieżka | Co przechowuje | ID dokumentu | Pierwsze użycie |
+| Ścieżka | Co przechowuje | ID dokumentu | Stan / pierwsze użycie |
 | --- | --- | --- | --- |
-| `users/{uid}` | zgoda na dane o zdrowiu | `uid` | gotowość albo waga |
-| `users/{uid}/workoutPlans/{planId}` | plany treningowe | UUID | przejście na Firestore |
-| `users/{uid}/workoutSessions/{sessionId}` | wpisy w dzienniku z ocenami i RPE | UUID | przejście na Firestore |
-| `users/{uid}/focusSkills/{focusSkillId}` | ćwiczenia celu z kryterium | UUID | ćwiczenia celu (R1) |
-| `users/{uid}/weekPlans/{weekStart}` | plan tygodnia, czyli moduł celów | poniedziałek `YYYY-MM-DD` | plan tygodnia (R3) |
-| `users/{uid}/readiness/{date}` | gotowość przed treningiem | dzień `YYYY-MM-DD` | gotowość (Q3) |
-| `users/{uid}/bodyWeights/{date}` | historia wagi | dzień `YYYY-MM-DD` | profil |
-| `users/{uid}/controlTests/{testId}` | testy kontrolne z paszportem | UUID | testy (R4) |
-| `users/{uid}/controlTestResults/{resultId}` | wyniki testów | UUID | testy (R4) |
+| `users/{uid}` | zgoda na dane o zdrowiu | `uid` | **zaplanowane, jeszcze niewdrożone**: gotowość albo waga |
+| `users/{uid}/workoutPlans/{planId}` | plany treningowe | UUID | wdrożone: przejście na Firestore |
+| `users/{uid}/workoutSessions/{sessionId}` | wpisy w dzienniku z ocenami i RPE | UUID albo zapasowe ID opisane niżej | wdrożone: przejście na Firestore |
+| `users/{uid}/focusSkills/{focusSkillId}` | ćwiczenia celu z kryterium | UUID | wdrożone: ćwiczenia celu (R1) |
+| `users/{uid}/weekPlans/{weekStart}` | plan tygodnia, czyli moduł celów | poniedziałek `YYYY-MM-DD` | wdrożone: plan tygodnia (R3) |
+| `users/{uid}/readiness/{date}` | gotowość przed treningiem | dzień `YYYY-MM-DD` | **zaplanowane, jeszcze niewdrożone**: gotowość (Q3) |
+| `users/{uid}/bodyWeights/{date}` | historia wagi | dzień `YYYY-MM-DD` | **zaplanowane, jeszcze niewdrożone**: profil |
+| `users/{uid}/controlTests/{testId}` | testy kontrolne z paszportem | UUID | **zaplanowane, jeszcze niewdrożone**: testy (R4) |
+| `users/{uid}/controlTestResults/{resultId}` | wyniki testów | UUID | **zaplanowane, jeszcze niewdrożone**: testy (R4) |
 
 Lista jest zamknięta. Kod trzyma ją w `src/infrastructure/firebase/userCollections.ts` (`USER_COLLECTIONS`). Wdrożone w kodzie kolekcje to `workoutPlans`, `workoutSessions`, `focusSkills` i `weekPlans`; pozostałe nazwy opisują przyszłe funkcje. Sam rejestr nie otwiera reguł ani nasłuchów. Eksport i usunięcie konta, kiedy powstaną, mają korzystać z pełnej listy; dokument `users/{uid}` obsługują osobno. Nowa kolekcja wymaga dopisania jej do rejestru, reguł i testów reguł.
 
+Profil `users/{uid}` oraz kolekcje `readiness`, `bodyWeights`, `controlTests` i `controlTestResults` nie mają jeszcze implementacji obsługi danych w aplikacji ani reguł zezwalających na dostęp. Ich poniższe modele, zgody i zasady odczytu są planem; obecne reguły odrzucają wszystkie operacje na tych ścieżkach.
+
 ## `users/{uid}`
+
+**Zaplanowane, jeszcze niewdrożone.** Poniżej docelowy model profilu i obsługi zgody.
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
@@ -70,12 +74,14 @@ Reguły domenowe:
 
 Jeden dokument to jeden wpis w dzienniku. Pola zależą od źródła (`source`). Pola, które dopiero wypełnią przyszłe funkcje, są w dokumencie od początku (`null` albo pusta lista). Dzięki temu nie trzeba będzie migrować danych zebranych przed ich wdrożeniem.
 
+Nowa sesja z planu otrzymuje ID z `crypto.randomUUID()` przy rozpoczęciu pierwszego etapu (`src/features/workout-player/hooks/useWorkoutSessionRecorder.ts`). Jeśli odzyskiwany zapis przygotowania ma `sessionId: null`, a termin przygotowania już minął, `src/features/workout-player/utils/resolveActiveWorkout.ts` nadaje ID `planId-startedAtMs`, gdzie `startedAtMs` to termin końca przygotowania w milisekundach. To zapas zgodności dla wznowienia; istniejące `sessionId` jest zachowywane.
+
 ### Pola wspólne
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
 | `schemaVersion` | `1` | |
-| `id` | UUID | |
+| `id` | UUID albo `planId-startedAtMs` | Zapasowe ID tylko w opisanym wyżej przypadku wznowienia |
 | `source` | `plan`, `quickTimer`, `manual` | ADR 0005 |
 | `status` | `completed`, `partial` | Ręczny wpis ma zawsze `completed` |
 | `disciplineKey` | klucz dyscypliny | |
@@ -187,6 +193,8 @@ Zapis potwierdza lokalny snapshot i pokazuje „Czeka na wysłanie” do potwier
 
 ## `readiness` (gotowość, Q3)
 
+**Zaplanowane, jeszcze niewdrożone.** Poniżej docelowy model, bez obsługi danych i zezwalających reguł.
+
 | Pole | Typ | Opis |
 | --- | --- | --- |
 | `schemaVersion` | `1` | |
@@ -198,6 +206,8 @@ Zapis potwierdza lokalny snapshot i pokazuje „Czeka na wysłanie” do potwier
 - Zapis wymaga zgody w `users/{uid}`.
 
 ## `bodyWeights` (waga)
+
+**Zaplanowane, jeszcze niewdrożone.** Poniżej docelowy model, bez obsługi danych i zezwalających reguł.
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
@@ -211,7 +221,7 @@ Zapis potwierdza lokalny snapshot i pokazuje „Czeka na wysłanie” do potwier
 
 ## `controlTests` i `controlTestResults` (testy kontrolne, R4)
 
-Kształt wstępny. Szczegóły pól doprecyzujemy w issue testów, bo ekranów jeszcze nie projektowaliśmy.
+**Zaplanowane, jeszcze niewdrożone.** Kształt wstępny, bez obsługi danych i zezwalających reguł. Szczegóły pól doprecyzujemy w issue testów, bo ekranów jeszcze nie projektowaliśmy.
 
 `controlTests`:
 
@@ -260,19 +270,20 @@ Stare klucze `localStorage` z planami i sesjami aplikacja usuwa raz, po przejśc
 
 - Dostęp tylko do własnych danych: `request.auth.uid == uid` i `request.auth.token.email_verified == true` (ADR 0002). Konto Google ma potwierdzony adres.
 - Wszystko, czego reguła nie zezwala wprost, jest zabronione.
-- Każdy zapis: dozwolone klucze (`hasOnly`) i wymagane klucze (`hasAll`), typy, `schemaVersion == 1`, `id` równe ID dokumentu, długości tekstów, rozmiary list, zakresy liczb (RPE, oceny, waga, gotowość).
-- `readiness` i `bodyWeights`: utworzenie i zmiana tylko przy zgodzie w `users/{uid}`. Usunięcie jest zawsze dozwolone, bo jest potrzebne przy wycofaniu zgody i usunięciu konta.
+- Wdrożone kolekcje: dozwolone klucze (`hasOnly`) i wymagane klucze (`hasAll`), typy, `schemaVersion == 1`, tożsamość dokumentu (`id`, a w `weekPlans` — `weekStart`), znaczniki czasu oraz odpowiednie dla modelu długości tekstów, rozmiary list i zakresy liczb, np. RPE 0–10.
+- **Zaplanowane:** `readiness` i `bodyWeights` mają pozwalać na utworzenie i zmianę tylko przy zgodzie w `users/{uid}`, a na usunięcie także po wycofaniu zgody. Obecnie reguły nie dopuszczają żadnej z tych operacji.
 - Elementów list (`stepResults`, `blocks`) reguły nie sprawdzają pole po polu. Sprawdzają typ i rozmiar listy, a resztę schemat `zod/mini` w aplikacji.
-- Testy na emulatorze dla każdej kolekcji: właściciel, drugie konto, niezalogowany, konto bez potwierdzonego e-maila, zły `schemaVersion`, nadmiarowe pole, a dla danych o zdrowiu także zapis bez zgody.
+- Testy na emulatorze dla wdrożonych kolekcji: właściciel, drugie konto, niezalogowany, konto bez potwierdzonego e-maila, zły `schemaVersion`, nadmiarowe pole. Dla profilu i zaplanowanych kolekcji testy sprawdzają odmowę dostępu; testy zapisu danych o zdrowiu bez zgody dojdą przy wdrożeniu tych funkcji.
 
 ## Odczyt (ADR 0007)
 
 | Kolekcja | Co słuchamy przez `onSnapshot` |
 | --- | --- |
-| `workoutPlans`, `workoutSessions`, `focusSkills`, `bodyWeights`, `controlTests`, `controlTestResults` | całą kolekcję; sortowanie w `src/domain` |
+| `workoutPlans`, `workoutSessions`, `focusSkills` | całą kolekcję; sortowanie w `src/domain` |
 | `weekPlans` | bieżący i 12 poprzednich tygodni oraz wszystkie przyszłe plany (`weekStart >=` dolna granica) |
-| `readiness` | ostatnie 28 dni (`date >=`) |
-| `users/{uid}` | dokument |
+| `bodyWeights`, `controlTests`, `controlTestResults` | **zaplanowane, jeszcze niewdrożone:** całą kolekcję; sortowanie w `src/domain` |
+| `readiness` | **zaplanowane, jeszcze niewdrożone:** ostatnie 28 dni (`date >=`) |
+| `users/{uid}` | **zaplanowane, jeszcze niewdrożone:** dokument |
 
 - Bez zapytań z dwoma polami sortowania, więc bez indeksów złożonych.
 - **Koszt na planie Spark:** 50 000 odczytów dziennie. Po ponad 30 minutach bez połączenia Firestore liczy ponowne nasłuchiwanie jak nowe zapytanie, czyli odczyt wszystkich dokumentów kolekcji. Przy kilkudziesięciu wpisach na uczestnika badania to bezpieczne. Gdy użytkownik przekroczy 500 wpisów, historia dostanie stronicowanie.
