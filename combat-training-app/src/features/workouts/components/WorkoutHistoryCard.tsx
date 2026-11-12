@@ -218,7 +218,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
 
       <div className="border-t border-bd">
         {session.editPath && <Link to={session.editPath} state={{ returnTo: '/workouts?tab=history' }}
-          className="flex min-h-touch items-center border-b border-bd px-4 py-3 text-sm font-semibold text-crimson-ink">{manualWorkoutLabels.edit}</Link>}
+          className="flex min-h-touch items-center border-b border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink">{manualWorkoutLabels.edit}</Link>}
         {session.feedbackPath && <Link to={session.feedbackPath}
           className="flex min-h-touch items-center border-b border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink">
           {workoutFeedbackLabels.title}
