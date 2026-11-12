@@ -8,7 +8,9 @@ export interface AuthContextValue {
   verificationSentAt: number | null
   /** Why the last verification email could not be sent; shown on the verification screen. */
   verificationError: string | null
-  /** Runs an auth action and returns a Polish error message, or null on success. Each screen keeps its own error. */
+  /** Why the Google redirect that brought the user back failed; cleared by the next auth action. */
+  redirectError: string | null
+  /** Runs an auth action and returns a Polish error message, or null on success or user cancellation. Each screen keeps its own error. */
   execute(action: () => Promise<void>): Promise<string | null>
   /** Sends the verification email and records the result in verificationSentAt or verificationError. */
   sendVerification(): Promise<boolean>

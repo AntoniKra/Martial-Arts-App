@@ -8,14 +8,24 @@ export function AuthProvider({ service, children }: PropsWithChildren<{ service:
   const [busy, setBusy] = useState(false)
   const [verificationSentAt, setVerificationSentAt] = useState<number | null>(null)
   const [verificationError, setVerificationError] = useState<string | null>(null)
+  const [redirectError, setRedirectError] = useState<string | null>(null)
 
   useEffect(() => service.subscribe(
     (session) => setState({ status: 'ready', session }),
     () => setState({ status: 'error' }),
   ), [service])
 
+  useEffect(() => {
+    let active = true
+    service.completeGoogleRedirect().catch((cause: unknown) => {
+      if (active) setRedirectError(mapAuthError(cause))
+    })
+    return () => { active = false }
+  }, [service])
+
   async function execute(action: () => Promise<void>): Promise<string | null> {
     setBusy(true)
+    setRedirectError(null)
     try {
       await action()
       return null
@@ -40,7 +50,7 @@ export function AuthProvider({ service, children }: PropsWithChildren<{ service:
   }
 
   return (
-    <AuthContext.Provider value={{ service, state, busy, verificationSentAt, verificationError, execute, sendVerification, refreshVerification }}>
+    <AuthContext.Provider value={{ service, state, busy, verificationSentAt, verificationError, redirectError, execute, sendVerification, refreshVerification }}>
       {children}
     </AuthContext.Provider>
   )

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as sdk from 'firebase/auth'
 import { initializeApp } from 'firebase/app'
-import { createFirebaseAuthService } from './firebaseAuthService'
+import { createFirebaseAuthService, readSignInEnvironment } from './firebaseAuthService'
 
 const fake = vi.hoisted(() => ({
   user: { uid: 'athlete', email: 'athlete@example.test', emailVerified: false },
@@ -12,10 +12,18 @@ vi.mock('./createFirestoreRepositories', () => ({ clearFirestoreCache: fake.clea
 vi.mock('firebase/app', () => ({ initializeApp: vi.fn(() => 'app') }))
 vi.mock('firebase/auth', () => ({
   initializeAuth: vi.fn(() => fake.auth), indexedDBLocalPersistence: 'indexed-db',
+  browserPopupRedirectResolver: 'popup-redirect-resolver',
   connectAuthEmulator: vi.fn(), createUserWithEmailAndPassword: vi.fn(),
   signInWithEmailAndPassword: vi.fn(), signOut: vi.fn(), sendEmailVerification: vi.fn(),
   sendPasswordResetEmail: vi.fn(), reload: vi.fn(), onIdTokenChanged: vi.fn(),
+  signInWithPopup: vi.fn(), signInWithRedirect: vi.fn(), getRedirectResult: vi.fn(),
+  GoogleAuthProvider: vi.fn(function GoogleAuthProvider(this: { setCustomParameters: unknown }) {
+    this.setCustomParameters = vi.fn()
+  }),
 }))
+const desktop = () => ({ standalone: false, touchPrimary: false })
+const phone = () => ({ standalone: false, touchPrimary: true })
+const installedPwa = () => ({ standalone: true, touchPrimary: false })
 const config = { apiKey: 'demo-config', authDomain: 'demo.example.test', projectId: 'demo-combat-training', appId: 'demo-app', emulatorHost: '127.0.0.1:9099' }
 
 beforeEach(() => {
@@ -40,7 +48,7 @@ describe('Firebase AuthService', () => {
   it('uses only IndexedDB persistence and explicitly connects the emulator', () => {
     createFirebaseAuthService(config)
     expect(initializeApp).toHaveBeenCalledWith({ apiKey: 'demo-config', authDomain: 'demo.example.test', projectId: 'demo-combat-training', appId: 'demo-app' })
-    expect(sdk.initializeAuth).toHaveBeenCalledWith('app', { persistence: 'indexed-db' })
+    expect(sdk.initializeAuth).toHaveBeenCalledWith('app', { persistence: 'indexed-db', popupRedirectResolver: 'popup-redirect-resolver' })
     expect(sdk.connectAuthEmulator).toHaveBeenCalledWith(fake.auth, 'http://127.0.0.1:9099', { disableWarnings: true })
     expect(fake.auth.languageCode).toBe('pl')
   })
@@ -52,6 +60,44 @@ describe('Firebase AuthService', () => {
     expect(sdk.createUserWithEmailAndPassword).toHaveBeenCalledWith(fake.auth, 'athlete@example.test', 'test-only-pass')
     expect(sdk.signInWithEmailAndPassword).toHaveBeenCalledWith(fake.auth, 'athlete@example.test', 'test-only-pass')
     expect(sdk.signOut).toHaveBeenCalledWith(fake.auth)
+  })
+  it('uses a Google popup on a desktop', async () => {
+    await createFirebaseAuthService(config, desktop).signInWithGoogle()
+    const provider = vi.mocked(sdk.signInWithPopup).mock.calls[0][1] as sdk.GoogleAuthProvider
+    expect(sdk.signInWithPopup).toHaveBeenCalledWith(fake.auth, provider)
+    expect(provider.setCustomParameters).toHaveBeenCalledWith({ prompt: 'select_account' })
+    expect(sdk.signInWithRedirect).not.toHaveBeenCalled()
+  })
+  it.each([['a phone', phone], ['an installed PWA', installedPwa]])('uses a Google redirect on %s', async (_name, environment) => {
+    await createFirebaseAuthService(config, environment).signInWithGoogle()
+    expect(sdk.signInWithRedirect).toHaveBeenCalledWith(fake.auth, expect.anything())
+    expect(sdk.signInWithPopup).not.toHaveBeenCalled()
+  })
+  it('passes Google errors through for display', async () => {
+    vi.mocked(sdk.signInWithPopup).mockRejectedValue({ code: 'auth/popup-blocked' })
+    await expect(createFirebaseAuthService(config, desktop).signInWithGoogle()).rejects.toEqual({ code: 'auth/popup-blocked' })
+  })
+  it('settles the Google redirect result and rejects with its error', async () => {
+    const service = createFirebaseAuthService(config, phone)
+    vi.mocked(sdk.getRedirectResult).mockResolvedValueOnce(null)
+    await expect(service.completeGoogleRedirect()).resolves.toBeUndefined()
+    vi.mocked(sdk.getRedirectResult).mockRejectedValueOnce({ code: 'auth/account-exists-with-different-credential' })
+    await expect(service.completeGoogleRedirect()).rejects.toEqual({ code: 'auth/account-exists-with-different-credential' })
+    expect(sdk.getRedirectResult).toHaveBeenCalledWith(fake.auth)
+  })
+  it.each([
+    [{ standalone: false, coarse: false, iosStandalone: false }, { standalone: false, touchPrimary: false }],
+    [{ standalone: false, coarse: true, iosStandalone: false }, { standalone: false, touchPrimary: true }],
+    [{ standalone: true, coarse: false, iosStandalone: false }, { standalone: true, touchPrimary: false }],
+    [{ standalone: false, coarse: true, iosStandalone: true }, { standalone: true, touchPrimary: true }],
+  ])('reads the sign-in environment from the browser %j', (browser, environment) => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === '(display-mode: standalone)' ? browser.standalone : query === '(pointer: coarse)' && browser.coarse,
+    }))
+    vi.stubGlobal('navigator', browser.iosStandalone ? { standalone: true } : {})
+    try {
+      expect(readSignInEnvironment()).toEqual(environment)
+    } finally { vi.unstubAllGlobals() }
   })
   it('sends verification and reloads the current user', async () => {
     const service = createFirebaseAuthService(config)

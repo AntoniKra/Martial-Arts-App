@@ -1,12 +1,14 @@
 import { initializeApp } from 'firebase/app'
 import {
-  connectAuthEmulator, createUserWithEmailAndPassword, indexedDBLocalPersistence,
-  initializeAuth, onIdTokenChanged, reload, sendEmailVerification,
-  sendPasswordResetEmail, signInWithEmailAndPassword, signOut,
+  browserPopupRedirectResolver, connectAuthEmulator, createUserWithEmailAndPassword, getRedirectResult,
+  GoogleAuthProvider, indexedDBLocalPersistence, initializeAuth, onIdTokenChanged, reload,
+  sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup,
+  signInWithRedirect, signOut,
   type User,
 } from 'firebase/auth'
 
 import type { AuthService, AuthSession } from '@/application/auth/authService'
+import { chooseGoogleSignInMethod, type SignInEnvironment } from '@/application/auth/chooseGoogleSignInMethod'
 import type { FirebaseConfig } from './firebaseConfig'
 import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
 
@@ -17,13 +19,28 @@ function toSession(user: User | null): AuthSession | null {
   return { uid: user.uid, email: user.email, emailVerified: user.emailVerified }
 }
 
-export function createFirebaseAuthService(config: FirebaseConfig): AuthService {
+export function readSignInEnvironment(): SignInEnvironment {
+  const matches = (query: string) => typeof matchMedia === 'function' && matchMedia(query).matches
+  const iosStandalone = typeof navigator !== 'undefined' && 'standalone' in navigator && navigator.standalone === true
+  return { standalone: matches('(display-mode: standalone)') || iosStandalone, touchPrimary: matches('(pointer: coarse)') }
+}
+
+export function createFirebaseAuthService(
+  config: FirebaseConfig,
+  readEnvironment: () => SignInEnvironment = readSignInEnvironment,
+): AuthService {
   const { emulatorHost, firestoreEmulatorHost: _firestoreHost, ...options } = config
-  const auth = initializeAuth(initializeApp(options), { persistence: indexedDBLocalPersistence })
+  // The resolver lets initialization finish a pending redirect before the first session callback,
+  // so a returning user sees the session check instead of a flash of the login form.
+  const auth = initializeAuth(initializeApp(options), {
+    persistence: indexedDBLocalPersistence, popupRedirectResolver: browserPopupRedirectResolver,
+  })
   // Emulator configuration accepts only demo projects. The SDK's fixed DOM banner covers controls
   // and sits outside landmarks; keep emulator diagnostics in the console instead.
   if (emulatorHost) connectAuthEmulator(auth, `http://${emulatorHost}`, { disableWarnings: true })
   auth.languageCode = 'pl'
+  const google = new GoogleAuthProvider()
+  google.setCustomParameters({ prompt: 'select_account' })
 
   return {
     async register(email, password) {
@@ -31,6 +48,13 @@ export function createFirebaseAuthService(config: FirebaseConfig): AuthService {
     },
     async signIn(email, password) {
       await signInWithEmailAndPassword(auth, email, password)
+    },
+    async signInWithGoogle() {
+      if (chooseGoogleSignInMethod(readEnvironment()) === 'redirect') await signInWithRedirect(auth, google)
+      else await signInWithPopup(auth, google)
+    },
+    async completeGoogleRedirect() {
+      await getRedirectResult(auth)
     },
     async signOut() {
       if (auth.currentUser) createActiveWorkoutRepository(auth.currentUser.uid).clear()
