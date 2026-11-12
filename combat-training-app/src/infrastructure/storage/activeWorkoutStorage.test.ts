@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ActiveWorkout } from '@/application/workout/activeWorkoutRepository'
 import { block, roundsExercise, workoutPlan } from '@/test/workoutBuilders'
 import { ACTIVE_WORKOUT_STORAGE_PREFIX, createActiveWorkoutRepository } from './activeWorkoutStorage'
+import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 
 const now = Date.parse('2026-11-08T10:00:00.000Z')
 function snapshot(): ActiveWorkout {
@@ -24,6 +25,42 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('active workout local storage', () => {
+  it.each(['running', 'paused'] as const)('round-trips corrected targets and corrected completed results while %s', (status) => {
+    const saved = snapshot()
+    const steps = createWorkoutPlaybackTimeline(saved.plan).steps
+    saved.stepDurations = { [steps[0].id]: 135, [steps[2].id]: 105 }
+    saved.playback = { ...saved.playback, status, currentStepIndex: 2 }
+    saved.deadlineMs = status === 'running' ? now + 80_000 : null
+    saved.pausedRemainingMs = status === 'paused' ? 79_625 : null
+    saved.recorder.stepResults = [{ stepIndex: 0, playbackStepId: steps[0].id, plannedDurationSeconds: 135, performedDurationSeconds: 135, outcome: 'completed' }]
+    const repository = createActiveWorkoutRepository('owner')
+    repository.save(saved)
+    expect(repository.read()).toEqual(saved)
+    // Restarting restores the live target but must preserve the best previous result.
+    saved.stepDurations[steps[0].id] = 120
+    repository.save(saved)
+    expect(repository.read()).toEqual(saved)
+  })
+
+  it.each([0, -15, 1.5])('rejects invalid corrected targets: %s', (target) => {
+    const saved = snapshot()
+    saved.stepDurations = { [createWorkoutPlaybackTimeline(saved.plan).steps[0].id]: target }
+    localStorage.setItem(ACTIVE_WORKOUT_STORAGE_PREFIX + 'owner', JSON.stringify(saved))
+    expect(createActiveWorkoutRepository('owner').read()).toBeNull()
+  })
+
+  it('rejects unknown corrected stage IDs and completed results unequal to the corrected target', () => {
+    const saved = snapshot()
+    saved.stepDurations = { unknown: 135 }
+    const key = ACTIVE_WORKOUT_STORAGE_PREFIX + 'owner'
+    localStorage.setItem(key, JSON.stringify(saved))
+    expect(createActiveWorkoutRepository('owner').read()).toBeNull()
+    const id = createWorkoutPlaybackTimeline(saved.plan).steps[0].id
+    saved.stepDurations = { [id]: 135 }
+    saved.recorder.stepResults = [{ stepIndex: 0, playbackStepId: id, plannedDurationSeconds: 135, performedDurationSeconds: 120, outcome: 'completed' }]
+    localStorage.setItem(key, JSON.stringify(saved))
+    expect(createActiveWorkoutRepository('owner').read()).toBeNull()
+  })
   it('round-trips a plan snapshot independently for each account', () => {
     const owner = createActiveWorkoutRepository('owner')
     owner.save(snapshot())

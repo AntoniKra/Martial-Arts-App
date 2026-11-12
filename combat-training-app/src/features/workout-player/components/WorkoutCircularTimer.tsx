@@ -15,8 +15,7 @@ interface WorkoutCircularTimerProps {
   stepKind: WorkoutPlaybackStepKind
   paused?: boolean
   preparing?: boolean
-  showAdjustmentPreview?: boolean
-  adjustmentVariant?: '1' | '2' | '3'
+  onAdjustTime?: (deltaSeconds: -15 | 15) => void
 }
 
 function clampProgressRatio(totalSeconds: number, remainingSeconds: number): number {
@@ -30,8 +29,7 @@ export function WorkoutCircularTimer({
   stepKind,
   paused = false,
   preparing = false,
-  showAdjustmentPreview = false,
-  adjustmentVariant = '1',
+  onAdjustTime,
 }: WorkoutCircularTimerProps) {
   const [adjustmentNotice, setAdjustmentNotice] = useState<{ label: string } | null>(null)
 
@@ -112,39 +110,36 @@ export function WorkoutCircularTimer({
           </span>
         </div>
 
-        {showAdjustmentPreview ? (['subtract', 'add'] as const).map((direction) => {
+        {onAdjustTime ? (['subtract', 'add'] as const).map((direction) => {
           const subtract = direction === 'subtract'
           const symbol = subtract ? '−' : '+'
-          const positionClass = adjustmentVariant === '3'
-            ? `${subtract ? '-left-[17px]' : '-right-[17px]'} top-1/2`
-            : `${subtract ? '-left-11' : '-right-11'} ${paused ? 'top-1/2' : 'top-[calc(50%-0.75rem)]'}`
+          const positionClass = `${subtract ? '-left-11' : '-right-11'} ${paused ? 'top-1/2' : 'top-[calc(50%-0.75rem)]'}`
 
           return (
             <button
               key={direction}
               type="button"
-              aria-label={subtract ? 'Odejmij 15 sekund' : 'Dodaj 15 sekund'}
-              onClick={() => setAdjustmentNotice({ label: `${symbol}15 s` })}
+              aria-label={subtract ? 'Odejmij 15 sekund / 15 s' : 'Dodaj 15 sekund / 15 s'}
+              onClick={() => {
+                onAdjustTime(subtract ? -15 : 15)
+                setAdjustmentNotice({ label: `${symbol}15 s` })
+              }}
               className={`absolute ${positionClass} flex h-11 w-11 -translate-y-1/2 flex-col items-center justify-center text-faint hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]`}
             >
               <span
                 aria-hidden="true"
-                className={adjustmentVariant === '3'
-                  ? 'flex h-8 w-8 items-center justify-center rounded-full border border-current bg-bg text-[26px] font-light leading-none'
-                  : 'text-[32px] font-light leading-none'}
+                className="text-[32px] font-light leading-none"
               >
                 {symbol}
               </span>
-              {adjustmentVariant === '2' ? (
-                <span aria-hidden="true" className="font-display text-[10px] font-semibold leading-3 tracking-[0.08em]">
-                  15 s
-                </span>
-              ) : null}
+              <span aria-hidden="true" className="font-display text-[10px] font-semibold leading-3 tracking-[0.08em]">
+                15 s
+              </span>
             </button>
           )
         }) : null}
       </div>
-      {showAdjustmentPreview ? (
+      {onAdjustTime ? (
         <p className="mt-2 h-5 font-display text-[13px] font-semibold tabular-nums text-muted" aria-live="polite" aria-atomic="true">
           {adjustmentNotice?.label ?? ''}
         </p>

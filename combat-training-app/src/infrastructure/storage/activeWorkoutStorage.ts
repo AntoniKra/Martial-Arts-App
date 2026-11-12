@@ -20,6 +20,7 @@ const activeWorkoutSchema = z.strictObject({
   playback: z.strictObject({ status: z.enum(['preparing', 'running', 'paused', 'completed']),
     currentStepIndex: integer, remainingSeconds: integer, stepRevision: integer }),
   deadlineMs: z.nullable(timestamp), pausedRemainingMs: z.nullable(integer), lastSeenAt: timestamp,
+  stepDurations: z.optional(z.record(text, integer.check(z.minimum(1)))),
   recorder: z.strictObject({
     timezone: text.check(z.refine((value) => {
       try { new Intl.DateTimeFormat('en', { timeZone: value }); return true } catch { return false }
@@ -27,7 +28,7 @@ const activeWorkoutSchema = z.strictObject({
     sessionId: z.nullable(text), startedAt: z.nullable(z.iso.datetime({ precision: 3 })),
     completedAt: z.nullable(timestamp), endedEarly: z.boolean(),
     stepResults: z.array(z.strictObject({ stepIndex: integer, playbackStepId: text,
-      plannedDurationSeconds: integer, performedDurationSeconds: integer, outcome })),
+      plannedDurationSeconds: integer.check(z.minimum(1)), performedDurationSeconds: integer, outcome })),
     attempts: z.array(z.strictObject({ kind: z.enum(['exercise', 'roundRest', 'break']), blockType, performedDurationMs: integer, outcome })),
     exerciseRatings: z.array(z.strictObject({ workoutItemId: text, nameSnapshot: text, blockType, rating })),
     focusRatings: z.array(z.strictObject({ workoutItemId: text, focusSkillId: text, skillNameSnapshot: text, criterionSnapshot: text,
@@ -46,6 +47,7 @@ const activeWorkoutSchema = z.strictObject({
   if (stepCount < 1 || stepCount > 500) return false
   const steps = createWorkoutPlaybackTimeline(workout.plan).steps
   const { playback, recorder } = workout
+  if (Object.keys(workout.stepDurations ?? {}).some((id) => !steps.some((step) => step.id === id))) return false
   if (!steps[playback.currentStepIndex]) return false
   const timed = playback.status === 'running' || playback.status === 'preparing'
   if (timed !== (workout.deadlineMs !== null)) return false
@@ -58,10 +60,12 @@ const activeWorkoutSchema = z.strictObject({
   return new Set(recorder.stepResults.map((result) => result.playbackStepId)).size === recorder.stepResults.length
     && recorder.stepResults.every((result) => {
       const step = steps[result.stepIndex]
-      if (!step || step.id !== result.playbackStepId || step.durationSeconds !== result.plannedDurationSeconds) return false
+      if (!step || step.id !== result.playbackStepId) return false
+      // A best result can come from an earlier adjusted attempt; restarting resets only the live target.
+      const target = result.plannedDurationSeconds
       const performed = result.performedDurationSeconds
-      return result.outcome === 'completed' ? performed === step.durationSeconds
-        : result.outcome === 'skipped' ? performed === 0 : performed > 0 && performed < step.durationSeconds
+      return result.outcome === 'completed' ? performed === target
+        : result.outcome === 'skipped' ? performed === 0 : performed > 0 && performed < target
     })
 }))
 

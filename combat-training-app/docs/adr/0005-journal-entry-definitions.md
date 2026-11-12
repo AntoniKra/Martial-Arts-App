@@ -32,6 +32,10 @@ Trzy osobne miary, nigdy mieszane:
 - **Czas pracy** (`workSeconds`): tylko etapy ćwiczeń dokończone do końca czasu (doprecyzowanie z 6 listopada poniżej), bez odpoczynków i przerw. Osobno liczymy czas sparingu (`sparringSeconds`, dokończone ćwiczenia w blokach typu `sparring`). W ręcznym wpisie oba mogą być nieznane.
 - **Realizacja:** dla planu ukończone ćwiczenia wobec zaplanowanych, dla szybkiego stopera ukończone rundy wobec zaplanowanych. Dla ręcznego wpisu „nie dotyczy”, a nie 100%. Realizacji nie wyliczamy z czasu ani z ocen.
 
+## Korekty zegara (12 listopada 2026, issue #91)
+
+`plannedDurationSeconds` w wyniku etapu oznacza czas docelowy po korektach `−15 s` / `+15 s`, co najmniej 1 s. Ukończona runda 3:00 wydłużona o 15 s zapisuje `plannedDurationSeconds = performedDurationSeconds = 195` i wnosi 195 s pracy. Skrócenie przy 15 s lub mniej kończy etap zwykłym przejściem `elapsed`, bez przenoszenia nadmiaru skrócenia na kolejny etap. Korekty nie zmieniają licznika realizacji. Restart przywraca czas z planu, zachowując dotychczasowy najlepszy wynik i osobne czasy prób. Lokalny zapis wznowienia zachowuje cele etapów; historyczne zapisy bez korekt pozostają czytelne. Pola dokumentu i reguły Firestore nie zmieniają się.
+
 ## Dzień treningu
 
 `workoutDate` to dzień **rozpoczęcia** treningu w strefie czasowej użytkownika (`timezone` zapisany razem z wpisem), utrwalony przy zapisie. Trening od 23:30 do 00:30 należy do dnia startu. Późniejsza zmiana strefy nie przesuwa dawnych wpisów. Ręczny wpis ma samą datę, bez godziny. Moment zapisu (`createdAt`) to osobne pole.

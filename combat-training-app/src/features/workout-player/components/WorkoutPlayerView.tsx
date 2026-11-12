@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { ActiveWorkout, ActiveWorkoutRepository } from '@/application/workout/activeWorkoutRepository'
 import { useActiveWorkoutPersistence } from '../hooks/useActiveWorkoutPersistence'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
@@ -285,8 +285,6 @@ function WorkoutPlayerRuntime({
   workoutDetailsPath,
   saveWorkoutSession,
 }: WorkoutPlayerRuntimeProps) {
-  const [searchParams] = useSearchParams()
-  const adjustmentVariant = searchParams.get('wariant15')
   const [preparation] = useState(readStoredWorkoutPreparation)
   const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly, getRecording } = useWorkoutSessionRecorder(plan, timeline, initialWorkout?.recorder, focusSkills)
   const { unlockGong, onGongPlaybackEvent } = useWorkoutGong(timeline)
@@ -316,6 +314,7 @@ function WorkoutPlayerRuntime({
     finishCurrentExercise,
     endEarly,
     restart,
+    adjustTime,
     getPlaybackSnapshot,
   } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent, preparation, initialWorkout })
 
@@ -432,8 +431,13 @@ function WorkoutPlayerRuntime({
               stepKind={currentStep.kind}
               paused={isPaused}
               preparing={isPreparing}
-              showAdjustmentPreview={!isPreparing && playback.status !== 'idle'}
-              adjustmentVariant={adjustmentVariant === '2' || adjustmentVariant === '3' ? adjustmentVariant : '1'}
+              onAdjustTime={!isPreparing && playback.status !== 'idle' ? (deltaSeconds) => {
+                enableSound()
+                adjustTime(deltaSeconds, {
+                  expectedStepIndex: playback.currentStepIndex,
+                  expectedStepRevision: playback.stepRevision,
+                })
+              } : undefined}
             />
           </div>
 

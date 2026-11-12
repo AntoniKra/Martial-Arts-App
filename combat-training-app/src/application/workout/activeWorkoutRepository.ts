@@ -22,6 +22,7 @@ export interface ActiveWorkout {
   playback: WorkoutPlaybackState
   deadlineMs: number | null
   pausedRemainingMs: number | null
+  stepDurations?: Record<string, number>
   recorder: WorkoutSessionRecording
   lastSeenAt: number
 }
