@@ -37,6 +37,31 @@ W PR, który dodaje te workflow, uruchamia się tylko budowanie. Wgranie podglą
 
 Gdy którejś brakuje, budowanie kończy się błędem z nazwą zmiennej i nic nie jest wgrywane.
 
+`VITE_FIREBASE_AUTH_DOMAIN` ma wartość `combat-training-830fb.web.app` (domena aplikacji), nie `combat-training-830fb.firebaseapp.com`. Opis niżej, w części o logowaniu Google.
+
+## Logowanie Google
+
+Na telefonie i w zainstalowanej PWA aplikacja loguje przez przekierowanie, na komputerze z myszą przez okno. Przekierowanie wraca na stronę logowania, aplikacja odbiera wynik i wpuszcza użytkownika. Konto Google ma potwierdzony e-mail, więc nie widzi ekranu weryfikacji. Decyzja: dopisek w `adr/0002-email-password-and-google-auth.md`.
+
+Safari i nowsze Chrome blokują dane stron trzecich. Gdyby `authDomain` wskazywał `…firebaseapp.com`, a aplikacja działała na `…web.app`, przekierowanie by się nie udało. Dlatego `authDomain` to domena aplikacji (zalecenie Firebase „Best practices for using signInWithRedirect on browsers that block third-party storage”, opcja 1). Hosting sam serwuje zastrzeżoną ścieżkę `/__/auth/handler`, a service worker jej nie podmienia (`navigateFallbackDenylist` w `vite.config.ts`).
+
+Jednorazowa konfiguracja (właściciel, po scaleniu PR z logowaniem Google, w tej kolejności):
+
+1. Poczekaj na automatyczne wdrożenie po scaleniu. Nowy service worker musi przepuszczać `/__/`, zanim zmieni się `authDomain`.
+2. Google Cloud Console, projekt `combat-training-830fb` → APIs & Services → Credentials → klient OAuth 2.0 „Web client (auto created by Google Service)”:
+   - Authorized JavaScript origins: dodaj `https://combat-training-830fb.web.app`;
+   - Authorized redirect URIs: dodaj `https://combat-training-830fb.web.app/__/auth/handler`.
+   Starych wpisów z `firebaseapp.com` nie usuwaj.
+3. Konsola Firebase → Authentication → Settings → Authorized domains: sprawdź, że jest `combat-training-830fb.web.app` (dodawana domyślnie).
+4. Lokalny `.env`: `VITE_FIREBASE_AUTH_DOMAIN=combat-training-830fb.web.app`.
+5. GitHub → Settings → Secrets and variables → Actions → Variables: ta sama wartość `VITE_FIREBASE_AUTH_DOMAIN`.
+6. Actions → `Hosting live deploy` → Run workflow, żeby zbudować aplikację z nowym `authDomain`.
+7. Sprawdź na telefonie (Safari i Chrome, w przeglądarce i w zainstalowanej PWA) oraz na komputerze: rejestracja kontem Google, wylogowanie, ponowne logowanie.
+
+Ten sam adres e-mail zarejestrowany wcześniej hasłem: aplikacja nie łączy kont. Gdy Google potwierdza adres (Gmail, Google Workspace), Firebase sam loguje do istniejącego konta: ten sam `uid`, dane zostają, a Google zostaje dopięty jako druga metoda. Jeśli tamto konto miało niepotwierdzony e-mail, Firebase usuwa jego hasło, bo właścicielem adresu jest konto Google. Gdy Firebase odmawia (`auth/account-exists-with-different-credential`), aplikacja prosi o logowanie hasłem.
+
+Podgląd PR: logowanie Google nie działa na kanałach `combat-training-830fb--pr-…web.app`, bo tych domen nie ma w Authorized domains, a ich nazwy zmieniają się z każdym kanałem. Nawet po ich dodaniu `authDomain` wskazuje domenę produkcyjną, inną niż domena podglądu, więc przekierowanie w Safari i nowszym Chrome i tak trafi na blokadę danych stron trzecich. Logowanie Google testujemy na emulatorze (`npm run test:e2e`, plik `e2e/googleSignIn.spec.ts`) i po wdrożeniu na produkcję. Logowanie hasłem w podglądzie działa jak dotąd.
+
 ## Zabezpieczenia
 
 - **`.firebaserc` nie ma domyślnego projektu.** Prawdziwy projekt ma tylko alias `prod`, więc polecenie bez `-P prod` nie trafi do produkcji. Testy i emulatory zawsze podają `--project demo-combat-training`.
@@ -80,7 +105,7 @@ Reguły na produkcję wdraża ręcznie właściciel, osobno od Hostingu, po spra
 | `/`, `/index.html`, trasy aplikacji, `/sw.js`, `/manifest.webmanifest` | `no-cache` | Nowa wersja ma być widoczna od razu, a service worker pyta o aktualizację. |
 | `/assets/**`, `/workbox-*.js` | `max-age=31536000, immutable` | Nazwy plików zawierają skrót treści, więc się nie zmieniają. |
 
-Wszystkie odpowiedzi mają `X-Content-Type-Options: nosniff` i `Referrer-Policy: strict-origin-when-cross-origin`. Polityka CSP i nagłówki ramek dojdą razem z logowaniem Google, bo przekierowanie logowania korzysta z ramki `/__/auth/`.
+Wszystkie odpowiedzi mają `X-Content-Type-Options: nosniff` i `Referrer-Policy: strict-origin-when-cross-origin`. Polityka CSP i nagłówki ramek to osobne zadanie; muszą dopuścić ramkę `/__/auth/` i domeny Google używane przy logowaniu.
 
 Reguły sprawdzono w emulatorze Hosting. Po pierwszym wdrożeniu sprawdź produkcję:
 
@@ -99,3 +124,4 @@ Obie odpowiedzi powinny mieć `cache-control: no-cache`.
 - [ ] Trening jest poprawny po wygaszeniu i ponownym włączeniu ekranu.
 - [ ] Aplikacja otwiera się w trybie samolotowym po pierwszej wizycie.
 - [ ] Rejestracja, e-mail weryfikacyjny, logowanie, reset hasła, wylogowanie.
+- [ ] Logowanie Google przez przekierowanie: Safari i Chrome, w przeglądarce i w zainstalowanej PWA.
