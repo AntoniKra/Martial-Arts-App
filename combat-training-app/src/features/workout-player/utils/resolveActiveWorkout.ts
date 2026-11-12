@@ -5,6 +5,7 @@ import { resolveRunningPlaybackAtTime } from './resolveRunningPlaybackAtTime'
 import { buildRecordedWorkoutSession, recordFinalizedStep } from './workoutSessionRecording'
 import { resolveWorkoutPreparation } from './resolveWorkoutPreparation'
 import { finalizePlaybackSteps } from './finishPlaybackSteps'
+import { applyStepDurations } from './adjustPlaybackTime'
 
 export type ActiveWorkoutRecovery =
   | { kind: 'none' }
@@ -13,6 +14,7 @@ export type ActiveWorkoutRecovery =
 
 function advanceTo(saved: ActiveWorkout, nowMs: number): ActiveWorkout {
   const timeline = createWorkoutPlaybackTimeline(saved.plan)
+  timeline.steps = applyStepDurations(timeline.steps, saved.stepDurations)
   if (saved.playback.status === 'paused' || saved.deadlineMs === null) return saved
   if (saved.playback.status === 'preparing') {
     const resolved = resolveWorkoutPreparation(saved.playback, saved.deadlineMs, nowMs, timeline.steps)
@@ -34,6 +36,7 @@ function advanceTo(saved: ActiveWorkout, nowMs: number): ActiveWorkout {
     const step = timeline.steps[index]
     recorder = recordFinalizedStep(recorder, timeline.steps, {
       type: 'stepFinalized', stepIndex: index, playbackStepId: step.id,
+      plannedDurationSeconds: step.durationSeconds,
       performedDurationSeconds: step.durationSeconds, performedDurationMs: step.durationSeconds * 1000,
       outcome: 'completed', reason: 'elapsed',
     })
@@ -51,7 +54,7 @@ export function resolveActiveWorkout(saved: ActiveWorkout | null, nowMs: number)
 
   // Never count work performed while absent when the entire plan would already be over.
   const cutoff = advanceTo(saved, saved.lastSeenAt)
-  const steps = createWorkoutPlaybackTimeline(saved.plan).steps
+  const steps = applyStepDurations(createWorkoutPlaybackTimeline(saved.plan).steps, saved.stepDurations)
   let recording = cutoff.recorder
   if (cutoff.playback.status === 'running' || cutoff.playback.status === 'paused') {
     const remainingMs = cutoff.deadlineMs === null

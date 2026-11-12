@@ -95,6 +95,7 @@ export function useWorkoutSessionRecorder(
       performedDurationSeconds: number,
       performedDurationMs: number,
       outcome: WorkoutSessionStepOutcome,
+      plannedDurationSeconds?: number,
     ) => {
       const step = timeline.steps[stepIndex]
 
@@ -107,7 +108,7 @@ export function useWorkoutSessionRecorder(
       const incoming: TrackedStepResult = {
         stepIndex,
         playbackStepId,
-        plannedDurationSeconds: step.durationSeconds,
+        plannedDurationSeconds: plannedDurationSeconds ?? step.durationSeconds,
         performedDurationSeconds,
         outcome,
       }
@@ -135,7 +136,7 @@ export function useWorkoutSessionRecorder(
         }
 
         return mapPlaybackStepToSessionStepResult(
-          step,
+          { ...step, durationSeconds: tracked.plannedDurationSeconds },
           tracked.performedDurationSeconds,
           tracked.outcome,
         )
@@ -196,6 +197,7 @@ export function useWorkoutSessionRecorder(
             event.performedDurationSeconds,
             event.performedDurationMs,
             event.outcome,
+            event.plannedDurationSeconds,
           )
           return
 

@@ -27,6 +27,33 @@ beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(now) })
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
 
 describe('active workout recovery', () => {
+  it('recovers a corrected current round and records its corrected target while catching up', () => {
+    const saved = savedWorkout()
+    const steps = createWorkoutPlaybackTimeline(saved.plan).steps
+    saved.stepDurations = { [steps[2].id]: 135 }
+    saved.playback.remainingSeconds = 95
+    saved.deadlineMs = now + 95_000
+    vi.setSystemTime(now + 40_000)
+    expect(resolveActiveWorkout(saved, Date.now())).toMatchObject({ kind: 'resume', workout: {
+      playback: { currentStepIndex: 2, remainingSeconds: 55 }, stepDurations: saved.stepDurations,
+    } })
+    vi.setSystemTime(now + 100_000)
+    expect(resolveActiveWorkout(saved, Date.now())).toMatchObject({ kind: 'resume', workout: {
+      playback: { currentStepIndex: 3, remainingSeconds: 25 },
+      recorder: { stepResults: [{ plannedDurationSeconds: 135, performedDurationSeconds: 135, outcome: 'completed' }],
+        attempts: [{ performedDurationMs: 135_000, outcome: 'completed' }] },
+    } })
+  })
+
+  it('keeps a corrected exact paused duration during an absence', () => {
+    const saved = savedWorkout()
+    saved.stepDurations = { [createWorkoutPlaybackTimeline(saved.plan).steps[2].id]: 135 }
+    saved.playback = { ...saved.playback, status: 'paused', remainingSeconds: 95 }
+    saved.pausedRemainingMs = 94_625
+    saved.deadlineMs = null
+    vi.setSystemTime(now + 60_000)
+    expect(resolveActiveWorkout(saved, Date.now())).toEqual({ kind: 'resume', workout: saved })
+  })
   it('reads the historical v1 contract without rewriting it and resumes its exact state', () => {
     const values = new Map<string, string>()
     vi.stubGlobal('localStorage', {

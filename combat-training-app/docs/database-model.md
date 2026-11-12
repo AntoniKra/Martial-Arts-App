@@ -108,6 +108,8 @@ Nowa sesja z planu otrzymuje ID z `crypto.randomUUID()` przy rozpoczęciu pierws
 
 `stepResults` mają kształt i inwarianty z `domain-model.md` (`WorkoutSessionStepResult`).
 
+Po korekcie zegara `−15 s` / `+15 s` (issue #91) `stepResults[].plannedDurationSeconds` oznacza czas docelowy etapu po korektach, minimum 1 s, a nie pierwotny czas z planu. Dla `completed` nadal obowiązuje `performedDurationSeconds === plannedDurationSeconds`; np. runda 180 s wydłużona o 15 s zapisuje obie wartości jako 195 i wnosi 195 s do pracy. Licznik `completion` nie zmienia znaczenia. Korekta nie zmienia planu ani pól dokumentu sesji, więc schemat wersji 1 i reguły Firestore pozostają bez zmian. Lokalny zapis wznowienia ma opcjonalne `stepDurations` z celami etapów; brak pola w starym zapisie oznacza czasy z planu. Wynik wcześniejszej próby zachowuje własny czas docelowy także po restarcie etapu.
+
 ### `SparringEntry`
 
 | Pole | Typ | Opis |

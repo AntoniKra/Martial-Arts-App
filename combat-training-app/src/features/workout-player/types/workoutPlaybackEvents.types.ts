@@ -11,6 +11,7 @@ export type WorkoutPlaybackEvent =
       type: 'stepFinalized'
       stepIndex: number
       playbackStepId: string
+      plannedDurationSeconds?: number
       performedDurationSeconds: number
       performedDurationMs: number
       outcome: WorkoutSessionStepOutcome

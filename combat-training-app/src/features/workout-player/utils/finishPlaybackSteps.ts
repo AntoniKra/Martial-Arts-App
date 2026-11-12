@@ -27,6 +27,7 @@ export function finalizePlaybackSteps(
       type: 'stepFinalized',
       stepIndex: currentIndex + offset,
       playbackStepId: step.id,
+      plannedDurationSeconds: step.durationSeconds,
       performedDurationSeconds,
       performedDurationMs: offset === 0 ? elapsedMs : 0,
       outcome: deriveStepOutcome(step.durationSeconds, performedDurationSeconds, reason, step.kind),
