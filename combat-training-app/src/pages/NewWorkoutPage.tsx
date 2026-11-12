@@ -10,7 +10,7 @@ import {
   workoutBuilderReducer,
 } from '@/features/workout-builder/state/workoutBuilder.reducer'
 
-export function NewWorkoutPage() {
+export function Component() {
   const navigate = useNavigate()
   const [state, dispatch] = useReducer(
     workoutBuilderReducer,

@@ -11,7 +11,7 @@ import { useActiveWorkout } from '@/features/workout-player/activeWorkoutContext
 import { InterruptedWorkoutDialog } from '@/features/workout-player/components/InterruptedWorkoutDialog'
 import { selectWorkoutFocusSkills, WORKOUT_FOCUS_SKILLS_WAIT_MS } from '@/features/workout-player/utils/selectWorkoutFocusSkills'
 
-export function WorkoutPlayerPage() {
+export function Component() {
   const navigate = useNavigate()
   const { workoutId = '' } = useParams()
   const { recovery, repository } = useActiveWorkout()

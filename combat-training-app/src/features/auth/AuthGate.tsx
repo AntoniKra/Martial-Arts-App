@@ -4,6 +4,7 @@ import { isActiveWorkoutPath, resolveAuthRoute } from '@/application/auth/resolv
 import { AuthFrame } from './AuthFrame'
 import { useAuth } from './authContext'
 import { authLabels } from './authLabels'
+import { AuthLoadingScreen } from './AuthLoadingScreen'
 
 export function AuthGate() {
   const { state } = useAuth()
@@ -21,11 +22,10 @@ export function AuthGate() {
   if (decision.type === 'redirect') {
     return <Navigate to={decision.to} state={{ returnTo: decision.returnTo }} replace />
   }
+  if (decision.type === 'loading') return <AuthLoadingScreen />
   return (
-    <AuthFrame title={decision.type === 'loading' ? authLabels.loading : authLabels.brand}>
-      <p role={decision.type === 'loading' ? 'status' : 'alert'}>
-        {decision.type === 'loading' ? authLabels.loading : authLabels.sessionError}
-      </p>
+    <AuthFrame title={authLabels.brand}>
+      <p role="alert">{authLabels.sessionError}</p>
     </AuthFrame>
   )
 }
