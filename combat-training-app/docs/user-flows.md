@@ -24,6 +24,17 @@ Ekran Treningi zawiera osobne zakładki:
 
 Plan nie ma wymaganej daty wykonania. Data historii wynika z rozpoczęcia.
 
+## Trening spoza aplikacji
+
+1. Na stronie głównej (pod ostatnimi sesjami) albo w Treningi › Historia wybierz **+ Dodaj trening spoza aplikacji**.
+2. Wybierz datę do 7 dni wstecz, dyscyplinę i rodzaj. Dyscyplinę podpowiada najnowszy wpis, a bez wpisów trzeba ją wybrać.
+3. Podaj cały czas zajęć, łącznie z rozgrzewką (60/90/120 min albo 1–480 min) i obowiązkowe RPE 0–10. Przy treningu sprzed co najmniej 3 dni zobaczysz wyjaśnienie „z pamięci”.
+4. Jeżeli był sparing, podaj intensywność i opcjonalnie liczbę rund. Dla rodzaju „Sparing” sekcja jest zawsze otwarta.
+5. Opcjonalnie zaznacz do 3 ćwiczeń celu, oceń kryteria, odpowiedz o poprzedniej notatce i dodaj problem oraz poprawkę. Przy „Mieszany” i „Kondycja” wybierz miejsce. Błąd odczytu ćwiczeń pozwala ponowić odczyt albo zapisać resztę bez zmiany ocen.
+6. Opcjonalnie dodaj notatkę do treningu. **Zapisz** zgłasza błędy przy polach i ustawia fokus na pierwszym z nich. Przy możliwym dublu **Wróć do wpisu** nic nie zapisuje; **Tak, zapisz osobno** dodaje tylko osobny wpis, bez zmiany treningu z odtwarzacza.
+7. Po lokalnym zapisie wracasz do miejsca otwarcia formularza; offline widzisz „Czeka na wysłanie”. W Historii i na Home wpis ma nazwę „Trening poza aplikacją · rodzaj”, samą datę i czas, bez realizacji. **Popraw** otwiera edycję, **Usuń wpis** działa jak dotąd. Wyjście z niezapisanymi zmianami wymaga decyzji w oknie „Odrzucić zmiany?”.
+8. Edycja zachowuje ID, datę utworzenia i strefę. Chwila podania RPE zmienia się tylko przy zmianie wartości. Starszą zapisaną datę można zachować, ale nowa musi mieścić się w zakresie 7 dni. Trasa edycji wpisu z odtwarzacza pokazuje „Ten wpis można tylko usunąć.”.
+
 ## Edycja po zakończeniu
 
 Można poprawić:

@@ -87,12 +87,12 @@ Nowa sesja z planu otrzymuje ID z `crypto.randomUUID()` przy rozpoczęciu pierws
 | `disciplineKey` | klucz dyscypliny | |
 | `category` | typ bloku bez rozgrzewki i rozluźnienia albo `mixed` | ADR 0005. Szybki stoper: wybór użytkownika, ustalimy w jego issue |
 | `workoutDate`, `timezone` | dzień, strefa IANA | ADR 0005 |
-| `durationSeconds` | liczba > 0 | Czas treningu, może mieć ułamki sekundy |
+| `durationSeconds` | liczba > 0 | Czas treningu; z odtwarzacza może mieć ułamki sekundy, ręczny: liczba całkowita 60–28 800 |
 | `workSeconds`, `sparringSeconds` | liczba całkowita ≥ 0 albo `null` | `null` tylko w ręcznym wpisie („nieznane”) |
 | `completion` | `{ completed, planned, unit }` albo `null` | `unit`: `exercise` (plan) albo `round` (szybki stoper). `null` w ręcznym wpisie („nie dotyczy”) |
 | `note` | tekst ≤ 1000 albo `null` | Notatka i wnioski z treningu w jednym polu |
-| `rpe` | liczba całkowita 0–10 albo `null` | Q2 |
-| `rpeRecordedAt` | chwila albo `null` | Kiedy podano RPE. Pozwala odróżnić ocenę po 10 min od oceny po dobie |
+| `rpe` | liczba całkowita 0–10 albo `null` | Q2; w ręcznym wpisie wymagane, bez `null` |
+| `rpeRecordedAt` | chwila albo `null` | Kiedy podano RPE; w ręcznym wpisie wymagane. Edycja zmienia tę chwilę tylko przy zmianie wartości RPE |
 | `sparring` | lista `SparringEntry` | Pusta, gdy nie było sparingu (Q4) |
 | `createdAt`, `updatedAt` | chwila | |
 
@@ -103,10 +103,12 @@ Nowa sesja z planu otrzymuje ID z `crypto.randomUUID()` przy rozpoczęciu pierws
 | `startedAt`, `completedAt` (chwila) | tak | tak | brak |
 | `stepResults` (lista, ≤ 500) | tak | tak | brak |
 | `workoutPlanId`, `workoutPlanNameSnapshot` | tak | brak | brak |
-| `focusRatings` (lista, ≤ 3) | tak | brak | brak |
+| `focusRatings` (lista, ≤ 3) | tak | brak | tak, wymagana, może być pusta |
 | `exerciseRatings` (lista) | tak | brak | brak |
 
 `stepResults` mają kształt i inwarianty z `domain-model.md` (`WorkoutSessionStepResult`).
+
+Ręczny wpis ma `status: 'completed'`, `completion: null`, `workSeconds: null` i `sparringSeconds: null` (nieznane czasy, a nie zera). Data przy tworzeniu: od dziś − 7 dni do dziś w strefie urządzenia. Edycja może pozostawić starszą zapisaną datę; nowa data musi być z tego zakresu. Nowy wpis otrzymuje UUID, strefę urządzenia i `createdAt = updatedAt = rpeRecordedAt = now`. Edycja zachowuje ID, `createdAt` i `timezone`. W produkcji nie było wpisów `manual`; zmiana z 12 listopada 2026 nie podnosi `schemaVersion` i nie wymaga migracji.
 
 Po korekcie zegara `−15 s` / `+15 s` (issue #91) `stepResults[].plannedDurationSeconds` oznacza czas docelowy etapu po korektach, minimum 1 s, a nie pierwotny czas z planu. Dla `completed` nadal obowiązuje `performedDurationSeconds === plannedDurationSeconds`; np. runda 180 s wydłużona o 15 s zapisuje obie wartości jako 195 i wnosi 195 s do pracy. Licznik `completion` nie zmienia znaczenia. Korekta nie zmienia planu ani pól dokumentu sesji, więc schemat wersji 1 i reguły Firestore pozostają bez zmian. Lokalny zapis wznowienia ma opcjonalne `stepDurations` z celami etapów; brak pola w starym zapisie oznacza czasy z planu. Wynik wcześniejszej próby zachowuje własny czas docelowy także po restarcie etapu.
 
@@ -120,12 +122,13 @@ Po korekcie zegara `−15 s` / `+15 s` (issue #91) `stepResults[].plannedDuratio
 
 - Plan: jeden wpis na każdy blok `sparring`. `rounds` to liczba dokończonych etapów rundowych w tym bloku. Sparing w trybie ciągłym liczy się do `sparringSeconds`, ale nie do rund.
 - Twarde rundy w tygodniu to suma `rounds` z wpisów z `intensity: 'hard'`.
+- Ręczny wpis: najwyżej jeden element, `blockId: null`, intensywność wymagana, rundy 1–50 albo `null`; przy rodzaju `sparring` dokładnie jeden element. Czas pracy i sparingu pozostaje `null` niezależnie od liczby rund.
 
 ### `FocusRating` (ocena ćwiczenia celu)
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
-| `workoutItemId` | ID ćwiczenia w planie | |
+| `workoutItemId` | ID ćwiczenia w planie albo `null` | `null` wyłącznie w ręcznym wpisie (`ManualFocusRating`) |
 | `focusSkillId` | ID z `focusSkills` | |
 | `skillNameSnapshot`, `criterionSnapshot` | tekst | Nazwa i kryterium w chwili treningu |
 | `blockType` | typ bloku | Kontekst wykonania: worek, tarcze, sparing… |
@@ -134,6 +137,8 @@ Po korekcie zegara `−15 s` / `+15 s` (issue #91) `stepResults[].plannedDuratio
 | `previousCorrectionCheck` | `better`, `same`, `notChecked` albo `null` | Odpowiedź na pytanie o poprzednią notatkę (R2) |
 
 Zapis sesji z planu tworzy po jednym wpisie dla każdego ćwiczenia celu z `assessment: null`. Podsumowanie uzupełnia oceny.
+
+Ręczny wpis zawiera najwyżej 3 unikalne `focusSkillId`; ocena 1–5 albo `unableToRate` jest wymagana dla każdego wybranego ćwiczenia (bez `null`). Miejsce nie może być rozgrzewką ani rozluźnieniem. Wynika z rodzaju treningu; przy „Mieszany” i „Kondycja” wybiera je użytkownik. Sesja i zmiany `focusSkills.openCorrection` trafiają do jednego `writeBatch`, także offline. Oceny ręczne wchodzą do trendu oraz blokują usunięcie ćwiczenia celu.
 
 ### `ExerciseRating` (ocena pozostałych ćwiczeń, opcjonalna)
 
@@ -275,6 +280,7 @@ Stare klucze `localStorage` z planami i sesjami aplikacja usuwa raz, po przejśc
 - Wdrożone kolekcje: dozwolone klucze (`hasOnly`) i wymagane klucze (`hasAll`), typy, `schemaVersion == 1`, tożsamość dokumentu (`id`, a w `weekPlans` — `weekStart`), znaczniki czasu oraz odpowiednie dla modelu długości tekstów, rozmiary list i zakresy liczb, np. RPE 0–10.
 - **Zaplanowane:** `readiness` i `bodyWeights` mają pozwalać na utworzenie i zmianę tylko przy zgodzie w `users/{uid}`, a na usunięcie także po wycofaniu zgody. Obecnie reguły nie dopuszczają żadnej z tych operacji.
 - Elementów list (`stepResults`, `blocks`) reguły nie sprawdzają pole po polu. Sprawdzają typ i rozmiar listy, a resztę schemat `zod/mini` w aplikacji.
+- Gałąź `manual` wymaga dokładnie kluczy wspólnych i `focusRatings` (lista ≤ 3), całkowitego RPE 0–10 i chwili jego podania, `null` czasów pracy i sparingu, całkowitego czasu 60–28 800 s oraz listy sparingu ≤ 1. Szczegóły elementów, unikalność ocen i sparing wymagany dla rodzaju „Sparing” sprawdza `zod/mini`. Zakresu 7 dni nie sprawdzamy względem `request.time`, aby późniejsza synchronizacja offline i edycja starszego wpisu mogły się powieść.
 - Testy na emulatorze dla wdrożonych kolekcji: właściciel, drugie konto, niezalogowany, konto bez potwierdzonego e-maila, zły `schemaVersion`, nadmiarowe pole. Dla profilu i zaplanowanych kolekcji testy sprawdzają odmowę dostępu; testy zapisu danych o zdrowiu bez zgody dojdą przy wdrożeniu tych funkcji.
 
 ## Odczyt (ADR 0007)
