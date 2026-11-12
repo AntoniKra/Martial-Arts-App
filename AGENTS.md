@@ -78,7 +78,7 @@ Read `docs/workout-player-spec.md` before changing the player.
 
 - Remaining time is always computed from a deadline and the current clock, never by decrementing once per second. Pause stores the remaining duration; resume creates a new deadline.
 - The player must stay correct after the tab is hidden or the phone screen turns off and back on.
-- Rating during rest is optional and never pauses the countdown.
+- Exercise ratings are collected after the workout on the summary screen, not during rest in the player.
 
 ## UI
 

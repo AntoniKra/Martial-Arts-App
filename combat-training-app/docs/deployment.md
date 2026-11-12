@@ -60,7 +60,7 @@ Gdy automat nie działa, po `git pull` na `main` powtórz krok 3.
 
 ## Reguły Firestore
 
-Plik `firestore.rules` dopuszcza tylko plany i sesje pod `users/{uid}`, wyłącznie dla właściciela z potwierdzonym e-mailem. Pozostałe kolekcje są zabronione do czasu wdrożenia ich funkcji. Reguły sprawdzają dokument płytko; elementy list sprawdzają schematy `zod/mini` w aplikacji (`database-model.md`).
+Plik `firestore.rules` dopuszcza cztery kolekcje pod `users/{uid}`: `workoutPlans` (plany), `workoutSessions` (sesje), `focusSkills` (ćwiczenia celu) i `weekPlans` (plany tygodnia), wyłącznie dla właściciela z potwierdzonym e-mailem. Dokument profilu `users/{uid}` i pozostałe kolekcje są zabronione do czasu wdrożenia ich funkcji. Reguły sprawdzają dokument płytko; elementy list sprawdzają schematy `zod/mini` w aplikacji (`database-model.md`).
 
 Przed wdrożeniem uruchom `npm run test:rules` (Node.js 24.12.0 lub nowszy i Java 21). Skrypt startuje wyłącznie emulator Firestore na `127.0.0.1:8080`, z projektem `demo-combat-training`, uruchamia osobny zestaw testów i zatrzymuje emulator. Nie korzysta z produkcji ani z kont Firebase. `npm test` nadal uruchamia tylko testy aplikacji, bez Javy. CI wykonuje oba zestawy.
 
