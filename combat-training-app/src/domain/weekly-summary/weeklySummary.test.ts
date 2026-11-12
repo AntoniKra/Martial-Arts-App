@@ -121,8 +121,9 @@ describe('weekly training load', () => {
     const entries: WorkoutSession[] = [
       { ...plan(), durationSeconds: 1200, workSeconds: 600, rpe: 5 },
       { ...quick, durationSeconds: 600, workSeconds: 300, sparringSeconds: 300, rpe: 6 },
-      manual({ status: 'partial', durationSeconds: 300, workSeconds: 60, rpe: 2 }),
+      manual({ durationSeconds: 300, workSeconds: 60, rpe: 2 }),
     ]
+    expect(entries.map((entry) => entry.status)).toEqual(['completed', 'partial', 'completed'])
     expect(calculateWeeklySummary(monday, entries).load).toEqual({ units: 100 + 60 + 10, durationSeconds: 2100, knownCount: 3 })
   })
 
