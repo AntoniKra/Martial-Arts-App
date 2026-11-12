@@ -9,6 +9,7 @@ import { calculateWeekPlanProgress } from '@/domain/week-plan/weekPlanProgress'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { WeekPlanDataMessage, WeekPlanProgress } from '@/features/week-plan/WeekPlanSummary'
 import { WeekPlanEditor } from '@/features/week-plan/WeekPlanEditor'
+import { WeeklySummary } from '@/features/weekly-summary/WeeklySummary'
 import { weekPlanLabels as labels, weekItemLabel, weekLabel } from '@/features/week-plan/weekPlanLabels'
 
 function WeekDetails({ weekStart }: { weekStart: string }) {
@@ -23,6 +24,7 @@ function WeekDetails({ weekStart }: { weekStart: string }) {
     {weekPlans.pendingIds.has(weekStart) && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
     {selected.status === 'ready' && selected.plan?.editedAfterWeekEnd && <p className="text-sm text-muted">{labels.historical}</p>}
     {saved && selected.status === 'ready' && <p role="status" className="text-sm text-muted">{labels.saved}</p>}
+    <WeeklySummary weekStart={weekStart} />
     {editing ? <WeekPlanEditor weekStart={weekStart} initial={selected.status === 'ready' ? selected.plan : undefined} onClose={(didSave) => { setEditing(false); setSaved(didSave) }} /> : <>
       {selected.status === 'ready' && <>
         <ul aria-label="Pozycje planu tygodnia" className="space-y-3">{selected.plan?.items.map((item) => {
