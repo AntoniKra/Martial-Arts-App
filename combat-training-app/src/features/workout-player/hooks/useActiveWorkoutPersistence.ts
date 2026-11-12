@@ -6,7 +6,7 @@ import type { WorkoutPlaybackState } from '@/domain/workout-playback/workoutPlay
 export function useActiveWorkoutPersistence(
   plan: WorkoutPlan,
   playback: WorkoutPlaybackState,
-  getPlaybackSnapshot: () => Pick<ActiveWorkout, 'playback' | 'deadlineMs' | 'pausedRemainingMs'>,
+  getPlaybackSnapshot: () => Pick<ActiveWorkout, 'playback' | 'deadlineMs' | 'pausedRemainingMs' | 'stepDurations'>,
   getRecording: () => WorkoutSessionRecording,
   repository?: ActiveWorkoutRepository,
   locallySaved = false,

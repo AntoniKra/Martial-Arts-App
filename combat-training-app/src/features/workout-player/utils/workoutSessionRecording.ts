@@ -17,7 +17,7 @@ export function buildRecordedWorkoutSession(
     disciplineKey: plan.disciplineKey, startedAt: recording.startedAt, completedAt: new Date(completedAtMs).toISOString(),
     stepResults: steps.map((step) => {
       const tracked = recording.stepResults.find((value) => value.playbackStepId === step.id)
-      return mapPlaybackStepToSessionStepResult(step, tracked?.performedDurationSeconds ?? 0, tracked?.outcome ?? 'skipped')
+      return mapPlaybackStepToSessionStepResult({ ...step, durationSeconds: tracked?.plannedDurationSeconds ?? step.durationSeconds }, tracked?.performedDurationSeconds ?? 0, tracked?.outcome ?? 'skipped')
     }), note: null,
   }, {
     timezone: recording.timezone,
@@ -39,7 +39,7 @@ export function recordFinalizedStep(
   const step = steps[event.stepIndex]
   if (!step || step.id !== event.playbackStepId) return recording
   const incoming: TrackedStepResult = {
-    stepIndex: event.stepIndex, playbackStepId: step.id, plannedDurationSeconds: step.durationSeconds,
+    stepIndex: event.stepIndex, playbackStepId: step.id, plannedDurationSeconds: event.plannedDurationSeconds ?? step.durationSeconds,
     performedDurationSeconds: event.performedDurationSeconds, outcome: event.outcome,
   }
   const existing = recording.stepResults.find((result) => result.playbackStepId === step.id)

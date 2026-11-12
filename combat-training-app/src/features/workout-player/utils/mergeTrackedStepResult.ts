@@ -28,15 +28,7 @@ export function mergeTrackedStepResult(
   }
 
   if (incoming.outcome === 'partial') {
-    const performedDurationSeconds = Math.max(
-      existing.performedDurationSeconds,
-      incoming.performedDurationSeconds,
-    )
-
-    return {
-      ...existing,
-      performedDurationSeconds,
-    }
+    return incoming.performedDurationSeconds > existing.performedDurationSeconds ? incoming : existing
   }
 
   return existing

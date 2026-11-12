@@ -22,6 +22,7 @@ import { resolveRunningPlaybackAtTime } from '@/features/workout-player/utils/re
 import { resolveWorkoutPreparation } from '@/features/workout-player/utils/resolveWorkoutPreparation'
 import { WORKOUT_PREPARATION_DEFAULT, type WorkoutPreparation } from '@/domain/workout-playback/workoutPreparation'
 import { finalizePlaybackSteps, getNextWorkoutItemStepIndex } from '@/features/workout-player/utils/finishPlaybackSteps'
+import { adjustPlaybackTime, applyStepDurations } from '../utils/adjustPlaybackTime'
 import {
   calculatePerformedDurationSeconds,
   deriveStepOutcome,
@@ -52,7 +53,8 @@ interface UseWorkoutPlaybackResult {
   finishCurrentExercise: (expected: ExpectedStepNavigation) => void
   endEarly: () => void
   restart: () => void
-  getPlaybackSnapshot: () => Pick<ActiveWorkout, 'playback' | 'deadlineMs' | 'pausedRemainingMs'>
+  adjustTime: (deltaSeconds: -15 | 15, expected: ExpectedStepNavigation) => void
+  getPlaybackSnapshot: () => Pick<ActiveWorkout, 'playback' | 'deadlineMs' | 'pausedRemainingMs' | 'stepDurations'>
 }
 
 function getStepDurationSeconds(steps: readonly WorkoutPlaybackStep[], index: number): number {
@@ -137,6 +139,7 @@ function emitStepFinalized(
     type: 'stepFinalized',
     stepIndex,
     playbackStepId: step.id,
+    plannedDurationSeconds: step.durationSeconds,
     performedDurationSeconds,
     // Manual navigation supplies real elapsed milliseconds even when the exercise is skipped.
     performedDurationMs: performedDurationMs ?? performedDurationSeconds * 1000,
@@ -178,7 +181,9 @@ export function useWorkoutPlayback(
   timeline: WorkoutPlaybackTimeline,
   options?: UseWorkoutPlaybackOptions,
 ): UseWorkoutPlaybackResult {
-  const stepsRef = useRef(timeline.steps)
+  const [steps, setSteps] = useState(() => applyStepDurations(timeline.steps, options?.initialWorkout?.stepDurations))
+  const stepsRef = useRef(steps)
+  const originalStepsRef = useRef(timeline.steps)
   const preparationSeconds = Number(options?.preparation ?? WORKOUT_PREPARATION_DEFAULT)
   const onPlaybackEventRef = useRef(options?.onPlaybackEvent)
 
@@ -197,6 +202,7 @@ export function useWorkoutPlayback(
     deadlineMs: deadlineRef.current,
     pausedRemainingMs: playbackRef.current.status === 'paused'
       ? getResumeDeadlineMs(playbackRef.current, pausedPlaybackRef.current, 0) : null,
+    stepDurations: Object.fromEntries(stepsRef.current.map((step) => [step.id, step.durationSeconds])),
   }), [])
 
   const emitEvent = useCallback((event: WorkoutPlaybackEvent) => {
@@ -218,6 +224,7 @@ export function useWorkoutPlayback(
     playbackRef.current = nextPlayback
     deadlineRef.current = nextDeadlineMs
     setPlayback(nextPlayback)
+    setSteps(stepsRef.current)
   }, [])
 
   const commitPlaybackTransition = useCallback(
@@ -336,6 +343,33 @@ export function useWorkoutPlayback(
   const startNow = useCallback(() => {
     if (playbackRef.current.status === 'preparing') runTick(true)
   }, [runTick])
+
+  const adjustTime = useCallback((deltaSeconds: -15 | 15, expected: ExpectedStepNavigation) => {
+    const snapshot = playbackRef.current
+    if ((snapshot.status !== 'running' && snapshot.status !== 'paused') || !matchesExpectedStepNavigation(snapshot, expected)) return
+    // Reconcile a suspended tab first; a click aimed at an expired stage must not change the next one.
+    runTick()
+    const current = playbackRef.current
+    if ((current.status !== 'running' && current.status !== 'paused') || !matchesExpectedStepNavigation(current, expected)) return
+    const nowMs = Date.now()
+    const adjusted = adjustPlaybackTime(current, stepsRef.current[current.currentStepIndex], deadlineRef.current,
+      current.status === 'paused' ? getResumeDeadlineMs(current, pausedPlaybackRef.current, 0) : null, deltaSeconds, nowMs)
+    stepsRef.current = stepsRef.current.map((step, index) => index === current.currentStepIndex ? adjusted.step : step)
+    if (adjusted.playback.remainingSeconds === 0) {
+      // Use the ordinary elapsed transition, with no negative spill into the following stage.
+      const resolved = resolveRunningPlaybackAtTime({ ...current, status: 'running' }, nowMs, nowMs, stepsRef.current)
+      emitElapsedTransitions(current, resolved.playback, stepsRef.current, nowMs, emitEvent)
+      const next = current.status === 'paused' && resolved.playback.status !== 'completed'
+        ? { ...resolved.playback, status: 'paused' as const } : resolved.playback
+      const revised = withStepRevision(current, next, shouldBumpStepRevision(current, next))
+      pausedPlaybackRef.current = next.status === 'paused' ? { playback: revised, remainingMs: next.remainingSeconds * 1000 } : null
+      commitPlayback(revised, next.status === 'paused' ? null : resolved.deadlineMs)
+      return
+    }
+    pausedPlaybackRef.current = current.status === 'paused'
+      ? { playback: adjusted.playback, remainingMs: adjusted.pausedRemainingMs! } : null
+    commitPlayback(adjusted.playback, adjusted.deadlineMs)
+  }, [commitPlayback, emitEvent, runTick])
 
   const pause = useCallback(() => {
     const current = playbackRef.current
@@ -479,6 +513,7 @@ export function useWorkoutPlayback(
       )
 
       const targetIndex = action === 'restartCurrent' ? current.currentStepIndex : current.currentStepIndex - 1
+      stepsRef.current = stepsRef.current.map((step, index) => index === targetIndex ? originalStepsRef.current[index] : step)
       const durationSeconds = getStepDurationSeconds(stepsRef.current, targetIndex)
       const nextStatus: WorkoutPlaybackStatus = current.status === 'running' ? 'running' : 'paused'
       const nextDeadlineMs = nextStatus === 'running' ? nowMs + durationSeconds * 1000 : null
@@ -592,6 +627,7 @@ export function useWorkoutPlayback(
         return
       }
 
+      stepsRef.current = stepsRef.current.map((step, index) => index === nextIndex ? originalStepsRef.current[index] : step)
       const durationSeconds = getStepDurationSeconds(stepsRef.current, nextIndex)
       const nextStatus: WorkoutPlaybackStatus = current.status === 'running' ? 'running' : 'paused'
       const nextDeadlineMs = nextStatus === 'running' ? nowMs + durationSeconds * 1000 : null
@@ -618,6 +654,7 @@ export function useWorkoutPlayback(
   }, [advancePlayback])
 
   const restart = useCallback(() => {
+    stepsRef.current = originalStepsRef.current
     emitEvent({ type: 'restarted' })
 
     invalidateRuntime()
@@ -659,7 +696,7 @@ export function useWorkoutPlayback(
     )
   }, [clearTimer, commitPlayback, emitEvent, invalidateRuntime, preparationSeconds])
 
-  const currentStep = timeline.steps[playback.currentStepIndex] ?? null
+  const currentStep = steps[playback.currentStepIndex] ?? null
   const stepNavigationEnabled = playback.status === 'running' || playback.status === 'paused'
   // On the first step "Poprzedni" restarts it, so it is available whenever navigation is.
   const canGoPrevious = stepNavigationEnabled
@@ -683,6 +720,7 @@ export function useWorkoutPlayback(
     finishCurrentExercise,
     endEarly,
     restart,
+    adjustTime,
     getPlaybackSnapshot,
   }
 }

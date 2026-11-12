@@ -314,6 +314,7 @@ function WorkoutPlayerRuntime({
     finishCurrentExercise,
     endEarly,
     restart,
+    adjustTime,
     getPlaybackSnapshot,
   } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent, preparation, initialWorkout })
 
@@ -430,6 +431,13 @@ function WorkoutPlayerRuntime({
               stepKind={currentStep.kind}
               paused={isPaused}
               preparing={isPreparing}
+              onAdjustTime={!isPreparing && playback.status !== 'idle' ? (deltaSeconds) => {
+                enableSound()
+                adjustTime(deltaSeconds, {
+                  expectedStepIndex: playback.currentStepIndex,
+                  expectedStepRevision: playback.stepRevision,
+                })
+              } : undefined}
             />
           </div>
 
