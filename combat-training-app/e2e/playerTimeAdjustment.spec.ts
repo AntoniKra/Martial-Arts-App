@@ -105,9 +105,10 @@ for (const paused of [false, true]) {
     await page.clock.fastForward(165_000)
     await app.expectWorkoutSaved()
     const session = (await app.readSessions())[0]
-    expect(session).toMatchObject({ status: 'completed', workSeconds: 165 })
+    // 50 s of the 1:00 round were worked before the cut, so the round records 50 s.
+    expect(session).toMatchObject({ status: 'completed', workSeconds: 170 })
     if (session.source === 'manual') throw new Error('Expected a plan session')
-    expect(session.stepResults[0]).toMatchObject({ plannedDurationSeconds: 45, performedDurationSeconds: 45, outcome: 'completed' })
+    expect(session.stepResults[0]).toMatchObject({ plannedDurationSeconds: 50, performedDurationSeconds: 50, outcome: 'completed' })
   })
 }
 

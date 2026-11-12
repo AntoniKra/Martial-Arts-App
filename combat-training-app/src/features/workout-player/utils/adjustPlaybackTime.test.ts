@@ -34,13 +34,21 @@ describe('fifteen-second adjustment', () => {
     const adjusted = adjustPlaybackTime({ ...playback, status, remainingSeconds: 10 }, playbackStep('round', 180),
       status === 'running' ? now + 10_000 : null, status === 'paused' ? 10_000 : null, -15, Date.now())
     expect(adjusted.playback.remainingSeconds).toBe(0)
-    expect(adjusted.step.durationSeconds).toBe(165)
+    // 2:50 was already worked, so the shortened round records 170 s, not 180 - 15.
+    expect(adjusted.step.durationSeconds).toBe(170)
     const steps = [adjusted.step, { ...playbackStep('rest', 30), kind: 'roundRest' as const }]
     expect(resolveRunningPlaybackAtTime({ ...adjusted.playback, status: 'running' }, now, Date.now(), steps))
       .toMatchObject({ playback: { currentStepIndex: 1, remainingSeconds: 30 }, deadlineMs: now + 30_000 })
-    expect(finalizePlaybackSteps(steps, 0, 1, 0, 165_000, 'elapsed')[0])
-      .toMatchObject({ reason: 'elapsed', plannedDurationSeconds: 165, performedDurationSeconds: 165, outcome: 'completed' })
-    expect(selectWorkoutGongSignal(finalizePlaybackSteps(steps, 0, 1, 0, 165_000, 'elapsed'), steps)).toBe('workEnd')
+    expect(finalizePlaybackSteps(steps, 0, 1, 0, 170_000, 'elapsed')[0])
+      .toMatchObject({ reason: 'elapsed', plannedDurationSeconds: 170, performedDurationSeconds: 170, outcome: 'completed' })
+    expect(selectWorkoutGongSignal(finalizePlaybackSteps(steps, 0, 1, 0, 170_000, 'elapsed'), steps)).toBe('workEnd')
+  })
+
+  it.each(['running', 'paused'] as const)('records the worked time shown on the clock when a %s stage is cut at 9.4 s', (status) => {
+    const adjusted = adjustPlaybackTime({ ...playback, status, remainingSeconds: 10 }, playbackStep('round', 180),
+      status === 'running' ? now + 9_400 : null, status === 'paused' ? 9_400 : null, -15, Date.now())
+    expect(adjusted.playback.remainingSeconds).toBe(0)
+    expect(adjusted.step.durationSeconds).toBe(170)
   })
 
   it('accumulates corrections and clamps the target to one second', () => {

@@ -34,7 +34,7 @@ Trzy osobne miary, nigdy mieszane:
 
 ## Korekty zegara (12 listopada 2026, issue #91)
 
-`plannedDurationSeconds` w wyniku etapu oznacza czas docelowy po korektach `−15 s` / `+15 s`, co najmniej 1 s. Ukończona runda 3:00 wydłużona o 15 s zapisuje `plannedDurationSeconds = performedDurationSeconds = 195` i wnosi 195 s pracy. Skrócenie przy 15 s lub mniej kończy etap zwykłym przejściem `elapsed`, bez przenoszenia nadmiaru skrócenia na kolejny etap. Korekty nie zmieniają licznika realizacji. Restart przywraca czas z planu, zachowując dotychczasowy najlepszy wynik i osobne czasy prób. Lokalny zapis wznowienia zachowuje cele etapów; historyczne zapisy bez korekt pozostają czytelne. Pola dokumentu i reguły Firestore nie zmieniają się.
+`plannedDurationSeconds` w wyniku etapu oznacza czas docelowy po korektach `−15 s` / `+15 s`, co najmniej 1 s. Ukończona runda 3:00 wydłużona o 15 s zapisuje `plannedDurationSeconds = performedDurationSeconds = 195` i wnosi 195 s pracy. Skrócenie przy 15 s lub mniej kończy etap zwykłym przejściem `elapsed`, bez przenoszenia nadmiaru skrócenia na kolejny etap. Czasem docelowym jest wtedy czas już przepracowany według zegara: runda 3:00 skrócona przy 0:10 zapisuje 170 s, a nie 165 s. Korekty nie zmieniają licznika realizacji. Restart przywraca czas z planu, zachowując dotychczasowy najlepszy wynik i osobne czasy prób. Lokalny zapis wznowienia zachowuje cele etapów; historyczne zapisy bez korekt pozostają czytelne. Pola dokumentu i reguły Firestore nie zmieniają się.
 
 ## Dzień treningu
 
