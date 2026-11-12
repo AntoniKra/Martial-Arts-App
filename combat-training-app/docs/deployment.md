@@ -56,7 +56,8 @@ Jednorazowa konfiguracja (właściciel, po scaleniu PR z logowaniem Google, w te
 4. Lokalny `.env`: `VITE_FIREBASE_AUTH_DOMAIN=combat-training-830fb.web.app`.
 5. GitHub → Settings → Secrets and variables → Actions → Variables: ta sama wartość `VITE_FIREBASE_AUTH_DOMAIN`.
 6. Actions → `Hosting live deploy` → Run workflow, żeby zbudować aplikację z nowym `authDomain`.
-7. Sprawdź na telefonie (Safari i Chrome, w przeglądarce i w zainstalowanej PWA) oraz na komputerze: rejestracja kontem Google, wylogowanie, ponowne logowanie.
+7. Na każdym urządzeniu przyjmij aktualizację z banera „Nowa wersja” (albo zamknij aplikację całkiem i otwórz ponownie). Aplikacja aktualizuje się na żądanie (ADR 0003), więc do tego czasu działa stara wersja ze starym `authDomain` i starym service workerem, który podmienia `/__/auth/handler` na stronę aplikacji; logowanie Google by się nie udało.
+8. Sprawdź na telefonie (Safari i Chrome, w przeglądarce i w zainstalowanej PWA) oraz na komputerze: rejestracja kontem Google, wylogowanie, ponowne logowanie.
 
 Ten sam adres e-mail zarejestrowany wcześniej hasłem: aplikacja nie łączy kont. Gdy Google potwierdza adres (Gmail, Google Workspace), Firebase sam loguje do istniejącego konta: ten sam `uid`, dane zostają, a Google zostaje dopięty jako druga metoda. Jeśli tamto konto miało niepotwierdzony e-mail, Firebase usuwa jego hasło, bo właścicielem adresu jest konto Google. Gdy Firebase odmawia (`auth/account-exists-with-different-credential`), aplikacja prosi o logowanie hasłem.
 
