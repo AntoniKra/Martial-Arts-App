@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/authContext'
 import { WorkoutRpeSummary } from '@/features/workout-feedback/WorkoutRpeSummary'
 
-export function WorkoutFeedbackPage() {
+export function Component() {
   const { sessionId = '' } = useParams()
   const { sessions, focusSkills, sessionRepository, retry } = useWorkoutData()
   const { state } = useAuth()

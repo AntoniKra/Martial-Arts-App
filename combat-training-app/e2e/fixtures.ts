@@ -96,6 +96,8 @@ class WorkoutApp {
     await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
     await page.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) })
       .getByRole('link', { name: 'Zobacz plan', exact: true }).click()
+    // The list already has the same heading while the details chunk is loading.
+    await expect(page).toHaveURL(/\/workouts\/[^/]+$/)
     await expect(page.getByRole('heading', { name, exact: true })).toBeVisible()
     return page.url()
   }

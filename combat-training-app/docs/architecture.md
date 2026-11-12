@@ -41,6 +41,10 @@ Granica między funkcjami a infrastrukturą nie jest wszędzie zachowana. Bezpo�
 
 Ponadto `features/theme/themeStorage.ts` czyta i zapisuje motyw bezpośrednio w `localStorage`. To opis istniejących odstępstw od docelowej architektury; ich usunięcie wymaga osobnego zadania.
 
+## Podział kodu
+
+Trasy kreatora (`/workouts/new`, `/workouts/:workoutId/edit`), odtwarzacza (`/workouts/:workoutId/active`), podsumowania (`/workout-sessions/:sessionId/feedback`), szczegółów planu (`/workouts/:workoutId`) oraz Postępu (`/progress`, `/progress/week/:weekStart`, `/progress/focus-skills/:focusSkillId`) korzystają z `lazy` React Routera i eksportu `Component` (kontynuacja ADR 0009). Te ekrany nie są potrzebne przy zwykłym starcie aplikacji. Logowanie, weryfikacja, Home, lista treningów, bramki, providery i układ pozostają w głównej paczce. `ActiveWorkoutGate` zachowuje statyczną logikę odzyskiwania treningu, a Home i historia wspólne etykiety; nie importują widoków leniwych ekranów. Początkowe ładowanie trasy używa tego samego ekranu co sprawdzanie sesji, a nadrzędny ekran błędu obsługuje także nieudany import. Pliki tras trafiają do precache PWA, aby były dostępne offline po pierwszej wizycie. Budżet głównej paczki to około **200 kB gzip**; każdy PR dodający ekran powinien podawać pomiar przed i po oraz rozmiary nowych plików.
+
 ## Stan
 
 - routing: React Router;

@@ -45,7 +45,7 @@ function EditWorkoutLoader({ workoutId }: { workoutId: string }) {
   )
 }
 
-export function EditWorkoutPage() {
+export function Component() {
   const { workoutId = '' } = useParams()
   return <EditWorkoutLoader key={workoutId} workoutId={workoutId} />
 }

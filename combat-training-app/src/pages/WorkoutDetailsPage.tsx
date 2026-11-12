@@ -6,7 +6,7 @@ import { WorkoutDataWarning } from '@/features/workouts/components/WorkoutDataWa
 import { selectPlanCorrections } from '@/domain/focus-skill/focusSkillSelectors'
 import { CorrectionNote } from '@/features/workout-feedback/CorrectionNote'
 
-export function WorkoutDetailsPage() {
+export function Component() {
   const navigate = useNavigate()
   const { workoutId = '' } = useParams()
   const { loadState, retry } = useWorkoutPlan(workoutId)

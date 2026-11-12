@@ -6,6 +6,11 @@ const time = Date.parse('2026-11-08T10:00:00.000Z')
 test.use({ screenshot: 'off' })
 
 test('recovers the same round after reload and redirects home to its running timer', async ({ app, page }) => {
+  const warnings: string[] = []
+  page.on('console', (message) => {
+    // This warning comes from the test fixture, not React Router.
+    if (message.type() === 'warning' && message.text() !== 'Service Worker registration blocked by Playwright') warnings.push(message.text())
+  })
   await app.open('/')
   const plan = workoutPlan([block('bag', [roundsExercise('jab', 3, 120, 30)], 'bag')])
   await app.seedPlan(plan)
@@ -26,6 +31,7 @@ test('recovers the same round after reload and redirects home to its running tim
   await expect(page.getByText('Pozostały czas: 40 sekund', { exact: true })).toBeAttached()
   await page.getByRole('button', { name: 'Dźwięk wyłączony — stuknij, aby włączyć', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Dźwięk wyłączony — stuknij, aby włączyć', exact: true })).toHaveCount(0)
+  expect(warnings).toEqual([])
 })
 
 test('offers a partial session at last activity after a long absence and saves it to history', async ({ app, page }) => {
@@ -188,28 +194,34 @@ test('recovers the immutable plan even when Firestore cannot load', async ({ app
   await expect(page.getByRole('button', { name: 'Pauza', exact: true })).toBeVisible()
 })
 
-test('clears recovery after a local offline save and sends that partial entry when back online', async ({ app, page, context }) => {
-  await app.open('/')
-  const plan = workoutPlan([block('bag', [roundsExercise('jab', 3, 120, 30)], 'bag')])
-  await app.seedPlan(plan)
-  await app.open(`/workouts/${plan.id}`)
-  await app.openPlayer()
-  await page.clock.setFixedTime(new Date(time))
-  await app.startWorkout()
-  await page.clock.setFixedTime(new Date(time + 190_000))
-  await expect(page.getByText('Runda 2 z 3', { exact: true })).toBeVisible()
-  await page.goto('about:blank')
-  await page.clock.setFixedTime(new Date(time + 600_000))
-  await page.goto('/')
-  const dialog = page.getByRole('dialog', { name: 'Niedokończony trening', exact: true })
-  await expect(dialog).toBeVisible()
-  await context.setOffline(true)
-  await dialog.getByRole('button', { name: 'Zapisz to, co zrobione', exact: true }).click()
-  await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
-  expect(await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('combat-training.activeWorkout.')))).toEqual([])
-  expect(await app.readSessions()).toHaveLength(0)
-  await context.setOffline(false)
-  await expect.poll(async () => (await app.readSessions()).length).toBe(1)
+test.describe('offline with the PWA cache', () => {
+  // Lazy routes need the same precache used by the installed application.
+  test.use({ serviceWorkers: 'allow' })
+
+  test('clears recovery after a local offline save and sends that partial entry when back online', async ({ app, page, context }) => {
+    await app.open('/')
+    const plan = workoutPlan([block('bag', [roundsExercise('jab', 3, 120, 30)], 'bag')])
+    await app.seedPlan(plan)
+    await app.open(`/workouts/${plan.id}`)
+    await app.openPlayer()
+    await page.clock.setFixedTime(new Date(time))
+    await app.startWorkout()
+    await page.clock.setFixedTime(new Date(time + 190_000))
+    await expect(page.getByText('Runda 2 z 3', { exact: true })).toBeVisible()
+    await page.goto('about:blank')
+    await page.clock.setFixedTime(new Date(time + 600_000))
+    await page.goto('/')
+    const dialog = page.getByRole('dialog', { name: 'Niedokończony trening', exact: true })
+    await expect(dialog).toBeVisible()
+    await page.evaluate(async () => { await navigator.serviceWorker.ready })
+    await context.setOffline(true)
+    await dialog.getByRole('button', { name: 'Zapisz to, co zrobione', exact: true }).click()
+    await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
+    expect(await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('combat-training.activeWorkout.')))).toEqual([])
+    expect(await app.readSessions()).toHaveLength(0)
+    await context.setOffline(false)
+    await expect.poll(async () => (await app.readSessions()).length).toBe(1)
+  })
 })
 
 test('clears preparation on an in-app exit and does not redirect back after reload', async ({ app, page }) => {
