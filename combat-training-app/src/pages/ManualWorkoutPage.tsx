@@ -12,7 +12,7 @@ export function Component() {
   const { sessionId } = useParams()
   const location = useLocation()
   const [newId] = useState(() => crypto.randomUUID())
-  const { sessions, focusSkills, sessionRepository, retry } = useWorkoutData()
+  const { sessions, focusSkills, sessionRepository, retry, retryFocusSkills } = useWorkoutData()
   const returnTo = location.state && typeof location.state === 'object' && 'returnTo' in location.state && location.state.returnTo === '/'
     ? routes.home : `${routes.workouts}?tab=history`
   if (sessions.status === 'loading') return <p role="status" className="p-4 text-muted">{labels.loading}</p>
@@ -25,7 +25,7 @@ export function Component() {
   </div>
   const manual = original?.source === 'manual' ? original : undefined
   return <ManualWorkoutForm key={sessionId ?? 'new'} original={manual} sessions={sessions.items} skills={focusSkills.items}
-    skillsStatus={focusSkills.invalidDocumentIds.length ? 'error' : focusSkills.status} onRetrySkills={retry} returnTo={returnTo}
+    skillsStatus={focusSkills.invalidDocumentIds.length ? 'error' : focusSkills.status} onRetrySkills={retryFocusSkills} returnTo={returnTo}
     onSave={async (values, available) => {
       const now = new Date().toISOString()
       const session = buildManualWorkoutSession({ ...values, focusRatings: available ? values.focusRatings : manual?.focusRatings ?? [] },
