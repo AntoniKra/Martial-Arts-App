@@ -75,6 +75,8 @@ for (const theme of ['dark', 'light'] as const) {
     await capture('builder')
     await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
     await page.getByRole('button', { name: 'Technika', exact: true }).click()
+    // Choosing a block type moves focus back to "Dodaj blok" on the next frame; measuring before that lands loses focus.
+    await expect(page.getByRole('button', { name: 'Dodaj blok', exact: true })).toBeFocused()
     const addExercise = page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true })
     const builderFocus = await focusOutline(addExercise)
     await addExercise.click()
