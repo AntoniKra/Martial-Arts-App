@@ -45,6 +45,8 @@ export default defineConfig({
       // network when a page uses them, but they are not downloaded up front for offline use.
       globIgnores: ['**/*-{cyrillic,greek,vietnamese}-*.woff2'],
       navigateFallback: '/index.html',
+      // Firebase Hosting serves the Google sign-in handler under /__/auth/ when authDomain is the app domain.
+      navigateFallbackDenylist: [/^\/__\//],
       cleanupOutdatedCaches: true,
       clientsClaim: true,
     },

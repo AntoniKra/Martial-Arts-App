@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { AuthFrame } from './AuthFrame'
 import { useAuth } from './authContext'
+import { GoogleMark } from './GoogleMark'
 import { authLabels as labels } from './authLabels'
 import { minPasswordLength, validateAuthForm, type AuthFormErrors, type AuthFormMode, type AuthFormValues } from './validateAuthForm'
 
@@ -16,6 +17,7 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
   const [errors, setErrors] = useState<AuthFormErrors>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [resetSent, setResetSent] = useState(false)
+  const [googlePending, setGooglePending] = useState(false)
   const title = mode === 'login' ? labels.login : mode === 'register' ? labels.register : labels.resetTitle
 
   function change(field: keyof AuthFormValues) {
@@ -54,6 +56,20 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
     }
   }
 
+  async function continueWithGoogle() {
+    if (inFlight.current) return
+    inFlight.current = true
+    setGooglePending(true)
+    try {
+      setFormError(await auth.execute(() => auth.service.signInWithGoogle()))
+    } finally {
+      inFlight.current = false
+      setGooglePending(false)
+    }
+  }
+
+  const shownError = formError ?? (mode === 'forgot-password' ? null : auth.redirectError)
+
   return (
     <AuthFrame title={title}>
       <form noValidate onSubmit={submit} className="flex flex-col gap-4">
@@ -77,10 +93,20 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
           {mode === 'register' && <p id="password-hint" className="mt-2 text-sm text-muted">{labels.passwordHint}</p>}
           {errors.password && <p id="password-error" className="mt-2 text-sm text-crimson-ink" role="alert">{errors.password}</p>}
         </div>}
-        {formError && <p role="alert" className="text-sm text-crimson-ink">{formError}</p>}
+        {shownError && <p role="alert" className="text-sm text-crimson-ink">{shownError}</p>}
         {resetSent && <p role="status" className="text-sm">{labels.resetSent}</p>}
-        <Button type="submit" loading={auth.busy}>{mode === 'forgot-password' ? labels.reset : title}</Button>
+        <Button type="submit" loading={auth.busy && !googlePending} disabled={googlePending}>{mode === 'forgot-password' ? labels.reset : title}</Button>
       </form>
+      {mode !== 'forgot-password' && <>
+        <div className="my-4 flex items-center gap-3 text-sm text-muted">
+          <span aria-hidden="true" className="h-px flex-1 bg-bd" />
+          {labels.alternativeSignIn}
+          <span aria-hidden="true" className="h-px flex-1 bg-bd" />
+        </div>
+        <Button variant="secondary" className="w-full" loading={googlePending} disabled={auth.busy} onClick={continueWithGoogle}>
+          <span className="inline-flex items-center gap-3"><GoogleMark />{labels.continueWithGoogle}</span>
+        </Button>
+      </>}
       <nav aria-label={labels.login} className="mt-4 flex flex-col items-start">
         {mode !== 'login' && <Link className="flex min-h-touch items-center text-sm underline" to="/login" state={location.state}>{labels.login}</Link>}
         {mode === 'login' && <>

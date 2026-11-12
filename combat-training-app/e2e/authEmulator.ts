@@ -27,6 +27,28 @@ export async function signIn(page: Page, account: { email: string; password: str
   await page.getByRole('button', { name: 'Zaloguj się', exact: true }).click()
 }
 
+export async function accountsWithEmail(request: APIRequestContext, email: string) {
+  const response = await request.post(`${identity}/projects/demo-combat-training/accounts:lookup`, {
+    headers: { Authorization: 'Bearer owner' },
+    data: { email: [email] },
+  })
+  expect(response.ok()).toBe(true)
+  const { users = [] } = await response.json() as { users?: { localId: string; providerUserInfo?: { providerId: string }[] }[] }
+  return users.map((user) => ({ uid: user.localId, providers: (user.providerUserInfo ?? []).map((info) => info.providerId).sort() }))
+}
+
+/** Completes the emulator's fake Google sign-in page with a new Google identity for the address. */
+export async function signInWithFakeGoogle(page: Page, email: string) {
+  await expect(page).toHaveURL(/^http:\/\/127\.0\.0\.1:9099\/emulator\/auth\/handler/)
+  // The emulator page renders its button before its script attaches the click handler.
+  await expect(async () => {
+    await page.locator('#add-account-button').click()
+    await expect(page.locator('#email-input')).toBeVisible({ timeout: 1000 })
+  }).toPass()
+  await page.locator('#email-input').fill(email)
+  await page.locator('#sign-in').click()
+}
+
 export async function verificationLink(request: APIRequestContext, email: string) {
   const response = await request.get(`${emulator}/emulator/v1/projects/demo-combat-training/oobCodes`)
   expect(response.ok()).toBe(true)
