@@ -98,7 +98,9 @@ Ukończone, częściowe, niewykonane i dodatkowe mają osobne liczniki; pasek ni
 
 Wdrożony **Q5 etap 1**: na ekranie wybranego tygodnia, także podczas edycji celu, podsumowanie treningów z dziennika pokazuje liczbę wszystkich, ukończonych i częściowych sesji, sumę czasu treningu, czas pracy i sparingu z pokryciem danych oraz „RPE w X z Y treningów” (0 jest oceną). Liczymy zapisany `workoutDate` od poniedziałku do niedzieli, niezależnie od celu. Nieznane czasy nie są zerami; niepełna lub błędna historia blokuje sumy, a lokalne zapisy zachowują oznaczenie oczekiwania na wysłanie.
 
-Dalszy zakres Q5 poniżej pozostaje niezrealizowany: wykres tygodniowy, obciążenie, twarde rundy, kompletność ocen ćwiczeń celu i porównania. Etap 1 nie oznacza ukończenia całego Q5.
+Wdrożony **Q5 etap 2**: ta sama sekcja pokazuje obciążenie tygodnia jako sumę RPE × (`durationSeconds` / 60) w jednostkach umownych (j.u.), liczoną w locie i niezapisywaną w bazie. Czas treningu i RPE pozostają widoczne osobno. Przy brakach RPE etykieta brzmi „Zarejestrowane obciążenie”, obok jest „RPE w X z Y treningów”, informacja, że suma obejmuje tylko treningi z RPE, oraz „Czas treningów z RPE”; bez żadnego RPE pokazujemy „Brak danych”, nie 0. RPE 0 daje znane obciążenie 0. Zwijane „Szczegóły obciążenia” wymieniają sesje tygodnia od najnowszej: datę, nazwę, czas treningu, RPE i obciążenie.
+
+Dalszy zakres Q5 poniżej pozostaje niezrealizowany: wykres tygodniowy, twarde rundy, kompletność ocen ćwiczeń celu i porównania. Etapy 1 i 2 nie oznaczają ukończenia całego Q5.
 
 Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 
