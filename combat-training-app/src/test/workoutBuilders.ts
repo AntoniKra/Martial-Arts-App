@@ -5,7 +5,7 @@ import type {
   WorkoutExercise,
   WorkoutPlan,
 } from '@/domain/workout/workout.types'
-import type { WorkoutPlaybackStep } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackStep } from '@/domain/workout-playback/workoutPlayback.types'
 
 export function roundsExercise(
   id: string,

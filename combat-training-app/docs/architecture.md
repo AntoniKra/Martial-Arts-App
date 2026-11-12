@@ -25,6 +25,8 @@ src/
 - mocki i seed nie są źródłem prawdy po podłączeniu bazy;
 - kod prototypu Figmy nie definiuje architektury produkcyjnej.
 
+Wspólne typy odtwarzania, czysta funkcja `createWorkoutPlaybackTimeline` oraz neutralne wartości przygotowania (5/10/15/30 s, domyślnie 10 s) znajdują się w `src/domain/workout-playback/`. Warstwy application i infrastructure importują je bezpośrednio z domeny. Etykiety opcji przygotowania i stan ładowania strony pozostają w `features/workout-player`.
+
 ## Stan
 
 - routing: React Router;

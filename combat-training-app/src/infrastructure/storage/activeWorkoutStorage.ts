@@ -2,7 +2,7 @@ import * as z from 'zod/mini'
 import type { ActiveWorkout, ActiveWorkoutRepository } from '@/application/workout/activeWorkoutRepository'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import { workoutPlanDocumentSchema } from '@/infrastructure/firebase/workoutDocumentSchemas'
-import { createWorkoutPlaybackTimeline } from '@/features/workout-player/utils/createWorkoutPlaybackTimeline'
+import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 
 export const ACTIVE_WORKOUT_STORAGE_PREFIX = 'combat-training.activeWorkout.'
 const integer = z.number().check(z.int(), z.minimum(0), z.maximum(Number.MAX_SAFE_INTEGER))

@@ -1,9 +1,10 @@
+import type { TrackedStepResult } from '@/domain/workout-playback/workoutPlayback.types'
 import { describe, expect, it } from 'vitest'
 
 import { calculateWorkoutSessionDurations } from '@/domain/workout-session/workoutSessionDefinitions'
-import { createWorkoutPlaybackTimeline } from '@/features/workout-player/utils/createWorkoutPlaybackTimeline'
+import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 import { finalizePlaybackSteps, getNextWorkoutItemStepIndex } from '@/features/workout-player/utils/finishPlaybackSteps'
-import { mergeTrackedStepResult, type TrackedStepResult } from '@/features/workout-player/utils/mergeTrackedStepResult'
+import { mergeTrackedStepResult } from '@/features/workout-player/utils/mergeTrackedStepResult'
 import { block, continuousExercise, roundsExercise, workoutBreak, workoutPlan } from '@/test/workoutBuilders'
 
 const timeline = createWorkoutPlaybackTimeline(workoutPlan([

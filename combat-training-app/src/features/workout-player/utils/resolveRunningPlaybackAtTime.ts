@@ -1,4 +1,4 @@
-import type { WorkoutPlaybackState, WorkoutPlaybackStep } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackState, WorkoutPlaybackStep } from '@/domain/workout-playback/workoutPlayback.types'
 
 export interface RunningPlaybackResolution {
   playback: WorkoutPlaybackState

@@ -1,3 +1,4 @@
+import type { TrackedStepResult } from '@/domain/workout-playback/workoutPlayback.types'
 import { useCallback, useRef, useState } from 'react'
 import type { WorkoutSessionRecording } from '@/application/workout/activeWorkoutRepository'
 import { buildRecordedWorkoutSession } from '../utils/workoutSessionRecording'
@@ -13,12 +14,11 @@ import {
   type WorkoutSessionAttempt,
 } from '@/domain/workout-session/workoutSessionDefinitions'
 import { mapPlaybackStepToSessionStepResult } from '@/features/workout-player/mappers/mapPlaybackStepToSessionStepResult'
-import type { WorkoutPlaybackTimeline } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackTimeline } from '@/domain/workout-playback/workoutPlayback.types'
 import type { WorkoutPlaybackEvent } from '@/features/workout-player/types/workoutPlaybackEvents.types'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 import {
   mergeTrackedStepResult,
-  type TrackedStepResult,
 } from '@/features/workout-player/utils/mergeTrackedStepResult'
 
 export const WORKOUT_SESSION_RECORDER_ERROR_MESSAGE = workoutPlayerLabels.recorderError

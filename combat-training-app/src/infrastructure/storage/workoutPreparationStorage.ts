@@ -2,13 +2,13 @@ import * as z from 'zod/mini'
 
 import {
   WORKOUT_PREPARATION_DEFAULT,
-  WORKOUT_PREPARATION_OPTIONS,
+  WORKOUT_PREPARATION_VALUES,
   type WorkoutPreparation,
-} from '@/features/workout-player/workoutPreparation'
+} from '@/domain/workout-playback/workoutPreparation'
 
 export const WORKOUT_PREPARATION_STORAGE_KEY = 'combat-training.preparationSeconds'
 
-const preparationSchema = z.enum(WORKOUT_PREPARATION_OPTIONS.map(({ value }) => value))
+const preparationSchema = z.enum(WORKOUT_PREPARATION_VALUES)
 let useDefaultAfterWriteFailure = false
 
 export function readStoredWorkoutPreparation(): WorkoutPreparation {

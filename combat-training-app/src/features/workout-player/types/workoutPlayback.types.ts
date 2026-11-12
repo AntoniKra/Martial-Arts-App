@@ -1,40 +1,4 @@
-import type { WorkoutBlockType, WorkoutPlan } from '@/domain/workout/workout.types'
-
-export type WorkoutPlaybackStepKind = 'exercise' | 'roundRest' | 'break'
-
-export type WorkoutPlaybackStatus = 'idle' | 'preparing' | 'running' | 'paused' | 'completed'
-
-export interface WorkoutPlaybackStep {
-  id: string
-  kind: WorkoutPlaybackStepKind
-  durationSeconds: number
-  blockIndex: number
-  blockId: string
-  blockType: WorkoutBlockType
-  itemId: string
-  name: string
-  instruction: string | null
-  roundNumber: number | null
-  roundCount: number | null
-}
-
-export interface WorkoutPlaybackTimeline {
-  steps: WorkoutPlaybackStep[]
-  totalDurationSeconds: number
-  identity: string
-}
-
-export interface WorkoutPlaybackState {
-  status: WorkoutPlaybackStatus
-  currentStepIndex: number
-  remainingSeconds: number
-  stepRevision: number
-}
-
-export interface ExpectedStepNavigation {
-  expectedStepIndex: number
-  expectedStepRevision: number
-}
+import type { WorkoutPlan } from '@/domain/workout/workout.types'
 
 export type WorkoutPlayerLoadState =
   | { status: 'loading' }

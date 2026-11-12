@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import type { ActiveWorkout, ActiveWorkoutRepository, WorkoutSessionRecording } from '@/application/workout/activeWorkoutRepository'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
-import type { WorkoutPlaybackState } from '../types/workoutPlayback.types'
+import type { WorkoutPlaybackState } from '@/domain/workout-playback/workoutPlayback.types'
 
 export function useActiveWorkoutPersistence(
   plan: WorkoutPlan,

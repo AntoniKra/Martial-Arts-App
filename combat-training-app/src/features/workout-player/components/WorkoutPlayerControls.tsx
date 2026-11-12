@@ -2,7 +2,7 @@ import { PauseIcon } from '@/components/icons/PauseIcon'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { SkipBackIcon } from '@/components/icons/SkipBackIcon'
 import { SkipForwardIcon } from '@/components/icons/SkipForwardIcon'
-import type { WorkoutPlaybackStatus } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackStatus } from '@/domain/workout-playback/workoutPlayback.types'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 
 interface WorkoutPlayerControlsProps {

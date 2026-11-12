@@ -1,12 +1,6 @@
 import type { WorkoutSessionStepOutcome } from '@/domain/workout-session/workoutSession.types'
 
-export interface TrackedStepResult {
-  stepIndex: number
-  playbackStepId: string
-  plannedDurationSeconds: number
-  performedDurationSeconds: number
-  outcome: WorkoutSessionStepOutcome
-}
+import type { TrackedStepResult } from '@/domain/workout-playback/workoutPlayback.types'
 
 const OUTCOME_RANK: Record<WorkoutSessionStepOutcome, number> = {
   skipped: 0,

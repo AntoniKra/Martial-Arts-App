@@ -1,4 +1,4 @@
-import type { WorkoutPlaybackStep } from '@/features/workout-player/types/workoutPlayback.types'
+import type { WorkoutPlaybackStep } from '@/domain/workout-playback/workoutPlayback.types'
 import type { WorkoutPlaybackEvent, WorkoutPlaybackStepFinalizeReason } from '@/features/workout-player/types/workoutPlaybackEvents.types'
 import { calculatePerformedDurationSeconds, deriveStepOutcome } from '@/features/workout-player/utils/workoutPlaybackStepOutcome'
 
