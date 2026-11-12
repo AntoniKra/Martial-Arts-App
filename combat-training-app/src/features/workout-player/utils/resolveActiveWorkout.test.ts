@@ -1,4 +1,4 @@
-import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
+import { ACTIVE_WORKOUT_STORAGE_PREFIX, createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ActiveWorkout } from '@/application/workout/activeWorkoutRepository'
 import { block, roundsExercise, workoutPlan } from '@/test/workoutBuilders'
@@ -57,6 +57,59 @@ describe('active workout recovery', () => {
     localStorage.setItem(key, JSON.stringify(paused))
     expect(resolveActiveWorkout(createActiveWorkoutRepository('historical-owner').read(), 1794132040000))
       .toEqual({ kind: 'resume', workout: paused })
+  })
+
+  describe('historical exercise partial', () => {
+    // Literal v1 payload. The current player does not produce exercise partials; a stored one must survive.
+    const raw = `{"schemaVersion":1,"plan":{"id":"plan-1","customName":null,"mainGoal":null,"blocks":[{"id":"bag","blockType":"bag","items":[{"id":"jab","type":"exercise","combinationId":null,"focusSkillId":null,"exerciseNameSnapshot":"Historical Jab","instruction":"Keep guard","configuration":{"mode":"rounds","roundCount":2,"roundDurationSeconds":120,"restBetweenRoundsSeconds":30}}]}],"createdAt":"2026-11-02T10:00:00.000Z","updatedAt":"2026-11-02T10:00:00.000Z","disciplineKey":"boxing","nameSnapshot":"Historical plan"},"playback":{"status":"paused","currentStepIndex":2,"remainingSeconds":80,"stepRevision":3},"deadlineMs":null,"pausedRemainingMs":79625,"lastSeenAt":1794132000000,"recorder":{"timezone":"Europe/Warsaw","sessionId":"historical-session","startedAt":"2026-11-08T09:56:50.000Z","stepResults":[{"stepIndex":0,"playbackStepId":"[\\"bag\\",\\"jab\\",\\"exercise\\",1]","plannedDurationSeconds":120,"performedDurationSeconds":45,"outcome":"partial"},{"stepIndex":1,"playbackStepId":"[\\"bag\\",\\"jab\\",\\"roundRest\\",1]","plannedDurationSeconds":30,"performedDurationSeconds":30,"outcome":"completed"}],"attempts":[{"kind":"exercise","blockType":"bag","performedDurationMs":45000,"outcome":"partial"},{"kind":"roundRest","blockType":"bag","performedDurationMs":30000,"outcome":"completed"}],"exerciseRatings":[{"workoutItemId":"jab","nameSnapshot":"Historical Jab","blockType":"bag","rating":4}],"focusRatings":[],"completedAt":null,"endedEarly":false}}`
+    const ownerKey = `${ACTIVE_WORKOUT_STORAGE_PREFIX}historical-partial-owner`
+
+    function installStorage(): void {
+      const values = new Map<string, string>()
+      vi.stubGlobal('localStorage', {
+        getItem: (key: string) => values.get(key) ?? null,
+        setItem: (key: string, value: string) => { values.set(key, value) },
+        removeItem: (key: string) => { values.delete(key) },
+      })
+    }
+
+    it('reads a paused historical partial without rewriting it and does not count pause time', () => {
+      installStorage()
+      localStorage.setItem(ownerKey, raw)
+      const saved = createActiveWorkoutRepository('historical-partial-owner').read()
+      expect(localStorage.getItem(ownerKey)).toBe(raw)
+      expect(saved).toEqual(JSON.parse(raw))
+      if (!saved) throw new Error('Historical partial snapshot was rejected')
+      expect(saved.recorder.stepResults[0]).toEqual({
+        stepIndex: 0, playbackStepId: '["bag","jab","exercise",1]',
+        plannedDurationSeconds: 120, performedDurationSeconds: 45, outcome: 'partial',
+      })
+      expect(saved.pausedRemainingMs).toBe(79_625)
+      expect(saved.plan.nameSnapshot).toBe('Historical plan')
+      const item = saved.plan.blocks[0]?.items[0]
+      if (item?.type !== 'exercise') throw new Error('Historical exercise snapshot was rejected')
+      expect(item).toMatchObject({ exerciseNameSnapshot: 'Historical Jab', instruction: 'Keep guard' })
+      expect(createActiveWorkoutRepository('historical-partial-other').read()).toBeNull()
+      expect(localStorage.getItem(ownerKey)).toBe(raw)
+
+      const lastSeenAt = 1_794_132_000_000
+      vi.setSystemTime(lastSeenAt + 40 * 60 * 1000)
+      expect(resolveActiveWorkout(saved, Date.now())).toEqual({ kind: 'resume', workout: saved })
+      expect(localStorage.getItem(ownerKey)).toBe(raw)
+    })
+
+    it.each([0, 120, 121])('drops a historical partial with performedDurationSeconds %s and leaves the other account', (performedDurationSeconds) => {
+      installStorage()
+      const brokenRaw = raw.replace('"performedDurationSeconds":45', `"performedDurationSeconds":${performedDurationSeconds}`)
+      const corruptKey = `${ACTIVE_WORKOUT_STORAGE_PREFIX}corrupt-partial-owner`
+      const otherKey = `${ACTIVE_WORKOUT_STORAGE_PREFIX}corrupt-partial-other`
+      localStorage.setItem(corruptKey, brokenRaw)
+      localStorage.setItem(otherKey, raw)
+      expect(createActiveWorkoutRepository('corrupt-partial-owner').read()).toBeNull()
+      expect(localStorage.getItem(corruptKey)).toBeNull()
+      expect(localStorage.getItem(otherKey)).toBe(raw)
+      expect(createActiveWorkoutRepository('corrupt-partial-other').read()).toEqual(JSON.parse(raw))
+    })
   })
 
   function withPriorWork() {
