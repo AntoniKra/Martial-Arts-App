@@ -2,8 +2,10 @@ import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { calculateWeeklySummary, type RecordedTime, type WeeklySummary as WeeklySummaryData } from '@/domain/weekly-summary/weeklySummary'
+import { calculateWeeklySeries } from '@/domain/weekly-summary/weeklySeries'
 import { formatActiveDurationSecondsPl } from '@/features/workouts/utils/formatWorkoutSessionLabels'
 import { LoadDetails } from './LoadDetails'
+import { WeeklyChart } from './WeeklyChart'
 import { formatTrainingLoadPl, weeklySummaryLabels as labels } from './weeklySummaryLabels'
 
 function RecordedTimeRow({ time, total, label, recordedLabel }: {
@@ -35,7 +37,7 @@ function LoadRows({ summary: { load, workoutCount } }: { summary: WeeklySummaryD
 }
 
 export function WeeklySummary({ weekStart }: { weekStart: string }) {
-  const { sessions, retrySessions } = useWorkoutData()
+  const { sessions, retrySessions, currentWeek } = useWorkoutData()
   const unavailable = sessions.status === 'loading' ? 'loading'
     : sessions.status === 'error' ? 'error'
       : !sessions.complete || sessions.invalidDocumentIds.length > 0 ? 'incomplete' : null
@@ -60,6 +62,7 @@ export function WeeklySummary({ weekStart }: { weekStart: string }) {
       </dl>
       {summary.sessionLoads.length > 0 && <LoadDetails sessionLoads={summary.sessionLoads} />}
       {sessions.hasPendingWrites && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
+      <WeeklyChart weeks={calculateWeeklySeries(weekStart, sessions.items, currentWeek)} />
     </>}
   </section>
 }

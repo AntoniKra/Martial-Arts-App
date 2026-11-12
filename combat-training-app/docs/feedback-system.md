@@ -100,7 +100,9 @@ Wdrożony **Q5 etap 1**: na ekranie wybranego tygodnia, także podczas edycji ce
 
 Wdrożony **Q5 etap 2**: ta sama sekcja pokazuje obciążenie tygodnia jako sumę RPE × (`durationSeconds` / 60) w jednostkach umownych (j.u.), liczoną w locie i niezapisywaną w bazie. Czas treningu i RPE pozostają widoczne osobno. Przy brakach RPE etykieta brzmi „Zarejestrowane obciążenie”, obok jest „RPE w X z Y treningów”, informacja, że suma obejmuje tylko treningi z RPE, oraz „Czas treningów z RPE”; bez żadnego RPE pokazujemy „Brak danych”, nie 0. RPE 0 daje znane obciążenie 0. Zwijane „Szczegóły obciążenia” wymieniają sesje tygodnia od najnowszej: datę, nazwę, czas treningu, RPE i obciążenie.
 
-Dalszy zakres Q5 poniżej pozostaje niezrealizowany: wykres tygodniowy, twarde rundy, kompletność ocen ćwiczeń celu i porównania. Etapy 1 i 2 nie oznaczają ukończenia całego Q5.
+Wdrożony **Q5 etap 3**: pod podsumowaniem jest wykres 12 tygodni kończących się wybranym tygodniem; zmiana tygodnia przesuwa okno. Domyślnie słupki pokazują liczbę treningów, a przełącznik „Minuty” sumę `durationSeconds` / 60 zaokrągloną w górę jak w podsumowaniu. Wszystkie źródła i oba statusy liczymy według zapisanego `workoutDate`, od poniedziałku do niedzieli, tą samą funkcją co podsumowanie. Pusty tydzień ma wartość 0; bieżący ma pusty słupek i podpis „trwa”, wybrany — obrys i pogrubiony podpis. Opis dla czytników ekranu i zwijane „Pokaż dane” udostępniają wersję tekstową. Własny SVG bez biblioteki (ADR 0011), tokeny jasnego i ciemnego motywu, bez animacji. Przy błędzie, ładowaniu lub niepełnej historii wykres korzysta ze stanu podsumowania i nie pokazuje pozornych zer. Bez obciążenia na wykresie, trendu, średniej, strzałek, celu tygodnia i kolorów „lepiej/gorzej”.
+
+Dalszy zakres Q5 poniżej pozostaje niezrealizowany: twarde rundy, kompletność ocen ćwiczeń celu i porównania. Etapy 1–3 nie oznaczają ukończenia całego Q5.
 
 Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 
@@ -111,7 +113,7 @@ Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 - liczbę twardych rund;
 - **kompletność danych**, np. „RPE w 4 z 5 treningów”, „oceny ćwiczeń celu w 2 z 3”. Dzień bez treningu to odpoczynek, a nie brak danych;
 - porównanie ze średnią z 3 poprzednich tygodni słowami, np. „więcej niż zwykle”, dopiero gdy są 3 pełne tygodnie danych;
-- wykres ostatnich 8–12 tygodni. Miary na wykresie wybierzemy przy projekcie ekranu.
+- wdrożony wykres ostatnich 12 tygodni: liczba treningów lub minuty czasu treningu (ADR 0011), bez obciążenia.
 
 Przy wpisie z planu pokazujemy też **porównanie z poprzednim wykonaniem tego samego planu**.
 

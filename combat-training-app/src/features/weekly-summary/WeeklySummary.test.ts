@@ -12,14 +12,14 @@ const weekStart = '2026-11-09'
 const entry = workoutSession({ workoutDate: weekStart, durationSeconds: 30.4, workSeconds: 0, sparringSeconds: 0 })
 const timed = (id: string, workoutDate: string, minutes: number, rpe: number | null) =>
   workoutSession({ id, workoutDate, durationSeconds: minutes * 60, workoutPlanNameSnapshot: `Plan ${id}`, rpe })
-let data: Pick<WorkoutData, 'sessions' | 'retrySessions'>
+let data: Pick<WorkoutData, 'sessions' | 'retrySessions' | 'currentWeek'>
 const render = () => renderToStaticMarkup(createElement(WeeklySummary, { weekStart }))
 const row = (html: string, label: string) => html.match(new RegExp(`<dt[^>]*>${label}</dt><dd[^>]*>([^<]*)</dd>`))?.[1]
 const details = (html: string) => html.slice(html.indexOf('<details'))
 
 beforeEach(() => {
   data = { sessions: { status: 'ready', complete: true, items: [entry], pendingIds: new Set(),
-    hasPendingWrites: false, fromCache: false, invalidDocumentIds: [] }, retrySessions: vi.fn() }
+    hasPendingWrites: false, fromCache: false, invalidDocumentIds: [] }, retrySessions: vi.fn(), currentWeek: weekStart }
   useWorkoutData.mockImplementation(() => data)
 })
 
@@ -41,6 +41,8 @@ describe('WeeklySummary collection states', () => {
     expect(html).not.toContain('RPE w')
     expect(html).not.toContain('j.u.')
     expect(html).not.toContain('Szczegóły obciążenia')
+    expect(html).not.toContain('Ostatnie 12 tygodni')
+    expect(html).not.toContain('role="img"')
   })
 
   it('renders recovered data, then recalculates when the collection changes', () => {
@@ -54,6 +56,18 @@ describe('WeeklySummary collection states', () => {
     expect(render()).toContain('RPE w 1 z 2 treningów')
     // Two fractional sessions are formatted once after summing, using the journal convention.
     expect(render()).toContain('2 min')
+  })
+
+  it('renders an accessible chart with twelve data rows and rounds summed minutes like the summary', () => {
+    data.sessions.items = [entry, { ...entry, id: 'second' }]
+    const html = render()
+    expect(html).toContain('Ostatnie 12 tygodni')
+    expect(html).toContain('role="img" aria-label="Wykres słupkowy 12 tygodni. Treningi')
+    expect(html).toContain('aria-pressed="true"')
+    expect(html.match(/<th scope="row"/g)).toHaveLength(12)
+    expect(html).toContain('<td>2</td><td>2</td>')
+    expect(html).toContain('wybrany')
+    expect(html).toContain('trwa')
   })
 
   it('shows full cached data with the existing pending-write indication without requiring week plans', () => {
@@ -75,7 +89,8 @@ describe('WeeklySummary collection states', () => {
     expect(html).not.toContain('Dane w')
     expect(html).not.toContain('Brak danych')
     expect(html).not.toContain('Suma obejmuje')
-    expect(html).not.toContain('<details')
+    expect(html).not.toContain('Szczegóły obciążenia')
+    expect(html).toContain('Pokaż dane')
   })
 })
 
