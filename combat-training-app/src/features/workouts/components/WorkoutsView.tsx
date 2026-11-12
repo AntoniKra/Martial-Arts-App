@@ -8,6 +8,7 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 import { WorkoutHistoryCard } from '@/features/workouts/components/WorkoutHistoryCard'
+import { ManualWorkoutLink } from '@/features/manual-workout/ManualWorkoutLink'
 import { WorkoutPlanCard } from '@/features/workouts/components/WorkoutPlanCard'
 import { WorkoutsEmptyState } from '@/features/workouts/components/WorkoutsEmptyState'
 import { WorkoutsFilters } from '@/features/workouts/components/WorkoutsFilters'
@@ -267,6 +268,7 @@ export function WorkoutsView({
               <h2 id="workouts-history-heading" className="sr-only">
                 Historia treningów
               </h2>
+              <ManualWorkoutLink from="/workouts?tab=history" />
               {renderHistoryContent()}
             </section>
           )}

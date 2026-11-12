@@ -15,6 +15,8 @@ import type {
 import { WORKOUT_HISTORY_NOTE_MAX_LENGTH } from '@/features/workouts/types/workoutsView.types'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
+import { RpeRecallBadge } from '@/features/workout-feedback/RpeRecallBadge'
+import { manualWorkoutLabels } from '@/features/manual-workout/manualWorkoutLabels'
 
 const NOTE_SAVE_ERROR_MESSAGE = 'Nie udało się zapisać notatki.'
 const DELETE_ERROR_MESSAGE = 'Nie udało się usunąć wpisu.'
@@ -183,14 +185,14 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
             <time className="block" dateTime={session.completedAt}>
               {session.dateLabelPl}
             </time>
-            <time className="block tabular-nums" dateTime={session.completedAt}>
+            {session.timeLabelPl && <time className="block tabular-nums" dateTime={session.completedAt}>
               {session.timeLabelPl}
-            </time>
+            </time>}
           </div>
         </div>
         <h3 className="mt-1 font-display text-[14px] font-semibold text-ink">
           <Link
-            to={routes.workoutReport(session.id)}
+            to={session.editPath ?? routes.workoutReport(session.id)}
             className="transition-colors hover:text-crimson-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             {session.name}
@@ -201,19 +203,22 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
           <span className="whitespace-nowrap">
             <span className="font-semibold tabular-nums text-ink">{session.durationLabelPl}</span>
           </span>
-          <WorkoutCompletionCounts counts={session} />
+          {!session.isManual && <WorkoutCompletionCounts counts={session} />}
+          {session.rpe != null && <span className="flex flex-wrap items-baseline gap-1">RPE <span className="font-semibold text-ink">{session.rpe}</span>{session.rpeFromMemory && <RpeRecallBadge />}</span>}
           {session.hasPendingWrites ? <span className="whitespace-nowrap font-semibold">{workoutDataLabels.pending}</span> : null}
         </div>
       </div>
 
-      <div className="h-0.5 bg-elevated" aria-hidden="true">
+      {!session.isManual && <div className="h-0.5 bg-elevated" aria-hidden="true">
         <div
           className="h-full bg-crimson transition-all"
           style={{ width: `${session.exerciseCompletionPercent}%` }}
         />
-      </div>
+      </div>}
 
       <div className="border-t border-bd">
+        {session.editPath && <Link to={session.editPath} state={{ returnTo: '/workouts?tab=history' }}
+          className="flex min-h-touch items-center border-b border-bd px-4 py-3 text-sm font-semibold text-crimson-ink">{manualWorkoutLabels.edit}</Link>}
         {session.feedbackPath && <Link to={session.feedbackPath}
           className="flex min-h-touch items-center border-b border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink">
           {workoutFeedbackLabels.title}

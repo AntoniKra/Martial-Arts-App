@@ -13,6 +13,9 @@ export interface HomeFeaturedPlan {
 }
 
 export interface HomeRecentSession {
+  hasPendingWrites?: boolean
+  editPath?: string
+  isManual?: boolean
   id: string
   status: WorkoutSessionStatus
   name: string

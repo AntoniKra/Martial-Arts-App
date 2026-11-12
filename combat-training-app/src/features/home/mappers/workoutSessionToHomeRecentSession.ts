@@ -1,4 +1,5 @@
 import { workoutSessionName, workoutSessionDate } from '@/features/workouts/utils/workoutSessionPresentation'
+import { routes } from '@/app/routes'
 import { calculateWorkoutSessionSummary } from '@/domain/workout-session/workoutSessionCalculations'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { HomeRecentSession } from '@/features/home/types/homeView.types'
@@ -7,10 +8,13 @@ import {
   formatWorkoutSessionDatePl,
 } from '@/features/workouts/utils/formatWorkoutSessionLabels'
 
-export function mapWorkoutSessionToHomeRecentSession(session: WorkoutSession): HomeRecentSession {
+export function mapWorkoutSessionToHomeRecentSession(session: WorkoutSession, hasPendingWrites = false): HomeRecentSession {
   const summary = calculateWorkoutSessionSummary(session)
 
   return {
+    hasPendingWrites,
+    editPath: session.source === 'manual' ? routes.editManualWorkout(session.id) : undefined,
+    isManual: session.source === 'manual',
     id: session.id,
     status: session.status,
     name: workoutSessionName(session),

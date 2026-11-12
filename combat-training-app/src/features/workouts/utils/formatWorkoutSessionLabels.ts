@@ -9,7 +9,7 @@ const workoutSessionTimeFormatter = new Intl.DateTimeFormat('pl-PL', {
 })
 
 export function formatWorkoutSessionDatePl(isoTimestamp: string): string {
-  return workoutSessionDateFormatter.format(new Date(isoTimestamp))
+  return workoutSessionDateFormatter.format(new Date(isoTimestamp.length === 10 ? `${isoTimestamp}T12:00:00` : isoTimestamp))
 }
 
 export function formatWorkoutSessionTimePl(isoTimestamp: string): string {
