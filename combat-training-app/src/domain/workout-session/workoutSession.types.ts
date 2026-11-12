@@ -55,6 +55,12 @@ export interface ExerciseRating {
   rating: number
 }
 
+export interface ManualFocusRating extends Omit<FocusRating, 'workoutItemId' | 'blockType' | 'assessment'> {
+  workoutItemId: null
+  blockType: Exclude<WorkoutBlockType, 'warmup' | 'cooldown'>
+  assessment: number | 'unableToRate'
+}
+
 interface WorkoutSessionFields {
   id: string
   disciplineKey: DisciplineKey
@@ -96,9 +102,13 @@ export interface QuickTimerWorkoutSession extends TimedSessionFields {
 export interface ManualWorkoutSession extends WorkoutSessionFields {
   source: 'manual'
   status: 'completed'
-  workSeconds: number | null
-  sparringSeconds: number | null
+  workSeconds: null
+  sparringSeconds: null
   completion: null
+  rpe: number
+  rpeRecordedAt: string
+  focusRatings: ManualFocusRating[]
+  sparring: (SparringEntry & { blockId: null; intensity: SparringIntensity })[]
 }
 
 /** Persisted journal entry, discriminated by its source. */

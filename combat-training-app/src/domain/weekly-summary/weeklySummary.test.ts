@@ -8,12 +8,13 @@ const instant = '2027-01-04T00:30:00.000Z'
 const plan = () => workoutSession({ workoutDate: monday, stepResults: [sessionStep()], durationSeconds: 90.4 })
 const manual = (overrides: Partial<ManualWorkoutSession> = {}): ManualWorkoutSession => ({
   id: 'manual', source: 'manual', status: 'completed', disciplineKey: 'boxing', category: 'bag',
-  workoutDate: '2027-01-03', timezone: 'Pacific/Honolulu', durationSeconds: 30.4,
-  workSeconds: null, sparringSeconds: null, completion: null, note: null, rpe: null,
-  rpeRecordedAt: null, sparring: [], createdAt: instant, updatedAt: instant, ...overrides,
+  workoutDate: '2027-01-03', timezone: 'Pacific/Honolulu', durationSeconds: 60,
+  workSeconds: null, sparringSeconds: null, completion: null, note: null, rpe: 0,
+  rpeRecordedAt: instant, focusRatings: [], sparring: [], createdAt: instant, updatedAt: instant, ...overrides,
 })
+const { focusRatings: _manualRatings, ...timedFields } = manual()
 const quick: QuickTimerWorkoutSession = {
-  ...manual(), id: 'quick', source: 'quickTimer', status: 'partial', durationSeconds: 60.4,
+  ...timedFields, id: 'quick', source: 'quickTimer', status: 'partial', durationSeconds: 60.4,
   startedAt: instant, completedAt: instant, workSeconds: 20, sparringSeconds: 10,
   completion: { completed: 1, planned: 2, unit: 'round' }, stepResults: [sessionStep()], rpe: 0,
 }
@@ -28,19 +29,19 @@ describe('calculateWeeklySummary', () => {
     ]
     const summary = calculateWeeklySummary(monday, entries)
     expect(summary.workoutCount).toBe(2)
-    expect(summary.durationSeconds).toBeCloseTo(120.8, 10)
+    expect(summary.durationSeconds).toBeCloseTo(150.4, 10)
   })
 
   it('counts all three sources, including partial and additional sessions independently of goals', () => {
     const entries: WorkoutSession[] = [plan(), quick, manual(), { ...plan(), id: 'extra', workoutPlanId: 'another-plan', rpe: 7 }]
     const { sessionLoads, ...totals } = calculateWeeklySummary(monday, entries)
     expect(totals).toEqual({
-      workoutCount: 4, completedCount: 3, partialCount: 1, durationSeconds: 271.6,
-      work: { seconds: 140, knownCount: 3 }, sparring: { seconds: 10, knownCount: 3 }, rpeCount: 2,
-      load: { units: 7 * 90.4 / 60, durationSeconds: 60.4 + 90.4, knownCount: 2 },
+      workoutCount: 4, completedCount: 3, partialCount: 1, durationSeconds: 90.4 + 60.4 + 60 + 90.4,
+      work: { seconds: 140, knownCount: 3 }, sparring: { seconds: 10, knownCount: 3 }, rpeCount: 3,
+      load: { units: 7 * 90.4 / 60, durationSeconds: 60 + 60.4 + 90.4, knownCount: 3 },
     })
     expect(sessionLoads.map(({ session, load }) => [session.id, load])).toEqual([
-      ['manual', null], ['quick', 0], ['extra', 7 * 90.4 / 60], ['session-1', null],
+      ['manual', 0], ['quick', 0], ['extra', 7 * 90.4 / 60], ['session-1', null],
     ])
   })
 
@@ -55,13 +56,10 @@ describe('calculateWeeklySummary', () => {
   })
 
   it('counts zero as known data and tracks work and sparring coverage independently', () => {
-    expect(calculateWeeklySummary(monday, [manual({ workSeconds: 0 }), manual({ id: 'two', sparringSeconds: 0 })])).toMatchObject({
-      work: { seconds: 0, knownCount: 1 }, sparring: { seconds: 0, knownCount: 1 },
-    })
     expect(calculateWeeklySummary(monday, [manual()])).toMatchObject({
       work: { seconds: null, knownCount: 0 }, sparring: { seconds: null, knownCount: 0 },
     })
-    expect(calculateWeeklySummary(monday, [manual({ workSeconds: 0, sparringSeconds: 0 })])).toMatchObject({
+    expect(calculateWeeklySummary(monday, [manual(), { ...plan(), workSeconds: 0, sparringSeconds: 0 }])).toMatchObject({
       work: { seconds: 0, knownCount: 1 }, sparring: { seconds: 0, knownCount: 1 },
     })
   })
@@ -70,7 +68,7 @@ describe('calculateWeeklySummary', () => {
     const entries = [plan(), quick, manual({ rpe: 10 })]
     const summary = calculateWeeklySummary(monday, entries)
     expect(summary).toMatchObject({ workoutCount: 3, rpeCount: 2 })
-    expect(summary.durationSeconds).toBeCloseTo(181.2, 10)
+    expect(summary.durationSeconds).toBeCloseTo(210.8, 10)
   })
 
   it('returns zero counts for an empty week without inventing recorded data', () => {
@@ -92,7 +90,8 @@ describe('calculateWeeklySummary', () => {
 })
 
 describe('weekly training load', () => {
-  const timed = (id: string, minutes: number, rpe: number | null) => manual({ id, workoutDate: monday, durationSeconds: minutes * 60, rpe })
+  const timed = (id: string, minutes: number, rpe: number | null) => workoutSession({ id, workoutDate: monday, durationSeconds: minutes * 60, rpe,
+    rpeRecordedAt: rpe === null ? null : instant })
 
   it('sums recorded load for sessions with RPE only, then reaches full coverage when the missing RPE arrives', () => {
     const entries = [timed('a', 60, 5), timed('b', 30, 3), timed('c', 40, null)]
@@ -111,7 +110,7 @@ describe('weekly training load', () => {
   })
 
   it('multiplies and sums fractional durations without rounding before presentation', () => {
-    const summary = calculateWeeklySummary(monday, [manual({ durationSeconds: 30.4, rpe: 7 }), manual({ id: 'two', durationSeconds: 30.4, rpe: 3 })])
+    const summary = calculateWeeklySummary(monday, [{ ...plan(), durationSeconds: 30.4, rpe: 7 }, { ...plan(), id: 'two', durationSeconds: 30.4, rpe: 3 }])
     expect(summary.sessionLoads.map(({ load }) => load)).toEqual([7 * 30.4 / 60, 3 * 30.4 / 60])
     expect(summary.load.units).toBeCloseTo(304 / 60, 10)
     expect(summary.load.durationSeconds).toBe(60.8)
@@ -121,7 +120,7 @@ describe('weekly training load', () => {
     const entries: WorkoutSession[] = [
       { ...plan(), durationSeconds: 1200, workSeconds: 600, rpe: 5 },
       { ...quick, durationSeconds: 600, workSeconds: 300, sparringSeconds: 300, rpe: 6 },
-      manual({ durationSeconds: 300, workSeconds: 60, rpe: 2 }),
+      manual({ durationSeconds: 300, rpe: 2 }),
     ]
     expect(entries.map((entry) => entry.status)).toEqual(['completed', 'partial', 'completed'])
     expect(calculateWeeklySummary(monday, entries).load).toEqual({ units: 100 + 60 + 10, durationSeconds: 2100, knownCount: 3 })
@@ -142,6 +141,6 @@ describe('weekly training load', () => {
     ]
     const summary = calculateWeeklySummary(monday, entries)
     expect(summary.sessionLoads.map(({ session }) => session.id)).toEqual(['z', 'a', 'b'])
-    expect(summary.load).toEqual({ units: 30.4 / 60, durationSeconds: 30.4, knownCount: 1 })
+    expect(summary.load).toEqual({ units: 1, durationSeconds: 180, knownCount: 3 })
   })
 })

@@ -139,11 +139,15 @@ service cloud.firestore {
           && hasExactKeys(data, common.concat(timed))
           && isTimedSession(data, 'round'))
         || (data.source == 'manual'
-          && hasExactKeys(data, common)
+          && hasExactKeys(data, common.concat(['focusRatings']))
           && data.status == 'completed'
           && data.completion == null
-          && (data.workSeconds == null || isNonNegativeInteger(data.workSeconds))
-          && (data.sparringSeconds == null || isNonNegativeInteger(data.sparringSeconds)));
+          && data.workSeconds == null && data.sparringSeconds == null
+          && data.focusRatings is list && data.focusRatings.size() <= 3
+          && data.rpe is int && data.rpe >= 0 && data.rpe <= 10
+          && isInstant(data.rpeRecordedAt)
+          && data.durationSeconds is int && data.durationSeconds >= 60 && data.durationSeconds <= 28800
+          && data.sparring is list && data.sparring.size() <= 1);
     }
 
     function isWorkoutSession(data, documentId) {
