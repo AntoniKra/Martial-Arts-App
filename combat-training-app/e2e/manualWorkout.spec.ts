@@ -166,8 +166,11 @@ test('retains saved focus ratings when the skill section fails and still saves t
   await app.open('/workouts?tab=history')
   const entry = manualWorkoutSession({ focusRatings: [manualFocusRating()] })
   await app.seedSession(entry)
+  const savedCard = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Trening poza aplikacją · Worek', exact: true }) })
+  await savedCard.getByRole('link', { name: 'Popraw', exact: true }).click()
+  await expect(form(page)).toBeVisible()
+  // Seed the invalid document on the mounted listener; a reload can reuse a stale cache lease.
   await app.seedFocusSkill({ ...skill, name: '' })
-  await app.open(`/workout-sessions/${entry.id}/edit`)
   await expect(form(page).getByRole('alert')).toContainText('Nie udało się wczytać ćwiczeń celu.')
   await expect(form(page).getByRole('button', { name: 'Spróbuj ponownie', exact: true })).toBeVisible()
   await category(page).getByRole('radio', { name: /^Tarcze/ }).check()
