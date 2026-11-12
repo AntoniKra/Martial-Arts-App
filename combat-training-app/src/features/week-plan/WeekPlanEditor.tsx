@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { selectWeekPlan } from '@/application/week-plan/selectWeekPlan'
 import type { WeekPlan, WeekPlanItem } from '@/domain/week-plan/weekPlan.types'
@@ -21,11 +21,18 @@ export function WeekPlanEditor({ weekStart, initial, onClose }: { weekStart: str
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const allowLeaveRef = useRef(false)
+  const descriptionBaseId = useId()
   const selected = selectWeekPlan(weekPlans, weekStart)
   const source = selectWeekPlan(weekPlans, shiftCalendarDate(weekStart, -7))
   const libraryReady = plans.status === 'ready' && (plans.complete === true || !plans.fromCache) && !plans.invalidDocumentIds.length
   const dirty = JSON.stringify(items) !== JSON.stringify(baseline?.items ?? [])
   const unchanged = selected.status === 'ready' && JSON.stringify(selected.plan) === JSON.stringify(baseline)
+
+  function choiceLabel(value: string) {
+    const category = WEEK_PLAN_CATEGORIES.find((entry) => `c:${entry}` === value)
+    if (category) return categoryLabel(category)
+    return plans.items.find((entry) => `p:${entry.id}` === value)?.nameSnapshot ?? ''
+  }
 
   function itemFor(value: string, id: string): WeekPlanItem | null {
     const category = WEEK_PLAN_CATEGORIES.find((entry) => `c:${entry}` === value)
@@ -62,14 +69,19 @@ export function WeekPlanEditor({ weekStart, initial, onClose }: { weekStart: str
       {!libraryReady && <p className="text-sm text-muted">{labels.libraryUnavailable}</p>}
       <fieldset disabled={saving} className="min-w-0 space-y-4">
         <legend className="text-sm text-muted">Pozycje: {items.length} / {WEEK_PLAN_ITEM_LIMIT}</legend>
-        {!items.length && <p className="text-sm text-muted">{labels.noItems}</p>}
+        {!items.length && <p className="text-sm text-muted">{(baseline?.items.length ?? 0) > 0 ? labels.removedGoal : labels.noItems}</p>}
         <ol className="space-y-3">{items.map((item, index) => {
           const value = item.kind === 'plan' ? `p:${item.workoutPlanId}` : `c:${item.category}`
           const unavailable = item.kind === 'plan' && (!libraryReady || !plans.items.some((plan) => plan.id === item.workoutPlanId))
+          const descriptionId = `${descriptionBaseId}-item-${item.id}`
+          const snapshotName = weekItemLabel(item)
+          const selectedName = unavailable && item.kind === 'plan' ? `${item.planNameSnapshot} · ${labels.unavailable}` : choiceLabel(value) || snapshotName
+          const renamed = !unavailable && selectedName !== snapshotName
           return <li key={item.id} className="space-y-2 border-b border-bd pb-3">
-            <p className="break-words text-sm">{index + 1}. {weekItemLabel(item)}</p>
+            {renamed && <p className="break-words text-sm text-muted">{index + 1}. {labels.savedName}: {snapshotName}</p>}
+            <p id={descriptionId} className="break-words text-sm">{renamed ? selectedName : `${index + 1}. ${selectedName}`}</p>
             <label className="block text-sm">Zastąp pozycję {index + 1}
-              <select aria-label={`Zastąp pozycję ${index + 1}`} className={selectClass} value={value} onChange={(event) => {
+              <select aria-label={`Zastąp pozycję ${index + 1}`} aria-describedby={descriptionId} className={selectClass} value={value} onChange={(event) => {
                 const replacement = itemFor(event.target.value, item.id)
                 if (replacement) setItems(items.map((entry) => entry.id === item.id ? replacement : entry))
               }}>{unavailable && <option value={value}>{item.kind === 'plan' ? item.planNameSnapshot : ''} · {labels.unavailable}</option>}{options()}</select>
@@ -77,7 +89,10 @@ export function WeekPlanEditor({ weekStart, initial, onClose }: { weekStart: str
             <button type="button" className={getButtonClassName({ variant: 'ghost' })} aria-label={`Usuń pozycję ${index + 1}`} onClick={() => setItems(items.filter((entry) => entry.id !== item.id))}>Usuń</button>
           </li>
         })}</ol>
-        <label className="block space-y-2 text-sm">{labels.choose}<select aria-label={labels.choose} className={selectClass} value={choice} onChange={(event) => setChoice(event.target.value)}>{options()}</select></label>
+        <div className="space-y-2">
+          <label className="block space-y-2 text-sm">{labels.choose}<select aria-label={labels.choose} aria-describedby={`${descriptionBaseId}-choice`} className={selectClass} value={choice} onChange={(event) => setChoice(event.target.value)}>{options()}</select></label>
+          <p id={`${descriptionBaseId}-choice`} className="break-words text-sm">{choiceLabel(choice)}</p>
+        </div>
         <button type="button" className={getButtonClassName({ variant: 'secondary' })} onClick={() => {
           if (items.length >= WEEK_PLAN_ITEM_LIMIT) { setError(labels.limit); return }
           const added = itemFor(choice, crypto.randomUUID())

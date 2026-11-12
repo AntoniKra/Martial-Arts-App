@@ -28,5 +28,7 @@ export const weekPlanLabels = {
   libraryUnavailable: 'Lista planów treningowych jest niepełna. Nadal możesz dodawać rodzaje treningów.',
   changed: 'Plan zmienił się podczas edycji. Zachowano szkic; anuluj edycję i odczytaj aktualny plan przed zapisem.',
   failed: 'Nie udało się zapisać planu. Szkic pozostaje w formularzu.',
-  noItems: 'Lista jest pusta. Zapis usunie cel, zachowując treningi w dzienniku.',
+  noItems: 'Lista jest pusta. Dodaj plan lub rodzaj treningu.',
+  removedGoal: 'Lista jest pusta. Zapis usunie cel, zachowując treningi w dzienniku.',
+  savedName: 'Zapisana nazwa',
 } as const
