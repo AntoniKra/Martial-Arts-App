@@ -60,7 +60,10 @@ test('hides unexpected technical errors and reports them to the console', async 
 test('shows the session loading screen during a cold lazy-route reload without router warnings', async ({ app, page }) => {
   await app.open('/workouts/new')
   const warnings: string[] = []
-  page.on('console', (message) => { if (message.type() === 'warning' || message.type() === 'error') warnings.push(message.text()) })
+  page.on('console', (message) => {
+    // This warning comes from the test fixture, not React Router.
+    if ((message.type() === 'warning' || message.type() === 'error') && message.text() !== 'Service Worker registration blocked by Playwright') warnings.push(message.text())
+  })
   let release!: () => void
   const waiting = new Promise<void>((resolve) => { release = resolve })
   await page.route('**/NewWorkoutPage-*.js', async (route) => { await waiting; await route.continue() })
