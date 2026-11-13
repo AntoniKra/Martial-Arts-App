@@ -19,6 +19,8 @@ test('registers, waits for email verification and opens the app after following 
   await page.getByRole('button', { name: 'Potwierdziłem adres', exact: true }).click()
   await expect(page).toHaveURL('/workouts')
   await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
+  // Security rules read the verification from the ID token: the empty list loads instead of a read error.
+  await expect(page.getByRole('heading', { name: 'Brak zapisanych planów', exact: true })).toBeVisible()
 })
 
 test('uses the same error for an unknown login and an incorrect password', async ({ page, request }) => {
