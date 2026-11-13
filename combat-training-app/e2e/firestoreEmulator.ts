@@ -113,3 +113,17 @@ export async function seedBodyWeight(request: APIRequestContext, uid: string, we
   })
   expect(response.ok()).toBe(true)
 }
+
+/** Raw account fixtures include malformed documents intentionally; this endpoint is always a local demo emulator. */
+export async function seedRawAccountDocument(request: APIRequestContext, uid: string, suffix: string, data: Record<string, unknown>) {
+  const response = await request.patch(`${root}/users/${uid}${suffix ? '/' + suffix : ''}`, {
+    headers: { Authorization: 'Bearer owner' }, data: encode(data).mapValue,
+  })
+  expect(response.ok()).toBe(true)
+}
+export async function readRawAccountCollection(request: APIRequestContext, uid: string, name: string): Promise<unknown[]> {
+  const response = await request.get(`${root}/users/${uid}/${name}`, { headers: { Authorization: 'Bearer owner' } })
+  expect(response.ok()).toBe(true)
+  const body = await response.json() as { documents?: { fields: Record<string, Value> }[] }
+  return (body.documents ?? []).map((document) => decode({ mapValue: { fields: document.fields } }))
+}

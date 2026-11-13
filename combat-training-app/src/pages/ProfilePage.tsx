@@ -1,3 +1,4 @@
+import { AccountDataSection } from '@/features/account/AccountDataSection'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
@@ -24,5 +25,6 @@ export function Component() {
       </>}
     </section>
     <ProfileStatistics today={today} />
+    <AccountDataSection health={hasValidHealthConsent(current)} />
   </div>
 }

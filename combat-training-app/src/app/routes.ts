@@ -6,6 +6,7 @@ export const routes = {
   editManualWorkout: (sessionId: string) => `/workout-sessions/${sessionId}/edit`,
   progress: '/progress',
   profile: '/profile',
+  deleteAccount: '/profile/delete-account',
   profileConsent: '/profile/consent',
   weekPlan: (weekStart: string) => `/progress/week/${weekStart}`,
   focusSkillProgress: (focusSkillId: string) => `/progress/focus-skills/${focusSkillId}`,
