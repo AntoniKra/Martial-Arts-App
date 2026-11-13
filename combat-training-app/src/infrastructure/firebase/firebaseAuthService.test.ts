@@ -7,8 +7,9 @@ const fake = vi.hoisted(() => ({
   user: { uid: 'athlete', email: 'athlete@example.test', emailVerified: false },
   auth: { currentUser: null as unknown, languageCode: '' },
   clearCache: vi.fn<() => Promise<void>>(),
+  hasUnsentWrites: vi.fn<() => Promise<boolean>>(),
 }))
-vi.mock('./createFirestoreRepositories', () => ({ clearFirestoreCache: fake.clearCache }))
+vi.mock('./createFirestoreRepositories', () => ({ clearFirestoreCache: fake.clearCache, hasUnsentWrites: fake.hasUnsentWrites }))
 vi.mock('firebase/app', () => ({ initializeApp: vi.fn(() => 'app') }))
 vi.mock('firebase/auth', () => ({
   initializeAuth: vi.fn(() => fake.auth), indexedDBLocalPersistence: 'indexed-db',
@@ -34,6 +35,17 @@ beforeEach(() => {
 })
 
 describe('Firebase AuthService', () => {
+  it.each([false, true])('delegates the unsent write check returning %s', async (pending) => {
+    fake.hasUnsentWrites.mockResolvedValueOnce(pending)
+    await expect(createFirebaseAuthService(config).hasUnsentWrites()).resolves.toBe(pending)
+    expect(fake.hasUnsentWrites).toHaveBeenCalledOnce()
+    expect(sdk.signOut).not.toHaveBeenCalled()
+  })
+  it('requires a warning when loading or checking the write queue fails', async () => {
+    fake.hasUnsentWrites.mockRejectedValueOnce(new Error('Queue unavailable'))
+    await expect(createFirebaseAuthService(config).hasUnsentWrites()).resolves.toBe(true)
+    expect(sdk.signOut).not.toHaveBeenCalled()
+  })
   it('clears only the signing-out account active workout', async () => {
     const values = new Map([
       ['combat-training.activeWorkout.athlete', '{}'], ['combat-training.activeWorkout.other', '{}'],

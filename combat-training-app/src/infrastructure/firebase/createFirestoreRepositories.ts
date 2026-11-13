@@ -1,5 +1,5 @@
 import { getApp } from 'firebase/app'
-import { clearIndexedDbPersistence, collection, doc, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, updateDoc, writeBatch, type Firestore } from 'firebase/firestore'
+import { clearIndexedDbPersistence, collection, doc, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, updateDoc, waitForPendingWrites, writeBatch, type Firestore } from 'firebase/firestore'
 import type { SubscribableRepository } from '@/application/repositorySubscription'
 import type { WorkoutRepositories } from '@/application/deferredWorkoutRepositories'
 import { readFirebaseConfig } from './firebaseConfig'
@@ -26,9 +26,24 @@ function trackedSubscribe<T>(repository: SubscribableRepository<T>): Subscribabl
   }
 }
 
+export async function hasUnsentWrites(): Promise<boolean> {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  const timedOut = new Promise<boolean>((resolve) => { timeout = setTimeout(() => resolve(true), 1000) })
+  try {
+    const current = getAccountDatabase()
+    return await Promise.race([
+      waitForPendingWrites(current).then(() => false, () => true),
+      timedOut,
+    ])
+  } catch {
+    return true
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 export async function clearFirestoreCache(): Promise<void> {
-  if (!database) return
-  const current = database
+  const current = getAccountDatabase()
   for (const stop of subscriptions) stop()
   try {
     await terminate(current)
