@@ -16,6 +16,7 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { WORKOUT_PREPARATION_OPTIONS } from '@/features/workout-player/workoutPreparation'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 import { persistWorkoutPreparation, readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
+import { persistWorkoutEndWarning, readStoredWorkoutEndWarning } from '@/infrastructure/storage/workoutEndWarningStorage'
 import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
 import { FocusSkillBadge } from '@/features/focus-skills/FocusSkillBadge'
 import { focusSkillLabels } from '@/features/focus-skills/focusSkillLabels'
@@ -173,6 +174,7 @@ function WorkoutPlanDetailsSuccessView({
   const summary = calculateWorkoutPlanSummary(plan)
   const focusExerciseCount = countFocusExercises(plan.blocks)
   const [preparation, setPreparation] = useState(readStoredWorkoutPreparation)
+  const [endWarningEnabled, setEndWarningEnabled] = useState(readStoredWorkoutEndWarning)
 
   return (
     <div className="flex flex-col items-start gap-3">
@@ -217,6 +219,17 @@ function WorkoutPlanDetailsSuccessView({
         onChange={(value) => setPreparation(persistWorkoutPreparation(value))}
         className="w-full"
       />
+
+      <label className="flex min-h-touch w-full cursor-pointer items-center gap-3 text-[13px] leading-relaxed text-ink">
+        <input
+          type="checkbox"
+          role="switch"
+          checked={endWarningEnabled}
+          onChange={(event) => setEndWarningEnabled(persistWorkoutEndWarning(event.target.checked))}
+          className="h-5 w-5 shrink-0 accent-crimson focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+        />
+        <span>{workoutPlayerLabels.endWarningSetting}</span>
+      </label>
 
       <Link
         to={workoutActivePath}
