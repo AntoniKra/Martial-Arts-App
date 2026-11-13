@@ -9,6 +9,7 @@ import { focusSkillDocumentSchema } from './focusSkillDocumentSchema'
 import { FirestoreWeekPlanRepository } from './firestoreWeekPlanRepository'
 import { createFirestoreHealthRepositories } from './firestoreHealthRepository'
 import { detachFocusSkill, hasFocusSkillEntries, selectFocusSkillPlans } from '@/domain/focus-skill/focusSkillProgress'
+import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 
 let database: Firestore | undefined
 const subscriptions = new Set<() => void>()
@@ -134,7 +135,32 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
         try { void batch.commit().then(resolveServer, rejectServer) } catch (error) { rejectServer(error) }
         await Promise.all(localWrites)
       },
-      updateNote: sessions.updateNote.bind(sessions), delete: sessions.delete.bind(sessions),
+      updateNote: sessions.updateNote.bind(sessions),
+      delete: async (id) => {
+        // Preserve deletion when a collection is unavailable, without additional reads.
+        let availableSkills: readonly FocusSkill[]
+        try {
+          if (!sessions.getItems().some((session) => session.id === id)) return false
+          availableSkills = focusSkills.getItems()
+        } catch { return sessions.delete(id) }
+        const updatedAt = new Date().toISOString()
+        const skillFields = availableSkills.filter((skill) => skill.openCorrection?.sessionId === id).map((skill) => {
+          const changes = { openCorrection: null, updatedAt }
+          focusSkills.validateUpdate(skill.id, changes)
+          return { id: skill.id, changes }
+        })
+        const batch = writeBatch(db)
+        batch.delete(doc(collection(db, 'users', uid, 'workoutSessions'), id))
+        for (const skill of skillFields) batch.update(doc(collection(db, 'users', uid, 'focusSkills'), skill.id), skill.changes)
+        let resolveServer!: () => void
+        let rejectServer!: (error: unknown) => void
+        const server = new Promise<void>((resolve, reject) => { resolveServer = resolve; rejectServer = reject })
+        // Register both collection observers before commit, so deletion also completes offline.
+        const localWrites = [sessions.delete(id, () => server),
+          ...skillFields.map((skill) => focusSkills.updateFields(skill.id, skill.changes, () => server))]
+        try { void batch.commit().then(resolveServer, rejectServer) } catch (error) { rejectServer(error) }
+        return (await Promise.all(localWrites)).every(Boolean)
+      },
       saveQuickTimerFeedback: async (id, feedback) => {
         const current = sessions.getItems().find((session) => session.id === id)
         if (!current) return false
