@@ -126,3 +126,10 @@ Obie odpowiedzi powinny mieć `cache-control: no-cache`.
 - [ ] Aplikacja otwiera się w trybie samolotowym po pierwszej wizycie.
 - [ ] Rejestracja, e-mail weryfikacyjny, logowanie, reset hasła, wylogowanie.
 - [ ] Logowanie Google przez przekierowanie: Safari i Chrome, w przeglądarce i w zainstalowanej PWA.
+
+## Eksport i usunięcie konta: dodatkowy test na telefonie
+
+- [ ] iPhone (Safari i PWA): pobranie JSON i CSV, poprawna nazwa pliku, odczyt CSV w polskim Excelu. W PWA zapis może użyć arkusza udostępniania pliku, gdy system wspiera `navigator.canShare({ files })`.
+- [ ] iPhone (Safari i PWA): potwierdzenie kontem Google przez przekierowanie wraca do ekranu z przyciskiem końcowym, bez automatycznego usuwania; anulowanie i wybór innego konta nie usuwają danych.
+- [ ] Usunięcie własnego konta testowego wymaga osobnego przycisku końcowego; sprawdź powrót na logowanie i komunikat sukcesu. Przed testem połącz i wyloguj inne urządzenia.
+- [ ] Właściciel w konsoli Firebase sprawdza po usunięciu (ponownie po upływie godziny), czy pod `users/{uid}` nie pojawiły się nowe dokumenty, również w podkolekcjach bez dokumentu rodzica. Zaległy zapis z innego urządzenia może przejść na nadal ważnym tokenie. Ewentualne pozostałości usuwa ręcznie właściciel; blokada w regułach jest pracą przyszłą (ADR 0013).

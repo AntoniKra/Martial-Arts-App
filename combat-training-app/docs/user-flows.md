@@ -72,3 +72,12 @@ Nie można zmieniać:
 5. Ćwiczenie jest dostępne w sekcji **Schowane (n)**. **Przywróć** przywraca je do wyboru w kreatorze, bez automatycznego oznaczania ćwiczeń w planach.
 
 Jeżeli nie ma jeszcze żadnych wpisów `focusRatings`, zamiast chowania dostępne jest **Usuń ćwiczenie celu**, z potwierdzeniem i listą planów. Trwający trening zachowuje swoją kopię planu i zapisuje oceny normalnie.
+
+## Profil: eksport i usunięcie konta
+
+1. W sekcji **Twoje dane** pobierz osobno **Pobierz wszystkie dane (JSON)** lub **Pobierz dziennik (CSV)**. Bez sieci i przy niewysłanych zapisach przyciski są nieaktywne z wyjaśnieniem. Plik JSON zawiera także dokumenty niezgodne ze schematem; przy zgodzie na masę ciała ostrzeżenie przypomina o danych o zdrowiu.
+2. **Usuń konto** otwiera osobny ekran z listą danych usuwanych na zawsze i możliwością wcześniejszego pobrania JSON. Przed kontynuowaniem połącz inne urządzenia z internetem i wyloguj się na nich.
+3. Potwierdź hasłem lub kontem Google. Przy obu dostawcach domyślne jest hasło. Google używa przekierowania na telefonie/PWA i okna na komputerze; wybór innego konta wyświetla błąd. Powrót z przekierowania nigdy nie uruchamia usuwania automatycznie.
+4. Po potwierdzeniu wybierz **Usuń konto na zawsze** albo **Anuluj**. Brak sieci i niewysłane zapisy blokują usuwanie; potwierdzenie starsze niż 4 minuty wymaga ponownego logowania, bez usunięcia danych.
+5. Aplikacja pokazuje **Usuwam dane…**, usuwa wdrożone kolekcje i profil, a potem konto logowania oraz kopię danych tego konta na urządzeniu. Błąd w połowie informuje o możliwym częściowym usunięciu i pozwala ponowić proces.
+6. Po sukcesie logowanie pokazuje jednorazowo **Konto zostało usunięte.** Kolejne konto trafia na Start, nigdy na ekran usuwania.

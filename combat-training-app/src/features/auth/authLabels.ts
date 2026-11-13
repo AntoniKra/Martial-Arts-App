@@ -1,4 +1,6 @@
 export const authLabels = {
+  cleanupError: 'Konto usunięte, ale nie udało się wyczyścić pamięci urządzenia. Zamknij inne karty aplikacji i wyczyść dane witryny.',
+  accountDeleted: 'Konto zostało usunięte.',
   brand: 'Combat Training',
   login: 'Zaloguj się',
   register: 'Utwórz konto',
@@ -31,6 +33,8 @@ export const authLabels = {
   configurationTitle: 'Nie można uruchomić logowania',
   configurationError: 'Brakuje poprawnej konfiguracji Firebase. Uzupełnij plik .env zgodnie z .env.example i uruchom aplikację ponownie.',
   errors: {
+    userMismatch: (email: string) => `To inne konto Google. Wybierz ${email}.`,
+    recentLogin: 'Zaloguj się ponownie i spróbuj jeszcze raz.',
     invalidCredential: 'Nieprawidłowy adres e-mail lub hasło.',
     emailInUse: 'Nie można utworzyć konta z tym adresem e-mail. Spróbuj się zalogować lub zresetować hasło.',
     tooManyRequests: 'Zbyt wiele prób. Odczekaj chwilę i spróbuj ponownie.',

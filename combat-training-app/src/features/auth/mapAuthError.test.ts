@@ -29,3 +29,8 @@ it.each([null, 'failure', new Error('Private details')])('handles an unknown err
 it('does not reveal whether a login address exists', () => {
   expect(mapAuthError({ code: 'auth/user-not-found' })).toBe(mapAuthError({ code: 'auth/wrong-password' }))
 })
+
+it('asks for the original Google account and maps an expired confirmation', () => {
+  expect(mapAuthError({ code: 'auth/user-mismatch' }, 'athlete@example.test')).toBe('To inne konto Google. Wybierz athlete@example.test.')
+  expect(mapAuthError({ code: 'auth/requires-recent-login' })).toBe(labels.errors.recentLogin)
+})

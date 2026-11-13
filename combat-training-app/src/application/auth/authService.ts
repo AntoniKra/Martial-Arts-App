@@ -15,7 +15,7 @@ export interface AuthService {
   /** Opens Google sign-in in a popup, or leaves the page for a redirect that completeGoogleRedirect finishes. */
   signInWithGoogle(): Promise<void>
   /** Settles the Google redirect that brought the user back to the app; rejects with its error. */
-  completeGoogleRedirect(): Promise<void>
+  completeGoogleRedirect(): Promise<'signIn' | 'link' | 'reauthenticate' | null>
   signOut(): Promise<void>
   sendVerificationEmail(): Promise<void>
   refreshVerification(): Promise<AuthSession | null>

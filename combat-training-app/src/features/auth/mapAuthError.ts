@@ -1,9 +1,11 @@
 import { authLabels } from './authLabels'
 
 /** Returns a Polish message, or null when the user cancelled and nothing should be shown. */
-export function mapAuthError(error: unknown): string | null {
+export function mapAuthError(error: unknown, email?: string): string | null {
   const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined
   switch (code) {
+    case 'auth/user-mismatch': return authLabels.errors.userMismatch(email ?? '')
+    case 'auth/requires-recent-login': return authLabels.errors.recentLogin
     case 'auth/invalid-credential':
     case 'auth/user-not-found':
     case 'auth/wrong-password':
