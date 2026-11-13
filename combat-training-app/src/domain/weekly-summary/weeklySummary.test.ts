@@ -129,9 +129,29 @@ describe('weekly sparring intensity', () => {
     expect(calculateWeeklySummary(monday, [
       { ...plan(), sparring: [{ blockId: 'zero', intensity: 'hard', rounds: 0 }] },
       manual({ sparring: [{ blockId: null, intensity: 'technical', rounds: null }] }),
-    ]).sparringIntensity).toEqual({ hardRounds: 0, workoutCount: 2, intensityKnownCount: 2, hardRoundsUnknownCount: 0 })
+    ]).sparringIntensity).toEqual({ hardRounds: 0, workoutCount: 1, intensityKnownCount: 1, hardRoundsUnknownCount: 0 })
     expect(calculateWeeklySummary(monday, [{ ...quick, sparring: [{ blockId: null, intensity: null, rounds: 3 }] }]).sparringIntensity)
       .toEqual({ hardRounds: 0, workoutCount: 1, intensityKnownCount: 0, hardRoundsUnknownCount: 0 })
+  })
+
+  it('excludes skipped sparring workouts and ignores skipped blocks when checking intensity coverage', () => {
+    const entries = [
+      { ...plan(), id: 'skipped', sparring: [{ blockId: 'skipped', intensity: null, rounds: 0 }] },
+      { ...plan(), id: 'mixed', sparring: [
+        { blockId: 'skipped', intensity: null, rounds: 0 },
+        { blockId: 'completed', intensity: 'hard' as const, rounds: 1 },
+      ] },
+    ]
+    const before = structuredClone(entries)
+    const summary = calculateWeeklySummary(monday, entries)
+    expect(summary.workoutCount).toBe(2)
+    expect(summary.sparringIntensity).toEqual({
+      hardRounds: 1, workoutCount: 1, intensityKnownCount: 1, hardRoundsUnknownCount: 0,
+    })
+    expect(entries).toEqual(before)
+    expect(calculateWeeklySummary(monday, [entries[0]]).sparringIntensity).toEqual({
+      hardRounds: 0, workoutCount: 0, intensityKnownCount: 0, hardRoundsUnknownCount: 0,
+    })
   })
 })
 
