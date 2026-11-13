@@ -44,6 +44,6 @@ it('rebuilds a finalized unsaved quick timer through the same source-aware funct
   active.recorder = { ...quickTimerRecording(active.plan), completedAt: quickTimerStart + 660_000 }
   const recovery = resolveActiveWorkout(active, quickTimerStart + 900_000)
   expect(recovery.kind).toBe('resume')
-  const entry = buildRecordedWorkoutSession(active.plan, createWorkoutPlaybackTimeline(active.plan).steps, active.recorder, active.recorder.completedAt!, false, active.source)
+  const entry = buildRecordedWorkoutSession(active.plan, createWorkoutPlaybackTimeline(active.plan).steps, active.recorder, active.recorder.completedAt!, false, active.source ?? 'plan')
   expect(entry).toMatchObject({ kind: 'save', session: { source: 'quickTimer', completion: { completed: 3, planned: 3, unit: 'round' } } })
 })

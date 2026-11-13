@@ -12,7 +12,9 @@ type ActiveWorkoutSource = 'plan' | 'quickTimer'
 
 export function buildRecordedWorkoutSession(
   plan: WorkoutPlan, steps: readonly WorkoutPlaybackStep[], recording: WorkoutSessionRecording,
-  completedAtMs: number, endedEarly: boolean, source: ActiveWorkoutSource = 'plan',
+  completedAtMs: number, endedEarly: boolean,
+  // Required on purpose: a missing source would silently save a quick timer as a plan entry.
+  source: ActiveWorkoutSource,
 ): RecordedWorkoutSessionResult {
   if (!recording.sessionId || !recording.startedAt) return { kind: 'noWork' }
   const fields = {

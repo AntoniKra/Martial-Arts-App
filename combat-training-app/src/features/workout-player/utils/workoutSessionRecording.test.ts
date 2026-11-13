@@ -14,7 +14,7 @@ describe('recording adjusted targets', () => {
       stepResults: [], attempts: [], exerciseRatings: [], focusRatings: [], completedAt: null, endedEarly: false }
     const recording = recordFinalizedStep(initial, steps, { type: 'stepFinalized', stepIndex: 0, playbackStepId: steps[0].id,
       plannedDurationSeconds: target, performedDurationSeconds: target, performedDurationMs: target * 1000, outcome: 'completed', reason: 'elapsed' })
-    const result = buildRecordedWorkoutSession(plan, steps, recording, Date.parse(initial.startedAt!) + target * 1000, false)
+    const result = buildRecordedWorkoutSession(plan, steps, recording, Date.parse(initial.startedAt!) + target * 1000, false, 'plan')
     expect(result.kind).toBe('save')
     if (result.kind !== 'save') throw new Error('Expected a saved session')
     expect(result.session).toMatchObject({ status: 'completed', durationSeconds: target, workSeconds: target, sparringSeconds: target,

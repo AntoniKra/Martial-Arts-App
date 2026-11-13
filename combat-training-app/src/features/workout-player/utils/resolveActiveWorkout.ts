@@ -66,6 +66,6 @@ export function resolveActiveWorkout(saved: ActiveWorkout | null, nowMs: number)
       if (event.type === 'stepFinalized') recording = recordFinalizedStep(recording, steps, event)
     }
   }
-  const result = buildRecordedWorkoutSession(saved.plan, steps, recording, saved.lastSeenAt, true, saved.source)
+  const result = buildRecordedWorkoutSession(saved.plan, steps, recording, saved.lastSeenAt, true, saved.source ?? 'plan')
   return result.kind === 'noWork' ? { kind: 'none' } : { kind: 'interrupted', workout: saved, session: result.session }
 }
