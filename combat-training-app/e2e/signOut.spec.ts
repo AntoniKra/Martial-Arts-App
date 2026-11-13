@@ -9,6 +9,10 @@ const pending = (page: Page) => page.getByText('Czeka na wysłanie', { exact: tr
 const firestoreDatabases = (page: Page) => page.evaluate(async () =>
   (await indexedDB.databases()).map(({ name }) => name).filter((name) => name?.startsWith('firestore/')))
 
+// Set the playback date before subscribing. Changing weeks during a frozen clock
+// would resubscribe the week query and temporarily disable the sign-out button.
+test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date('2026-11-03T09:00:00Z')) })
+
 test.describe('offline with the PWA cache', () => {
   // Lazy routes need the same precache used by the installed application.
   test.use({ serviceWorkers: 'allow' })
@@ -18,7 +22,7 @@ test.describe('offline with the PWA cache', () => {
       await app.createPlan('Trening przed wylogowaniem')
       await app.setTheme(theme)
       await app.openPlayer()
-      await page.evaluate(async () => { await navigator.serviceWorker.ready })
+      await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)
       await context.setOffline(true)
       await app.finishWorkout()
       expect(await app.readSessions()).toHaveLength(0)
@@ -113,7 +117,7 @@ test.describe('persisted pending workouts', () => {
 
   test('restores the warning after an offline reload and sends the retained workout after cancellation', async ({ app, page, context }) => {
     await app.createPlan('Trening po przeladowaniu')
-    await page.evaluate(async () => { await navigator.serviceWorker.ready })
+    await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)
     await app.openPlayer()
     await context.setOffline(true)
     await app.finishWorkout()

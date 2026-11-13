@@ -44,6 +44,8 @@ test('adds sparring from home, shows manual cards, and counts toward summary and
   await app.open('/')
   await app.seedWeekPlan({ weekStart: '2026-11-09', createdAt: now, updatedAt: now, editedAfterWeekEnd: false,
     items: [{ id: 'sparring', kind: 'category', category: 'sparring' }] })
+  // The REST seed finishes before the mounted Firestore listener receives it.
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
   await page.getByRole('link', { name: addLabel, exact: true }).click()
   await fill(page); await save(page)
   await expect(page).toHaveURL(/\/$/)
@@ -54,12 +56,17 @@ test('adds sparring from home, shows manual cards, and counts toward summary and
   // Reload only after the server acknowledged the entry: an immediate reload can drop the local write.
   await expect.poll(async () => (await app.readSessions()).length).toBe(1)
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
-  const history = await app.openHistory()
+  // Follow the user journey without restarting the Firestore client. A hard
+  // navigation discards collection completeness and races the old primary lease.
+  await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+  await page.getByRole('radio', { name: 'Historia', exact: true }).check()
+  const history = page.getByRole('region', { name: 'Historia treningów', exact: true })
   await expect(historyCard(page)).toBeVisible()
   await expect(historyCard(page)).toContainText('RPE 7')
   await expect(historyCard(page).locator('[style*="width"]')).toHaveCount(0)
   await expect(history).not.toContainText('0/0')
-  await app.open('/progress/week/2026-11-09')
+  await page.getByRole('link', { name: 'Postęp', exact: true }).click()
+  await page.getByRole('link', { name: 'Szczegóły planu tygodnia', exact: true }).click()
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
   await expect(summary(page)).toContainText('Treningi: 1')
   await expect(summary(page)).toContainText('630 j.u.')
