@@ -74,13 +74,14 @@ function newestFirst(left: WorkoutSession, right: WorkoutSession): number {
 }
 
 function summarizeSparring(sessions: readonly WorkoutSession[]): SparringSummary {
-  const withSparring = sessions.filter((session) => session.sparring.length > 0)
+  const withSparring = sessions.map((session) => session.sparring.filter((entry) => entry.rounds === null || entry.rounds >= 1))
+    .filter((entries) => entries.length > 0)
   return {
-    hardRounds: withSparring.reduce((total, session) => total + session.sparring.reduce((rounds, entry) =>
+    hardRounds: withSparring.reduce((total, entries) => total + entries.reduce((rounds, entry) =>
       rounds + (entry.intensity === 'hard' ? entry.rounds ?? 0 : 0), 0), 0),
     workoutCount: withSparring.length,
-    intensityKnownCount: withSparring.filter((session) => session.sparring.every((entry) => entry.intensity !== null)).length,
-    hardRoundsUnknownCount: withSparring.filter((session) => session.sparring.some((entry) => entry.intensity === 'hard' && entry.rounds === null)).length,
+    intensityKnownCount: withSparring.filter((entries) => entries.every((entry) => entry.intensity !== null)).length,
+    hardRoundsUnknownCount: withSparring.filter((entries) => entries.some((entry) => entry.intensity === 'hard' && entry.rounds === null)).length,
   }
 }
 

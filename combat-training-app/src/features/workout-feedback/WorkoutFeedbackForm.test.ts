@@ -6,6 +6,22 @@ import { workoutSession } from '@/test/workoutSessionBuilders'
 import { WorkoutFeedbackForm } from './WorkoutFeedbackForm'
 import { sparringIntensityLabels } from './sparringIntensityLabels'
 
+it.each([
+  { skippedIndex: 0, completedCount: 1 },
+  { skippedIndex: 1, completedCount: 2 },
+])('numbers only visible sparring blocks with a skipped block at index $skippedIndex', ({ skippedIndex, completedCount }) => {
+  const sparring = Array.from({ length: completedCount }, (_, index) => ({
+    blockId: `completed-${index}`, intensity: null, rounds: 1,
+  }))
+  sparring.splice(skippedIndex, 0, { blockId: 'skipped', intensity: null, rounds: 0 })
+  const html = renderToStaticMarkup(createElement(MemoryRouter, {}, createElement(WorkoutFeedbackForm, {
+    session: workoutSession({ sparring }), skills: [], pending: false, rpeCard: null, onSave: async () => {},
+  })))
+  expect(html.match(/Sparing \d+ · intensywność \(opcjonalnie\)/g)).toEqual(
+    Array.from({ length: completedCount }, (_, index) => `Sparing ${index + 1} · intensywność (opcjonalnie)`),
+  )
+})
+
 it('prefills saved intensity, leaves unknown intensity empty, and excludes entries without a completed round or block ID', () => {
   const session = workoutSession({ sparring: [
     { blockId: 'first', intensity: 'technical', rounds: 3 }, { blockId: 'second', intensity: null, rounds: 1 },

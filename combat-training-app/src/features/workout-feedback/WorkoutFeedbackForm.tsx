@@ -27,6 +27,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
   const busy = useRef(false)
   const form = useRef<HTMLFormElement>(null)
   const others = selectOtherExercises(session)
+  const editableSparring = draft.sparring.map((entry, index) => ({ entry, index })).filter(({ entry }) => canEditSparringIntensity(entry))
   const assessed = draft.focusRatings.filter((rating) => hasCompletedExercise(session, rating.workoutItemId) && rating.assessment !== null).length
   const metrics = formatWorkoutFeedbackMetrics(session)
 
@@ -64,8 +65,8 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
     {rpeCard}
     <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-6">
       <fieldset disabled={saving} className="min-w-0 space-y-6">
-        {draft.sparring.map((entry, index) => canEditSparringIntensity(entry) && <fieldset key={entry.blockId} className="min-w-0 space-y-2">
-          <legend className="mb-2 text-sm font-semibold text-ink">{labels.sparringIntensity(index + 1)}</legend>
+        {editableSparring.map(({ entry, index }, visibleIndex) => <fieldset key={entry.blockId} className="min-w-0 space-y-2">
+          <legend className="mb-2 text-sm font-semibold text-ink">{labels.sparringIntensity(visibleIndex + 1)}</legend>
           {(['light', 'technical', 'hard'] as const).map((intensity) => <button key={intensity} type="button" aria-pressed={entry.intensity === intensity}
             onClick={() => setDraft((current) => ({ ...current, sparring: current.sparring.map((value, valueIndex) => valueIndex === index
               ? { ...value, intensity: value.intensity === intensity ? null : intensity } : value) }))}
