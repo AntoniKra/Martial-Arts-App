@@ -35,6 +35,15 @@ Plan nie ma wymaganej daty wykonania. Data historii wynika z rozpoczęcia.
 7. Po lokalnym zapisie wracasz do miejsca otwarcia formularza; offline widzisz „Czeka na wysłanie”. W Historii i na Home wpis ma nazwę „Trening poza aplikacją · rodzaj”, samą datę i czas, bez realizacji. **Popraw** otwiera edycję, **Usuń wpis** działa jak dotąd. Wyjście z niezapisanymi zmianami wymaga decyzji w oknie „Odrzucić zmiany?”.
 8. Edycja zachowuje ID, datę utworzenia i strefę. Chwila podania RPE zmienia się tylko przy zmianie wartości. Starszą zapisaną datę można zachować, ale nowa musi mieścić się w zakresie 7 dni. Trasa edycji wpisu z odtwarzacza pokazuje „Ten wpis można tylko usunąć.”.
 
+## Profil: zgoda, pomiary i statystyki
+
+1. Wybierz piątą zakładkę **Profil**. Statystyki są dostępne bez zgody: od początku oraz czas według rodzaju z ostatnich 4 tygodni. Niepełna historia, ładowanie i błąd mają jawne stany zamiast pozornych zer.
+2. **Włącz zapisywanie masy ciała** otwiera osobny ekran informacji. Potwierdź pełnoletność i zgodę; **Włącz** działa dopiero po zaznaczeniu obu pól. **Nie teraz** wraca bez zapisu; pozostałe funkcje nie wymagają zgody.
+3. **+ Dodaj pomiar**: wybierz dziś lub datę wsteczną, wpisz masę w kg przecinkiem lub kropką. Instrukcja przypomina o podobnych warunkach ważenia. Jeśli dzień ma pomiar, ostrzeżenie wyjaśnia zastąpienie. Zapis zachowuje datę utworzenia wcześniejszego pomiaru.
+4. Zobacz średnią z 7 dni, liczbę pomiarów i wykres średnich z 12 tygodni. **Pokaż dane** rozwija tekstową tabelę, również z brakującymi tygodniami. Kategoria jest opcjonalną etykietą; puste pole ją usuwa.
+5. Lista pokazuje 14 ostatnich pomiarów, **Pokaż wszystkie** rozwija resztę. **Popraw** zmienia masę dla wybranego dnia, **Usuń** wymaga potwierdzenia. Niewysłane dane mają opis „Czeka na wysłanie” i ostrzeżenie przy wylogowaniu.
+6. **Wycofaj zgodę** otwiera okno z liczbą pomiarów i ostrzeżeniem o nieodwracalnym usunięciu. **Anuluj** lub Escape wraca do danych. **Usuń i wycofaj zgodę** wymaga połączenia: aplikacja pobiera z serwera wszystkie pomiary, usuwa je partiami i zeruje zgodę oraz kategorię na końcu. Bez sieci pokazuje komunikat i niczego nie usuwa; przerwany proces można ponowić. Po wycofaniu Profil pokazuje zaproszenie do zgody, a statystyki pozostają.
+
 ## Edycja po zakończeniu
 
 Można poprawić:
