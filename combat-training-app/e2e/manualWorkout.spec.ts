@@ -53,7 +53,7 @@ test('adds sparring from home, shows manual cards, and counts toward summary and
   await expect(recent).toContainText('Trening poza aplikacją · Sparing')
   await expect(recent).toContainText('90 min')
   await expect(recent).not.toContainText('0/0')
-  // Reload only after the server acknowledged the entry: an immediate reload can drop the local write.
+  // Observe both the stored entry and this client's acknowledgement before the summary.
   await expect.poll(async () => (await app.readSessions()).length).toBe(1)
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
   // Follow the user journey without restarting the Firestore client. A hard

@@ -73,6 +73,12 @@ test('opens New, configures three two-minute bag rounds and saves RPE and a note
   await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()
   await page.getByRole('radiogroup', { name: 'RPE od 0 do 10', exact: true }).getByRole('radio', { name: '6', exact: true }).check()
   await page.getByRole('button', { name: 'Zapisz RPE 6', exact: true }).click()
+  // A value assertion also matches the hidden textarea while RPE is saving.
+  // Wait for the visible result and server acknowledgement: removing the
+  // pending banner during a pointer click moves Done away from that click.
+  await expect(page.getByRole('status').filter({ hasText: 'Zapisano RPE 6' })).toBeVisible()
+  await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
+  await expect(note).toBeVisible()
   await expect(note).toHaveValue('Trzy rundy na worku.')
   await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
   await expect(page).toHaveURL('/workouts?tab=history')
