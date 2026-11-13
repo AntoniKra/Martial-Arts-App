@@ -26,11 +26,27 @@ afterEach(() => { vi.useRealTimers() })
 describe('Firestore unsent writes', () => {
   beforeEach(() => { vi.useFakeTimers() })
 
-  it('returns false without opening a database when none exists', async () => {
+  it('opens a database when none exists and returns false for an empty queue', async () => {
+    sdk.wait.mockResolvedValueOnce()
     const { hasUnsentWrites } = await import('./createFirestoreRepositories')
     await expect(hasUnsentWrites()).resolves.toBe(false)
-    expect(sdk.initialize).not.toHaveBeenCalled()
-    expect(sdk.wait).not.toHaveBeenCalled()
+    expect(sdk.initialize).toHaveBeenCalledOnce()
+    expect(sdk.wait).toHaveBeenCalledExactlyOnceWith(sdk.initialize.mock.results[0].value)
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('opens a database when none exists and warns after one second with pending writes', async () => {
+    sdk.wait.mockImplementationOnce(() => new Promise(() => {}))
+    const { hasUnsentWrites } = await import('./createFirestoreRepositories')
+    const settled = vi.fn()
+    const checking = hasUnsentWrites().then(settled)
+    expect(sdk.initialize).toHaveBeenCalledOnce()
+    expect(sdk.wait).toHaveBeenCalledExactlyOnceWith(sdk.initialize.mock.results[0].value)
+    await vi.advanceTimersByTimeAsync(999)
+    expect(settled).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(1)
+    await checking
+    expect(settled).toHaveBeenCalledExactlyOnceWith(true)
     expect(vi.getTimerCount()).toBe(0)
   })
 

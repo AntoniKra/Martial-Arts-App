@@ -27,12 +27,12 @@ function trackedSubscribe<T>(repository: SubscribableRepository<T>): Subscribabl
 }
 
 export async function hasUnsentWrites(): Promise<boolean> {
-  if (!database) return false
   let timeout: ReturnType<typeof setTimeout> | undefined
   const timedOut = new Promise<boolean>((resolve) => { timeout = setTimeout(() => resolve(true), 1000) })
   try {
+    const current = getAccountDatabase()
     return await Promise.race([
-      waitForPendingWrites(database).then(() => false, () => true),
+      waitForPendingWrites(current).then(() => false, () => true),
       timedOut,
     ])
   } catch {
