@@ -38,7 +38,7 @@ test.beforeEach(async ({ page }) => {
 async function warningCount(page: Page) {
   return page.evaluate(() => {
     const frequencies = Reflect.get(window, '__workoutAudioFrequencies') as number[]
-    return frequencies.filter((frequency) => frequency === 220).length / 3
+    return frequencies.filter((frequency) => frequency === 1400).length / 3
   })
 }
 

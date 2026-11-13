@@ -89,7 +89,7 @@ describe('web audio workout gong', () => {
     for (const [index, offset] of [0, 0.12, 0.24].entries()) {
       const oscillator = oscillators[index * 3]
       const gain = gains[index * 3]
-      expect(oscillator.frequency.setValueAtTime).toHaveBeenCalledWith(220, 5 + offset)
+      expect(oscillator.frequency.setValueAtTime).toHaveBeenCalledWith(1400, 5 + offset)
       expect(oscillator.start).toHaveBeenCalledWith(5 + offset)
       expect(oscillator.stop.mock.calls[0][0]).toBeCloseTo(5 + offset + 0.04)
       expect(gain.gain.setValueAtTime).toHaveBeenCalledWith(0, 5 + offset)
