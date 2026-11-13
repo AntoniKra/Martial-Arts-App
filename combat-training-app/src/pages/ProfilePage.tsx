@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
+import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { hasValidHealthConsent } from '@/domain/profile/bodyWeight'
 import { BodyWeightSection } from '@/features/profile/BodyWeightSection'
@@ -21,6 +22,8 @@ export function Component() {
       {unavailable ? <ProfileDataState state={unavailable} retry={retryProfile} /> : hasValidHealthConsent(current) ? <BodyWeightSection today={today} profile={current} /> : <>
         <p className="text-sm leading-relaxed text-muted">{labels.intro}</p>
         <Link to={routes.profileConsent} className={getButtonClassName()}>{labels.enable}</Link>
+        {/* A withdrawal sent with a weak signal is local until the server confirms it. */}
+        {profile.hasPendingWrites && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
       </>}
     </section>
     <ProfileStatistics today={today} />
