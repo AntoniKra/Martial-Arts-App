@@ -11,6 +11,9 @@ export const weeklySummaryLabels = {
   recordedWork: 'Zarejestrowany czas pracy',
   sparring: 'Czas sparingu',
   recordedSparring: 'Zarejestrowany czas sparingu',
+  hardRounds: 'Twarde rundy sparingu',
+  intensityCoverage: (known: number, total: number) => `Intensywność znana w ${known} z ${total} treningów ze sparingiem`,
+  hardRoundsUnknown: (count: number) => `Twardy sparing bez liczby rund w ${count} treningach. Rund bez podanej liczby nie doliczamy.`,
   load: 'Obciążenie tygodnia',
   recordedLoad: 'Zarejestrowane obciążenie',
   loadHint: 'Jednostki umowne: minuty treningu × RPE',
@@ -57,6 +60,12 @@ export function formatTypicalWorkoutCountPl(count: number): string {
 
 export function formatWeeklyLoadPl({ workoutCount, load }: WeeklySummary): string {
   return workoutCount === 0 ? formatTrainingLoadPl(0) : load.units === null ? weeklySummaryLabels.noData : formatTrainingLoadPl(load.units)
+}
+
+export function formatComparisonLoadPl(summary: WeeklySummary): string {
+  const value = formatWeeklyLoadPl(summary)
+  const missing = summary.workoutCount - summary.load.knownCount
+  return missing > 0 && summary.load.knownCount > 0 ? `${value} (bez RPE: ${missing})` : value
 }
 
 export function formatTrainingLoadPl(units: number): string {

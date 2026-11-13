@@ -61,6 +61,15 @@ export function WeeklySummary({ weekStart }: { weekStart: string }) {
         </div>
         <RecordedTimeRow time={summary.work} total={summary.workoutCount} label={labels.work} recordedLabel={labels.recordedWork} />
         <RecordedTimeRow time={summary.sparring} total={summary.workoutCount} label={labels.sparring} recordedLabel={labels.recordedSparring} />
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1">
+          <dt className="text-sm text-muted">{labels.hardRounds}</dt><dd className="tabular-nums">{summary.sparringIntensity.hardRounds}</dd>
+          {summary.sparringIntensity.intensityKnownCount < summary.sparringIntensity.workoutCount && <dd className="col-span-2 text-xs text-muted">
+            {labels.intensityCoverage(summary.sparringIntensity.intensityKnownCount, summary.sparringIntensity.workoutCount)}
+          </dd>}
+          {summary.sparringIntensity.hardRoundsUnknownCount > 0 && <dd className="col-span-2 text-xs text-muted">
+            {labels.hardRoundsUnknown(summary.sparringIntensity.hardRoundsUnknownCount)}
+          </dd>}
+        </div>
         <LoadRows summary={summary} />
       </dl>
       <TypicalWeekComparison typical={calculateTypicalWeek(weekStart, sessions.items)} summary={summary} isCurrent={weekStart === currentWeek} />

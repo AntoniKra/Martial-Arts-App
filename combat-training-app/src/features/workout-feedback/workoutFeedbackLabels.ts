@@ -4,6 +4,7 @@ export const workoutFeedbackLabels = {
   status: { completed: 'Trening ukończony', partial: 'Trening częściowy' },
   metrics: ['Trening', 'Praca', 'Ćwiczenia'],
   focusHeading: 'Ćwiczenia celu',
+  sparringIntensity: (number: number) => `Sparing ${number} · intensywność (opcjonalnie)`,
   assessed: (count: number, total: number) => `oceniono ${count} z ${total}`,
   criterion: 'Kryterium',
   focusQuestion: 'Jak wyszło kryterium?',
