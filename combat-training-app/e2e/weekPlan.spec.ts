@@ -167,8 +167,11 @@ test('marks a historical edit, copies the entire plan without the flag and block
 })
 
 test('saves locally offline, warns on logout, confirms after reconnect and isolates the next account', async ({ app, page, context }) => {
-  await app.open('/workouts'); await app.seedWeekPlan(goal([category('one')]))
-  await app.open('/progress/week/2026-11-09')
+  await app.open('/'); await app.seedWeekPlan(goal([category('one')]))
+  // Observe the seeded snapshot before following the link without restarting Firestore.
+  const summary = page.getByRole('region', { name: 'Plan tygodnia', exact: true })
+  await expect(summary.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '1')
+  await summary.getByRole('link', { name: 'Szczegóły planu tygodnia', exact: true }).click()
   await page.getByRole('button', { name: 'Edytuj plan tygodnia', exact: true }).click()
   await context.setOffline(true)
   await add(page, 'c:bag'); await save(page)
@@ -394,8 +397,11 @@ test('shows the current library name without rewriting a saved plan snapshot', a
 
 test('preserves an unsaved draft through a bad document and listener retry', async ({ app, page }) => {
   const original = goal([category('one')])
-  await app.open('/workouts'); await app.seedWeekPlan(original)
-  await app.open('/progress/week/2026-11-09')
+  await app.open('/'); await app.seedWeekPlan(original)
+  // A hard navigation can discard query completeness before the REST seed reaches the tab.
+  const summary = page.getByRole('region', { name: 'Plan tygodnia', exact: true })
+  await expect(summary.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '1')
+  await summary.getByRole('link', { name: 'Szczegóły planu tygodnia', exact: true }).click()
   await page.getByRole('button', { name: 'Edytuj plan tygodnia', exact: true }).click()
   await add(page, 'c:bag')
   await app.seedSession({ ...completed('invalid-session'), note: 'n'.repeat(1001) })
