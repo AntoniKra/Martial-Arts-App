@@ -1,8 +1,15 @@
+import type { PlanWorkoutSession } from '@/domain/workout-session/workoutSession.types'
+import { formatSecondsAsClock } from '@/domain/time/formatDuration'
+
 export const workoutFeedbackLabels = {
   title: 'Podsumowanie',
   savedEntry: 'Wpis jest już w dzienniku. Oceny dopisują się do niego.',
   status: { completed: 'Trening ukończony', partial: 'Trening częściowy' },
   metrics: ['Trening', 'Praca', 'Ćwiczenia'],
+  previousPlanRun: (date: string) => `Poprzednio ten plan: ${date}`,
+  previousPlanRunRpe: (rpe: number | null) => `RPE: ${rpe ?? 'brak'}`,
+  viewPreviousPlanRun: 'Zobacz',
+  planChanged: 'Plan zmieniono po tamtym treningu.',
   focusHeading: 'Ćwiczenia celu',
   sparringIntensity: (number: number) => `Sparing ${number} · intensywność (opcjonalnie)`,
   assessed: (count: number, total: number) => `oceniono ${count} z ${total}`,
@@ -51,6 +58,10 @@ export const workoutFeedbackLabels = {
   correctionError: 'Problem i poprawka muszą mieć po 1–200 znaków.',
   noteError: 'Notatka może mieć do 1000 znaków.',
 } as const
+
+export function formatWorkoutFeedbackMetrics(session: PlanWorkoutSession): string[] {
+  return [formatSecondsAsClock(Math.floor(session.durationSeconds)), formatSecondsAsClock(session.workSeconds), `${session.completion.completed}/${session.completion.planned}`]
+}
 
 export function formatCorrectionDate(date: string): string {
   return new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })

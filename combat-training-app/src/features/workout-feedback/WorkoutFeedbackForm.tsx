@@ -4,17 +4,19 @@ import { routes } from '@/app/routes'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { PlanWorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { canEditSparringIntensity, hasCompletedExercise, selectOtherExercises, type WorkoutFeedbackDraft } from '@/domain/workout-session/workoutFeedback'
-import { formatSecondsAsClock } from '@/domain/time/formatDuration'
+import type { PreviousPlanRun } from '@/domain/workout-session/previousPlanRun'
 import { Button } from '@/components/ui/Button'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { AssessmentScale, FocusCard } from './FocusCard'
 import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
-import { workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
+import { formatWorkoutFeedbackMetrics, workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
+import { PreviousPlanRunSummary } from './PreviousPlanRunSummary'
 import { rpeLabels } from './rpeLabels'
 import { sparringIntensityLabels } from './sparringIntensityLabels'
 
-export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard }: {
+export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, previousRun }: {
   session: PlanWorkoutSession; skills: readonly FocusSkill[]; pending: boolean
+  previousRun?: PreviousPlanRun | null
   rpeCard: ReactNode
   onSave: (draft: WorkoutFeedbackDraft) => Promise<void>
 }) {
@@ -26,7 +28,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard 
   const form = useRef<HTMLFormElement>(null)
   const others = selectOtherExercises(session)
   const assessed = draft.focusRatings.filter((rating) => hasCompletedExercise(session, rating.workoutItemId) && rating.assessment !== null).length
-  const metrics = [formatSecondsAsClock(Math.floor(session.durationSeconds)), formatSecondsAsClock(session.workSeconds), `${session.completion.completed}/${session.completion.planned}`]
+  const metrics = formatWorkoutFeedbackMetrics(session)
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -58,6 +60,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard 
         </div>)}
       </dl>
     </header>
+    {previousRun && <PreviousPlanRunSummary previous={previousRun} />}
     {rpeCard}
     <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-6">
       <fieldset disabled={saving} className="min-w-0 space-y-6">
