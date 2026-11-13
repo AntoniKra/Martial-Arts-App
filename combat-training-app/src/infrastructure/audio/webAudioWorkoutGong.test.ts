@@ -80,6 +80,27 @@ describe('web audio workout gong', () => {
     expect(factory).toHaveBeenCalledTimes(2)
   })
 
+  it('synthesizes endingSoon as three short percussive knocks with a distinct pitch and bounded envelope', () => {
+    const { factory, oscillators, gains } = audioContext()
+    const gong = createWebAudioWorkoutGong(factory)
+    gong.unlock()
+    gong.play('endingSoon')
+    expect(oscillators).toHaveLength(9)
+    for (const [index, offset] of [0, 0.12, 0.24].entries()) {
+      const oscillator = oscillators[index * 3]
+      const gain = gains[index * 3]
+      expect(oscillator.frequency.setValueAtTime).toHaveBeenCalledWith(1400, 5 + offset)
+      expect(oscillator.start).toHaveBeenCalledWith(5 + offset)
+      expect(oscillator.stop.mock.calls[0][0]).toBeCloseTo(5 + offset + 0.04)
+      expect(gain.gain.setValueAtTime).toHaveBeenCalledWith(0, 5 + offset)
+      expect(gain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.32, 5 + offset + 0.008)
+      expect(gain.gain.exponentialRampToValueAtTime.mock.calls[0][0]).toBe(0.001)
+      oscillator.onended?.()
+      expect(oscillator.disconnect).toHaveBeenCalledOnce()
+      expect(gain.disconnect).toHaveBeenCalledOnce()
+    }
+  })
+
   it('resumes a suspended context and plays only the latest requested cue', async () => {
     const { factory, context, oscillators } = audioContext()
     const gong = createWebAudioWorkoutGong(factory)

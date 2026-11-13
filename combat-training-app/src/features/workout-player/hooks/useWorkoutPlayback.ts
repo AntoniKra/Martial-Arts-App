@@ -23,6 +23,7 @@ import { resolveWorkoutPreparation } from '@/features/workout-player/utils/resol
 import { WORKOUT_PREPARATION_DEFAULT, type WorkoutPreparation } from '@/domain/workout-playback/workoutPreparation'
 import { finalizePlaybackSteps, getNextWorkoutItemStepIndex } from '@/features/workout-player/utils/finishPlaybackSteps'
 import { adjustPlaybackTime, applyStepDurations } from '../utils/adjustPlaybackTime'
+import { shouldPlayEndWarning } from '../utils/shouldPlayEndWarning'
 import {
   calculatePerformedDurationSeconds,
   deriveStepOutcome,
@@ -33,6 +34,8 @@ const INITIAL_STEP_REVISION = 1
 
 interface UseWorkoutPlaybackOptions {
   onPlaybackEvent?: (event: WorkoutPlaybackEvent) => void
+  onEndWarning?: () => void
+  endWarningEnabled?: boolean
   preparation?: WorkoutPreparation
   initialWorkout?: ActiveWorkout
 }
@@ -191,12 +194,22 @@ export function useWorkoutPlayback(
 
   const playbackRef = useRef<WorkoutPlaybackState>(options?.initialWorkout?.playback ?? buildInitialPlaybackState(timeline.steps, INITIAL_STEP_REVISION))
   const [playback, setPlayback] = useState<WorkoutPlaybackState>(() => options?.initialWorkout?.playback ?? buildInitialPlaybackState(timeline.steps, INITIAL_STEP_REVISION))
+  const [initialRemainingMs] = useState(() => options?.initialWorkout?.playback.status === 'running' &&
+    options.initialWorkout.deadlineMs !== null ? Math.max(0, options.initialWorkout.deadlineMs - Date.now()) : null)
 
   const deadlineRef = useRef<number | null>(options?.initialWorkout?.deadlineMs ?? null)
   const pausedPlaybackRef = useRef<PausedPlayback | null>(options?.initialWorkout?.playback.status === 'paused'
     ? { playback: options.initialWorkout.playback, remainingMs: options.initialWorkout.pausedRemainingMs ?? options.initialWorkout.playback.remainingSeconds * 1000 } : null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const generationRef = useRef(0)
+  const previousRemainingMsRef = useRef<number | null>(initialRemainingMs)
+  const onEndWarning = options?.onEndWarning
+  const endWarningEnabled = options?.endWarningEnabled ?? true
+  const checkEndWarning = useCallback((remainingMs: number, stepDurationMs: number, running: boolean) => {
+    if (shouldPlayEndWarning({ previousRemainingMs: previousRemainingMsRef.current, remainingMs,
+      stepDurationMs, running, enabled: endWarningEnabled })) onEndWarning?.()
+    previousRemainingMsRef.current = running ? remainingMs : null
+  }, [onEndWarning, endWarningEnabled])
   const getPlaybackSnapshot = useCallback(() => ({
     playback: playbackRef.current,
     deadlineMs: deadlineRef.current,
@@ -221,6 +234,13 @@ export function useWorkoutPlayback(
   }, [])
 
   const commitPlayback = useCallback((nextPlayback: WorkoutPlaybackState, nextDeadlineMs: number | null) => {
+    const previous = playbackRef.current
+    // Lifecycle changes establish a fresh sample; ordinary ticks keep the exact sample already checked.
+    if (previous.status !== nextPlayback.status || previous.stepRevision !== nextPlayback.stepRevision ||
+        previous.currentStepIndex !== nextPlayback.currentStepIndex) {
+      previousRemainingMsRef.current = nextPlayback.status === 'running' && nextDeadlineMs !== null
+        ? Math.max(0, nextDeadlineMs - Date.now()) : null
+    }
     playbackRef.current = nextPlayback
     deadlineRef.current = nextDeadlineMs
     setPlayback(nextPlayback)
@@ -269,12 +289,17 @@ export function useWorkoutPlayback(
     const resolved = resolveRunningPlaybackAtTime(current, deadlineMs, nowMs, stepsRef.current)
     const bumpRevision = shouldBumpStepRevision(current, resolved.playback)
 
+    if (!bumpRevision) {
+      checkEndWarning(Math.max(0, deadlineMs - nowMs),
+        stepsRef.current[current.currentStepIndex].durationSeconds * 1000, true)
+    }
+
     emitElapsedTransitions(current, resolved.playback, stepsRef.current, nowMs, emitEvent)
 
     if (bumpRevision || !playbackStatesEqual(current, resolved.playback)) {
       commitPlaybackTransition(current, resolved.playback, resolved.deadlineMs)
     }
-  }, [commitPlaybackTransition, emitEvent])
+  }, [commitPlaybackTransition, emitEvent, checkEndWarning])
 
   useEffect(() => {
     if (playback.status !== 'running' && playback.status !== 'preparing') {
@@ -368,8 +393,10 @@ export function useWorkoutPlayback(
     }
     pausedPlaybackRef.current = current.status === 'paused'
       ? { playback: adjusted.playback, remainingMs: adjusted.pausedRemainingMs! } : null
+    checkEndWarning(Math.max(0, (adjusted.deadlineMs ?? nowMs) - nowMs),
+      adjusted.step.durationSeconds * 1000, current.status === 'running')
     commitPlayback(adjusted.playback, adjusted.deadlineMs)
-  }, [commitPlayback, emitEvent, runTick])
+  }, [commitPlayback, emitEvent, runTick, checkEndWarning])
 
   const pause = useCallback(() => {
     const current = playbackRef.current

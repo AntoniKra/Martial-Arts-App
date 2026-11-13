@@ -51,10 +51,22 @@ Podsumowanie pokazuje ćwiczenia celu z kryterium i skalą 1–5 lub opcją „N
 
 ## Gong i ekran
 
-- różne sygnały mogą oznaczać koniec pracy i koniec odpoczynku;
+- gong końca pracy, gong startu rundy (końca odpoczynku) i gong zakończenia treningu mają różne brzmienia;
 - ekran pozostaje aktywny przez Screen Wake Lock;
 - po utracie widoczności aplikacja ponawia żądanie Wake Lock;
 - brak obsługi API nie może przerwać treningu.
+
+### Sygnał 10 s przed końcem
+
+Decyzje właściciela i techniczne z 13 listopada 2026, issue #103:
+
+- Trzy krótkie, perkusyjne stuknięcia „stuk-stuk-stuk”, wyraźnie inne od gongu, zapowiadają koniec każdego etapu ćwiczenia (rundy i trybu ciągłego), odpoczynku między rundami (`roundRest`) i samodzielnej przerwy (`break`). Czas docelowy etapu musi być dłuższy niż 30 s. Dotyczy to również ostatniego etapu treningu. Przygotowanie przed startem nie ma tego sygnału.
+- Na ekranie planu, obok przygotowania, przełącznik „Sygnał 10 s przed końcem rundy i przerwy” jest domyślnie włączony. Wybór zapisuje się wyłącznie na urządzeniu w `localStorage`, z walidacją `zod/mini`. Brak wartości, błędny odczyt lub niedostępna pamięć oznaczają włączenie. Błąd zapisu przywraca ten sam stan domyślny w ustawieniu i odtwarzaczu. Odtwarzacz odczytuje wybór przy rozpoczęciu treningu; gongi przejść zachowują swoje działanie.
+- Sygnał gra raz, gdy podczas biegu zegara dokładny pozostały czas przechodzi z ponad 10 000 ms na 10 000 ms lub mniej. Obie próbki wynikają z terminu końcowego i bieżącego zegara, bez odliczania tyknięć ani zaokrąglania do sekund wyświetlacza.
+- Jeżeli przy wykryciu przejścia zostało mniej niż 7 000 ms (np. po powrocie karty z tła lub uśpieniu ekranu), sygnał jest pomijany. Dokładnie 7 000 ms nadal pozwala go odtworzyć.
+- W pauzie sygnał nie gra. Wznowienie z czasem pozostałym do 10 s włącznie nie odtwarza zaległego ostrzeżenia.
+- Korekta `+15 s`, która podnosi pozostały czas ponad 10 s, ponownie uzbraja sygnał na następne przejście progu. Korekta `−15 s` przeskakująca poniżej 10 s odtwarza go tylko przy pozostałym czasie co najmniej 7 000 ms i podczas biegu zegara. „Poprzedni” i restart etapu również uzbrajają sygnał ponownie.
+- Stan odtworzenia sygnału nie musi przetrwać przeładowania. Odzyskanie treningu z czasem pozostałym do 10 s włącznie nie odtwarza ostrzeżenia.
 
 ## Odzyskiwanie aktywnego treningu
 
