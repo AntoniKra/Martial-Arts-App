@@ -9,7 +9,8 @@ export interface AccountService {
   readData(): Promise<AccountData>
   reauthenticatePassword(password: string): Promise<void>
   reauthenticateGoogle(): Promise<'redirect' | 'popup'>
-  refreshedAuthTime(): Promise<number>
+  /** Age of the last sign-in confirmation, from the server times in one fresh ID token (immune to device clock skew). */
+  confirmationAgeMs(): Promise<number>
   deleteCollection(name: string): Promise<void>
   deleteProfile(): Promise<void>
   deleteAuthUser(): Promise<void>

@@ -64,7 +64,7 @@ describe('safeReturnTo', () => {
   })
 })
 
-it.each(['/profile/delete-account', '/profile/delete-account/', '/profile/delete-account?step=confirmed#delete'])('never returns to account deletion after login: %s', (path) => {
+it.each(['/profile/delete-account', '/profile/delete-account/', '/profile/delete-account?step=confirmed#delete', '/Profile/Delete-Account', '/LOGIN'])('never returns to account deletion after login: %s', (path) => {
   expect(safeReturnTo(path)).toBe('/')
   expect(resolveAuthRoute(signedOut, '/profile/delete-account', path)).toMatchObject({ to: '/login', returnTo: '/' })
 })

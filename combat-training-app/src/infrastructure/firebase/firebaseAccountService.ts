@@ -10,6 +10,17 @@ import { IMPLEMENTED_USER_COLLECTIONS } from './userCollections'
 import { clearAccountLocalStorage, clearDeletionRedirect, markDeletionRedirect } from '@/infrastructure/storage/accountDeletionStorage'
 
 const rawDocument = z.record(z.string(), z.unknown())
+
+/** Firestore queues writes while offline instead of rejecting them; fail the step so the screen can report it. */
+async function commitWhileOnline(write: Promise<void>): Promise<void> {
+  write.catch(() => undefined)
+  let onOffline = () => undefined as void
+  const offline = new Promise<never>((_, reject) => {
+    onOffline = () => reject(new Error('Offline account operation'))
+    addEventListener('offline', onOffline)
+  })
+  try { await Promise.race([write, offline]) } finally { removeEventListener('offline', onOffline) }
+}
 export function createFirebaseAccountService(uid: string): AccountService {
   const auth = getAuth()
   const currentUser = () => {
@@ -52,9 +63,10 @@ export function createFirebaseAccountService(uid: string): AccountService {
       } else await reauthenticateWithPopup(currentUser(), google)
       return method
     },
-    async refreshedAuthTime() {
+    async confirmationAgeMs() {
       requireOnline()
-      return Date.parse((await getIdTokenResult(currentUser(), true)).authTime)
+      const token = await getIdTokenResult(currentUser(), true)
+      return Date.parse(token.issuedAtTime) - Date.parse(token.authTime)
     },
     async deleteCollection(name) {
       requireOnline()
@@ -68,13 +80,13 @@ export function createFirebaseAccountService(uid: string): AccountService {
         currentUser()
         const batch = writeBatch(db)
         for (const document of documents) batch.delete(document.ref)
-        await batch.commit()
+        await commitWhileOnline(Promise.resolve(batch.commit()))
       }
     },
     async deleteProfile() {
       requireOnline()
       currentUser()
-      await deleteDoc(doc(getAccountDatabase(), 'users', uid))
+      await commitWhileOnline(deleteDoc(doc(getAccountDatabase(), 'users', uid)))
     },
     async deleteAuthUser() { await deleteUser(currentUser()) },
     async cleanupDevice() {

@@ -7,10 +7,9 @@ export class AccountDeletionError extends Error {
 }
 
 /** Runs independently of the route: deleting Auth unmounts the account screens. */
-export async function deleteAccount(service: AccountService, collections: readonly string[], notice: DeletionNotice, now = Date.now): Promise<void> {
+export async function deleteAccount(service: AccountService, collections: readonly string[], notice: DeletionNotice): Promise<void> {
   try {
-    const authTime = await service.refreshedAuthTime()
-    const age = now() - authTime
+    const age = await service.confirmationAgeMs()
     if (!Number.isFinite(age) || age < 0 || age > 4 * 60_000) throw new Error('Confirmation expired')
   } catch (cause) {
     throw new AccountDeletionError('confirmation', cause)
@@ -22,8 +21,9 @@ export async function deleteAccount(service: AccountService, collections: readon
       await service.deleteCollection(name)
     }
     await service.deleteProfile()
-    notice.set()
-    try { await service.deleteAuthUser() } catch (cause) { notice.clear(); throw cause }
+    // The success message is optional; a storage failure must not stop the irreversible sequence.
+    try { notice.set() } catch { /* no message */ }
+    try { await service.deleteAuthUser() } catch (cause) { try { notice.clear() } catch { /* no message */ } throw cause }
   } catch (cause) {
     throw new AccountDeletionError('data', cause)
   }

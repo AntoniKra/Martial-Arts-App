@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, useSyncExternalStore, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
-import { deletionNotice, readDeletionNotice, readCleanupError, subscribeCleanup } from '@/infrastructure/storage/accountDeletionNotice'
+import { clearCleanupError, deletionNotice, readDeletionNotice, readCleanupError, subscribeCleanup } from '@/infrastructure/storage/accountDeletionNotice'
 import { AuthFrame } from './AuthFrame'
 import { useAuth } from './authContext'
 import { GoogleMark } from './GoogleMark'
@@ -11,7 +11,10 @@ import { minPasswordLength, validateAuthForm, type AuthFormErrors, type AuthForm
 export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
   const [accountDeleted] = useState(() => mode === 'login' && readDeletionNotice())
   useEffect(() => { if (accountDeleted) deletionNotice.clear() }, [accountDeleted])
-  const cleanupError = useSyncExternalStore(subscribeCleanup, readCleanupError)
+  // Shown once: read at mount or when the failure is reported while this screen is open, then cleared.
+  const [cleanupError, setCleanupError] = useState(readCleanupError)
+  useEffect(() => subscribeCleanup(() => setCleanupError(readCleanupError())), [])
+  useEffect(() => { if (cleanupError) clearCleanupError() }, [cleanupError])
   const auth = useAuth()
   const location = useLocation()
   const emailRef = useRef<HTMLInputElement>(null)

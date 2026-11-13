@@ -24,8 +24,11 @@ vi.mock('firebase/firestore', () => ({
   getDocFromServer: vi.fn(), getDocsFromServer: vi.fn(), deleteDoc: vi.fn(),
   writeBatch: vi.fn(() => { const commit = vi.fn(); fake.commits.push(commit); return { delete: vi.fn(), commit } }),
 }))
+const browserEvents = new EventTarget()
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.stubGlobal('addEventListener', browserEvents.addEventListener.bind(browserEvents))
+  vi.stubGlobal('removeEventListener', browserEvents.removeEventListener.bind(browserEvents))
   fake.commits = []
   fake.environment = { standalone: false, touchPrimary: false }
 })
@@ -57,14 +60,14 @@ describe('Firebase account operations', () => {
       expect(method === 'popup' ? authSdk.reauthenticateWithPopup : authSdk.reauthenticateWithRedirect).toHaveBeenCalledWith(fake.user, expect.anything())
       if (method === 'redirect') expect(fake.marker).toHaveBeenCalledWith('athlete')
     })
-  it('reauthenticates with a password and forces a fresh token before reporting authTime', async () => {
-    vi.mocked(authSdk.getIdTokenResult).mockResolvedValue({ authTime: '2026-11-13T09:00:00.000Z' } as never)
+  it('reauthenticates with a password and measures the confirmation age from one fresh token', async () => {
+    vi.mocked(authSdk.getIdTokenResult).mockResolvedValue({ authTime: '2026-11-13T09:00:00.000Z', issuedAtTime: '2026-11-13T09:00:03.000Z' } as never)
     const service = createFirebaseAccountService('athlete')
     await service.reauthenticatePassword('test-only')
     expect(authSdk.EmailAuthProvider.credential).toHaveBeenCalledWith(fake.user.email, 'test-only')
     expect(authSdk.reauthenticateWithCredential).toHaveBeenCalledWith(fake.user, 'credential')
     vi.stubGlobal('navigator', { onLine: true })
-    try { expect(await service.refreshedAuthTime()).toBe(Date.parse('2026-11-13T09:00:00.000Z')) }
+    try { expect(await service.confirmationAgeMs()).toBe(3_000) }
     finally { vi.unstubAllGlobals() }
     expect(authSdk.getIdTokenResult).toHaveBeenCalledWith(fake.user, true)
   })
@@ -78,6 +81,19 @@ describe('Firebase account operations', () => {
     expect(vi.mocked(firestoreSdk.writeBatch).mock.results.map((result) => result.value.delete.mock.calls.length))
       .toEqual(count === 0 ? [] : count <= 500 ? [count] : [500, 1])
     expect(fake.commits.every((commit) => commit.mock.calls.length === 1)).toBe(true)
+  })
+  it('fails a deletion batch that Firestore would queue after the connection drops', async () => {
+    vi.mocked(firestoreSdk.getDocsFromServer).mockResolvedValue({ metadata: { hasPendingWrites: false }, docs: [{ ref: '0' }] } as never)
+    vi.mocked(firestoreSdk.writeBatch).mockImplementationOnce(() => {
+      const commit = vi.fn(() => new Promise<void>(() => undefined)); fake.commits.push(commit); return { delete: vi.fn(), commit } as never
+    })
+    vi.stubGlobal('navigator', { onLine: true })
+    try {
+      const deletion = createFirebaseAccountService('athlete').deleteCollection('bodyWeights')
+      await vi.waitFor(() => expect(fake.commits).toHaveLength(1))
+      browserEvents.dispatchEvent(new Event('offline'))
+      await expect(deletion).rejects.toThrow('Offline account operation')
+    } finally { vi.unstubAllGlobals() }
   })
   it('clears account storage even if another tab blocks cache cleanup', async () => {
     fake.cache.mockRejectedValueOnce(new Error('Another tab'))

@@ -15,6 +15,9 @@ export function readDeletionNotice(): boolean {
 export function readCleanupError(): boolean {
   try { return sessionStorage.getItem(cleanupKey) === 'failed' } catch { return false }
 }
+export function clearCleanupError(): void {
+  try { sessionStorage.removeItem(cleanupKey) } catch { /* storage unavailable */ }
+}
 export function subscribeCleanup(onChange: () => void) {
   window.addEventListener(cleanupEvent, onChange)
   return () => window.removeEventListener(cleanupEvent, onChange)
