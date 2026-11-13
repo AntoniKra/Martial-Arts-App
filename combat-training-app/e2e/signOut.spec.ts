@@ -35,8 +35,12 @@ test.describe('offline with the PWA cache', () => {
     // Deleted documents disappear from query snapshots, including their pending metadata.
     await expect(pending(page)).toHaveCount(0)
     expect(await app.readSessions()).toHaveLength(1)
-    await logout(page).click()
-    await expect(logout(page)).toBeDisabled()
+    // Observe the short write check in the browser, without a runner round trip.
+    expect(await logout(page).evaluate(async (button: HTMLButtonElement) => {
+      button.click()
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+      return button.disabled
+    })).toBe(true)
     await expect(dialog(page)).toBeVisible()
     const cancel = dialog(page).getByRole('button', { name: 'Anuluj', exact: true })
     await expect(cancel).toBeFocused()
