@@ -4,4 +4,4 @@ export const USER_COLLECTIONS = [
   'readiness', 'bodyWeights', 'controlTests', 'controlTestResults',
 ] as const
 
-export const IMPLEMENTED_USER_COLLECTIONS = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans'] as const satisfies readonly (typeof USER_COLLECTIONS[number])[]
+export const IMPLEMENTED_USER_COLLECTIONS = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights'] as const satisfies readonly (typeof USER_COLLECTIONS[number])[]
