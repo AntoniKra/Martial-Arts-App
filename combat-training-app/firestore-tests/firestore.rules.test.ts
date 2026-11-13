@@ -198,6 +198,18 @@ describe('health consent and body weights', () => {
     await assertSucceeds(ref.delete())
   })
 
+  it('rejects granting consent and creating a body weight in the same batch without changing either document', async () => {
+    const db = ownerDatabase()
+    const profile = db.doc(profilePath), weight = db.doc(weightPath)
+    await assertSucceeds(profile.set({ ...profileDocument(), healthDataConsent: null }))
+    const batch = db.batch()
+    batch.update(profile, { healthDataConsent: consent })
+    batch.set(weight, weightDocument())
+    await assertFails(batch.commit())
+    expect((await assertSucceeds(profile.get())).data()?.healthDataConsent).toBeNull()
+    expect((await assertSucceeds(weight.get())).exists).toBe(false)
+  })
+
   it.each([
     ['weightKg', 29.9], ['weightKg', 250.1], ['weightKg', '76.4'],
     ['date', '2026-11-12'], ['date', '13.11.2026'], ['extra', true],
@@ -493,6 +505,7 @@ describe('default denial', () => {
     `users/${ownerId}/workoutSessions/${documentId}/nested/${documentId}`,
     `users/${ownerId}/focusSkills/${documentId}/nested/${documentId}`,
     `users/${ownerId}/weekPlans/2026-11-09/nested/${documentId}`,
+    `${weightPath}/nested/${documentId}`,
     `workoutPlans/${documentId}`,
     `workoutSessions/${documentId}`,
     `focusSkills/${documentId}`,
@@ -508,11 +521,16 @@ describe('default denial', () => {
     await assertFails(reference.delete())
   })
 
+  it('denies listing the users collection', async () => {
+    await assertFails(ownerDatabase().collection('users').get())
+  })
+
   it('denies queries across users', async () => {
     await assertFails(ownerDatabase().collectionGroup('workoutPlans').get())
     await assertFails(ownerDatabase().collectionGroup('workoutSessions').get())
     await assertFails(ownerDatabase().collectionGroup('focusSkills').get())
     await assertFails(ownerDatabase().collectionGroup('weekPlans').get())
+    await assertFails(ownerDatabase().collectionGroup('bodyWeights').get())
   })
 })
 
