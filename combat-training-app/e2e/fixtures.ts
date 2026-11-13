@@ -12,7 +12,7 @@ import type { BodyWeight } from '../src/domain/profile/profile.types'
 class WorkoutApp {
   private authenticated = false
   private uid = ''
-  constructor(readonly page: Page) {}
+  constructor(readonly page: Page, private readonly serviceWorkers: 'allow' | 'block') {}
 
   async open(path = '/') {
     if (!this.authenticated) {
@@ -26,8 +26,15 @@ class WorkoutApp {
       await expect(this.page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
       this.authenticated = true
     }
+    // ready means the precache is installed, not that clients.claim() has taken
+    // control of this document. It can skip a document still loading during
+    // activation. Navigate after ready so every later lazy import works offline.
+    if (this.serviceWorkers === 'allow') {
+      await this.page.evaluate(async () => { await navigator.serviceWorker.ready })
+    }
     await this.releaseFirestoreLease()
-    await this.page.goto(path)
+    const response = await this.page.goto(path)
+    if (this.serviceWorkers === 'allow') expect(response?.fromServiceWorker()).toBe(true)
     await expect(this.page.getByRole('main')).toBeVisible()
   }
 
@@ -164,6 +171,9 @@ class WorkoutApp {
     await expect(this.page.getByText('Wpis jest już w dzienniku. Oceny dopisują się do niego.', { exact: true })).toBeVisible()
     if (await this.page.evaluate(() => navigator.onLine)) {
       await expect.poll(async () => (await this.readSessions()).length).toBeGreaterThan(0)
+      // The emulator REST read can see a write before this client's metadata
+      // acknowledges it. Sign-out must wait for that acknowledgement as well.
+      await expect(this.page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
     }
   }
 
@@ -184,8 +194,8 @@ class WorkoutApp {
 }
 
 export const test = base.extend<{ app: WorkoutApp }>({
-  app: async ({ page }, provideApp) => {
-    await provideApp(new WorkoutApp(page))
+  app: async ({ page, serviceWorkers }, provideApp) => {
+    await provideApp(new WorkoutApp(page, serviceWorkers))
   },
 })
 

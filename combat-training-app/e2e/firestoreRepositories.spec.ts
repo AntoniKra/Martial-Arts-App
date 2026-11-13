@@ -2,6 +2,10 @@ import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures'
 import { createVerifiedAccount, signIn } from './authEmulator'
 
+// Keep Firestore's week query in the playback week. Moving the date across weeks
+// with an already mounted listener can disable sign-out while it resubscribes.
+test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date('2026-11-03T09:00:00Z')) })
+
 test('isolates two accounts in the same browser', async ({ app, page }) => {
   await app.createPlan('Plan pierwszego konta')
   await app.openPlayer()
@@ -30,7 +34,7 @@ test.describe('offline with the PWA cache', () => {
       await app.prepareOffline()
       await app.setTheme(theme)
       await app.openPlayer()
-      await page.evaluate(async () => { await navigator.serviceWorker.ready })
+      await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)
       await context.setOffline(true)
       await app.finishWorkout()
       expect(await app.readSessions()).toHaveLength(0)
