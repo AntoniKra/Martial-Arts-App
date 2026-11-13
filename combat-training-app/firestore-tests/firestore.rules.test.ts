@@ -66,7 +66,8 @@ function workoutSession(source: 'plan' | 'quickTimer' | 'manual'): Document {
     createdAt: instant,
     updatedAt: instant,
   }
-  if (source === 'manual') return common
+  if (source === 'manual') return { ...common, durationSeconds: 180, rpe: 0, rpeRecordedAt: instant,
+    focusRatings: [], sparring: [{ blockId: null, intensity: 'hard', rounds: 1 }] }
 
   const timed = {
     ...common,
@@ -354,8 +355,11 @@ describe('manual session', () => {
   it.each([
     ['startedAt', instant], ['completedAt', instant], ['stepResults', []],
     ['workoutPlanId', 'another-plan'], ['workoutPlanNameSnapshot', 'Not allowed'],
-    ['focusRatings', []], ['exerciseRatings', []], ['status', 'partial'],
+    ['exerciseRatings', []], ['status', 'partial'],
     ['completion', { completed: 1, planned: 1, unit: 'exercise' }],
+    ['focusRatings', [{}, {}, {}, {}]], ['rpe', null], ['rpeRecordedAt', null],
+    ['workSeconds', 120], ['sparringSeconds', 60], ['durationSeconds', 30],
+    ['durationSeconds', 28801], ['durationSeconds', 180.5], ['sparring', [{}, {}]],
   ])('denies create and update with forbidden %s', async (field, value) => {
     const reference = ownerDatabase().doc(path)
     await assertFails(reference.set({ ...workoutSession('manual'), [field as string]: value }))
@@ -363,10 +367,11 @@ describe('manual session', () => {
     await assertFails(reference.update({ [field as string]: value }))
   })
 
-  it('allows known work and sparring times as well as unknown times', async () => {
+  it('allows zero or three ratings and bounded duration without checking list entries or date age', async () => {
     const reference = ownerDatabase().doc(path)
     await assertSucceeds(reference.set(workoutSession('manual')))
-    await assertSucceeds(reference.update({ workSeconds: 120, sparringSeconds: 60, rpe: 10, rpeRecordedAt: instant }))
+    await assertSucceeds(reference.update({ focusRatings: [{}, {}, {}], durationSeconds: 28800, rpe: 10, workoutDate: '2025-01-01' }))
+    await assertSucceeds(reference.update({ focusRatings: [], durationSeconds: 60 }))
   })
 })
 

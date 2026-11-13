@@ -107,6 +107,24 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     },
     sessions: {
       subscribe: trackedSubscribe(sessions), save: sessions.save.bind(sessions),
+      saveManual: async (session, correctionUpdates) => {
+        const parsed = workoutSessionDocumentSchema.parse({ ...session, schemaVersion: 1 })
+        const skillFields = correctionUpdates.map((update) => {
+          const changes = { openCorrection: update.openCorrection, updatedAt: session.updatedAt }
+          focusSkills.validateUpdate(update.focusSkillId, changes)
+          return { id: update.focusSkillId, changes }
+        })
+        const batch = writeBatch(db)
+        batch.set(doc(collection(db, 'users', uid, 'workoutSessions'), session.id), parsed)
+        for (const skill of skillFields) batch.update(doc(collection(db, 'users', uid, 'focusSkills'), skill.id), skill.changes)
+        let resolveServer!: () => void
+        let rejectServer!: (error: unknown) => void
+        const server = new Promise<void>((resolve, reject) => { resolveServer = resolve; rejectServer = reject })
+        const localWrites = [sessions.save(session, () => server),
+          ...skillFields.map((skill) => focusSkills.updateFields(skill.id, skill.changes, () => server))]
+        try { void batch.commit().then(resolveServer, rejectServer) } catch (error) { rejectServer(error) }
+        await Promise.all(localWrites)
+      },
       updateNote: sessions.updateNote.bind(sessions), delete: sessions.delete.bind(sessions),
       saveRpe: async (id, rpe, recordedAt) => {
         const fields = { rpe, rpeRecordedAt: recordedAt, updatedAt: recordedAt }

@@ -8,6 +8,7 @@ import { RedAccent } from '@/components/ui/RedAccent'
 import { FeaturedPlanCard } from '@/features/home/components/FeaturedPlanCard'
 import { HomeSectionLabel } from '@/features/home/components/HomeSectionLabel'
 import { RecentSessionCard } from '@/features/home/components/RecentSessionCard'
+import { ManualWorkoutLink } from '@/features/manual-workout/ManualWorkoutLink'
 import type {
   FeaturedWorkoutPlanLoadState,
   RecentWorkoutSessionsLoadState,
@@ -202,6 +203,7 @@ export function HomeView({
               </Link>
             </div>
             {renderRecentSessionsSection()}
+            <ManualWorkoutLink from="/" />
           </section>
         </div>
       </div>

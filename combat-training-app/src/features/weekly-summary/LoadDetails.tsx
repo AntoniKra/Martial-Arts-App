@@ -3,10 +3,12 @@ import type { WorkoutSession } from '@/domain/workout-session/workoutSession.typ
 import { categoryLabel } from '@/features/week-plan/weekPlanLabels'
 import { formatActiveDurationSecondsPl, formatWorkoutSessionDatePl } from '@/features/workouts/utils/formatWorkoutSessionLabels'
 import { workoutSessionName } from '@/features/workouts/utils/workoutSessionPresentation'
+import { isRpeFromMemory } from '@/domain/workout-session/rpeRecall'
+import { RpeRecallBadge } from '@/features/workout-feedback/RpeRecallBadge'
 import { formatTrainingLoadPl, weeklySummaryLabels as labels } from './weeklySummaryLabels'
 
 function sessionLabel(session: WorkoutSession): string {
-  return session.source === 'plan' ? workoutSessionName(session) : `${workoutSessionName(session)} · ${categoryLabel(session.category)}`
+  return session.source === 'quickTimer' ? `${workoutSessionName(session)} · ${categoryLabel(session.category)}` : workoutSessionName(session)
 }
 
 /** `workoutDate` is a calendar day; local noon keeps it on the same day in every timezone. */
@@ -25,7 +27,7 @@ export function LoadDetails({ sessionLoads }: { sessionLoads: readonly WeeklySes
         </div>
         <dl className="grid grid-cols-3 gap-2 text-sm">
           <div className="min-w-0"><dt className="text-xs text-muted">{labels.duration}</dt><dd className="tabular-nums">{formatActiveDurationSecondsPl(session.durationSeconds)}</dd></div>
-          <div className="min-w-0"><dt className="text-xs text-muted">{labels.sessionRpe}</dt><dd className="tabular-nums">{session.rpe ?? labels.noRpe}</dd></div>
+          <div className="min-w-0"><dt className="text-xs text-muted">{labels.sessionRpe}</dt><dd className="tabular-nums">{session.rpe ?? labels.noRpe}{isRpeFromMemory(session) && <><br /><RpeRecallBadge /></>}</dd></div>
           <div className="min-w-0"><dt className="text-xs text-muted">{labels.sessionLoad}</dt><dd className="tabular-nums">{load === null ? labels.noLoad : formatTrainingLoadPl(load)}</dd></div>
         </dl>
       </li>)}

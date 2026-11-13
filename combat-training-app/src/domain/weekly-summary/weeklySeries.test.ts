@@ -29,11 +29,12 @@ describe('calculateWeeklySeries', () => {
   it('includes all sources and partial sessions, excluding both sides of the window', () => {
     const manual: ManualWorkoutSession = {
       id: 'manual', source: 'manual', status: 'completed', disciplineKey: 'boxing', category: 'bag', workoutDate: monday,
-      timezone: 'Europe/Warsaw', durationSeconds: 30.4, workSeconds: null, sparringSeconds: null, completion: null,
-      note: null, rpe: null, rpeRecordedAt: null, sparring: [], createdAt: '2027-01-04T10:00:00.000Z', updatedAt: '2027-01-04T10:00:00.000Z',
+      timezone: 'Europe/Warsaw', durationSeconds: 60, workSeconds: null, sparringSeconds: null, completion: null,
+      note: null, rpe: 0, rpeRecordedAt: '2027-01-04T10:00:00.000Z', focusRatings: [], sparring: [], createdAt: '2027-01-04T10:00:00.000Z', updatedAt: '2027-01-04T10:00:00.000Z',
     }
+    const { focusRatings: _manualRatings, ...timedFields } = manual
     const quick: QuickTimerWorkoutSession = {
-      ...manual, id: 'quick', source: 'quickTimer', status: 'partial', durationSeconds: 60.4,
+      ...timedFields, id: 'quick', source: 'quickTimer', status: 'partial', durationSeconds: 60.4,
       workSeconds: 0, sparringSeconds: 0,
       startedAt: manual.createdAt, completedAt: manual.createdAt, stepResults: [],
       completion: { completed: 1, planned: 2, unit: 'round' },
@@ -43,7 +44,7 @@ describe('calculateWeeklySeries', () => {
     const series = calculateWeeklySeries(monday, sessions, monday)
     expect(series[0].workoutCount).toBe(1)
     expect(series.at(-1)?.workoutCount).toBe(3)
-    expect(series.at(-1)?.durationSeconds).toBeCloseTo(181.2, 10)
+    expect(series.at(-1)?.durationSeconds).toBeCloseTo(210.8, 10)
     expect(series.reduce((sum, point) => sum + point.workoutCount, 0)).toBe(4)
   })
 

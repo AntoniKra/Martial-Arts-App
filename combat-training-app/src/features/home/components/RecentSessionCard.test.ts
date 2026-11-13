@@ -8,8 +8,24 @@ import { mapWorkoutSessionToHomeRecentSession } from '@/features/home/mappers/wo
 import { WorkoutHistoryCard } from '@/features/workouts/components/WorkoutHistoryCard'
 import { mapWorkoutSessionToHistoryListItem } from '@/features/workouts/mappers/workoutSessionHistoryListItemMapper'
 import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
+import { manualWorkoutSession } from '@/test/manualWorkoutBuilder'
 
 describe('session card completion counters', () => {
+  it('shows manual entries without completion, rounds or a bar, with an edit link and recalled RPE in history', () => {
+    const session = manualWorkoutSession({ workoutDate: '2026-11-08' })
+    for (const card of [createElement(RecentSessionCard, { session: mapWorkoutSessionToHomeRecentSession(session) }),
+      createElement(WorkoutHistoryCard, { session: mapWorkoutSessionToHistoryListItem(session),
+        onUpdateNote: async () => 'applied' as const, onDelete: async () => 'applied' as const })]) {
+      const markup = renderToStaticMarkup(createElement(MemoryRouter, null, card))
+      expect(markup).toContain('Trening poza aplikacją · Worek')
+      expect(markup).toContain('/workout-sessions/manual/edit')
+      expect(markup).toContain('Popraw')
+      expect(markup).not.toMatch(/0\/0|width:|ćwiczeń|rund/)
+    }
+    expect(renderToStaticMarkup(createElement(MemoryRouter, null, createElement(WorkoutHistoryCard, {
+      session: mapWorkoutSessionToHistoryListItem(session), onUpdateNote: async () => 'applied' as const, onDelete: async () => 'applied' as const,
+    })))).toContain('RPE podane co najmniej 3 dni po treningu')
+  })
   it.each([true, false])('shares ordered exercise and round labels on both cards (rounds: %s)', (hasRounds) => {
     const session = workoutSession({ stepResults: hasRounds ? [
       sessionStep({ playbackStepId: 'round-1', roundNumber: 1, roundCount: 2 }),

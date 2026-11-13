@@ -1,5 +1,6 @@
 import { workoutSessionName, workoutSessionDate } from '@/features/workouts/utils/workoutSessionPresentation'
 import { routes } from '@/app/routes'
+import { isRpeFromMemory } from '@/domain/workout-session/rpeRecall'
 import { calculateWorkoutSessionSummary } from '@/domain/workout-session/workoutSessionCalculations'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { WorkoutHistoryListItem } from '@/features/workouts/types/workoutsView.types'
@@ -14,6 +15,8 @@ export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession, hasP
   const hasRounds = summary.plannedRoundCount > 0
 
   return {
+    editPath: session.source === 'manual' ? routes.editManualWorkout(session.id) : undefined,
+    isManual: session.source === 'manual', rpe: session.rpe, rpeFromMemory: isRpeFromMemory(session),
     feedbackPath: session.source === 'plan' ? routes.workoutFeedback(session.id) : undefined,
     id: session.id,
     status: session.status,

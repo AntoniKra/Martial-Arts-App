@@ -29,6 +29,10 @@ export type WorkoutHistoryMutationResult = 'applied' | 'stale'
 export const WORKOUT_HISTORY_NOTE_MAX_LENGTH = 1000
 
 export interface WorkoutHistoryListItem {
+  editPath?: string
+  isManual?: boolean
+  rpe?: number | null
+  rpeFromMemory?: boolean
   feedbackPath?: string
   hasPendingWrites: boolean
   id: string

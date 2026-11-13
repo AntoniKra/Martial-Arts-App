@@ -43,6 +43,7 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
     sessions: {
       subscribe: deferredSubscription(sessions),
       save: async (session) => (await sessions).save(session),
+      saveManual: async (session, corrections) => (await sessions).saveManual(session, corrections),
       updateNote: async (id, note) => (await sessions).updateNote(id, note),
       saveFeedback: async (id, feedback) => (await sessions).saveFeedback(id, feedback),
       saveRpe: async (id, rpe, recordedAt) => (await sessions).saveRpe(id, rpe, recordedAt),

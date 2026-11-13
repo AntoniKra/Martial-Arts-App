@@ -45,7 +45,7 @@ export function Component() {
       <section aria-labelledby="ratings-heading" className="space-y-3">
         <h2 id="ratings-heading" className="font-display text-xl font-semibold">{labels.allRatings}</h2>
         <ul className="space-y-2">{[...assessments].reverse().map((rating, index) => <li key={`${rating.sessionId}-${rating.workoutItemId}-${index}`}>
-          <Link to={routes.workoutFeedback(rating.sessionId)} className="block min-h-touch space-y-1 border border-bd bg-surface p-3 text-sm hover:bg-elevated">
+          <Link to={rating.workoutItemId === null ? routes.editManualWorkout(rating.sessionId) : routes.workoutFeedback(rating.sessionId)} className="block min-h-touch space-y-1 border border-bd bg-surface p-3 text-sm hover:bg-elevated">
             <p>{formatProgressDate(rating.workoutDate)} · {getWorkoutBlockLabelPl(rating.blockType)} · <strong>{rating.assessment === 'unableToRate' ? labels.unable : rating.assessment}</strong></p>
             <p className="break-words text-muted">{rating.planName}</p>
             {!rating.currentCriterion && <p className="text-xs text-muted">{labels.previous}</p>}

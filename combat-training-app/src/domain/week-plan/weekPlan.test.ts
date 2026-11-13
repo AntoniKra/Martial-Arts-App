@@ -16,9 +16,15 @@ const session = (id: string, changes: Partial<ReturnType<typeof workoutSession>>
 })
 const manual = (id: string): ManualWorkoutSession => ({ id, source: 'manual', status: 'completed', category: 'bag', disciplineKey: 'boxing',
   workoutDate: monday, timezone: 'Europe/Warsaw', durationSeconds: 60, workSeconds: null, sparringSeconds: null,
-  completion: null, note: null, rpe: null, rpeRecordedAt: null, sparring: [], createdAt: instant, updatedAt: instant })
+  completion: null, note: null, rpe: 0, rpeRecordedAt: instant, focusRatings: [], sparring: [], createdAt: instant, updatedAt: instant })
 
 describe('week plan matching', () => {
+  it('matches a completed manual sparring entry to its category but never to an exact plan', () => {
+    const entry: ManualWorkoutSession = { ...manual('sparring'), category: 'sparring', sparring: [{ blockId: null, intensity: 'hard', rounds: 6 }] }
+    const result = calculateWeekPlanProgress(monday, plan([exact(), category('sparring', 'sparring')]), [entry])
+    expect(result.matches.map((match) => match.session?.id ?? null)).toEqual([null, 'sparring'])
+    expect(result).toMatchObject({ completed: 1, unfulfilled: 1 })
+  })
   it('counts only completed positions in the bar and reports partial and extra separately', () => {
     const result = calculateWeekPlanProgress(monday, plan([exact('one'), exact('two'), category('sparring', 'sparring')]), [
       session('first'), session('second'), session('partial', { status: 'partial', category: 'sparring' }), session('extra', { workoutDate: '2026-11-15' }),

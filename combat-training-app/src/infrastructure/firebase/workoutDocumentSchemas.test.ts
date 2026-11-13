@@ -8,7 +8,8 @@ const session = { ...workoutSession({ stepResults: [sessionStep()] }), schemaVer
 const { workoutPlanId: _planId, workoutPlanNameSnapshot: _name, focusRatings: _focus, exerciseRatings: _ratings, ...timed } = session
 const quickTimer = { ...timed, source: 'quickTimer', completion: { completed: 1, planned: 1, unit: 'round' } }
 const { startedAt: _start, completedAt: _end, stepResults: _steps, ...common } = timed
-const manual = { ...common, source: 'manual', completion: null, workSeconds: null, sparringSeconds: null }
+const manual = { ...common, source: 'manual', completion: null, workSeconds: null, sparringSeconds: null,
+  rpe: 0, rpeRecordedAt: session.completedAt, focusRatings: [] }
 
 describe('Firestore document schemas', () => {
   it('accepts a plan with sparring defaults and focusSkillId', () => {

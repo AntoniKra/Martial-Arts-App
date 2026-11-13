@@ -24,7 +24,7 @@ export function HomePage() {
         ? { status: 'success', plan: latest ? mapWorkoutPlanToFeaturedPlan(latest) : null }
         : plans.status === 'loading' ? { status: 'loading' } : { status: 'error', message: workoutDataLabels.plansLoadError }}
       recentSessionsLoadState={sessions.status === 'ready'
-        ? { status: 'success', sessions: selectRecentWorkoutSessions(sessions.items).map(mapWorkoutSessionToHomeRecentSession) }
+        ? { status: 'success', sessions: selectRecentWorkoutSessions(sessions.items).map((session) => mapWorkoutSessionToHomeRecentSession(session, sessions.pendingIds.has(session.id))) }
         : sessions.status === 'loading' ? { status: 'loading' } : { status: 'error', message: workoutDataLabels.historyLoadError }}
       onRetryLoadFeaturedPlan={retry} onRetryLoadRecentSessions={retry}
     />

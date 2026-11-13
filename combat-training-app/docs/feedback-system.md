@@ -53,6 +53,19 @@ Do tego **„Nie umiem ocenić”**. Ta odpowiedź zostaje zapisana, ale nie wch
 - Oceny według poprzedniego kryterium mają puste punkty (sam obrys) i dopisek na liście. Pionowa przerywana linia „Zmiana kryterium” wskazuje pierwszą ocenę według obecnego kryterium po ostatniej ocenie według innego kryterium (także przy powrocie A → B → A). Starsze oceny nie wchodzą do podsumowania; pokazujemy ich liczbę.
 - „Schowaj” zdejmuje oznaczenie CEL we wszystkich wskazujących planach, zostawiając ćwiczenia, oceny i wykres. „Przywróć” przywraca ćwiczenie celu na listę w kreatorze, ale nie oznaczenia w planach. Usuwanie jest dostępne tylko bez jakichkolwiek wpisów w `focusRatings`, także tych z `assessment: null`.
 
+## Ręczny wpis
+
+Wpis treningu spoza aplikacji dodaje się przyciskiem pod ostatnimi sesjami na stronie głównej albo na górze Historii. Można go później poprawić lub usunąć; wpis z odtwarzacza zachowuje dotychczasowe możliwości podsumowania i notatki.
+
+- RPE 0–10 jest obowiązkowe. Podpowiedź: „Oceń cały trening, nie ostatnią rundę.” Data od dziś − 7 dni do dziś; przy edycji można zachować starszą zapisaną datę.
+- „Z pamięci” oznacza RPE podane co najmniej 3 dni kalendarzowe po treningu w strefie wpisu. Dotyczy wszystkich źródeł i jest widoczne w Historii oraz szczegółach obciążenia. Nie zmienia obliczeń. Przy edycji chwila RPE zmienia się tylko wraz z jego wartością.
+- Ten sam dzień i rodzaj (dowolne źródło) powodują ostrzeżenie o dublu. Po potwierdzeniu powstaje osobny wpis obejmujący tylko resztę zajęć; zapis odtwarzacza nie jest wydłużany ani zastępowany. Przy edycji pytanie pojawia się tylko po zmianie daty lub rodzaju.
+- Wykorzystujemy obecne rodzaje z przykładami, bez godziny, dystansu, tętna, kalorii, miejsca ani własnej nazwy. Czas to całe zajęcia z rozgrzewką: 60/90/120 min albo własna liczba całkowita 1–480 min.
+- „Był sparing” jest dostępne dla każdego rodzaju, a dla „Sparing” zawsze włączone. Intensywność jest wymagana, liczba rund 1–50 opcjonalna; czas pracy i sparingu pozostaje `null`.
+- Opcjonalnie do 3 aktywnych ćwiczeń celu, każde raz, ze skalą R1 i „Nie umiem ocenić”. Nie mają `workoutItemId`. Miejsce wynika z rodzaju; przy „Mieszany” i „Kondycja” wybiera je użytkownik. Zmiana rodzaju przelicza miejsce, a przejście do tych dwóch rodzajów wymaga ponownego wyboru.
+- Notatki R2 działają jak po planie: poprzednia otwarta notatka, pytanie „lepiej / bez zmian / nie sprawdzono” i nowa notatka. „Lepiej” zamyka, nowa zastępuje. Wpis wcześniejszy niż otwarta notatka o nią nie pyta. Sesja i notatki zapisują się razem, także offline.
+- Ręczne oceny trafiają do trendu w Postępie, wiersz prowadzi do poprawy wpisu. Ćwiczenie celu z taką oceną można schować, ale nie usunąć. Ukończony wpis zalicza cel rodzaju w planie tygodnia, a nie cel konkretnego planu; liczy się do tygodniowej liczby, czasu i obciążenia oraz wykresu 12 tygodni. Nieznane czasy nie są zerami.
+
 ## Pozostałe ćwiczenia
 
 Opcjonalnie, pod „Oceń pozostałe” (Q1). Pytanie: **Jak oceniasz wykonanie tego ćwiczenia?**

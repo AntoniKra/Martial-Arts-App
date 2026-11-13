@@ -75,6 +75,11 @@ const focusRating = z.strictObject({
   correction: z.nullable(z.strictObject({ problem: correctionText, fix: correctionText })),
   previousCorrectionCheck: z.nullable(z.enum(['better', 'same', 'notChecked'])),
 })
+const manualFocusRating = z.strictObject({
+  ...focusRating.shape, workoutItemId: z.null(),
+  blockType: z.enum(['technique', 'pads', 'bag', 'sparring', 'conditioning', 'strengthAndConditioning']),
+  assessment: z.union([rating, z.literal('unableToRate')]),
+})
 export const workoutSessionDocumentSchema = z.discriminatedUnion('source', [
   z.strictObject({ ...common, ...timed, source: z.literal('plan'), workoutPlanId: id,
     workoutPlanNameSnapshot: text, completion: z.strictObject({ ...completionFields, unit: z.literal('exercise') }),
@@ -85,11 +90,17 @@ export const workoutSessionDocumentSchema = z.discriminatedUnion('source', [
     completion: z.strictObject({ ...completionFields, unit: z.literal('round') }),
   }),
   z.strictObject({ ...common, source: z.literal('manual'), status: z.literal('completed'),
-    workSeconds: z.nullable(integer), sparringSeconds: z.nullable(integer), completion: z.null(),
+    workSeconds: z.null(), sparringSeconds: z.null(), completion: z.null(),
+    durationSeconds: z.number().check(z.int(), z.minimum(60), z.maximum(28800)),
+    rpe: z.number().check(z.int(), z.minimum(0), z.maximum(10)), rpeRecordedAt: instantSchema,
+    focusRatings: z.array(manualFocusRating).check(z.maxLength(3)),
+    sparring: z.array(z.strictObject({ blockId: z.null(), intensity: z.enum(['light', 'technical', 'hard']),
+      rounds: z.nullable(z.number().check(z.int(), z.minimum(1), z.maximum(50))) })).check(z.maxLength(1)),
   }),
 ]).check(z.refine((session) => {
   if ((session.rpe === null) !== (session.rpeRecordedAt === null)) return false
-  if (session.source === 'manual') return true
+  if (session.source === 'manual') return new Set(session.focusRatings.map((value) => value.focusSkillId)).size === session.focusRatings.length
+    && (session.category !== 'sparring' || session.sparring.length === 1)
   return session.completedAt >= session.startedAt
     && session.sparringSeconds <= session.workSeconds && session.workSeconds <= session.durationSeconds
     && session.completion.completed <= session.completion.planned

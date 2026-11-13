@@ -11,10 +11,11 @@ const chartName = 'Ostatnie 12 tygodni'
 const manual: ManualWorkoutSession = {
   id: 'manual', source: 'manual', status: 'completed', disciplineKey: 'boxing', category: 'bag',
   workoutDate: '2026-11-01', timezone: 'Europe/Warsaw', durationSeconds: 900, workSeconds: null,
-  sparringSeconds: null, completion: null, note: null, rpe: null, rpeRecordedAt: null, sparring: [], createdAt: instant, updatedAt: instant,
+  sparringSeconds: null, completion: null, note: null, rpe: 0, rpeRecordedAt: instant, focusRatings: [], sparring: [], createdAt: instant, updatedAt: instant,
 }
+const { focusRatings: _manualRatings, ...timedFields } = manual
 const quick: QuickTimerWorkoutSession = {
-  ...manual, id: 'quick', source: 'quickTimer', status: 'partial', workoutDate: '2026-11-02', durationSeconds: 1200,
+  ...timedFields, id: 'quick', source: 'quickTimer', status: 'partial', workoutDate: '2026-11-02', durationSeconds: 1200,
   workSeconds: 600, sparringSeconds: 0,
   startedAt: instant, completedAt: instant, stepResults: [], completion: { completed: 1, planned: 2, unit: 'round' },
 }

@@ -126,8 +126,8 @@ describe('WeeklySummary training load', () => {
 
   it('lists session details newest first with explicit missing values and visible zeros', () => {
     const manual: ManualWorkoutSession = { id: 'manual', source: 'manual', status: 'completed', disciplineKey: 'boxing',
-      category: 'bag', workoutDate: '2026-11-15', timezone: 'Europe/Warsaw', durationSeconds: 30.4, workSeconds: null,
-      sparringSeconds: null, completion: null, note: null, rpe: 7, rpeRecordedAt: null, sparring: [],
+      category: 'bag', workoutDate: '2026-11-15', timezone: 'Europe/Warsaw', durationSeconds: 60, workSeconds: null,
+      sparringSeconds: null, completion: null, note: null, rpe: 7, rpeRecordedAt: '2026-11-15T10:00:00.000Z', focusRatings: [], sparring: [],
       createdAt: '2026-11-15T10:00:00.000Z', updatedAt: '2026-11-15T10:00:00.000Z' }
     data.sessions.items = [timed('zero', '2026-11-10', 45, 0), manual, timed('none', '2026-11-10', 20, null), timed('old', '2026-11-08', 50, 9)]
     const html = details(render())
@@ -136,7 +136,7 @@ describe('WeeklySummary training load', () => {
       ['Trening poza aplikacją · Worek', '15 lis'], ['Plan none', '10 lis'], ['Plan zero', '10 lis'],
     ])
     expect(row(html, 'RPE')).toBe('7')
-    expect(row(html, 'Obciążenie')).toBe('3,5 j.u.')
+    expect(row(html, 'Obciążenie')).toBe('7 j.u.')
     const items = html.split('<li').slice(1)
     expect(row(items[1], 'Czas treningu')).toBe('20 min')
     expect(row(items[1], 'RPE')).toBe('Brak RPE')

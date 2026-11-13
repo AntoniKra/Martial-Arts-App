@@ -12,9 +12,10 @@ interface UnsavedPlanChangesGuardProps {
   isDirty: boolean
   allowLeaveRef: RefObject<boolean>
   children: ReactNode
+  description?: string
 }
 
-export function UnsavedPlanChangesGuard({ isDirty, allowLeaveRef, children }: UnsavedPlanChangesGuardProps) {
+export function UnsavedPlanChangesGuard({ isDirty, allowLeaveRef, children, description = labels.discardDescription }: UnsavedPlanChangesGuardProps) {
   const titleId = useId()
   const descriptionId = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -113,7 +114,7 @@ export function UnsavedPlanChangesGuard({ isDirty, allowLeaveRef, children }: Un
           className="fixed inset-0 m-auto max-h-[calc(100dvh_-_2rem)] w-[calc(100%_-_2rem)] max-w-sm overflow-y-auto border border-bd bg-surface p-5 text-ink backdrop:bg-bg/80"
         >
           <h2 id={titleId} className="font-display text-xl font-bold">{labels.discardTitle}</h2>
-          <p id={descriptionId} className="mt-3 text-sm leading-relaxed text-muted">{labels.discardDescription}</p>
+          <p id={descriptionId} className="mt-3 text-sm leading-relaxed text-muted">{description}</p>
           <div className="mt-6 flex flex-col gap-3">
             <button
               type="button"

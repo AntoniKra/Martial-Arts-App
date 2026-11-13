@@ -16,6 +16,7 @@ export interface WorkoutData {
   weekPlanRepository: WeekPlanRepository
   retryWeekPlans: () => void
   retrySessions: () => void
+  retryFocusSkills: () => void
   plans: CollectionState<WorkoutPlan>
   sessions: CollectionState<WorkoutSession>
   focusSkills: CollectionState<FocusSkill>

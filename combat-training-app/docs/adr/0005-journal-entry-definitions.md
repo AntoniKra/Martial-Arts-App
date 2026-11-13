@@ -56,6 +56,10 @@ Decyzja właściciela: pracą są wyłącznie rundy lub ciągłe etapy ćwiczeń
 
 Rodzaj treningu pomija rozgrzewkę (`warmup`) i rozluźnienie (`cooldown`). Plan z workiem, rozgrzewką i rozluźnieniem ma rodzaj `bag`. Plan złożony tylko z rozgrzewki, tylko z rozluźnienia albo z obu tych bloków ma rodzaj `mixed`. `cooldown` nie jest wartością `category`.
 
+## Zmiana z 12 listopada 2026
+
+Ręczny wpis treningu spoza aplikacji wymaga RPE 0–10 i daty od dziś − 7 dni do dziś. Przy edycji można zachować starszą zapisaną datę. RPE podane co najmniej 3 dni kalendarzowe po dniu treningu, liczone w zapisanej strefie wpisu, otrzymuje znaczek „z pamięci” dla każdego źródła; nie zmienia to obciążenia. Ten sam dzień i rodzaj treningu wywołują ostrzeżenie o możliwym dublu. Użytkownik zapisuje osobny trening, tylko pozostałą część zajęć; nie łączymy wpisów i nie wydłużamy ani nie zastępujemy zapisu odtwarzacza. Wpis ręczny można poprawić i usunąć; jego realizacja pozostaje „nie dotyczy”, a czas pracy i sparingu — nieznany (`null`).
+
 ## Poza tym ADR
 
 Zakres danych zbieranych po treningu (RPE, oceny ćwiczeń, inne miary) i sposób oceny postępów zostaną ustalone po researchu literatury i funkcji (listopad 2026).

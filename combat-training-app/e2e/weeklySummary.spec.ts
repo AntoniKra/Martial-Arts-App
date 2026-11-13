@@ -14,9 +14,11 @@ const plan = { ...workoutPlan([block('bag', [continuousExercise('one', 60)], 'ba
 const first = workoutSession({ id: 'first', workoutPlanId: plan.id, workoutDate: weekStart, category: 'bag',
   durationSeconds: 1800.25, workSeconds: 1200, sparringSeconds: 0, stepResults: [sessionStep()] })
 const manual: ManualWorkoutSession = { id: 'manual', source: 'manual', status: 'completed', disciplineKey: 'boxing',
-  category: 'sparring', workoutDate: '2026-11-15', timezone: 'Europe/Warsaw', durationSeconds: 900, workSeconds: 600,
-  sparringSeconds: 600, completion: null, note: null, rpe: 7, rpeRecordedAt: instant, sparring: [], createdAt: instant, updatedAt: instant }
-const quick: QuickTimerWorkoutSession = { ...manual, id: 'quick', source: 'quickTimer', status: 'partial', category: 'bag',
+  category: 'sparring', workoutDate: '2026-11-15', timezone: 'Europe/Warsaw', durationSeconds: 900, workSeconds: null,
+  sparringSeconds: null, completion: null, note: null, rpe: 7, rpeRecordedAt: instant, focusRatings: [],
+  sparring: [{ blockId: null, intensity: 'technical', rounds: null }], createdAt: instant, updatedAt: instant }
+const { focusRatings: _manualRatings, ...timedFields } = manual
+const quick: QuickTimerWorkoutSession = { ...timedFields, id: 'quick', source: 'quickTimer', status: 'partial', category: 'bag',
   workoutDate: '2026-11-11', startedAt: instant, completedAt: instant, durationSeconds: 1200.25, workSeconds: 900,
   sparringSeconds: 0, completion: { completed: 1, planned: 2, unit: 'round' }, stepResults: [sessionStep()], rpe: 0 }
 const loadHint = 'Jednostki umowne: minuty treningu × RPE', partialHint = 'Suma obejmuje tylko treningi z RPE.'
@@ -61,7 +63,7 @@ test('summarizes all sources with recorded load, follows live edits and week sel
   const section = summary(page)
   await expect(section.getByText('Treningi: 3', { exact: true })).toBeVisible()
   await expect(section.getByText('Ukończone: 2 · Częściowe: 1', { exact: true })).toBeVisible()
-  await expect(totals(page)).toHaveText(['66 min', 'Z odpoczynkami, bez pauz.', '45 min', '10 min', '105 j.u.', loadHint, 'RPE w 2 z 3 treningów', partialHint, '36 min'])
+  await expect(totals(page)).toHaveText(['66 min', 'Z odpoczynkami, bez pauz.', '35 min', 'Dane w 2 z 3 treningów', '0 s', 'Dane w 2 z 3 treningów', '105 j.u.', loadHint, 'RPE w 2 z 3 treningów', partialHint, '36 min'])
   await expect(section.getByText('Zarejestrowane obciążenie', { exact: true })).toBeVisible()
   await expect(section.getByText('Czas treningów z RPE', { exact: true })).toBeVisible()
   await expect(section.getByText(/RPE w/)).toHaveCount(1)
@@ -88,19 +90,19 @@ test('summarizes all sources with recorded load, follows live edits and week sel
   await app.seedSession({ ...first, rpe: 0, rpeRecordedAt: instant })
   await expect(section.getByText('RPE w 3 z 3 treningów', { exact: true })).toBeVisible()
   await expect(section.getByText('Obciążenie tygodnia', { exact: true })).toBeVisible()
-  await expect(totals(page)).toHaveText(['66 min', 'Z odpoczynkami, bez pauz.', '45 min', '10 min', '105 j.u.', loadHint, 'RPE w 3 z 3 treningów', '66 min'])
+  await expect(totals(page)).toHaveText(['66 min', 'Z odpoczynkami, bez pauz.', '35 min', 'Dane w 2 z 3 treningów', '0 s', 'Dane w 2 z 3 treningów', '105 j.u.', loadHint, 'RPE w 3 z 3 treningów', '66 min'])
   await expect(loadDetails(page).nth(2).getByRole('definition')).toHaveText(['31 min', '0', '0 j.u.'])
   await app.seedSession({ ...first, rpe: 6, rpeRecordedAt: instant })
   await expect(loadDetails(page).nth(2).getByRole('definition')).toHaveText(['31 min', '6', '180 j.u.'])
-  await expect(totals(page).nth(4)).toHaveText('285 j.u.')
+  await expect(totals(page).nth(6)).toHaveText('285 j.u.')
   await app.seedSession({ ...first, durationSeconds: 2400.25, rpe: 6, rpeRecordedAt: instant })
   await expect(loadDetails(page).nth(2).getByRole('definition')).toHaveText(['41 min', '6', '240 j.u.'])
-  await expect(totals(page)).toHaveText(['76 min', 'Z odpoczynkami, bez pauz.', '45 min', '10 min', '345 j.u.', loadHint, 'RPE w 3 z 3 treningów', '76 min'])
+  await expect(totals(page)).toHaveText(['76 min', 'Z odpoczynkami, bez pauz.', '35 min', 'Dane w 2 z 3 treningów', '0 s', 'Dane w 2 z 3 treningów', '345 j.u.', loadHint, 'RPE w 3 z 3 treningów', '76 min'])
   await expect(form(page).getByRole('listitem')).toHaveCount(2)
   await expect(section).toBeVisible()
   await app.removeWorkoutDocument('workoutSessions', quick.id)
   await expect(section.getByText('Treningi: 2', { exact: true })).toBeVisible()
-  await expect(totals(page)).toHaveText(['56 min', 'Z odpoczynkami, bez pauz.', '30 min', '10 min', '345 j.u.', loadHint, 'RPE w 2 z 2 treningów', '56 min'])
+  await expect(totals(page)).toHaveText(['56 min', 'Z odpoczynkami, bez pauz.', '20 min', 'Dane w 1 z 2 treningów', '0 s', 'Dane w 1 z 2 treningów', '345 j.u.', loadHint, 'RPE w 2 z 2 treningów', '56 min'])
   await expect(loadDetails(page)).toHaveCount(2)
   await expect(form(page).getByRole('listitem')).toHaveCount(2)
   await page.getByRole('button', { name: 'Zapisz plan tygodnia', exact: true }).click()
@@ -116,23 +118,23 @@ test('summarizes all sources with recorded load, follows live edits and week sel
   await checkPhoneLayouts(page, info); await capture(page, info, 'empty-week')
   await page.getByRole('combobox', { name: 'Tydzień', exact: true }).selectOption(weekStart)
   await expect(section.getByText('RPE w 2 z 2 treningów', { exact: true })).toBeVisible()
-  await expect(totals(page).nth(4)).toHaveText('345 j.u.')
+  await expect(totals(page).nth(6)).toHaveText('345 j.u.')
 })
 
 test('distinguishes unknown time and RPE from zero, retries corrupt sessions and ignores a broken goal', async ({ app, page }, info) => {
   await app.open('/workouts')
-  await app.seedSession({ ...manual, workSeconds: null, sparringSeconds: null, rpe: null, rpeRecordedAt: null })
+  await app.seedSession({ ...manual, rpe: 0 })
   await app.open(`/progress/week/${weekStart}`)
   const section = summary(page)
   await expect(section.getByText('Zarejestrowany czas pracy', { exact: true })).toBeVisible()
-  await expect(section.getByText('Zarejestrowane obciążenie', { exact: true })).toBeVisible()
+  await expect(section.getByText('Obciążenie tygodnia', { exact: true })).toBeVisible()
   await expect(totals(page)).toHaveText(['15 min', 'Z odpoczynkami, bez pauz.', 'Brak danych', 'Dane w 0 z 1 treningów',
-    'Brak danych', 'Dane w 0 z 1 treningów', 'Brak danych', loadHint, 'RPE w 0 z 1 treningów', 'Brak danych'])
-  await expect(section.getByText('0 j.u.', { exact: true })).toHaveCount(0)
+    'Brak danych', 'Dane w 0 z 1 treningów', '0 j.u.', loadHint, 'RPE w 1 z 1 treningów', '15 min'])
+  await expect(section.getByText('0 j.u.', { exact: true }).filter({ visible: true })).toHaveCount(1)
   await checkPhoneLayouts(page, info); await capture(page, info, 'unknown-rpe')
   await app.seedSession({ ...first, workSeconds: 0, sparringSeconds: 0 })
   await expect(totals(page)).toHaveText(['46 min', 'Z odpoczynkami, bez pauz.', '0 s', 'Dane w 1 z 2 treningów',
-    '0 s', 'Dane w 1 z 2 treningów', 'Brak danych', loadHint, 'RPE w 0 z 2 treningów', 'Brak danych'])
+    '0 s', 'Dane w 1 z 2 treningów', '0 j.u.', loadHint, 'RPE w 1 z 2 treningów', partialHint, '15 min'])
   await app.seedInvalidWeekPlan(weekStart)
   await expect(page.getByRole('alert')).toBeVisible()
   await expect(section.getByText('Treningi: 2', { exact: true })).toBeVisible()

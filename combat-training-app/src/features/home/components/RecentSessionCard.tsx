@@ -5,6 +5,8 @@ import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { WorkoutCompletionCounts } from '@/components/domain/WorkoutCompletionCounts'
 import type { HomeRecentSession } from '@/features/home/types/homeView.types'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
+import { manualWorkoutLabels } from '@/features/manual-workout/manualWorkoutLabels'
+import { workoutDataLabels } from '@/application/workoutDataLabels'
 
 interface RecentSessionCardProps {
   session: HomeRecentSession
@@ -13,7 +15,8 @@ interface RecentSessionCardProps {
 export function RecentSessionCard({ session }: RecentSessionCardProps) {
   return (
     <Link
-      to={routes.workoutReport(session.id)}
+      to={session.editPath ?? routes.workoutReport(session.id)}
+      state={session.isManual ? { returnTo: '/' } : undefined}
       className="block w-full overflow-hidden border border-bd bg-surface text-left transition-colors hover:border-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
     >
       <div className="px-4 py-4">
@@ -27,7 +30,9 @@ export function RecentSessionCard({ session }: RecentSessionCardProps) {
           <span className="whitespace-nowrap">
             <span className="font-semibold tabular-nums text-ink">{session.durationLabelPl}</span>
           </span>
-          <WorkoutCompletionCounts counts={session} />
+          {!session.isManual && <WorkoutCompletionCounts counts={session} />}
+          {session.isManual && <span className="text-crimson-ink">{manualWorkoutLabels.edit}</span>}
+          {session.hasPendingWrites && <span className="text-muted">{workoutDataLabels.pending}</span>}
           {session.rpe !== null ? (
             <span className="whitespace-nowrap">
               RPE <span className="font-semibold tabular-nums text-ink">{session.rpe}</span>
@@ -42,12 +47,12 @@ export function RecentSessionCard({ session }: RecentSessionCardProps) {
           ) : null}
         </div>
       </div>
-      <div className="h-0.5 bg-elevated" aria-hidden="true">
+      {!session.isManual && <div className="h-0.5 bg-elevated" aria-hidden="true">
         <div
           className="h-full bg-crimson transition-all"
           style={{ width: `${session.exerciseCompletionPercent}%` }}
         />
-      </div>
+      </div>}
     </Link>
   )
 }
