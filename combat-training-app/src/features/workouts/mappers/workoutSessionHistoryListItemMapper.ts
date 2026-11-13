@@ -26,6 +26,7 @@ export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession, hasP
     timeLabelPl: session.source === 'manual' ? '' : formatWorkoutSessionTimePl(session.completedAt),
     completedAt: workoutSessionDate(session),
     durationLabelPl: formatActiveDurationSecondsPl(summary.activeDurationSeconds),
+    roundsOnly: session.source === 'quickTimer',
     completedExercises: summary.completedExerciseCount,
     plannedExercises: summary.plannedExerciseCount,
     exerciseCompletionPercent: summary.exerciseCompletionPercent,

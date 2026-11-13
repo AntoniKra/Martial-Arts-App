@@ -22,6 +22,7 @@ export interface HomeRecentSession {
   disciplineKey: DisciplineKey
   dateLabelPl: string
   durationLabelPl: string
+  roundsOnly?: boolean
   completedExercises: number
   plannedExercises: number
   completedRounds: number | null

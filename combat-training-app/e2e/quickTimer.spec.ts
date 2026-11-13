@@ -7,7 +7,7 @@ import { test, expect } from './fixtures'
 test.use({ screenshot: 'off' })
 
 async function capture(page: Page, info: TestInfo, name: string) {
-  if (info.project.name !== 'phone' || info.repeatEachIndex !== 0) return
+  if (process.env.CAPTURE_QUICK_TIMER_SCREENSHOTS !== '1' || info.project.name !== 'phone' || info.repeatEachIndex !== 0) return
   const folder = path.resolve('docs/screenshots/issue-105')
   await mkdir(folder, { recursive: true })
   await page.evaluate(() => document.fonts.ready)
