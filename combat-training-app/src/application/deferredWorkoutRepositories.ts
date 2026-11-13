@@ -3,8 +3,12 @@ import type { WorkoutPlanRepository } from './workout/workoutPlanRepository'
 import type { WorkoutSessionRepository } from './workout-session/workoutSessionRepository'
 import type { FocusSkillRepository } from './focus-skill/focusSkillRepository'
 import type { WeekPlanRepository } from './week-plan/weekPlanRepository'
+import type { BodyWeightRepository, ProfileRepository } from './profile/profileRepository'
 
-export interface WorkoutRepositories { plans: WorkoutPlanRepository; sessions: WorkoutSessionRepository; focusSkills: FocusSkillRepository; weekPlans: WeekPlanRepository }
+export interface WorkoutRepositories {
+  plans: WorkoutPlanRepository; sessions: WorkoutSessionRepository; focusSkills: FocusSkillRepository; weekPlans: WeekPlanRepository
+  profile: ProfileRepository; bodyWeights: BodyWeightRepository
+}
 
 function deferredSubscription<T>(ready: Promise<SubscribableRepository<T>>): SubscribableRepository<T>['subscribe'] {
   return (onChange, onError) => {
@@ -23,7 +27,19 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
   const sessions = ready.then((repositories) => repositories.sessions)
   const focusSkills = ready.then((repositories) => repositories.focusSkills)
   const weekPlans = ready.then((repositories) => repositories.weekPlans)
+  const profile = ready.then((repositories) => repositories.profile)
   return {
+    profile: {
+      subscribe: deferredSubscription(profile),
+      save: async (value) => (await profile).save(value),
+      withdrawConsent: async () => (await profile).withdrawConsent(),
+    },
+    bodyWeights: {
+      // No weight subscription exists before consent, including a failed bootstrap.
+      subscribe: (onChange, onError) => deferredSubscription(ready.then((repositories) => repositories.bodyWeights))(onChange, onError),
+      save: async (value) => (await ready).bodyWeights.save(value),
+      delete: async (date) => (await ready).bodyWeights.delete(date),
+    },
     weekPlans: {
       subscribe: (currentWeek, onChange, onError) => {
         let cancelled = false

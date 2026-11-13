@@ -47,6 +47,8 @@ Trasy kreatora (`/workouts/new`, `/workouts/:workoutId/edit`), odtwarzacza (`/wo
 
 Ręczny wpis treningu korzysta z dwóch leniwych tras: `/workout-sessions/new` i `/workout-sessions/:sessionId/edit`, współdzielących `ManualWorkoutPage` z eksportem `Component`. Formularz, karta oceny celu i skala RPE są ładowane poza głównym plikiem. Błędy importu obsługuje nadrzędny ekran błędu, a nowe pliki trafiają do precache PWA. Czysta walidacja dat, czasu, ocen i dubli znajduje się w `src/domain/workout-session/manualWorkoutEntry.ts`; pełny dokument sprawdza `zod/mini` na granicy infrastruktury. `saveManual` zapisuje wpis oraz zmiany otwartych notatek jednym `writeBatch`; potwierdzenie pochodzi z lokalnych subskrypcji, bez czekania na serwer.
 
+Profil ma osobne leniwe trasy `/profile` (`ProfilePage`) i `/profile/consent` (`ProfileConsentPage`) z eksportem `Component`. Widoki, formularze, statystyki i SVG nie trafiają do głównego pliku; oba ekrany są w precache PWA i korzystają z istniejącej obsługi błędów importu. `WorkoutDataProvider` słucha dokumentu profilu zawsze po zalogowaniu, a pomiarów tylko przy zgodzie; oba źródła obejmuje ostrzeżenie `SignOutButton` o niewysłanych danych. Czyste obliczenia i podział wycofania na partie znajdują się w `src/domain/profile`, interfejsy repozytoriów w `src/application/profile`, a schematy i integracja Firestore w infrastrukturze. Pomiar startowego JS w PR obejmuje główny plik oraz jego statyczne zależności ładowane na starcie, zgodnie z pomiarem 167,08 kB gzip sprzed issue #100.
+
 ## Stan
 
 - routing: React Router;
@@ -62,13 +64,13 @@ Ręczny wpis treningu korzysta z dwóch leniwych tras: `/workout-sessions/new` i
 - `features/progress`: lista ćwiczeń celu i wykresy ich ocen na ekranach `ProgressPage` i `FocusSkillProgressPage`;
 - `features/week-plan`: edycja planu tygodnia i prezentacja jego realizacji; szczegóły pokazuje `WeekPlanPage`;
 - `features/weekly-summary`: podsumowanie liczby treningów, czasu treningu, pracy i sparingu, obciążenia z RPE oraz wykres tygodni na ekranie `WeekPlanPage`.
+- `features/profile`: pomiary masy ciała i kategoria za zgodą 18+, wykres średnich tygodniowych, wycofanie online oraz statystyki dziennika bez zgody.
 
 ## Rozbudowa
 
 Nowe moduły przyszłe trafiają do `features`, np.:
 
 - `readiness`;
-- `athlete-profile` (waga i statystyki);
 - `control-tests`;
 - `analytics` (dalsze analizy);
 - `strength-training` i `combination-builder` w kierunkach rozwoju.

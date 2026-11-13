@@ -15,12 +15,23 @@ Dokument nadrzędny to `thesis-card.md`. Wiąże temat pracy, a technologie i li
 - **Analiza:** podsumowanie tygodnia z kompletnością danych i wykres 12 tygodni (Q5): liczba treningów z przełącznikiem „Minuty”, własny SVG (`adr/0011-weekly-chart-svg.md`); porównanie z poprzednim wykonaniem tego samego planu, trend ćwiczeń celu.
 - **Gotowość przed treningiem:** 4 pytania 1–5, domyślnie wyłączona, włączana zgodą na dane o zdrowiu (Q3).
 - **Testy kontrolne:** test własny, burpees 3 min, KAST dla kickboxingu i K-1, z paszportem warunków (R4).
-- **Profil zawodnika:** historia wagi (za tą samą zgodą co gotowość) i statystyki z dziennika.
+- **Profil zawodnika:** pomiary masy ciała za osobną zgodą 18+, opcjonalna etykieta kategorii i statystyki z dziennika bez zgody (szczegóły niżej).
 - **Moje dane:** eksport JSON i CSV oraz usunięcie konta ze wszystkimi danymi (Q7).
 - **Wygląd:** ciemny i jasny motyw zapamiętany na urządzeniu (D4), responsywność na telefonie i komputerze.
 - **PWA:** instalacja na telefonie, otwieranie przy słabym zasięgu, stoper działający bez sieci, zapis treningu bez sieci z wysłaniem po powrocie połączenia, ostrzeżenie przy wylogowaniu z niewysłanymi treningami (D3).
 - **Wdrożenie** pod publicznym adresem, automatyczne przez GitHub Actions z podglądem każdego PR (Q11).
 - **Testy:** jednostkowe, E2E na trzech rozdzielczościach, wydajnościowe, użyteczności (ankieta SUS) i izolacji danych (reguły Firestore na dwóch kontach).
+
+## Profil (issue #100)
+
+- Piąta zakładka **Profil** na telefonie i komputerze. Pomiary wymagają zgody i potwierdzenia „Mam ukończone 18 lat”; oba pola na osobnym ekranie są domyślnie niezaznaczone. Reszta aplikacji działa bez zgody.
+- Główna liczba to średnia z 7 dni z liczbą pomiarów; wykres własnego SVG pokazuje 12 średnich tygodniowych z przerwami dla tygodni bez danych. Bez przełącznika ukrywania liczb.
+- Kategoria to opcjonalny tekst użytkownika 1–20 znaków, wyłącznie etykieta, bez linii limitu i „brakuje X kg”. Jest przechowywana pod tą samą zgodą co pomiary i usuwana przy wycofaniu.
+- Jeden pomiar na dzień, z datą jako ID; zastąpienie po ostrzeżeniu. Dopuszczamy daty wsteczne, bez przyszłych; masa 30,0–250,0 kg, zaokrąglona do 0,1.
+- Krótka instrukcja ważenia, neutralne słowa i kolory. Bez przypomnień, serii, odznak, BMI, „idealnej wagi”, tkanki tłuszczowej i komunikatu o szybkim spadku.
+- Informacja `2026-11` opisuje tylko pomiary i kategorię; nie zawiera gotowości. Obecnie nie obsługujemy starszych wersji informacji (komentarz Claude z 13.11); kolejną zgodę dla Q3 opisuje ADR 0012.
+- Wycofanie wymaga sieci, usuwa wszystkie pomiary i kategorię, a zgodę zeruje dopiero w ostatniej partii. Przerwany proces można ponowić. Reguły sprawdzają zgodę przy zapisie pomiarów.
+- Statystyki od początku: treningi, czas, rundy sparingu i pierwszy dzień; ostatnie 4 tygodnie: czas według rodzaju. Wszystkie źródła i oba statusy, po `workoutDate`; nieznane wartości nie są zerami.
 
 ## Ważne (gdy rdzeń jest stabilny)
 

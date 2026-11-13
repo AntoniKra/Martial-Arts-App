@@ -7,16 +7,33 @@ import { removeLegacyWorkouts } from '@/infrastructure/storage/removeLegacyWorko
 import { WorkoutGongProvider } from './WorkoutGongProvider'
 import { useCurrentWeek } from '@/application/week-plan/useCurrentWeek'
 import { useWeekPlanCollection } from '@/application/week-plan/useWeekPlanCollection'
+import { hasValidHealthConsent } from '@/domain/profile/bodyWeight'
+import type { SubscribableRepository } from '@/application/repositorySubscription'
+import type { BodyWeight } from '@/domain/profile/profile.types'
+
+const inactiveWeights: SubscribableRepository<BodyWeight> = {
+  subscribe: (onChange) => {
+    onChange({ items: [], pendingIds: new Set(), hasPendingWrites: false, fromCache: false, invalidDocumentIds: [] })
+    return () => {}
+  },
+}
 
 function SubscribedData({ repositories, retry, children }: PropsWithChildren<{ repositories: WorkoutRepositories; retry: () => void }>) {
   const [sessionAttempt, setSessionAttempt] = useState(0)
   const [focusAttempt, setFocusAttempt] = useState(0)
+  const [profileAttempt, setProfileAttempt] = useState(0)
+  const [weightAttempt, setWeightAttempt] = useState(0)
+  const profile = useRepositoryCollection(repositories.profile, profileAttempt)
+  const consented = profile.status === 'ready' && hasValidHealthConsent(profile.items[0])
+  const bodyWeights = useRepositoryCollection(consented ? repositories.bodyWeights : inactiveWeights, weightAttempt)
   const plans = useRepositoryCollection(repositories.plans)
   const sessions = useRepositoryCollection(repositories.sessions, sessionAttempt)
   const focusSkills = useRepositoryCollection(repositories.focusSkills, focusAttempt)
   const currentWeek = useCurrentWeek()
   const { state: weekPlans, retry: retryWeekPlans } = useWeekPlanCollection(repositories.weekPlans, currentWeek, retry)
-  return <WorkoutDataContext.Provider value={{ plans, sessions, focusSkills, weekPlans, currentWeek, retryWeekPlans, retrySessions: () => setSessionAttempt((value) => value + 1), retryFocusSkills: () => setFocusAttempt((value) => value + 1), weekPlanRepository: repositories.weekPlans, planRepository: repositories.plans, sessionRepository: repositories.sessions, focusSkillRepository: repositories.focusSkills, retry }}>
+  return <WorkoutDataContext.Provider value={{ profile, bodyWeights, profileRepository: repositories.profile, bodyWeightRepository: repositories.bodyWeights,
+    retryProfile: () => setProfileAttempt((value) => value + 1), retryBodyWeights: () => setWeightAttempt((value) => value + 1),
+    plans, sessions, focusSkills, weekPlans, currentWeek, retryWeekPlans, retrySessions: () => setSessionAttempt((value) => value + 1), retryFocusSkills: () => setFocusAttempt((value) => value + 1), weekPlanRepository: repositories.weekPlans, planRepository: repositories.plans, sessionRepository: repositories.sessions, focusSkillRepository: repositories.focusSkills, retry }}>
     {children}
   </WorkoutDataContext.Provider>
 }

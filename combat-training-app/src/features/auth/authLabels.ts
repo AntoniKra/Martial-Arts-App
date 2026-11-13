@@ -15,7 +15,7 @@ export const authLabels = {
   stillUnverified: 'Adres nie jest jeszcze potwierdzony. Otwórz link z wiadomości i spróbuj ponownie.',
   logout: 'Wyloguj',
   logoutTitle: 'Wylogować się?',
-  logoutPendingWarning: 'Masz treningi, które nie zostały jeszcze wysłane. Po wylogowaniu przepadną.',
+  logoutPendingWarning: 'Masz dane, które nie zostały jeszcze wysłane. Po wylogowaniu przepadną.',
   logoutAnyway: 'Wyloguj mimo to',
   cancelLogout: 'Anuluj',
   email: 'Adres e-mail',

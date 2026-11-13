@@ -3,6 +3,7 @@ import type { WorkoutPlan } from '../src/domain/workout/workout.types'
 import type { WorkoutSession } from '../src/domain/workout-session/workoutSession.types'
 import type { FocusSkill } from '../src/domain/focus-skill/focusSkill.types'
 import type { WeekPlan } from '../src/domain/week-plan/weekPlan.types'
+import type { AthleteProfile, BodyWeight } from '../src/domain/profile/profile.types'
 
 // Fixed local demo endpoint. Test inspection/seeding bypasses rules; app writes always use its verified identity.
 const root = 'http://127.0.0.1:8080/v1/projects/demo-combat-training/databases/(default)/documents'
@@ -88,5 +89,27 @@ export async function readWeekPlans(request: APIRequestContext, uid: string): Pr
 
 export async function removeWorkoutDocument(request: APIRequestContext, uid: string, collection: 'workoutPlans' | 'workoutSessions', id: string) {
   const response = await request.delete(`${root}/users/${uid}/${collection}/${id}`, { headers: { Authorization: 'Bearer owner' } })
+  expect(response.ok()).toBe(true)
+}
+
+export async function readProfile(request: APIRequestContext, uid: string): Promise<AthleteProfile | null> {
+  const response = await request.get(`${root}/users/${uid}`, { headers: { Authorization: 'Bearer owner' } })
+  if (response.status() === 404) return null
+  expect(response.ok()).toBe(true)
+  const body = await response.json() as { fields: Record<string, Value> }
+  return decode({ mapValue: { fields: body.fields } }) as AthleteProfile
+}
+
+export async function readBodyWeights(request: APIRequestContext, uid: string): Promise<BodyWeight[]> {
+  const response = await request.get(`${root}/users/${uid}/bodyWeights`, { headers: { Authorization: 'Bearer owner' } })
+  expect(response.ok()).toBe(true)
+  const body = await response.json() as { documents?: { fields: Record<string, Value> }[] }
+  return (body.documents ?? []).map((document) => decode({ mapValue: { fields: document.fields } }) as BodyWeight)
+}
+
+export async function seedBodyWeight(request: APIRequestContext, uid: string, weight: BodyWeight) {
+  const response = await request.patch(`${root}/users/${uid}/bodyWeights/${weight.date}`, {
+    headers: { Authorization: 'Bearer owner' }, data: encode({ ...weight, schemaVersion: 1 }).mapValue,
+  })
   expect(response.ok()).toBe(true)
 }

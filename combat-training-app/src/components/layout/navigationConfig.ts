@@ -1,6 +1,6 @@
 import { routes } from '@/app/routes'
 
-export type NavigationItemId = 'home' | 'workouts' | 'newWorkout' | 'progress'
+export type NavigationItemId = 'home' | 'workouts' | 'newWorkout' | 'progress' | 'profile'
 
 export type NavigationMatchMode = 'exact' | 'workoutsSection' | 'section'
 
@@ -65,9 +65,10 @@ export const primaryNavigationItems: readonly NavigationItemConfig[] = [
     mobileVariant: 'create',
   },
   { id: 'progress', to: routes.progress, label: 'Postęp', match: 'section', mobileVariant: 'default' },
+  { id: 'profile', to: routes.profile, label: 'Profil', match: 'section', mobileVariant: 'default' },
 ] as const
 
-export const mobileNavigationOrder = ['home', 'newWorkout', 'workouts', 'progress'] as const satisfies readonly NavigationItemId[]
+export const mobileNavigationOrder = ['home', 'newWorkout', 'workouts', 'progress', 'profile'] as const satisfies readonly NavigationItemId[]
 
 function getNavigationItemById(id: NavigationItemId): NavigationItemConfig {
   const item = primaryNavigationItems.find((entry) => entry.id === id)

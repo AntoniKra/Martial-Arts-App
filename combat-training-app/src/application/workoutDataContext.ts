@@ -9,8 +9,16 @@ import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { FocusSkillRepository } from './focus-skill/focusSkillRepository'
 import type { WeekPlanRepository } from './week-plan/weekPlanRepository'
 import type { WeekPlanCollectionState } from './week-plan/useWeekPlanCollection'
+import type { AthleteProfile, BodyWeight } from '@/domain/profile/profile.types'
+import type { ProfileRepository, BodyWeightRepository } from './profile/profileRepository'
 
 export interface WorkoutData {
+  profile: CollectionState<AthleteProfile>
+  bodyWeights: CollectionState<BodyWeight>
+  profileRepository: ProfileRepository
+  bodyWeightRepository: BodyWeightRepository
+  retryProfile: () => void
+  retryBodyWeights: () => void
   weekPlans: WeekPlanCollectionState
   currentWeek: string
   weekPlanRepository: WeekPlanRepository

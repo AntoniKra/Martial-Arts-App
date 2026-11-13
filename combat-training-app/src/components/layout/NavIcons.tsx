@@ -61,7 +61,7 @@ export function NavCreateIcon({ className, size = 20 }: NavIconProps) {
   )
 }
 
-export function NavigationIcon({ id }: { id: 'home' | 'workouts' | 'newWorkout' | 'progress' }) {
+export function NavigationIcon({ id }: { id: 'home' | 'workouts' | 'newWorkout' | 'progress' | 'profile' }) {
   switch (id) {
     case 'home':
       return <NavHomeIcon />
@@ -71,5 +71,7 @@ export function NavigationIcon({ id }: { id: 'home' | 'workouts' | 'newWorkout' 
       return <NavCreateIcon />
     case 'progress':
       return <NavIconBase><path d="M4 3v17h17" /><circle cx="8" cy="14" r="1.5" /><path d="m12 8 2-2 2 2-2 2zM18 12h3v3h-3z" /></NavIconBase>
+    case 'profile':
+      return <NavIconBase><circle cx="12" cy="7" r="4" /><path d="M4 21v-2a8 8 0 0 1 16 0v2" /></NavIconBase>
   }
 }

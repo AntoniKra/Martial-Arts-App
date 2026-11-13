@@ -30,7 +30,7 @@ test.describe('offline with the PWA cache', () => {
 
       await logout(page).click()
       await expect(dialog(page)).toBeVisible()
-      await expect(dialog(page)).toHaveAccessibleDescription('Masz treningi, które nie zostały jeszcze wysłane. Po wylogowaniu przepadną.')
+      await expect(dialog(page)).toHaveAccessibleDescription('Masz dane, które nie zostały jeszcze wysłane. Po wylogowaniu przepadną.')
       const cancel = dialog(page).getByRole('button', { name: 'Anuluj', exact: true })
       const confirm = dialog(page).getByRole('button', { name: 'Wyloguj mimo to', exact: true })
       await expect(cancel).toBeFocused()
