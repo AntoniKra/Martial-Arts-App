@@ -99,12 +99,22 @@ describe('Firebase AuthService', () => {
       expect(readSignInEnvironment()).toEqual(environment)
     } finally { vi.unstubAllGlobals() }
   })
-  it('sends verification and reloads the current user', async () => {
+  it('sends verification, refreshes the ID token before reloading and returns the verified session', async () => {
+    const user = { ...fake.user, getIdToken: vi.fn(async () => 'fresh-token') }
+    fake.auth.currentUser = user
     const service = createFirebaseAuthService(config)
     await service.sendVerificationEmail()
-    vi.mocked(sdk.reload).mockImplementation(async () => { fake.user.emailVerified = true })
-    expect(await service.refreshVerification()).toEqual({ ...fake.user })
-    expect(sdk.sendEmailVerification).toHaveBeenCalledWith(fake.user)
+    vi.mocked(sdk.reload).mockImplementation(async () => { user.emailVerified = true })
+    expect(await service.refreshVerification()).toEqual({ uid: user.uid, email: user.email, emailVerified: true })
+    expect(sdk.sendEmailVerification).toHaveBeenCalledWith(user)
+    expect(user.getIdToken).toHaveBeenCalledWith(true)
+    expect(user.getIdToken.mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(sdk.reload).mock.invocationCallOrder[0])
+  })
+  it('does not reload when the token refresh fails', async () => {
+    const user = { ...fake.user, getIdToken: vi.fn(async () => { throw { code: 'auth/network-request-failed' } }) }
+    fake.auth.currentUser = user
+    await expect(createFirebaseAuthService(config).refreshVerification()).rejects.toEqual({ code: 'auth/network-request-failed' })
+    expect(sdk.reload).not.toHaveBeenCalled()
   })
   it('waits for cache cleanup before signing out', async () => {
     let finishCleanup = () => {}
