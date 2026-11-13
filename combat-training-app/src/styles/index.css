@@ -128,3 +128,11 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .new-workout-dialog[open] { animation: new-workout-open 160ms ease-out; }
+  @keyframes new-workout-open {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

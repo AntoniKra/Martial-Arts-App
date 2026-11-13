@@ -211,6 +211,7 @@ test.describe('offline with the PWA cache', () => {
 
   test('queues an early save offline and starts a new completed session from the plan', async ({ app, page, context }) => {
     await app.createPlan('Ponowienie treningu')
+    await app.prepareOffline()
     await app.openPlayer()
     await app.freezeClock()
     await app.startWorkout()

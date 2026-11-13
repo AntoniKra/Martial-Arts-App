@@ -55,8 +55,9 @@ test('shows current-criterion summaries per place, all assessments and active pr
   const nav = page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true })
   await expect(nav.getByRole('link', { name: 'Postęp', exact: true })).toHaveAttribute('aria-current', 'page')
   if (info.project.name === 'phone') {
-    await expect(nav.getByRole('link')).toHaveText(['Start', 'Nowy', 'Treningi', 'Postęp', 'Profil'])
-    for (const link of await nav.getByRole('link').all()) {
+    await expect(nav.getByRole('link')).toHaveText(['Start', 'Treningi', 'Postęp', 'Profil'])
+    await expect(nav.getByRole('button', { name: 'Nowy', exact: true })).toBeVisible()
+    for (const link of [...await nav.getByRole('link').all(), nav.getByRole('button', { name: 'Nowy', exact: true })]) {
       const box = await link.boundingBox()
       expect(box?.width).toBeGreaterThanOrEqual(44)
       expect(box?.height).toBeGreaterThanOrEqual(44)

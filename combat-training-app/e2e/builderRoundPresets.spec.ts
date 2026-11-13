@@ -58,6 +58,10 @@ test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round 
     'false',
   )
 
+  await expect(page.getByRole('group', { name: 'Gotowe formaty', exact: true }).getByRole('button')).toHaveText([
+    '3 × 3:00 · przerwa 1:00', '3 × 3:00 · przerwa 0:30', '3 × 2:00 · przerwa 1:00',
+  ])
+
   const tiles = [
     page.getByRole('group', { name: 'Gotowe formaty', exact: true }).getByRole('button'),
     page.getByRole('group', { name: 'Liczba rund', exact: true }).locator('label'),

@@ -7,7 +7,7 @@ type AuthRouteDecision =
 const authPaths = ['/login', '/register', '/forgot-password', '/verify-email']
 
 export function isActiveWorkoutPath(pathname: string): boolean {
-  return /^\/workouts\/[^/]+\/active\/?$/.test(pathname)
+  return /^\/quick-timer\/active\/?$/.test(pathname) || /^\/workouts\/[^/]+\/active\/?$/.test(pathname)
 }
 
 export function safeReturnTo(value: unknown): string {

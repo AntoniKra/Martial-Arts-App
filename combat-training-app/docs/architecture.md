@@ -77,8 +77,16 @@ Nowe moduły przyszłe trafiają do `features`, np.:
 
 Nie dodawaj pustych abstrakcji wyłącznie „na przyszłość”. Model ma nie blokować rozbudowy, ale implementujemy tylko potrzebne interfejsy.
 
+### Szybki stoper (issue #105)
+
+`/quick-timer` (`QuickTimerPage`) i `/quick-timer/active` (`QuickTimerPlayerPage`) są leniwymi trasami. Druga współdzieli `WorkoutPlayerView` z planem i pozostaje poza `AppLayout`. W paczce startowej jest małe natywne okno „Nowy” bez nowych zależności; konfiguracja, formularz, ustawienia i podsumowanie stopera ładują się z trasami. Pliki są w precache PWA. Czysta konfiguracja i jednorazowy plan znajdują się w `domain/quick-timer`, wspólne formaty rund w `domain/workout/roundFormatPresets.ts`, a ustawienia konta na urządzeniu w `infrastructure/storage/quickTimerStorage.ts` (walidacja `zod/mini`). Przygotowanie i sygnał 10 s używają istniejących magazynów urządzenia.
+
+Pomiar startowego JS (suma gzip pliku wejściowego i statycznych zależności wskazanych w `dist/index.html`, `node:zlib.gzipSync`, te same warunki `npm run build`): **165,366 kB przed → 167,339 kB po**, wzrost **1,973 kB** (około 1,19%). Nowe leniwe pliki: `QuickTimerPage` 2,441 kB gzip, `QuickTimerPlayerPage` 0,668 kB oraz współdzielone `QuickTimerCategoryField` 0,589 kB; odtwarzacz korzysta ze wspólnego pliku `WorkoutPlayerView`. Bez nowych zależności i bez zmian budżetu około 200 kB gzip.
+
 ### Eksport i usunięcie konta (issue #101)
 
 Trasa `/profile/delete-account` ładuje leniwie `DeleteAccountPage`; sekcja „Twoje dane” należy do leniwego Profilu. Generatory JSON/CSV i pobieranie plików są importowane dopiero po wybraniu eksportu. `AccountService` w application oddziela UI od Firebase, a sekwencja `deleteAccount` kończy sprzątanie również po utracie sesji i odmontowaniu trasy. AuthProvider odbiera wynik przekierowania Google raz i udostępnia `operationType` oraz błąd; trasa sprawdza zgodny znacznik i wymaga osobnego końcowego przycisku. Jednorazowy komunikat sukcesu i ewentualny błąd sprzątania działają niezależnie od stanu nawigacji.
 
 Pomiar porównawczy dla konfiguracji emulatorów demo, gzip poziom 6, suma pliku wejściowego i rekurencyjnych statycznych importów z manifestu Vite: **167,03 kB przed → 167,89 kB po** (+0,86 kB; 167 026 → 167 887 B). Punkt bazowy: `ed53dfa`. Sam plik wejściowy zmienił się z 165,51 do 155,04 kB, ponieważ bundler wydzielił współdzielone schematy do statycznych zależności; nie oznacza to spadku całego startowego JS. Nowe leniwe pliki gzip: `DeleteAccountPage` 1,45 kB, `dataExport` 1,05 kB, `firebaseAccountService` 1,00 kB, `AccountExportButtons` 2,51 kB, `accountDeletionStorage` 0,85 kB. Żaden z nich nie należy do startowych statycznych importów. Surowych manifestów i pomiarów nie wersjonujemy.
+
+Po połączeniu #101 i #105 (scalenie `main` do gałęzi #110, 13.11): startowy JS **168,56 kB** gzip (suma pliku wejściowego i skryptów wskazanych w `dist/index.html`, `node:zlib.gzipSync`), budżet ok. 200 kB.

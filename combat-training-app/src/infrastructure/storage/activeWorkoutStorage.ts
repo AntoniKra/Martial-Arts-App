@@ -3,6 +3,7 @@ import type { ActiveWorkout, ActiveWorkoutRepository } from '@/application/worko
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import { workoutPlanDocumentSchema } from '@/infrastructure/firebase/workoutDocumentSchemas'
 import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
+import { QUICK_TIMER_CATEGORIES } from '@/domain/quick-timer/quickTimer'
 
 export const ACTIVE_WORKOUT_STORAGE_PREFIX = 'combat-training.activeWorkout.'
 const integer = z.number().check(z.int(), z.minimum(0), z.maximum(Number.MAX_SAFE_INTEGER))
@@ -15,6 +16,7 @@ const correctionText = z.string().check(z.minLength(1), z.maxLength(200))
 
 const activeWorkoutSchema = z.strictObject({
   schemaVersion: z.literal(1),
+  source: z.optional(z.enum(['plan', 'quickTimer'])),
   plan: z.custom<WorkoutPlan>((value) => typeof value === 'object' && value !== null
     && workoutPlanDocumentSchema.safeParse({ schemaVersion: 1, ...value }).success),
   playback: z.strictObject({ status: z.enum(['preparing', 'running', 'paused', 'completed']),
@@ -38,6 +40,13 @@ const activeWorkoutSchema = z.strictObject({
     })).check(z.maxLength(3)),
   }),
 }).check(z.refine((workout) => {
+  if (workout.source === 'quickTimer') {
+    // A quick timer is one quick-timer block with one round exercise; anything else is rejected and cleared.
+    const [timerBlock, ...otherBlocks] = workout.plan.blocks
+    const item = timerBlock?.items[0]
+    if (!timerBlock || otherBlocks.length > 0 || timerBlock.items.length !== 1 || !QUICK_TIMER_CATEGORIES.some((category) => category === timerBlock.blockType)
+      || item?.type !== 'exercise' || item.configuration.mode !== 'rounds') return false
+  }
   // Bound expansion before building a timeline from externally supplied round counts.
   const stepCount = workout.plan.blocks.flatMap((block) => block.items).reduce((count, item) => {
     if (item.type === 'break' || item.configuration.mode === 'continuous') return count + 1

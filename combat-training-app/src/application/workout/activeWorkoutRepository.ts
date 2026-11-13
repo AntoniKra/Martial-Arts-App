@@ -18,6 +18,7 @@ export interface WorkoutSessionRecording {
 
 export interface ActiveWorkout {
   schemaVersion: 1
+  source?: 'plan' | 'quickTimer'
   plan: WorkoutPlan
   playback: WorkoutPlaybackState
   deadlineMs: number | null

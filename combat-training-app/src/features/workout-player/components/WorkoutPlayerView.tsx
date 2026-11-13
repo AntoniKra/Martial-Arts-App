@@ -30,9 +30,11 @@ import type { WorkoutPlayerLoadState } from '@/features/workout-player/types/wor
 import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 import { getWorkoutStepKindShortLabelPl } from '@/features/workout-player/utils/workoutStepTimerPresentation'
 import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
+import { quickTimerLabels } from '@/features/quick-timer/quickTimerLabels'
 import { readStoredWorkoutEndWarning } from '@/infrastructure/storage/workoutEndWarningStorage'
 
 interface WorkoutSummaryOptions {
+  source?: 'plan' | 'quickTimer'
   focusSkills?: readonly FocusSkill[]
   focusSkillsUnavailable?: boolean
   onSessionSaved?: (sessionId: string) => void
@@ -60,14 +62,14 @@ function BackToWorkoutsLink({ to }: { to: string }) {
   )
 }
 
-function BackToPlanLink({ to }: { to: string }) {
+function BackToPlanLink({ to, quickTimer = false }: { to: string; quickTimer?: boolean }) {
   return (
     <Link
       to={to}
       className="inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
     >
       <ChevronRightIcon className="rotate-180" />
-      Wróć do planu
+      {quickTimer ? quickTimerLabels.back : 'Wróć do planu'}
     </Link>
   )
 }
@@ -164,6 +166,7 @@ interface WorkoutPlayerRuntimeProps extends WorkoutSummaryOptions {
 }
 
 function WorkoutPlayerCompletedPanel({
+  source,
   planName,
   workoutDetailsPath,
   saveState,
@@ -174,6 +177,7 @@ function WorkoutPlayerCompletedPanel({
   onRetrySave,
   isRestartDisabled,
 }: {
+  source?: 'plan' | 'quickTimer'
   planName: string
   workoutDetailsPath: string
   saveState: WorkoutSessionSaveState
@@ -267,7 +271,7 @@ function WorkoutPlayerCompletedPanel({
               className: 'w-full uppercase tracking-[0.06em]',
             })}
           >
-            {showBackWithoutSave ? 'Wróć bez zapisu' : 'Wróć do planu'}
+            {showBackWithoutSave ? 'Wróć bez zapisu' : source === 'quickTimer' ? quickTimerLabels.back : 'Wróć do planu'}
           </Link>
         </div>
       </div>
@@ -276,6 +280,7 @@ function WorkoutPlayerCompletedPanel({
 }
 
 function WorkoutPlayerRuntime({
+  source = 'plan',
   focusSkills,
   focusSkillsUnavailable,
   onSessionSaved,
@@ -288,7 +293,7 @@ function WorkoutPlayerRuntime({
 }: WorkoutPlayerRuntimeProps) {
   const [preparation] = useState(readStoredWorkoutPreparation)
   const [endWarningEnabled] = useState(readStoredWorkoutEndWarning)
-  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly, getRecording } = useWorkoutSessionRecorder(plan, timeline, initialWorkout?.recorder, focusSkills)
+  const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly, getRecording } = useWorkoutSessionRecorder(plan, timeline, initialWorkout?.recorder, focusSkills, source)
   const { unlockGong, onGongPlaybackEvent, playEndWarning } = useWorkoutGong(timeline)
   const [soundMuted, setSoundMuted] = useState(!!initialWorkout)
   const enableSound = useCallback(() => { unlockGong(); setSoundMuted(false) }, [unlockGong])
@@ -322,7 +327,7 @@ function WorkoutPlayerRuntime({
     endWarningEnabled, preparation, initialWorkout })
 
   const discard = useActiveWorkoutPersistence(plan, playback, getPlaybackSnapshot, getRecording, activeWorkoutRepository,
-    saveState.status === 'saved' || hasNoWork)
+    saveState.status === 'saved' || hasNoWork, source)
   useEffect(() => {
     if (saveState.status === 'saved' || hasNoWork) activeWorkoutRepository?.clear()
   }, [saveState.status, hasNoWork, activeWorkoutRepository])
@@ -347,6 +352,7 @@ function WorkoutPlayerRuntime({
     return (
       <main className="flex min-h-dvh flex-col overflow-hidden bg-bg">
         <WorkoutPlayerCompletedPanel
+          source={source}
           planName={plan.nameSnapshot}
           workoutDetailsPath={workoutDetailsPath}
           saveState={saveState}
@@ -373,7 +379,7 @@ function WorkoutPlayerRuntime({
         {focusSkillsUnavailable && <p role="status" className="px-5 pt-3 text-sm leading-relaxed text-muted">{workoutPlayerLabels.focusSkillsUnavailable}</p>}
         <header className="shrink-0 px-5 pt-5 pb-2">
           <div className="flex items-start justify-between gap-4">
-            <BackToPlanLink to={workoutDetailsPath} />
+            <BackToPlanLink to={workoutDetailsPath} quickTimer={source === 'quickTimer'} />
             <p className="ml-auto pt-3 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
               Etap <span className="tabular-nums">{playback.currentStepIndex + 1}</span> z{' '}
               <span className="tabular-nums">{totalSteps}</span>
@@ -482,6 +488,7 @@ function WorkoutPlayerRuntime({
 }
 
 function WorkoutPlayerActiveContent({
+  source,
   focusSkills,
   focusSkillsUnavailable,
   onSessionSaved,
@@ -495,6 +502,7 @@ function WorkoutPlayerActiveContent({
 
   return (
     <WorkoutPlayerRuntime
+      source={source}
       focusSkills={focusSkills}
       focusSkillsUnavailable={focusSkillsUnavailable}
       onSessionSaved={onSessionSaved}
@@ -510,6 +518,7 @@ function WorkoutPlayerActiveContent({
 }
 
 export function WorkoutPlayerView({
+  source,
   focusSkills,
   focusSkillsUnavailable,
   onSessionSaved,
@@ -542,6 +551,7 @@ export function WorkoutPlayerView({
 
     return (
       <WorkoutPlayerActiveContent
+        source={source}
         focusSkills={focusSkills}
         focusSkillsUnavailable={focusSkillsUnavailable}
         onSessionSaved={onSessionSaved}

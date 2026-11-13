@@ -577,3 +577,16 @@ describe('week plan ownership and shallow validation', () => {
     await assertSucceeds(reference.update({ items: [] }))
   })
 })
+
+describe('quick timer feedback', () => {
+  it.each([null, 'light', 'technical', 'hard'])('allows owner sparring with intensity %s, round completion and later category changes', async (intensity) => {
+    const reference = ownerDatabase().doc(`users/${ownerId}/workoutSessions/${documentId}`)
+    const session = workoutSession('quickTimer')
+    await assertSucceeds(reference.set(session))
+    await assertSucceeds(reference.update({ sparring: [{ blockId: null, intensity, rounds: 1 }], updatedAt: '2026-11-13T10:00:00.000Z' }))
+    const steps = session.stepResults as Document[]
+    await assertSucceeds(reference.update({ category: 'pads', sparring: [], sparringSeconds: 0,
+      stepResults: steps.map((step) => ({ ...step, blockType: 'pads', nameSnapshot: 'Tarcze' })) }))
+    expect((await reference.get()).data()).toMatchObject({ source: 'quickTimer', category: 'pads', sparring: [], completion: { unit: 'round' } })
+  })
+})

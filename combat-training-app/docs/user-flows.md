@@ -73,6 +73,14 @@ Nie można zmieniać:
 
 Jeżeli nie ma jeszcze żadnych wpisów `focusRatings`, zamiast chowania dostępne jest **Usuń ćwiczenie celu**, z potwierdzeniem i listą planów. Trwający trening zachowuje swoją kopię planu i zapisuje oceny normalnie.
 
+## „+ Nowy” i szybki stoper (issue #105)
+
+1. **Nowy** w nawigacji telefonu lub komputera otwiera okno z trzema linkami: **Szybki stoper**, **Nowy plan**, **Trening spoza aplikacji**. Escape zamyka okno i przywraca fokus na przycisku. Dotychczasowe linki do kreatora na Start, Treningach i Postępie pozostają.
+2. W stoperze wybierz rodzaj (Technika, Tarcze, Worek, Sparing, Kondycja albo Siła i motoryka), dyscyplinę i gotowy format lub własne rundy. Pierwsze wejście nie zaznacza rodzaju; dyscyplinę podpowiada najnowszy wpis, jeśli nie ma zapamiętanego wyboru stopera.
+3. **Start** zapisuje ostatnią konfigurację dla konta na urządzeniu i otwiera odtwarzacz. Dopiero **Rozpocznij trening** w odtwarzaczu odblokowuje gong i rozpoczyna przygotowanie. Przygotowanie i sygnał 10 s korzystają z tych samych ustawień urządzenia co plan.
+4. Stoper wykonuje jednorazowy plan, którego nie zapisuje na liście planów. Obsługuje pauzę, ±15 s, powrót do poprzedniego etapu, gong i wznowienie po przeładowaniu. Przerwany trening zachowuje źródło `quickTimer` i realizację w rundach.
+5. Po wykonanej pracy wpis **Szybki stoper** od razu trafia do dziennika. Podsumowanie pozwala zapisać RPE, notatkę, zmienić rodzaj i opcjonalnie określić intensywność sparingu. Nie zawiera ocen ćwiczeń celu. **Gotowe** otwiera Historię, gdzie pokazujemy rundy i link do podsumowania. Bez ukończonego etapu pracy wpis nie powstaje.
+
 ## Profil: eksport i usunięcie konta
 
 1. W sekcji **Twoje dane** pobierz osobno **Pobierz wszystkie dane (JSON)** lub **Pobierz dziennik (CSV)**. Bez sieci i przy niewysłanych zapisach przyciski są nieaktywne z wyjaśnieniem. Plik JSON zawiera także dokumenty niezgodne ze schematem; przy zgodzie na masę ciała ostrzeżenie przypomina o danych o zdrowiu.

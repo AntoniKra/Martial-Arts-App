@@ -21,6 +21,7 @@ export function mapWorkoutSessionToHomeRecentSession(session: WorkoutSession, ha
     disciplineKey: session.disciplineKey,
     dateLabelPl: formatWorkoutSessionDatePl(workoutSessionDate(session)),
     durationLabelPl: formatActiveDurationSecondsPl(summary.activeDurationSeconds),
+    roundsOnly: session.source === 'quickTimer',
     completedExercises: summary.completedExerciseCount,
     plannedExercises: summary.plannedExerciseCount,
     completedRounds: summary.plannedRoundCount > 0 ? summary.completedRoundCount : null,
