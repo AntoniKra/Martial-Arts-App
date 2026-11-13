@@ -135,6 +135,115 @@ function ownerDatabase() {
   return environment.authenticatedContext(ownerId, { email_verified: true }).firestore()
 }
 
+const consent = { grantedAt: instant, noticeVersion: '2026-11', adultConfirmed: true }
+const profilePath = `users/${ownerId}`
+const weightDate = '2026-11-13'
+const weightPath = `${profilePath}/bodyWeights/${weightDate}`
+const profileDocument = (): Document => ({ schemaVersion: 1, healthDataConsent: consent,
+  weightClassLabel: null, createdAt: instant, updatedAt: instant })
+const weightDocument = (): Document => ({ schemaVersion: 1, date: weightDate, weightKg: 76.4,
+  createdAt: instant, updatedAt: instant })
+
+describe('health consent and body weights', () => {
+  it('allows owner profile lifecycle, protects consent identity and permits fresh consent after withdrawal', async () => {
+    const ref = ownerDatabase().doc(profilePath)
+    await assertSucceeds(ref.set(profileDocument()))
+    expect((await assertSucceeds(ref.get())).data()?.healthDataConsent).toEqual(consent)
+    await assertSucceeds(ref.update({ weightClassLabel: '−77 kg' }))
+    await assertFails(ref.update({ healthDataConsent: { ...consent, grantedAt: '2026-11-13T09:00:00.000Z' } }))
+    await assertFails(ref.update({ healthDataConsent: { ...consent, noticeVersion: '2026-12' } }))
+    await assertFails(ref.update({ createdAt: '2026-11-13T09:00:00.000Z' }))
+    await assertSucceeds(ref.update({ healthDataConsent: null, weightClassLabel: null }))
+    await assertSucceeds(ref.update({ healthDataConsent: { ...consent, grantedAt: '2026-11-13T09:00:00.000Z' } }))
+    await assertSucceeds(ref.delete())
+  })
+
+  it.each([
+    ['healthDataConsent', { ...consent, adultConfirmed: false }],
+    ['healthDataConsent', { grantedAt: instant, noticeVersion: '2026-11' }],
+    ['healthDataConsent', { ...consent, adultConfirmed: 1 }],
+    ['healthDataConsent', { ...consent, extra: true }],
+    ['healthDataConsent', { ...consent, noticeVersion: '2026-1' }],
+    ['healthDataConsent', { ...consent, grantedAt: '2026-11-08' }],
+    ['healthDataConsent', []], ['weightClassLabel', 'x'.repeat(21)], ['weightClassLabel', ''],
+    ['weightClassLabel', 77], ['extra', true], ['schemaVersion', 2], ['updatedAt', null],
+  ] as [string, unknown][])('denies invalid profile %s on create and update (%j)', async (field, value) => {
+    const ref = ownerDatabase().doc(profilePath)
+    await assertFails(ref.set({ ...profileDocument(), [field]: value }))
+    await assertSucceeds(ref.set(profileDocument()))
+    await assertFails(ref.update({ [field]: value }))
+  })
+
+  it('rejects a category without consent on creation and withdrawal', async () => {
+    const ref = ownerDatabase().doc(profilePath)
+    await assertFails(ref.set({ ...profileDocument(), healthDataConsent: null, weightClassLabel: '−77 kg' }))
+    await assertSucceeds(ref.set({ ...profileDocument(), weightClassLabel: 'x'.repeat(20) }))
+    await assertFails(ref.update({ healthDataConsent: null }))
+  })
+
+  it('requires consent for writes, but permits reads and deletion after withdrawal', async () => {
+    const db = ownerDatabase(), ref = db.doc(weightPath)
+    await assertFails(ref.set(weightDocument()))
+    await db.doc(profilePath).set({ ...profileDocument(), healthDataConsent: null })
+    await assertFails(ref.set(weightDocument()))
+    await db.doc(profilePath).update({ healthDataConsent: consent })
+    await assertSucceeds(ref.set(weightDocument()))
+    await assertSucceeds(ref.update({ weightKg: 30 }))
+    await assertSucceeds(ref.update({ weightKg: 250 }))
+    await assertFails(ref.update({ createdAt: '2026-11-13T09:00:00.000Z' }))
+    await db.doc(profilePath).update({ healthDataConsent: null })
+    await assertFails(ref.update({ weightKg: 77 }))
+    await assertSucceeds(ref.get())
+    expect((await assertSucceeds(db.collection(`${profilePath}/bodyWeights`).get())).size).toBe(1)
+    await assertSucceeds(ref.delete())
+  })
+
+  it.each([
+    ['weightKg', 29.9], ['weightKg', 250.1], ['weightKg', '76.4'],
+    ['date', '2026-11-12'], ['date', '13.11.2026'], ['extra', true],
+    ['schemaVersion', 2], ['createdAt', null], ['updatedAt', '2026-11-08'],
+  ] as [string, unknown][])('denies invalid weight %s on create and update (%j)', async (field, value) => {
+    const db = ownerDatabase(), ref = db.doc(weightPath)
+    await db.doc(profilePath).set(profileDocument())
+    await assertFails(ref.set({ ...weightDocument(), [field]: value }))
+    await assertSucceeds(ref.set(weightDocument()))
+    await assertFails(ref.update({ [field]: value }))
+  })
+
+  it.each(['profile', 'weight'] as const)('requires every field on %s', async (kind) => {
+    const db = ownerDatabase()
+    if (kind === 'weight') await db.doc(profilePath).set(profileDocument())
+    const original = kind === 'profile' ? profileDocument() : weightDocument()
+    const ref = db.doc(kind === 'profile' ? profilePath : weightPath)
+    for (const field of Object.keys(original)) {
+      const incomplete = { ...original }
+      delete incomplete[field]
+      await assertFails(ref.set(incomplete))
+    }
+  })
+
+  describe.each(['other', 'signedOut', 'unverified', 'missingClaim'])('rejects %s', (actor) => {
+    it.each(['profile', 'weight'])('denies all operations on %s', async (kind) => {
+      const owner = ownerDatabase()
+      await owner.doc(profilePath).set(profileDocument())
+      await owner.doc(weightPath).set(weightDocument())
+      const context = actor === 'signedOut' ? environment.unauthenticatedContext()
+        : actor === 'other' ? environment.authenticatedContext('athlete-two', { email_verified: true })
+          : actor === 'unverified' ? environment.authenticatedContext(ownerId, { email_verified: false })
+            : environment.authenticatedContext(ownerId)
+      const db = context.firestore(), ref = db.doc(kind === 'profile' ? profilePath : weightPath)
+      await assertFails(ref.get())
+      await assertFails(ref.set(kind === 'profile' ? profileDocument() : weightDocument()))
+      await assertFails(ref.update({ updatedAt: instant }))
+      await assertFails(ref.delete())
+      // Creation is distinct from replacement of the existing document.
+      await owner.doc(kind === 'profile' ? profilePath : weightPath).delete()
+      await assertFails(ref.set(kind === 'profile' ? profileDocument() : weightDocument()))
+      if (kind === 'weight') await assertFails(db.collection(`${profilePath}/bodyWeights`).get())
+    })
+  })
+})
+
 describe.each(scenarios)('$name', ({ collection, create }) => {
   const path = `users/${ownerId}/${collection}/${documentId}`
 
@@ -377,9 +486,8 @@ describe('manual session', () => {
 
 describe('default denial', () => {
   it.each([
-    `users/${ownerId}`,
     `users/${ownerId}/inne/${documentId}`,
-    ...['readiness', 'bodyWeights', 'controlTests', 'controlTestResults']
+    ...['readiness', 'controlTests', 'controlTestResults']
       .map((collection) => `users/${ownerId}/${collection}/${documentId}`),
     `users/${ownerId}/workoutPlans/${documentId}/nested/${documentId}`,
     `users/${ownerId}/workoutSessions/${documentId}/nested/${documentId}`,

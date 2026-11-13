@@ -165,6 +165,51 @@ service cloud.firestore {
         && data.sparring is list;
     }
 
+    function isHealthConsent(value) {
+      return value == null || (value is map
+        && hasExactKeys(value, ['grantedAt', 'noticeVersion', 'adultConfirmed'])
+        && isInstant(value.grantedAt)
+        && value.noticeVersion is string && value.noticeVersion.matches('[0-9]{4}-[0-9]{2}')
+        && value.adultConfirmed == true);
+    }
+
+    function isProfile(data) {
+      return hasExactKeys(data, ['schemaVersion', 'healthDataConsent', 'weightClassLabel', 'createdAt', 'updatedAt'])
+        && data.schemaVersion is int && data.schemaVersion == 1
+        && isInstant(data.createdAt) && isInstant(data.updatedAt)
+        && isHealthConsent(data.healthDataConsent)
+        && (data.weightClassLabel == null || isBoundedText(data.weightClassLabel, 20))
+        && (data.healthDataConsent != null || data.weightClassLabel == null);
+    }
+
+    function isBodyWeight(data, date) {
+      return hasExactKeys(data, ['schemaVersion', 'date', 'weightKg', 'createdAt', 'updatedAt'])
+        && data.schemaVersion is int && data.schemaVersion == 1
+        && data.date is string && data.date == date && data.date.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && data.weightKg is number && data.weightKg >= 30 && data.weightKg <= 250
+        && isInstant(data.createdAt) && isInstant(data.updatedAt);
+    }
+
+    match /users/{uid} {
+      allow read, delete: if isVerifiedOwner(uid);
+      allow create: if isVerifiedOwner(uid) && isProfile(request.resource.data);
+      allow update: if isVerifiedOwner(uid) && isProfile(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (resource.data.healthDataConsent == null || request.resource.data.healthDataConsent == null
+          || request.resource.data.healthDataConsent == resource.data.healthDataConsent);
+    }
+
+    match /users/{uid}/bodyWeights/{date} {
+      allow read, delete: if isVerifiedOwner(uid);
+      allow create: if isVerifiedOwner(uid)
+        && get(/databases/$(database)/documents/users/$(uid)).data.healthDataConsent != null
+        && isBodyWeight(request.resource.data, date);
+      allow update: if isVerifiedOwner(uid)
+        && get(/databases/$(database)/documents/users/$(uid)).data.healthDataConsent != null
+        && isBodyWeight(request.resource.data, date)
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
     match /users/{uid}/workoutPlans/{documentId} {
       allow read, delete: if isVerifiedOwner(uid);
       allow create, update: if isVerifiedOwner(uid)
