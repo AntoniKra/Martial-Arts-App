@@ -16,6 +16,7 @@ export function createWorkoutGongController(steps: readonly WorkoutPlaybackStep[
 
   return {
     unlock: () => gong.unlock(),
+    playEndWarning: () => gong.play('endingSoon'),
     onPlaybackEvent(event: WorkoutPlaybackEvent) {
       if (event.type === 'restarted') {
         reset()

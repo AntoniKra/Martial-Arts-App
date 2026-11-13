@@ -21,9 +21,10 @@ export function useWorkoutGong(timeline: WorkoutPlaybackTimeline) {
   }, [timeline.steps, gong])
 
   const unlockGong = useCallback(() => controllerRef.current?.unlock(), [])
+  const playEndWarning = useCallback(() => controllerRef.current?.playEndWarning(), [])
   const onGongPlaybackEvent = useCallback((event: WorkoutPlaybackEvent) => {
     controllerRef.current?.onPlaybackEvent(event)
   }, [])
 
-  return { unlockGong, onGongPlaybackEvent }
+  return { unlockGong, onGongPlaybackEvent, playEndWarning }
 }

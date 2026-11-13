@@ -6,6 +6,7 @@ export const workoutPlayerLabels = {
   saveInterrupted: 'Zapisz to, co zrobione',
   saving: 'Zapisywanie treningu…',
   preparationSetting: 'Przygotowanie przed startem',
+  endWarningSetting: 'Sygnał 10 s przed końcem rundy i przerwy',
   preparing: 'PRZYGOTUJ SIĘ',
   startNow: 'Zacznij teraz',
   menu: 'Menu treningu',

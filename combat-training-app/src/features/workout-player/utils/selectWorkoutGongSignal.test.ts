@@ -115,6 +115,15 @@ describe('workout gong event batching', () => {
     expect(gong.play).not.toHaveBeenCalled()
   })
 
+  it('plays the end warning through the existing gong without changing transition cues', async () => {
+    const { controller, gong } = setup()
+    controller.playEndWarning()
+    expect(gong.play).toHaveBeenCalledExactlyOnceWith('endingSoon')
+    controller.onPlaybackEvent(finalized(0))
+    await Promise.resolve()
+    expect(gong.play).toHaveBeenLastCalledWith('workEnd')
+  })
+
   it('cancels pending cues on restart without cancelling the next run', async () => {
     const { controller, gong } = setup()
     controller.onPlaybackEvent(finalized(0))
