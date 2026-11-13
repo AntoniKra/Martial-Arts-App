@@ -30,7 +30,7 @@ Model zastępuje lokalny storage. Dane z `localStorage` to dane pokazowe: nie im
 | `users/{uid}/controlTests/{testId}` | testy kontrolne z paszportem | UUID | **zaplanowane, jeszcze niewdrożone**: testy (R4) |
 | `users/{uid}/controlTestResults/{resultId}` | wyniki testów | UUID | **zaplanowane, jeszcze niewdrożone**: testy (R4) |
 
-Lista jest zamknięta. Kod trzyma ją w `src/infrastructure/firebase/userCollections.ts` (`USER_COLLECTIONS`). Wdrożone w kodzie kolekcje to `workoutPlans`, `workoutSessions`, `focusSkills`, `weekPlans` i `bodyWeights`; pozostałe nazwy opisują przyszłe funkcje. Sam rejestr nie otwiera reguł ani nasłuchów. Eksport i usunięcie konta, kiedy powstaną, mają korzystać z pełnej listy; dokument `users/{uid}` obsługują osobno. Nowa kolekcja wymaga dopisania jej do rejestru, reguł i testów reguł.
+Lista jest zamknięta. Kod trzyma ją w `src/infrastructure/firebase/userCollections.ts` (`USER_COLLECTIONS`). Wdrożone w kodzie kolekcje to `workoutPlans`, `workoutSessions`, `focusSkills`, `weekPlans` i `bodyWeights`; pozostałe nazwy opisują przyszłe funkcje. Sam rejestr nie otwiera reguł ani nasłuchów. Eksport i usunięcie konta korzystają wyłącznie z `IMPLEMENTED_USER_COLLECTIONS`; kolekcje zaplanowane nie są odczytywane, bo reguły odmawiają dostępu. Dokument `users/{uid}` obsługują osobno. Nowa kolekcja wymaga dopisania jej do rejestru, reguł i testów reguł.
 
 Kolekcje `readiness`, `controlTests` i `controlTestResults` pozostają zaplanowane, bez obsługi danych i reguł zezwalających na dostęp.
 
@@ -307,15 +307,18 @@ Profil i pomiary mają wspólnego providera danych z pozostałymi kolekcjami. `h
 
 ## Eksport i usunięcie konta (Q7)
 
-- **Eksport:** plik JSON ze wszystkich kolekcji z `USER_COLLECTIONS` i dokumentu `users/{uid}` oraz CSV dziennika. Dane pobieramy z serwera, a bez sieci eksport jest niedostępny, żeby plik był kompletny.
-- **Usunięcie konta:** bez Cloud Functions, bo plan Spark ich nie ma.
-  1. Ponowne zalogowanie (Firebase tego wymaga).
-  2. Usunięcie dokumentów każdej kolekcji z listy, partiami po najwyżej 500.
-  3. Usunięcie `users/{uid}`.
-  4. Usunięcie konta w Authentication.
-  5. Wyczyszczenie pamięci Firestore na urządzeniu.
+- **Eksport:** dwa osobne pliki: `combat-training-dane-RRRR-MM-DD.json` i `combat-training-dziennik-RRRR-MM-DD.csv` z lokalną datą. JSON ma `format: 'combat-training-export'`, `formatVersion: 1`, chwilę ISO `exportedAt`, identyfikator i e-mail konta, surowy profil albo `null` i dokumenty kolekcji z `IMPLEMENTED_USER_COLLECTIONS`, w kolejności ID dokumentu, z wcięciem 2 spacje. Pola pozostają bez zmian, również `schemaVersion`; zachowujemy także niepoprawne dokumenty. Nie odczytujemy kolekcji zaplanowanych. Przy zgodzie na masę ciała UI ostrzega o danych o zdrowiu.
+- **CSV dziennika:** UTF-8 z BOM, separator `;`, minuty z jedną cyfrą po przecinku i przecinkiem dziesiętnym; cudzysłowy i nowe linie są escapowane. Komórki zaczynające się od `=`, `+`, `-`, `@`, tabulatora lub CR dostają apostrof. Jeden wiersz na poprawny wpis, od najstarszego (`workoutDate`, `startedAt` lub `createdAt`, `id`); niepoprawne dokumenty nadal są dostępne w JSON. Polskie etykiety są współdzielone z UI, wartości nieznane pozostają puste. Realizacja rozróżnia ćwiczenia i rundy; ręczny wpis ma ją pustą. Szybki stoper bierze nazwę z `workoutSessionName`, nie ma ocen celu, a intensywność `null` pozostaje pusta. „RPE z pamięci” korzysta ze wspólnego obliczenia.
+- **Źródło:** tylko serwer (`getDocFromServer`, `getDocsFromServer`); bez sieci lub przy `hasPendingWrites` eksport i usunięcie są zablokowane.
+- **Usunięcie konta:** bez Cloud Functions i karencji (ADR 0013).
+  1. Ponowne logowanie hasłem lub Google. Powrót z Google uznaje się za potwierdzony wyłącznie przy zgodnym `uid` znacznika i wyniku `reauthenticate` odebranym raz przez AuthProvider. Usunięcie zawsze wymaga osobnego przycisku.
+  2. Odświeżenie tokenu i kontrola `authTime` (do 4 minut); błąd lub stare potwierdzenie nie usuwa żadnych danych.
+  3. Odczyt z serwera i usunięcie kolejno `bodyWeights`, `workoutSessions`, `focusSkills`, `weekPlans`, `workoutPlans`, partiami najwyżej 500, także dokumentów niezgodnych ze schematem.
+  4. Usunięcie `users/{uid}`, potem konta Authentication.
+  5. Zamknięcie nasłuchów i wyczyszczenie Firestore; usunięcie wszystkich kluczy `localStorage` pasujących do `combat-training.*.{uid}` oraz znacznika przekierowania. Klucze innego konta i ustawienia bez `uid` (motyw, przygotowanie, sygnał 10 s) zostają. Sprzątanie jest niezależne od odmontowania ekranu.
+  6. Jednorazowy komunikat na logowaniu. Trasa usuwania nigdy nie jest celem powrotu po logowaniu.
 
-  Przerwany proces można powtórzyć: dokończy usuwanie.
+  Przerwany proces można powtórzyć. Znane ograniczenie: token innego urządzenia może być ważny do godziny i wysłać zaległy dokument po usunięciu. UI prosi o połączenie i wylogowanie innych urządzeń; ręczną kontrolę właściciela opisuje `deployment.md`. Reguły bez zmian.
 
 ## Zmiany w kodzie wobec dzisiejszych typów
 

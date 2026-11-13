@@ -80,3 +80,12 @@ Jeżeli nie ma jeszcze żadnych wpisów `focusRatings`, zamiast chowania dostęp
 3. **Start** zapisuje ostatnią konfigurację dla konta na urządzeniu i otwiera odtwarzacz. Dopiero **Rozpocznij trening** w odtwarzaczu odblokowuje gong i rozpoczyna przygotowanie. Przygotowanie i sygnał 10 s korzystają z tych samych ustawień urządzenia co plan.
 4. Stoper wykonuje jednorazowy plan, którego nie zapisuje na liście planów. Obsługuje pauzę, ±15 s, powrót do poprzedniego etapu, gong i wznowienie po przeładowaniu. Przerwany trening zachowuje źródło `quickTimer` i realizację w rundach.
 5. Po wykonanej pracy wpis **Szybki stoper** od razu trafia do dziennika. Podsumowanie pozwala zapisać RPE, notatkę, zmienić rodzaj i opcjonalnie określić intensywność sparingu. Nie zawiera ocen ćwiczeń celu. **Gotowe** otwiera Historię, gdzie pokazujemy rundy i link do podsumowania. Bez ukończonego etapu pracy wpis nie powstaje.
+
+## Profil: eksport i usunięcie konta
+
+1. W sekcji **Twoje dane** pobierz osobno **Pobierz wszystkie dane (JSON)** lub **Pobierz dziennik (CSV)**. Bez sieci i przy niewysłanych zapisach przyciski są nieaktywne z wyjaśnieniem. Plik JSON zawiera także dokumenty niezgodne ze schematem; przy zgodzie na masę ciała ostrzeżenie przypomina o danych o zdrowiu.
+2. **Usuń konto** otwiera osobny ekran z listą danych usuwanych na zawsze i możliwością wcześniejszego pobrania JSON. Przed kontynuowaniem połącz inne urządzenia z internetem i wyloguj się na nich.
+3. Potwierdź hasłem lub kontem Google. Przy obu dostawcach domyślne jest hasło. Google używa przekierowania na telefonie/PWA i okna na komputerze; wybór innego konta wyświetla błąd. Powrót z przekierowania nigdy nie uruchamia usuwania automatycznie.
+4. Po potwierdzeniu wybierz **Usuń konto na zawsze** albo **Anuluj**. Brak sieci i niewysłane zapisy blokują usuwanie; potwierdzenie starsze niż 4 minuty wymaga ponownego logowania, bez usunięcia danych.
+5. Aplikacja pokazuje **Usuwam dane…**, usuwa wdrożone kolekcje i profil, a potem konto logowania oraz kopię danych tego konta na urządzeniu. Błąd w połowie informuje o możliwym częściowym usunięciu i pozwala ponowić proces.
+6. Po sukcesie logowanie pokazuje jednorazowo **Konto zostało usunięte.** Kolejne konto trafia na Start, nigdy na ekran usuwania.

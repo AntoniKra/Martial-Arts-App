@@ -8,7 +8,9 @@ export function AuthProvider({ service, children }: PropsWithChildren<{ service:
   const [busy, setBusy] = useState(false)
   const [verificationSentAt, setVerificationSentAt] = useState<number | null>(null)
   const [verificationError, setVerificationError] = useState<string | null>(null)
-  const [redirectError, setRedirectError] = useState<string | null>(null)
+  const [redirectOperation, setRedirectOperation] = useState<'signIn' | 'link' | 'reauthenticate' | null>()
+  const [redirectCause, setRedirectCause] = useState<unknown>(null)
+  const redirectError = redirectCause === null ? null : mapAuthError(redirectCause, state.status === 'ready' ? state.session?.email : undefined)
 
   useEffect(() => service.subscribe(
     (session) => setState({ status: 'ready', session }),
@@ -17,20 +19,22 @@ export function AuthProvider({ service, children }: PropsWithChildren<{ service:
 
   useEffect(() => {
     let active = true
-    service.completeGoogleRedirect().catch((cause: unknown) => {
-      if (active) setRedirectError(mapAuthError(cause))
+    service.completeGoogleRedirect().then((operation) => {
+      if (active) setRedirectOperation(operation)
+    }).catch((cause: unknown) => {
+      if (active) { setRedirectCause(cause); setRedirectOperation(null) }
     })
     return () => { active = false }
   }, [service])
 
   async function execute(action: () => Promise<void>): Promise<string | null> {
     setBusy(true)
-    setRedirectError(null)
+    setRedirectCause(null)
     try {
       await action()
       return null
     } catch (cause) {
-      return mapAuthError(cause)
+      return mapAuthError(cause, state.status === 'ready' ? state.session?.email : undefined)
     } finally {
       setBusy(false)
     }
@@ -50,7 +54,7 @@ export function AuthProvider({ service, children }: PropsWithChildren<{ service:
   }
 
   return (
-    <AuthContext.Provider value={{ service, state, busy, verificationSentAt, verificationError, redirectError, execute, sendVerification, refreshVerification }}>
+    <AuthContext.Provider value={{ service, state, busy, verificationSentAt, verificationError, redirectError, redirectOperation, execute, sendVerification, refreshVerification }}>
       {children}
     </AuthContext.Provider>
   )

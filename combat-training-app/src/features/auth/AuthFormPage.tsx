@@ -1,6 +1,7 @@
-import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
+import { clearCleanupError, deletionNotice, readDeletionNotice, readCleanupError, subscribeCleanup } from '@/infrastructure/storage/accountDeletionNotice'
 import { AuthFrame } from './AuthFrame'
 import { useAuth } from './authContext'
 import { GoogleMark } from './GoogleMark'
@@ -8,6 +9,12 @@ import { authLabels as labels } from './authLabels'
 import { minPasswordLength, validateAuthForm, type AuthFormErrors, type AuthFormMode, type AuthFormValues } from './validateAuthForm'
 
 export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
+  const [accountDeleted] = useState(() => mode === 'login' && readDeletionNotice())
+  useEffect(() => { if (accountDeleted) deletionNotice.clear() }, [accountDeleted])
+  // Shown once: read at mount or when the failure is reported while this screen is open, then cleared.
+  const [cleanupError, setCleanupError] = useState(readCleanupError)
+  useEffect(() => subscribeCleanup(() => setCleanupError(readCleanupError())), [])
+  useEffect(() => { if (cleanupError) clearCleanupError() }, [cleanupError])
   const auth = useAuth()
   const location = useLocation()
   const emailRef = useRef<HTMLInputElement>(null)
@@ -72,6 +79,8 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
 
   return (
     <AuthFrame title={title}>
+      {cleanupError && <p role="alert" className="mb-4 text-sm text-crimson-ink">{labels.cleanupError}</p>}
+      {accountDeleted && <p role="status" className="mb-4 text-sm">{labels.accountDeleted}</p>}
       <form noValidate onSubmit={submit} className="flex flex-col gap-4">
         <div>
           <label htmlFor="auth-email" className="mb-2 block text-sm">{labels.email}</label>

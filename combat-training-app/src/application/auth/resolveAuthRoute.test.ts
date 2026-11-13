@@ -69,3 +69,8 @@ it('keeps an admitted quick timer after session loss, while protecting direct en
   expect(resolveAuthRoute(signedOut, '/quick-timer/active')).toMatchObject({ type: 'redirect', to: '/login' })
   expect(resolveAuthRoute(signedOut, '/quick-timer', undefined, true)).toMatchObject({ type: 'redirect', to: '/login' })
 })
+
+it.each(['/profile/delete-account', '/profile/delete-account/', '/profile/delete-account?step=confirmed#delete', '/Profile/Delete-Account', '/LOGIN'])('never returns to account deletion after login: %s', (path) => {
+  expect(safeReturnTo(path)).toBe('/')
+  expect(resolveAuthRoute(signedOut, '/profile/delete-account', path)).toMatchObject({ to: '/login', returnTo: '/' })
+})
