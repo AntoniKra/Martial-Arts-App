@@ -1,7 +1,7 @@
 import type { TypicalWeek } from '@/domain/weekly-summary/typicalWeek'
 import type { WeeklySummary } from '@/domain/weekly-summary/weeklySummary'
 import { formatActiveDurationSecondsPl } from '@/features/workouts/utils/formatWorkoutSessionLabels'
-import { formatTrainingLoadPl, formatTypicalWorkoutCountPl, formatWeeklyLoadPl, weeklySummaryLabels as labels } from './weeklySummaryLabels'
+import { formatComparisonLoadPl, formatTrainingLoadPl, formatTypicalWorkoutCountPl, weeklySummaryLabels as labels } from './weeklySummaryLabels'
 
 export function TypicalWeekComparison({ typical, summary, isCurrent }: {
   typical: TypicalWeek | null; summary: WeeklySummary; isCurrent: boolean
@@ -11,7 +11,7 @@ export function TypicalWeekComparison({ typical, summary, isCurrent }: {
   const rows = [
     [labels.workouts, String(summary.workoutCount), formatTypicalWorkoutCountPl(typical.workoutCount)],
     [labels.duration, formatActiveDurationSecondsPl(summary.durationSeconds), formatActiveDurationSecondsPl(typical.durationSeconds)],
-    [labels.sessionLoad, formatWeeklyLoadPl(summary), typical.loadUnits === null ? labels.incompleteLoad : formatTrainingLoadPl(typical.loadUnits)],
+    [labels.sessionLoad, formatComparisonLoadPl(summary), typical.loadUnits === null ? labels.incompleteLoad : formatTrainingLoadPl(typical.loadUnits)],
   ]
   return <div className="space-y-3 border-t border-bd pt-4">
     <table className="w-full table-fixed text-left text-sm tabular-nums">

@@ -18,14 +18,14 @@ describe('feedback form validation', () => {
   })
 
   it.each([{ problem: '', fix: '' }, { problem: ' \n ', fix: ' \t ' }])('accepts both empty correction fields without an error and trims notes', (correction) => {
-    expect(validateWorkoutFeedback({ focusRatings: [{ ...rating, correction }], exerciseRatings: [], note: ' note ' }))
-      .toEqual({ ok: true, values: { focusRatings: [rating], exerciseRatings: [], note: 'note' } })
+    expect(validateWorkoutFeedback({ focusRatings: [{ ...rating, correction }], exerciseRatings: [], sparring: [], note: ' note ' }))
+      .toEqual({ ok: true, values: { focusRatings: [rating], exerciseRatings: [], sparring: [], note: 'note' } })
   })
   it.each([{ problem: 'Problem', fix: '' }, { problem: 'x'.repeat(201), fix: 'Fix' }])('rejects an incomplete or overlong correction', (correction) => {
-    expect(validateWorkoutFeedback({ focusRatings: [{ ...rating, correction }], exerciseRatings: [], note: null })).toMatchObject({ ok: false })
+    expect(validateWorkoutFeedback({ focusRatings: [{ ...rating, correction }], exerciseRatings: [], sparring: [], note: null })).toMatchObject({ ok: false })
   })
   it('accepts boundary lengths and rejects an overlong workout note', () => {
-    expect(validateWorkoutFeedback({ focusRatings: [{ ...rating, correction: { problem: 'x'.repeat(200), fix: 'y' } }], exerciseRatings: [], note: 'x'.repeat(1000) }).ok).toBe(true)
-    expect(validateWorkoutFeedback({ focusRatings: [], exerciseRatings: [], note: 'x'.repeat(1001) })).toMatchObject({ ok: false })
+    expect(validateWorkoutFeedback({ focusRatings: [{ ...rating, correction: { problem: 'x'.repeat(200), fix: 'y' } }], exerciseRatings: [], sparring: [], note: 'x'.repeat(1000) }).ok).toBe(true)
+    expect(validateWorkoutFeedback({ focusRatings: [], exerciseRatings: [], sparring: [], note: 'x'.repeat(1001) })).toMatchObject({ ok: false })
   })
 })

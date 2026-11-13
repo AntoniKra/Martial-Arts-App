@@ -88,6 +88,8 @@ Te oceny nie tworzą trendów.
 
 ## Intensywność sparingu (Q4)
 
+Wdrożone (issue #122): podsumowanie treningu z planu pozwala zmienić lub pozostawić pustą intensywność każdego bloku sparingu z co najmniej jedną dokończoną rundą. Zapisuje ją razem z ocenami i notatkami, także offline, bez zmiany liczby rund. Podsumowanie tygodnia liczy twarde rundy ze wszystkich źródeł, pokazuje pokrycie intensywności oraz liczbę treningów z twardym sparingiem bez podanej liczby rund.
+
 - Blok sparingu w planie ma intensywność: lekki, techniczny albo twardy. Podsumowanie ją podpowiada i pozwala zmienić.
 - Ręczny wpis sparingu ma intensywność i opcjonalną liczbę rund. Szybki stoper z rodzajem „sparing” ma intensywność, a rundy liczy sam.
 - Podsumowanie tygodnia pokazuje liczbę twardych rund jako informację. Bez „bezpiecznych” progów i bez sugestii, że licznik chroni zdrowie.
@@ -118,7 +120,7 @@ Wdrożony **Q5 etap 3**: pod podsumowaniem jest wykres 12 tygodni kończących s
 
 Wdrożony **Q5 etap 4**: pod wierszami podsumowania, przed szczegółami obciążenia, tabela „Na tle 3 poprzednich tygodni” zestawia wybrany tydzień ze średnią liczby treningów, czasu treningu i obciążenia z trzech bezpośrednio poprzedzających tygodni. Bieżący tydzień ma dopisek „trwa”. Liczymy wszystkie źródła i oba statusy według zapisanego `workoutDate`, tą samą funkcją co podsumowanie. Najwcześniejszy dzień treningu musi sięgać poniedziałku pierwszego z trzech tygodni; wcześniej pokazujemy „Porównanie pojawi się po 3 pełnych tygodniach treningów.”. Tygodnie bez treningów liczą się jako 0. Obciążenie „Zwykle” wymaga RPE dla każdego treningu w tym okresie, inaczej pokazujemy „Brak pełnych danych”. Liczba treningów „Zwykle” ma jedną cyfrę po przecinku, a czas i obciążenie korzystają z formatowania podsumowania. Tabela korzysta ze stanu historii: ładowanie, błąd i niepełne dane blokują porównanie. To opis, nie ocena: bez słów „więcej/mniej niż zwykle”, strzałek, kolorów oceniających i procentów.
 
-Dalszy zakres Q5 poniżej pozostaje niezrealizowany: twarde rundy i kompletność ocen ćwiczeń celu. Etapy 1–4 nie oznaczają ukończenia całego Q5.
+Dalszy zakres Q5 poniżej pozostaje niezrealizowany: kompletność ocen ćwiczeń celu. Etapy 1–4 nie oznaczają ukończenia całego Q5; twarde rundy wdrożono w ramach Q4.
 
 Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 
@@ -151,4 +153,4 @@ Koncentracja 1–5, dyskomfort, realizacja celu 1–5 i odczuwany postęp 1–7 
 
 Trasa `/workout-sessions/:sessionId/feedback` obsługuje również `quickTimer`. Pokazuje czas treningu, pracę i ukończone rundy, wspólną kartę RPE z odliczaniem 10 minut, notatkę oraz zmianę jednego z sześciu rodzajów (bez rozgrzewki, rozluźnienia i „Mieszany”). Nie pokazuje ocen ćwiczeń. Przypomnienie RPE na Start i link „Podsumowanie” w Historii obejmują stoper.
 
-Dla rodzaju „Sparing” intensywność jest opcjonalna: lekki, techniczny lub twardy, z tymi samymi etykietami co w planie. Zmiana rodzaju na sparing tworzy jeden wpis z `blockId: null`, liczbą ukończonych rund i `sparringSeconds = workSeconds`. Zmiana na inny rodzaj usuwa wpis sparingu i zeruje czas sparingu. Ten sam zapis uaktualnia `stepResults[].blockType`, `nameSnapshot` etykietą rodzaju, notatkę i `updatedAt`, po walidacji całego dokumentu; zachowuje RPE i czasy treningu. „Gotowe” wraca do Historii także offline. Intensywność w podsumowaniu treningu z planu pozostaje osobnym zakresem.
+Dla rodzaju „Sparing” intensywność jest opcjonalna: lekki, techniczny lub twardy, z tymi samymi etykietami co w planie. Zmiana rodzaju na sparing tworzy jeden wpis z `blockId: null`, liczbą ukończonych rund i `sparringSeconds = workSeconds`. Zmiana na inny rodzaj usuwa wpis sparingu i zeruje czas sparingu. Ten sam zapis uaktualnia `stepResults[].blockType`, `nameSnapshot` etykietą rodzaju, notatkę i `updatedAt`, po walidacji całego dokumentu; zachowuje RPE i czasy treningu. „Gotowe” wraca do Historii także offline. Intensywność w podsumowaniu treningu z planu wdrożono w issue #122 (Q4).

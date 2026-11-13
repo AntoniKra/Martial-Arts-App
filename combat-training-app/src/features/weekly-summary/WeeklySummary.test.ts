@@ -132,12 +132,37 @@ describe('WeeklySummary typical week comparison', () => {
     data.sessions.items = [...previous, timed('current', weekStart, 30, 0)]
     expect(cells(render())[4]).toBe('0 j.u.')
     data.sessions.items = [...previous, timed('known', weekStart, 30, 3), timed('unknown', weekStart, 10, null)]
-    expect(cells(render())[4]).toBe(row(render(), 'Zarejestrowane obciążenie'))
+    expect(cells(render())[4]).toBe(`${row(render(), 'Zarejestrowane obciążenie')} (bez RPE: 1)`)
   })
 
   it('retains zero for a genuinely empty selected week and for three empty previous weeks', () => {
     data.sessions.items = [timed('old', '2026-10-18', 30, null)]
     expect(cells(render())).toEqual(['0', '0,0', '0 s', '0 s', '0 j.u.', '0 j.u.'])
+  })
+})
+
+describe('WeeklySummary sparring intensity', () => {
+  it('shows hard rounds below sparring time, with separate intensity and round coverage', () => {
+    data.sessions.items = [
+      { ...entry, sparring: [{ blockId: 'hard', intensity: 'hard', rounds: 3 }, { blockId: 'unknown', intensity: null, rounds: 2 }] },
+      { ...entry, id: 'missing-rounds', sparring: [{ blockId: 'no-rounds', intensity: 'hard', rounds: null }] },
+      { ...entry, id: 'no-sparring' },
+    ]
+    const html = render()
+    expect(row(html, 'Twarde rundy sparingu')).toBe('3')
+    expect(html).toContain('Intensywność znana w 1 z 2 treningów ze sparingiem')
+    expect(html).toContain('Twardy sparing bez liczby rund w 1 treningach. Rund bez podanej liczby nie doliczamy.')
+    expect(html.indexOf('Czas sparingu')).toBeLessThan(html.indexOf('Twarde rundy sparingu'))
+    expect(html.indexOf('Twarde rundy sparingu')).toBeLessThan(html.indexOf('Zarejestrowane obciążenie'))
+  })
+
+  it('shows zero without coverage warnings for no sparring or fully known technical sparring', () => {
+    for (const sparring of [[], [{ blockId: 'block', intensity: 'technical' as const, rounds: 3 }]]) {
+      data.sessions.items = [{ ...entry, sparring }]
+      expect(row(render(), 'Twarde rundy sparingu')).toBe('0')
+      expect(render()).not.toContain('Intensywność znana')
+      expect(render()).not.toContain('Twardy sparing bez liczby rund')
+    }
   })
 })
 
