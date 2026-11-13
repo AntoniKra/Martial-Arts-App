@@ -128,7 +128,7 @@ Lokalny storage v2 zachowuje kompatybilność wsteczną: dokumenty `schemaVersio
 
 ## WorkoutSession — model v3 (ADR 0005)
 
-- `source`: `plan`, `quickTimer` lub `manual`; odtwarzacz zapisuje `plan`;
+- `source`: `plan`, `quickTimer` lub `manual`; odtwarzacz zapisuje `plan` i `quickTimer`;
 - `status`: `completed`, gdy wszystkie ćwiczenia ukończono, albo `partial`, gdy pominięto ćwiczenie lub zakończono wcześniej; pominięcie odpoczynku lub przerwy nie obniża statusu;
 - `durationSeconds`: rzeczywisty czas etapów, wraz z odpoczynkami, przerwami i powtórzeniami, bez pauz;
 - `workSeconds`: czas wyłącznie dokończonych etapów ćwiczeń; `sparringSeconds`: wyłącznie dokończone ćwiczenia w blokach `sparring`;

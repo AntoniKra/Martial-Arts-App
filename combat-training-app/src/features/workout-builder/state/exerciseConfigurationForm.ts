@@ -1,3 +1,4 @@
+import { ROUND_FORMAT_PRESETS, type RoundFormatId, type RoundFormatPreset } from '@/domain/workout/roundFormatPresets'
 import type { ExerciseConfiguration, ExerciseMode } from '@/domain/workout/workout.types'
 import {
   computeDurationSeconds,
@@ -8,25 +9,7 @@ export const ROUND_COUNT_PRESETS = [1, 2, 3, 4, 5] as const
 export const ROUND_DURATION_PRESETS = [60, 90, 120, 180] as const
 export const REST_PRESETS = [30, 60, 90, 120] as const
 
-export const ROUND_FORMAT_PRESETS = [
-  {
-    id: 'three-by-three-rest-60',
-    label: '3 × 3:00 · przerwa 1:00',
-    roundCount: 3,
-    roundDurationSeconds: 180,
-    restBetweenRoundsSeconds: 60,
-  },
-  {
-    id: 'three-by-three-rest-30',
-    label: '3 × 3:00 · przerwa 0:30',
-    roundCount: 3,
-    roundDurationSeconds: 180,
-    restBetweenRoundsSeconds: 30,
-  },
-] as const
-
-export type RoundFormatId = (typeof ROUND_FORMAT_PRESETS)[number]['id']
-export type RoundFormatPreset = (typeof ROUND_FORMAT_PRESETS)[number]
+export { ROUND_FORMAT_PRESETS, type RoundFormatId, type RoundFormatPreset } from '@/domain/workout/roundFormatPresets'
 
 type NumericPreset = number | 'custom'
 

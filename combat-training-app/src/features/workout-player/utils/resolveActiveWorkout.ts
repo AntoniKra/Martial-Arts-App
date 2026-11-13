@@ -1,5 +1,5 @@
 import type { ActiveWorkout } from '@/application/workout/activeWorkoutRepository'
-import type { PlanWorkoutSession } from '@/domain/workout-session/workoutSession.types'
+import type { PlanWorkoutSession, QuickTimerWorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 import { resolveRunningPlaybackAtTime } from './resolveRunningPlaybackAtTime'
 import { buildRecordedWorkoutSession, recordFinalizedStep } from './workoutSessionRecording'
@@ -10,7 +10,7 @@ import { applyStepDurations } from './adjustPlaybackTime'
 export type ActiveWorkoutRecovery =
   | { kind: 'none' }
   | { kind: 'resume'; workout: ActiveWorkout }
-  | { kind: 'interrupted'; workout: ActiveWorkout; session: PlanWorkoutSession }
+  | { kind: 'interrupted'; workout: ActiveWorkout; session: PlanWorkoutSession | QuickTimerWorkoutSession }
 
 function advanceTo(saved: ActiveWorkout, nowMs: number): ActiveWorkout {
   const timeline = createWorkoutPlaybackTimeline(saved.plan)
@@ -66,6 +66,6 @@ export function resolveActiveWorkout(saved: ActiveWorkout | null, nowMs: number)
       if (event.type === 'stepFinalized') recording = recordFinalizedStep(recording, steps, event)
     }
   }
-  const result = buildRecordedWorkoutSession(saved.plan, steps, recording, saved.lastSeenAt, true)
+  const result = buildRecordedWorkoutSession(saved.plan, steps, recording, saved.lastSeenAt, true, saved.source ?? 'plan')
   return result.kind === 'noWork' ? { kind: 'none' } : { kind: 'interrupted', workout: saved, session: result.session }
 }

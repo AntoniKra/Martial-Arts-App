@@ -59,6 +59,16 @@ class WorkoutApp {
     // once this tab renders the plan, so the cache already contains it.
     await expect(this.page.getByRole('heading', { name: plan.nameSnapshot, exact: true })).toBeVisible()
   }
+  async prepareOffline() {
+    await this.page.evaluate(async () => { await navigator.serviceWorker.ready })
+    // Activation can skip a document still loading. A new navigation after ready is controlled.
+    if (!await this.page.evaluate(() => navigator.serviceWorker.controller !== null)) {
+      const url = new URL(this.page.url())
+      await this.open(`${url.pathname}${url.search}${url.hash}`)
+    }
+    await expect.poll(() => this.page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)
+  }
+
   async readSessions() { return readSessions(this.page.request, this.uid) }
   // This write may reach the tab after seedPlan. openPlayer waits for the player's
   // referenced-skill admission, so callers do not depend on listener order.

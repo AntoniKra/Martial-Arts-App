@@ -111,3 +111,22 @@ describe('active workout local storage', () => {
     expect(repository.read()).toBeNull()
   })
 })
+
+it('round-trips quickTimer source and still reads version 1 snapshots without a source', () => {
+  const repository = createActiveWorkoutRepository('owner')
+  const saved = snapshot()
+  repository.save(saved)
+  expect(repository.read()).toEqual(saved)
+  expect(repository.read()?.source).toBeUndefined()
+  repository.save({ ...saved, source: 'quickTimer' })
+  expect(repository.read()?.source).toBe('quickTimer')
+})
+
+it('rejects and clears a quick timer record whose plan is not a quick timer', () => {
+  const repository = createActiveWorkoutRepository('owner')
+  const saved = { ...snapshot(), source: 'quickTimer' as const }
+  saved.plan = workoutPlan([block('warmup', [roundsExercise('jumps', 1, 60, 0)], 'warmup'), ...saved.plan.blocks])
+  localStorage.setItem(`${ACTIVE_WORKOUT_STORAGE_PREFIX}owner`, JSON.stringify(saved))
+  expect(repository.read()).toBeNull()
+  expect(localStorage.getItem(`${ACTIVE_WORKOUT_STORAGE_PREFIX}owner`)).toBeNull()
+})

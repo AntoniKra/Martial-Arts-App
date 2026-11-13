@@ -74,3 +74,11 @@ describe('calculateWorkoutSessionSummary', () => {
     },
   )
 })
+
+it('presents quick timer completion only in rounds and derives its progress from round completion', () => {
+  const plan = workoutSession({ stepResults: [1, 2, 3].map((roundNumber) => sessionStep({ playbackStepId: `round-${roundNumber}`,
+    roundNumber, roundCount: 3, outcome: roundNumber === 1 ? 'completed' : 'skipped', performedDurationSeconds: roundNumber === 1 ? 60 : 0 })) })
+  const quick = { ...plan, source: 'quickTimer' as const, completion: { completed: 1, planned: 3, unit: 'round' as const } }
+  expect(calculateWorkoutSessionSummary(quick)).toMatchObject({ completedExerciseCount: 0, plannedExerciseCount: 0,
+    completedRoundCount: 1, plannedRoundCount: 3, exerciseCompletionPercent: 33 })
+})

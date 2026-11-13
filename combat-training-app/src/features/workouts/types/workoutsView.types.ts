@@ -43,6 +43,7 @@ export interface WorkoutHistoryListItem {
   timeLabelPl: string
   completedAt: string
   durationLabelPl: string
+  roundsOnly?: boolean
   completedExercises: number
   plannedExercises: number
   exerciseCompletionPercent: number

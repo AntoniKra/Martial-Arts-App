@@ -27,3 +27,12 @@ it('includes the 24 hour boundary, expires immediately afterwards, and ignores f
   expect(selectRpeReminder([entry], [], Date.now())).toBeNull()
   expect(selectRpeReminder([], [], Date.now())).toBeNull()
 })
+
+it('includes quick timers and respects their dismissal and completed RPE', () => {
+  const plan = workoutSession({ completedAt: '2026-11-09T10:00:00Z' })
+  const quick = { ...plan, source: 'quickTimer' as const, completion: { completed: 3, planned: 3, unit: 'round' as const } }
+  const now = Date.parse('2026-11-09T12:00:00Z')
+  expect(selectRpeReminder([quick], [], now)).toEqual(quick)
+  expect(selectRpeReminder([quick], [quick.id], now)).toBeNull()
+  expect(selectRpeReminder([{ ...quick, rpe: 0 }], [], now)).toBeNull()
+})

@@ -1,7 +1,7 @@
-import type { PlanWorkoutSession, WorkoutSession } from './workoutSession.types'
+import type { PlanWorkoutSession, QuickTimerWorkoutSession, WorkoutSession } from './workoutSession.types'
 
-export function selectRpeReminder(sessions: readonly WorkoutSession[], dismissedIds: readonly string[], now: number): PlanWorkoutSession | null {
-  return sessions.filter((session): session is PlanWorkoutSession => session.source === 'plan'
+export function selectRpeReminder(sessions: readonly WorkoutSession[], dismissedIds: readonly string[], now: number): PlanWorkoutSession | QuickTimerWorkoutSession | null {
+  return sessions.filter((session): session is PlanWorkoutSession | QuickTimerWorkoutSession => session.source !== 'manual'
     && session.rpe === null && !dismissedIds.includes(session.id)
     && Date.parse(session.completedAt) <= now
     && now - Date.parse(session.completedAt) <= 24 * 60 * 60_000)

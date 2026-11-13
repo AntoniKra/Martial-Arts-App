@@ -9,7 +9,7 @@ describe('shouldShowUpdatePrompt', () => {
     },
   )
 
-  it.each(['/workouts/plan-1/active', '/workouts/plan-1/active/', '/WORKOUTS/plan-1/ACTIVE'])(
+  it.each(['/workouts/plan-1/active', '/workouts/plan-1/active/', '/WORKOUTS/plan-1/ACTIVE', '/quick-timer/active', '/quick-timer/active/'])(
     'suppresses a pending update throughout player route %s', (pathname) => {
       expect(shouldShowUpdatePrompt(true, pathname)).toBe(false)
     },

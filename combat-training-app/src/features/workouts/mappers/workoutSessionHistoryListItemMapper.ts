@@ -17,7 +17,7 @@ export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession, hasP
   return {
     editPath: session.source === 'manual' ? routes.editManualWorkout(session.id) : undefined,
     isManual: session.source === 'manual', rpe: session.rpe, rpeFromMemory: isRpeFromMemory(session),
-    feedbackPath: session.source === 'plan' ? routes.workoutFeedback(session.id) : undefined,
+    feedbackPath: session.source !== 'manual' ? routes.workoutFeedback(session.id) : undefined,
     id: session.id,
     status: session.status,
     name: workoutSessionName(session),
@@ -26,6 +26,7 @@ export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession, hasP
     timeLabelPl: session.source === 'manual' ? '' : formatWorkoutSessionTimePl(session.completedAt),
     completedAt: workoutSessionDate(session),
     durationLabelPl: formatActiveDurationSecondsPl(summary.activeDurationSeconds),
+    roundsOnly: session.source === 'quickTimer',
     completedExercises: summary.completedExerciseCount,
     plannedExercises: summary.plannedExerciseCount,
     exerciseCompletionPercent: summary.exerciseCompletionPercent,

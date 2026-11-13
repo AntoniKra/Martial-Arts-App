@@ -67,9 +67,10 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open()
     await app.setTheme(theme)
     const nav = page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true })
-    if (info.project.name === 'phone') await expect(nav.getByRole('link')).toHaveText(['Start', 'Nowy', 'Treningi', 'Postęp', 'Profil'])
-    else await expect(nav.getByRole('link')).toHaveCount(5)
-    for (const link of await nav.getByRole('link').all()) {
+    if (info.project.name === 'phone') await expect(nav.getByRole('link')).toHaveText(['Start', 'Treningi', 'Postęp', 'Profil'])
+    else await expect(nav.getByRole('link')).toHaveCount(4)
+    await expect(nav.getByRole('button', { name: 'Nowy', exact: true })).toBeVisible()
+    for (const link of [...await nav.getByRole('link').all(), nav.getByRole('button', { name: 'Nowy', exact: true })]) {
       const box = await link.boundingBox()
       expect(box?.width).toBeGreaterThanOrEqual(44); expect(box?.height).toBeGreaterThanOrEqual(44)
     }

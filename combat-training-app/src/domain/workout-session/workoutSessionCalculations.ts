@@ -86,8 +86,10 @@ export function calculateWorkoutSessionSummary(session: WorkoutSession): Workout
     }
   }
 
-  const plannedExerciseCount = exerciseCompletion.size
-  const completedExerciseCount = [...exerciseCompletion.values()].filter(Boolean).length
+  const plannedExerciseCount = session.source === 'quickTimer' ? 0 : exerciseCompletion.size
+  const completedExerciseCount = session.source === 'quickTimer' ? 0 : [...exerciseCompletion.values()].filter(Boolean).length
+  const completion = session.source === 'quickTimer' ? session.completion
+    : { completed: completedExerciseCount, planned: plannedExerciseCount }
 
   return {
     activeDurationSeconds,
@@ -102,7 +104,7 @@ export function calculateWorkoutSessionSummary(session: WorkoutSession): Workout
     plannedExerciseCount,
     completedExerciseCount,
     exerciseCompletionPercent:
-      plannedExerciseCount > 0 ? Math.round((completedExerciseCount / plannedExerciseCount) * 100) : 0,
+      completion.planned > 0 ? Math.round((completion.completed / completion.planned) * 100) : 0,
     plannedRoundCount,
     completedRoundCount,
   }

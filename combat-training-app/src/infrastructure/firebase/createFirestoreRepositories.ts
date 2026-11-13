@@ -135,6 +135,12 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
         await Promise.all(localWrites)
       },
       updateNote: sessions.updateNote.bind(sessions), delete: sessions.delete.bind(sessions),
+      saveQuickTimerFeedback: async (id, feedback) => {
+        const current = sessions.getItems().find((session) => session.id === id)
+        if (!current) return false
+        if (current.source !== 'quickTimer') throw new Error('Expected a quick timer entry')
+        return sessions.updateFields(id, feedback, () => updateDoc(doc(collection(db, 'users', uid, 'workoutSessions'), id), feedback))
+      },
       saveRpe: async (id, rpe, recordedAt) => {
         const fields = { rpe, rpeRecordedAt: recordedAt, updatedAt: recordedAt }
         return sessions.updateFields(id, fields, () => updateDoc(doc(collection(db, 'users', uid, 'workoutSessions'), id), fields))

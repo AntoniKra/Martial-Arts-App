@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
+import type { QuickTimerWorkoutSession } from '@/domain/workout-session/workoutSession.types'
+import { prepareQuickTimerFeedback } from '@/domain/quick-timer/quickTimerFeedback'
 import { manualWorkoutSession } from '@/test/manualWorkoutBuilder'
 
 const sdk = vi.hoisted(() => ({
@@ -99,4 +101,25 @@ describe('workout feedback repository', () => {
     await expect(saved).resolves.toBe(true)
     expect(changed.mock.lastCall?.[0].pendingIds).toEqual(new Set(['session-1']))
   })
+})
+
+it('validates quick timer feedback and resolves from the local snapshot without overwriting RPE', async () => {
+  const { sessions } = createFirestoreRepositories('athlete')
+  const changed = vi.fn()
+  sessions.subscribe(changed, vi.fn())
+  const plan = workoutSession({ stepResults: [sessionStep({ roundNumber: 1, roundCount: 1 })], rpe: 6, rpeRecordedAt: instant })
+  const { workoutPlanId: _planId, workoutPlanNameSnapshot: _name, focusRatings: _focus, exerciseRatings: _ratings, ...fields } = plan
+  const entry: QuickTimerWorkoutSession = { ...fields, source: 'quickTimer', category: 'bag', completion: { completed: 1, planned: 1, unit: 'round' } }
+  emit('workoutSessions', [entry])
+  const update = prepareQuickTimerFeedback(entry, { category: 'sparring', intensity: 'hard', note: 'Notes' }, instant)
+  const saved = sessions.saveQuickTimerFeedback(entry.id, update)
+  expect(sdk.updateDoc).toHaveBeenCalledWith('users/athlete/workoutSessions/session-1', update)
+  emit('workoutSessions', [{ ...entry, ...update }], true)
+  await expect(saved).resolves.toBe(true)
+  expect(changed.mock.lastCall?.[0]).toMatchObject({ items: [{ source: 'quickTimer', rpe: 6, sparringSeconds: 60 }], hasPendingWrites: true })
+  await expect(sessions.saveQuickTimerFeedback(entry.id, { ...update, note: 'n'.repeat(1001) })).rejects.toThrow()
+  expect(sdk.updateDoc).toHaveBeenCalledOnce()
+  emit('workoutSessions', [plan])
+  await expect(sessions.saveQuickTimerFeedback(plan.id, update)).rejects.toThrow('Expected a quick timer entry')
+  await expect(sessions.saveQuickTimerFeedback('missing', update)).resolves.toBe(false)
 })

@@ -31,6 +31,7 @@ test.describe('offline with the PWA cache', () => {
   for (const theme of ['dark', 'light'] as const) {
     test(`queues a workout offline, displays pending status and sends it after reconnecting in ${theme}`, async ({ app, page, context }, testInfo) => {
       await app.createPlan('Trening bez sieci')
+      await app.prepareOffline()
       await app.setTheme(theme)
       await app.openPlayer()
       await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)

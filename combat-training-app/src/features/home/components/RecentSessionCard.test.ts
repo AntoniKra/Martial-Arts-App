@@ -50,3 +50,18 @@ describe('session card completion counters', () => {
     }
   })
 })
+
+it('shows only round completion and its percentage for quick timers on both session cards', () => {
+  const plan = workoutSession({ stepResults: [1, 2, 3].map((roundNumber) => sessionStep({ playbackStepId: `round-${roundNumber}`,
+    roundNumber, roundCount: 3, outcome: roundNumber === 1 ? 'completed' : 'skipped', performedDurationSeconds: roundNumber === 1 ? 60 : 0 })) })
+  const session = { ...plan, source: 'quickTimer' as const, completion: { completed: 1, planned: 3, unit: 'round' as const } }
+  const cards = [createElement(RecentSessionCard, { session: mapWorkoutSessionToHomeRecentSession(session) }),
+    createElement(WorkoutHistoryCard, { session: mapWorkoutSessionToHistoryListItem(session),
+      onUpdateNote: async () => 'applied' as const, onDelete: async () => 'applied' as const })]
+  for (const card of cards) {
+    const markup = renderToStaticMarkup(createElement(MemoryRouter, null, card))
+    expect(markup.replace(/<[^>]+>/g, '')).toContain('1/3 rund')
+    expect(markup).not.toContain('ćwiczeń')
+    expect(markup).toContain('width:33%')
+  }
+})
