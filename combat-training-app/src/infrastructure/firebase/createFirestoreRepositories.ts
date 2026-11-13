@@ -38,7 +38,7 @@ export async function clearFirestoreCache(): Promise<void> {
   }
 }
 
-export function createFirestoreRepositories(uid: string): WorkoutRepositories {
+export function getAccountDatabase(): Firestore {
   if (!database) {
     const config = readFirebaseConfig(import.meta.env)
     if (config.projectId.startsWith('demo-') && !config.firestoreEmulatorHost) throw new Error('Demo project requires a Firestore emulator')
@@ -50,6 +50,11 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
       connectFirestoreEmulator(database, host, Number(port))
     }
   }
+  return database
+}
+
+export function createFirestoreRepositories(uid: string): WorkoutRepositories {
+  const database = getAccountDatabase()
   const plans = new FirestoreWorkoutRepository(database, uid, 'workoutPlans', (value) => {
     const { schemaVersion: _version, ...plan } = workoutPlanDocumentSchema.parse(value)
     return plan

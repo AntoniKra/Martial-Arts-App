@@ -80,9 +80,9 @@ describe('Firebase AuthService', () => {
   it('settles the Google redirect result and rejects with its error', async () => {
     const service = createFirebaseAuthService(config, phone)
     vi.mocked(sdk.getRedirectResult).mockResolvedValueOnce(null)
-    await expect(service.completeGoogleRedirect()).resolves.toBeUndefined()
+    await expect(service.completeGoogleRedirect()).resolves.toBeNull()
     vi.mocked(sdk.getRedirectResult).mockRejectedValueOnce({ code: 'auth/account-exists-with-different-credential' })
-    await expect(service.completeGoogleRedirect()).rejects.toEqual({ code: 'auth/account-exists-with-different-credential' })
+    await expect(createFirebaseAuthService(config, phone).completeGoogleRedirect()).rejects.toEqual({ code: 'auth/account-exists-with-different-credential' })
     expect(sdk.getRedirectResult).toHaveBeenCalledWith(fake.auth)
   })
   it.each([
@@ -159,4 +159,12 @@ describe('Firebase AuthService', () => {
     callback({ uid: 'invalid' } as sdk.User)
     expect(onError).toHaveBeenCalledOnce()
   })
+})
+
+it('exposes the redirect operation once even when multiple consumers settle it', async () => {
+  vi.mocked(sdk.getRedirectResult).mockResolvedValue({ operationType: 'reauthenticate' } as sdk.UserCredential)
+  const service = createFirebaseAuthService(config)
+  expect(await service.completeGoogleRedirect()).toBe('reauthenticate')
+  expect(await service.completeGoogleRedirect()).toBe('reauthenticate')
+  expect(sdk.getRedirectResult).toHaveBeenCalledOnce()
 })

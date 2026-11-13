@@ -42,6 +42,7 @@ export function createFirebaseAuthService(
   const google = new GoogleAuthProvider()
   google.setCustomParameters({ prompt: 'select_account' })
 
+  let redirectResult: ReturnType<typeof getRedirectResult> | undefined
   return {
     async register(email, password) {
       await createUserWithEmailAndPassword(auth, email, password)
@@ -54,7 +55,8 @@ export function createFirebaseAuthService(
       else await signInWithPopup(auth, google)
     },
     async completeGoogleRedirect() {
-      await getRedirectResult(auth)
+      redirectResult ??= getRedirectResult(auth)
+      return (await redirectResult)?.operationType ?? null
     },
     async signOut() {
       if (auth.currentUser) createActiveWorkoutRepository(auth.currentUser.uid).clear()

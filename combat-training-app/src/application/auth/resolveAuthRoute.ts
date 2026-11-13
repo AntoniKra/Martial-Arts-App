@@ -13,7 +13,7 @@ export function isActiveWorkoutPath(pathname: string): boolean {
 export function safeReturnTo(value: unknown): string {
   if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//') || /[\\\s]/.test(value)) return '/'
   const pathname = value.split(/[?#]/)[0].replace(/\/+$/, '') || '/'
-  return authPaths.includes(pathname) ? '/' : value
+  return authPaths.includes(pathname) || pathname === '/profile/delete-account' ? '/' : value
 }
 
 export function resolveAuthRoute(
