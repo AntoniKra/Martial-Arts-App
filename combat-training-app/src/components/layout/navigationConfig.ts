@@ -2,7 +2,7 @@ import { routes } from '@/app/routes'
 
 export type NavigationItemId = 'home' | 'workouts' | 'newWorkout' | 'progress' | 'profile'
 
-export type NavigationMatchMode = 'exact' | 'workoutsSection' | 'section'
+export type NavigationMatchMode = 'exact' | 'workoutsSection' | 'section' | 'newWorkout'
 
 export interface NavigationItemConfig {
   id: NavigationItemId
@@ -24,6 +24,8 @@ export function isNavigationItemActive(pathname: string, item: NavigationItemCon
   const normalizedNewWorkout = normalizeNavigationPathname(routes.newWorkout)
 
   switch (item.match) {
+    case 'newWorkout':
+      return [routes.newWorkout, routes.quickTimer, routes.newManualWorkout].some((path) => normalizedPath === path)
     case 'section':
       return normalizedPath === normalizedTarget || normalizedPath.startsWith(`${normalizedTarget}/`)
     case 'exact':
@@ -61,7 +63,7 @@ export const primaryNavigationItems: readonly NavigationItemConfig[] = [
     id: 'newWorkout',
     to: routes.newWorkout,
     label: 'Nowy',
-    match: 'exact',
+    match: 'newWorkout',
     mobileVariant: 'create',
   },
   { id: 'progress', to: routes.progress, label: 'Postęp', match: 'section', mobileVariant: 'default' },

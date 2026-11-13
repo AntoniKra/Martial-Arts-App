@@ -86,3 +86,13 @@ Decyzje właściciela i techniczne z 8 listopada 2026, issue #65 (Q8):
 - Zapis znika po przyjęciu wpisu przez lokalną pamięć Firestore, bez czekania na serwer, po „Porzuć”, po wylogowaniu (razem z czyszczeniem pamięci Firestore) i przy wyjściu z przygotowania. Błąd zapisu wpisu pozostawia możliwość ponowienia z tym samym identyfikatorem sesji.
 - Po wznowieniu widoczny jest przycisk „Dźwięk wyłączony — stuknij, aby włączyć”. Stuknięcie wywołuje `unlockGong` i usuwa przycisk. Inne sterowanie wymagające dźwięku również może go odblokować gestem użytkownika.
 - Kilka kart z tym samym treningiem i synchronizacja między urządzeniami pozostają poza zakresem: wygrywa ostatni zapis. Powrót z ukrytej karty bez przeładowania zachowuje dotychczasowe zasady nadrabiania czasu.
+
+## Szybki stoper (issue #105)
+
+- `/quick-timer` to leniwy ekran ustawień we wspólnym układzie; `/quick-timer/active` to leniwy odtwarzacz poza tym układem. Bez konfiguracji przekazanej z ustawień ani aktywnego stopera druga trasa wraca do pierwszej.
+- `createQuickTimerPlan` tworzy jednorazowy `WorkoutPlan` „Szybki stoper”: jeden blok wybranego rodzaju, jedno ćwiczenie rundowe nazwane etykietą rodzaju, bez biblioteki i ćwiczenia celu. Plan przechodzi schemat dokumentu, ale nie jest zapisywany w Firestore. Sparing zaczyna z `sparringIntensity: null`.
+- **Start** w ustawieniach jedynie otwiera odtwarzacz w stanie początkowym. **Rozpocznij trening** w odtwarzaczu uruchamia istniejące przygotowanie i odblokowanie dźwięku. Zegar, gongi, sygnał 10 s, Wake Lock, pauza, ±15 s i „Poprzedni” są wspólne z planem.
+- Opcjonalne `ActiveWorkout.source` ma wartości `plan` i `quickTimer`; brak pola nadal oznacza plan, bez zmiany `schemaVersion: 1`, klucza pamięci lub jej czyszczenia. Bramka odzyskiwania kieruje stoper na `/quick-timer/active`, także po utracie sesji uwierzytelnienia dopuszczonego odtwarzacza.
+- Zapis następuje w tym samym momencie co dla planu. Rejestrator, odtworzenie zakończonego niezapisanego treningu i okno przerwanego treningu używają tej samej funkcji budującej wpis według źródła. Przerwanie po czasie dłuższym niż stoper albo po 12 h liczy tylko pracę do ostatniej aktywności. Stoper zachowuje nazwę „Szybki stoper”.
+- Wpis `quickTimer` ma czas i status zgodne z ADR 0005, realizację w ukończonych rundach wobec zaplanowanych oraz rodzaj pojedynczego bloku. Sparing zapisuje `{ blockId: null, intensity: null, rounds }`; brak ukończonej pracy nie tworzy wpisu.
+- Konfiguracja stopera jest walidowana i przechowywana pod `combat-training.quickTimer.{uid}`. Rodzaj i dyscyplina należą do konta na urządzeniu; przygotowanie i sygnał 10 s pozostają ustawieniami całego urządzenia. Błąd pamięci nie blokuje startu.

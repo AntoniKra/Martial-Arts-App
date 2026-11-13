@@ -111,3 +111,13 @@ describe('active workout local storage', () => {
     expect(repository.read()).toBeNull()
   })
 })
+
+it('round-trips quickTimer source and still reads version 1 snapshots without a source', () => {
+  const repository = createActiveWorkoutRepository('owner')
+  const saved = snapshot()
+  repository.save(saved)
+  expect(repository.read()).toEqual(saved)
+  expect(repository.read()?.source).toBeUndefined()
+  repository.save({ ...saved, source: 'quickTimer' })
+  expect(repository.read()?.source).toBe('quickTimer')
+})

@@ -3,6 +3,7 @@ import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { createWorkoutFocusRatings } from './workoutFocusRatings'
 import type {
   PlanWorkoutSession,
+  QuickTimerWorkoutSession,
   FocusRating,
   SparringEntry,
   WorkoutSessionCategory,
@@ -140,3 +141,26 @@ export function createPlanWorkoutSession(fields: PlanSessionFields, options: Pla
   if (options.durations.workSeconds === 0) return { kind: 'noWork' }
   return { kind: 'save', session: definePlanWorkoutSession(fields, options) }
 }
+
+export function calculateCompletedWorkoutRounds(steps: readonly WorkoutSessionStepResult[]): number {
+  return steps.filter((step) => step.kind === 'exercise' && step.roundNumber !== null && step.outcome === 'completed').length
+}
+
+export function defineQuickTimerWorkoutSession(
+  fields: Pick<QuickTimerWorkoutSession, 'id' | 'disciplineKey' | 'startedAt' | 'completedAt' | 'stepResults' | 'note'>,
+  options: Pick<PlanSessionOptions, 'timezone' | 'endedEarly' | 'durations'> & { category: Exclude<WorkoutSessionCategory, 'mixed'>; roundCount: number },
+): QuickTimerWorkoutSession {
+  return {
+    ...fields, source: 'quickTimer', ...options.durations,
+    status: calculateWorkoutSessionStatus(fields.stepResults, options.endedEarly),
+    completion: { completed: calculateCompletedWorkoutRounds(fields.stepResults), planned: options.roundCount, unit: 'round' },
+    category: options.category, workoutDate: calculateWorkoutDate(fields.startedAt, options.timezone), timezone: options.timezone,
+    rpe: null, rpeRecordedAt: null,
+    sparring: options.category === 'sparring' ? [{ blockId: null, intensity: null, rounds: calculateCompletedWorkoutRounds(fields.stepResults) }] : [],
+    createdAt: fields.completedAt, updatedAt: fields.completedAt,
+  }
+}
+
+export type RecordedWorkoutSessionResult =
+  | { kind: 'save'; session: PlanWorkoutSession | QuickTimerWorkoutSession }
+  | { kind: 'noWork' }

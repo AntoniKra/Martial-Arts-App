@@ -10,14 +10,15 @@ export function useActiveWorkoutPersistence(
   getRecording: () => WorkoutSessionRecording,
   repository?: ActiveWorkoutRepository,
   locallySaved = false,
+  source: 'plan' | 'quickTimer' = 'plan',
 ) {
   const discardedRef = useRef(false)
   const persist = useCallback(() => {
     const runtime = getPlaybackSnapshot()
     if (!repository || discardedRef.current || runtime.playback.status === 'idle') return
     if (runtime.playback.status === 'completed' && locallySaved) return
-    repository.save({ schemaVersion: 1, plan, ...runtime, recorder: getRecording(), lastSeenAt: Date.now() })
-  }, [plan, getPlaybackSnapshot, getRecording, repository, locallySaved])
+    repository.save({ schemaVersion: 1, source, plan, ...runtime, recorder: getRecording(), lastSeenAt: Date.now() })
+  }, [plan, getPlaybackSnapshot, getRecording, repository, locallySaved, source])
 
   useEffect(() => {
     if (document.visibilityState === 'visible') persist()

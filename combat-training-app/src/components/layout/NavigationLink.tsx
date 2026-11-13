@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react'
+import { NewWorkoutChoice } from './NewWorkoutChoice'
 import { Link, useLocation } from 'react-router-dom'
 
 import { NavigationIcon } from '@/components/layout/NavIcons'
@@ -18,7 +20,8 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
 
   if (variant === 'mobile-create') {
     return (
-      <Link
+      <NavigationControl
+        item={item}
         to={item.to}
         aria-current={active ? 'page' : undefined}
         className={[
@@ -41,13 +44,14 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
             className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-crimson"
           />
         ) : null}
-      </Link>
+      </NavigationControl>
     )
   }
 
   if (variant === 'desktop') {
     return (
-      <Link
+      <NavigationControl
+        item={item}
         to={item.to}
         aria-current={active ? 'page' : undefined}
         className={[
@@ -59,12 +63,13 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
       >
         {icon}
         <span>{item.label}</span>
-      </Link>
+      </NavigationControl>
     )
   }
 
   return (
-    <Link
+    <NavigationControl
+      item={item}
       to={item.to}
       aria-current={active ? 'page' : undefined}
       className={[
@@ -80,6 +85,11 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
           className="pointer-events-none absolute bottom-0 left-1/2 h-0.5 w-6 -translate-x-1/2 bg-crimson"
         />
       ) : null}
-    </Link>
+    </NavigationControl>
   )
+}
+
+function NavigationControl({ item, ...props }: ComponentProps<typeof Link> & { item: NavigationItemConfig }) {
+  if (item.id === 'newWorkout') return <NewWorkoutChoice active={props['aria-current'] === 'page'} className={props.className}>{props.children}</NewWorkoutChoice>
+  return <Link {...props} />
 }

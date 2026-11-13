@@ -15,6 +15,7 @@ const correctionText = z.string().check(z.minLength(1), z.maxLength(200))
 
 const activeWorkoutSchema = z.strictObject({
   schemaVersion: z.literal(1),
+  source: z.optional(z.enum(['plan', 'quickTimer'])),
   plan: z.custom<WorkoutPlan>((value) => typeof value === 'object' && value !== null
     && workoutPlanDocumentSchema.safeParse({ schemaVersion: 1, ...value }).success),
   playback: z.strictObject({ status: z.enum(['preparing', 'running', 'paused', 'completed']),

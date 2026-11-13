@@ -2,6 +2,8 @@ export const routes = {
   home: '/',
   workouts: '/workouts',
   newWorkout: '/workouts/new',
+  quickTimer: '/quick-timer',
+  quickTimerActive: '/quick-timer/active',
   newManualWorkout: '/workout-sessions/new',
   editManualWorkout: (sessionId: string) => `/workout-sessions/${sessionId}/edit`,
   progress: '/progress',

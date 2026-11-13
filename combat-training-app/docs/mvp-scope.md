@@ -8,7 +8,7 @@ Dokument nadrzędny to `thesis-card.md`. Wiąże temat pracy, a technologie i li
 - **Backend:** Firebase: Authentication, Cloud Firestore z trybem offline w regionie Warszawa i Hosting, z regułami bezpieczeństwa i ich testami (`adr/0004-firebase-as-baas.md`). Model danych: `database-model.md` (`adr/0008-firestore-document-model.md`), odczyt przez `onSnapshot` (`adr/0007-firestore-reads-with-onsnapshot.md`).
 - **Dziennik treningów:** przeglądanie, dodawanie, edycja i usuwanie wpisów z datą, dyscypliną, rodzajem, czasem trwania i notatką.
 - **Trzy sposoby dodania treningu:** szybki stoper, trening według planu, ręczny wpis treningu wykonanego poza aplikacją. Każdy kończy się wpisem w tym samym dzienniku, ze statusem (ukończony albo częściowy), czasem treningu, czasem pracy, realizacją i dniem rozpoczęcia (`adr/0005-journal-entry-definitions.md`).
-- **Szybki stoper interwałowy:** liczba rund, czas pracy i odpoczynku, gotowe formaty 3 × 3:00 z przerwą 1:00 i 3 × 3:00 z przerwą 0:30 (D1), gong, ekran, który nie gaśnie (Wake Lock).
+- **Szybki stoper interwałowy:** liczba rund, czas pracy i odpoczynku, wejście przez „+ Nowy”, sześć rodzajów wybieranych przed startem i zmienianych w podsumowaniu, gotowe formaty 3 × 3:00 z przerwą 1:00, 3 × 3:00 z przerwą treningową 0:30 oraz 3 × 2:00 z przerwą 1:00. Własny format: 1–50 rund, praca 0:05–10:00, przerwa 0:00–5:00. Gong, sygnał 10 s i ekran, który nie gaśnie (Wake Lock); wpis w dzienniku z realizacją w rundach i opcjonalną intensywnością sparingu (issue #105).
 - **Plany treningowe:** kreator, podgląd, zapis, edycja i usuwanie planu oraz odtwarzacz z okrągłym timerem. W planie do 3 ćwiczeń celu (Q1).
 - **Cele treningowe:** plan tygodnia z paskiem postępu. Pozycja to plan z aplikacji albo rodzaj treningu spoza aplikacji, np. sparing w klubie (R3, decyzja z 8.11). To moduł celów z karty pracy.
 - **Po treningu** (`feedback-system.md`): ocena ćwiczeń celu według kryterium z opisaną skalą 1–5 (R1), notatka „problem i poprawka” ze sprawdzeniem na kolejnym treningu (R2), ocena pozostałych ćwiczeń opcjonalnie, RPE po 10 minutach wyciszenia z przypomnieniem w aplikacji (Q2), intensywność sparingu i twarde rundy (Q4), notatka.
@@ -72,5 +72,4 @@ Funkcje społecznościowe, funkcje AI, integracje ze smartwatchami, komunikaty g
 ## Otwarte decyzje
 
 - Opisy stopni skali gotowości: w issue gotowości.
-- Rodzaj treningu w szybkim stoperze: w issue stopera.
 - Pytanie o trwałe przechowywanie w Firefoksie: zostaje po zalogowaniu albo przechodzi po pierwszym zapisanym treningu.

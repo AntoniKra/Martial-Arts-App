@@ -76,3 +76,9 @@ Nowe moduły przyszłe trafiają do `features`, np.:
 - `strength-training` i `combination-builder` w kierunkach rozwoju.
 
 Nie dodawaj pustych abstrakcji wyłącznie „na przyszłość”. Model ma nie blokować rozbudowy, ale implementujemy tylko potrzebne interfejsy.
+
+### Szybki stoper (issue #105)
+
+`/quick-timer` (`QuickTimerPage`) i `/quick-timer/active` (`QuickTimerPlayerPage`) są leniwymi trasami. Druga współdzieli `WorkoutPlayerView` z planem i pozostaje poza `AppLayout`. W paczce startowej jest małe natywne okno „Nowy” bez nowych zależności; konfiguracja, formularz, ustawienia i podsumowanie stopera ładują się z trasami. Pliki są w precache PWA. Czysta konfiguracja i jednorazowy plan znajdują się w `domain/quick-timer`, wspólne formaty rund w `domain/workout/roundFormatPresets.ts`, a ustawienia konta na urządzeniu w `infrastructure/storage/quickTimerStorage.ts` (walidacja `zod/mini`). Przygotowanie i sygnał 10 s używają istniejących magazynów urządzenia.
+
+Pomiar startowego JS (suma gzip pliku wejściowego i statycznych zależności wskazanych w `dist/index.html`, `node:zlib.gzipSync`, te same warunki `npm run build`): **165,366 kB przed → 167,323 kB po**, wzrost **1,957 kB** (około 1,18%). Nowe leniwe pliki: `QuickTimerPage` 2,440 kB gzip, `QuickTimerPlayerPage` 0,667 kB oraz współdzielone `QuickTimerCategoryField` 0,589 kB; odtwarzacz korzysta ze wspólnego pliku `WorkoutPlayerView`. Bez nowych zależności i bez zmian budżetu około 200 kB gzip.

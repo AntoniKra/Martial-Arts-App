@@ -20,7 +20,8 @@ function AccountActiveWorkout({ uid, children }: PropsWithChildren<{ uid: string
     setRecovery({ kind: 'none' })
   } }), [storage])
   const [opened, setOpened] = useState(false)
-  const target = recovery.kind === 'none' ? null : routes.workoutActive(recovery.workout.plan.id)
+  const target = recovery.kind === 'none' ? null : recovery.workout.source === 'quickTimer'
+    ? routes.quickTimerActive : routes.workoutActive(recovery.workout.plan.id)
   if (!opened && location.pathname === target) setOpened(true)
   if (!opened && target && location.pathname !== target) return <Navigate to={target} replace />
   return <ActiveWorkoutContext.Provider value={{ recovery, repository }}>{children}</ActiveWorkoutContext.Provider>

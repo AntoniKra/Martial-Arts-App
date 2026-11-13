@@ -10,12 +10,12 @@ interface WorkoutCompletionCountsProps {
 export function WorkoutCompletionCounts({ counts }: WorkoutCompletionCountsProps) {
   return (
     <>
-      <span className="whitespace-nowrap">
+      {counts.plannedExercises > 0 && <span className="whitespace-nowrap">
         <span className="font-semibold tabular-nums text-ink">
           {counts.completedExercises}/{counts.plannedExercises}
         </span>{' '}
         ćwiczeń
-      </span>
+      </span>}
       {counts.plannedRounds !== null ? (
         <span className="whitespace-nowrap">
           <span className="font-semibold tabular-nums text-ink">

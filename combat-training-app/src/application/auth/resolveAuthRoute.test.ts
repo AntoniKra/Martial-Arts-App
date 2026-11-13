@@ -63,3 +63,9 @@ describe('safeReturnTo', () => {
     expect(safeReturnTo(value)).toBe('/')
   })
 })
+
+it('keeps an admitted quick timer after session loss, while protecting direct entry and settings', () => {
+  expect(resolveAuthRoute(signedOut, '/quick-timer/active', undefined, true)).toEqual({ type: 'allow' })
+  expect(resolveAuthRoute(signedOut, '/quick-timer/active')).toMatchObject({ type: 'redirect', to: '/login' })
+  expect(resolveAuthRoute(signedOut, '/quick-timer', undefined, true)).toMatchObject({ type: 'redirect', to: '/login' })
+})

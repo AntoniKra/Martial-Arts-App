@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react'
-import type { PlanWorkoutSession } from '@/domain/workout-session/workoutSession.types'
+import type { PlanWorkoutSession, QuickTimerWorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { useSharedWorkoutGong } from '@/application/audio/workoutGongContext'
 import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
@@ -9,7 +9,7 @@ import { rpeLabels as labels } from './rpeLabels'
 import { useRpeCountdown } from './useRpeCountdown'
 
 export function WorkoutRpeSummary({ session, uid, initialOpen, onSave, children }: {
-  session: PlanWorkoutSession; uid: string; initialOpen: boolean
+  session: PlanWorkoutSession | QuickTimerWorkoutSession; uid: string; initialOpen: boolean
   onSave: (value: number, recordedAt: string) => Promise<void>
   children: (card: ReactNode) => ReactNode
 }) {

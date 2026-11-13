@@ -5,7 +5,7 @@ import { test, expect } from './fixtures'
 const BLOCKING_IMPACTS: readonly string[] = ['critical', 'serious', 'moderate']
 
 for (const theme of ['dark', 'light'] as const) {
-  for (const screen of ['start', 'workouts', 'builder', 'player'] as const) {
+  for (const screen of ['start', 'workouts', 'builder', 'player', 'quickTimer'] as const) {
     test(`has no moderate, serious or critical axe violations on ${screen} in ${theme} theme`, async ({ app, page }, testInfo) => {
       if (screen === 'player') {
         await app.createPlan('Plan dostępności')
@@ -13,10 +13,10 @@ for (const theme of ['dark', 'light'] as const) {
         await app.openPlayer()
         await app.startWorkout()
       } else {
-        const path = screen === 'start' ? '/' : screen === 'workouts' ? '/workouts' : '/workouts/new'
+        const path = screen === 'start' ? '/' : screen === 'workouts' ? '/workouts' : screen === 'quickTimer' ? '/quick-timer' : '/workouts/new'
         await app.open(path)
         await app.setTheme(theme)
-        const heading = screen === 'workouts' ? 'Treningi' : screen === 'builder' ? 'Nowy trening' : undefined
+        const heading = screen === 'workouts' ? 'Treningi' : screen === 'builder' ? 'Nowy trening' : screen === 'quickTimer' ? 'Szybki stoper' : undefined
         if (heading) await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
       }
 
