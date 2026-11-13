@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react'
+import { useId, useRef, useState } from 'react'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { useAuth } from './authContext'
 import { authLabels } from './authLabels'
@@ -15,7 +15,27 @@ export function SignOutButton({ hasPendingWrites = false, disabled = false, onEr
   const cancelRef = useRef<HTMLButtonElement>(null)
   const titleId = useId()
   const descriptionId = useId()
-  const busy = auth.busy || disabled
+  const [checkingWrites, setCheckingWrites] = useState(false)
+  const busy = auth.busy || disabled || checkingWrites
+
+  function showWarning() {
+    dialogRef.current?.showModal()
+    cancelRef.current?.focus()
+  }
+
+  async function requestSignOut() {
+    if (hasPendingWrites) {
+      showWarning()
+      return
+    }
+    setCheckingWrites(true)
+    try {
+      if (await auth.service.hasUnsentWrites()) showWarning()
+      else await signOut()
+    } finally {
+      setCheckingWrites(false)
+    }
+  }
 
   function closeDialog() {
     dialogRef.current?.close()
@@ -30,14 +50,7 @@ export function SignOutButton({ hasPendingWrites = false, disabled = false, onEr
   return <>
     <button ref={triggerRef} type="button" disabled={busy}
       className={getButtonClassName({ variant: 'ghost', size: 'sm', disabled: busy })}
-      onClick={() => {
-        if (hasPendingWrites) {
-          dialogRef.current?.showModal()
-          cancelRef.current?.focus()
-        } else {
-          void signOut()
-        }
-      }}>{authLabels.logout}</button>
+      onClick={() => void requestSignOut()}>{authLabels.logout}</button>
     <dialog ref={dialogRef} aria-labelledby={titleId} aria-describedby={descriptionId}
       onCancel={(event) => { event.preventDefault(); closeDialog() }}
       onKeyDown={(event) => {

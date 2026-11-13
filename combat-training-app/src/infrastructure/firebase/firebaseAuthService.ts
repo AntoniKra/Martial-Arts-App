@@ -58,6 +58,14 @@ export function createFirebaseAuthService(
       redirectResult ??= getRedirectResult(auth)
       return (await redirectResult)?.operationType ?? null
     },
+    async hasUnsentWrites() {
+      try {
+        const { hasUnsentWrites } = await import('./createFirestoreRepositories')
+        return await hasUnsentWrites()
+      } catch {
+        return true
+      }
+    },
     async signOut() {
       if (auth.currentUser) createActiveWorkoutRepository(auth.currentUser.uid).clear()
       try {

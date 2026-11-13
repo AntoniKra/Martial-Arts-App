@@ -300,7 +300,7 @@ Stare klucze `localStorage` z planami i sesjami aplikacja usuwa raz, po przejśc
 | `readiness` | **zaplanowane, jeszcze niewdrożone:** ostatnie 28 dni (`date >=`) |
 | `users/{uid}` | dokument zawsze po zalogowaniu |
 
-Profil i pomiary mają wspólnego providera danych z pozostałymi kolekcjami. `hasPendingWrites` obu źródeł wchodzi do ostrzeżenia przy wylogowaniu; wycofanie zamyka nasłuch pomiarów, a wylogowanie zamyka oba nasłuchy przed czyszczeniem cache.
+Profil i pomiary mają wspólnego providera danych z pozostałymi kolekcjami. `hasPendingWrites` obu źródeł wchodzi do ostrzeżenia przy wylogowaniu. Gdy migawki nie pokazują zaległych zapisów, aplikacja sprawdza całą kolejkę Firestore przez `waitForPendingWrites` z limitem 1 s: zakończenie pozwala wylogować bez okna, a limit czasu lub błąd powoduje ostrzeżenie. Obejmuje to także usunięcia i zapisy z poprzedniego uruchomienia. Wycofanie zgody zamyka nasłuch pomiarów, a wylogowanie zamyka wszystkie nasłuchy przed czyszczeniem cache. Wylogowanie czyści również pamięć IndexedDB z poprzednich uruchomień, gdy baza nie była jeszcze otwarta w tym uruchomieniu: tworzy instancję z tą samą konfiguracją (w tym emulatora), kończy ją i usuwa pamięć. Jeśli nie uda się wczytać samego modułu bazy, dotychczasowa obsługa błędu pozostaje bez zmian.
 
 - Bez zapytań z dwoma polami sortowania, więc bez indeksów złożonych.
 - **Koszt na planie Spark:** 50 000 odczytów dziennie. Po ponad 30 minutach bez połączenia Firestore liczy ponowne nasłuchiwanie jak nowe zapytanie, czyli odczyt wszystkich dokumentów kolekcji. Przy kilkudziesięciu wpisach na uczestnika badania to bezpieczne. Gdy użytkownik przekroczy 500 wpisów, historia dostanie stronicowanie.

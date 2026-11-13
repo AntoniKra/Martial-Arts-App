@@ -17,6 +17,41 @@ test.describe('offline with the PWA cache', () => {
   // Lazy routes need the same precache used by the installed application.
   test.use({ serviceWorkers: 'allow' })
 
+  test('warns about an offline deletion, retains it after cancellation and signs out without warning after sync', async ({ app, page, context }) => {
+    await app.createPlan('Wpis do usuniecia offline')
+    await app.openPlayer()
+    await app.finishWorkout()
+    await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)
+    await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+    await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+    await page.getByRole('radio', { name: 'Historia', exact: true }).check()
+    await expect(pending(page)).toHaveCount(0)
+    expect(await app.readSessions()).toHaveLength(1)
+
+    await context.setOffline(true)
+    await page.getByRole('button', { name: 'Usuń wpis', exact: true }).click()
+    await page.getByRole('button', { name: 'Usuń', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Brak ukończonych treningów', exact: true })).toBeVisible()
+    // Deleted documents disappear from query snapshots, including their pending metadata.
+    await expect(pending(page)).toHaveCount(0)
+    expect(await app.readSessions()).toHaveLength(1)
+    await logout(page).click()
+    await expect(logout(page)).toBeDisabled()
+    await expect(dialog(page)).toBeVisible()
+    const cancel = dialog(page).getByRole('button', { name: 'Anuluj', exact: true })
+    await expect(cancel).toBeFocused()
+    await cancel.click()
+    await expect(dialog(page)).not.toBeVisible()
+    await expect(logout(page)).toBeFocused()
+    expect(await app.readSessions()).toHaveLength(1)
+
+    await context.setOffline(false)
+    await expect.poll(async () => (await app.readSessions()).length).toBe(0)
+    await logout(page).click()
+    await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
+    expect(await firestoreDatabases(page)).toEqual([])
+  })
+
   for (const theme of ['dark', 'light'] as const) {
     test(`warns about an offline workout, cancels safely and clears the cache on confirmation in ${theme}`, async ({ app, page, context }, testInfo) => {
       await app.createPlan('Trening przed wylogowaniem')
