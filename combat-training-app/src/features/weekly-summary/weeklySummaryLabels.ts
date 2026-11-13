@@ -1,3 +1,5 @@
+import type { WeeklySummary } from '@/domain/weekly-summary/weeklySummary'
+
 export const weeklySummaryLabels = {
   title: 'Podsumowanie treningów',
   workouts: 'Treningi',
@@ -20,6 +22,14 @@ export const weeklySummaryLabels = {
   noRpe: 'Brak RPE',
   noLoad: 'Brak obciążenia',
   noData: 'Brak danych',
+  comparison: 'Na tle 3 poprzednich tygodni',
+  comparisonMetric: 'Miara',
+  currentWeek: 'Ten tydzień',
+  currentWeekOngoing: 'Ten tydzień (trwa)',
+  typicalWeek: 'Zwykle',
+  incompleteLoad: 'Brak pełnych danych',
+  comparisonUnavailable: 'Porównanie pojawi się po 3 pełnych tygodniach treningów.',
+  comparisonHint: 'Zwykle = średnia z 3 tygodni przed tym tygodniem. Tygodnie bez treningów liczą się jako 0. To opis, nie ocena.',
   empty: 'Brak treningów w tym tygodniu',
   loading: 'Wczytywanie podsumowania treningów…',
   error: 'Nie udało się wczytać treningów do podsumowania.',
@@ -39,6 +49,15 @@ export const weeklySummaryLabels = {
 } as const
 
 const loadFormatter = new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 1 })
+const workoutCountFormatter = new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+
+export function formatTypicalWorkoutCountPl(count: number): string {
+  return workoutCountFormatter.format(count)
+}
+
+export function formatWeeklyLoadPl({ workoutCount, load }: WeeklySummary): string {
+  return workoutCount === 0 ? formatTrainingLoadPl(0) : load.units === null ? weeklySummaryLabels.noData : formatTrainingLoadPl(load.units)
+}
 
 export function formatTrainingLoadPl(units: number): string {
   return `${loadFormatter.format(units)} j.u.`

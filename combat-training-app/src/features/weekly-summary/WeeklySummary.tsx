@@ -3,10 +3,12 @@ import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { calculateWeeklySummary, type RecordedTime, type WeeklySummary as WeeklySummaryData } from '@/domain/weekly-summary/weeklySummary'
 import { calculateWeeklySeries } from '@/domain/weekly-summary/weeklySeries'
+import { calculateTypicalWeek } from '@/domain/weekly-summary/typicalWeek'
 import { formatActiveDurationSecondsPl } from '@/features/workouts/utils/formatWorkoutSessionLabels'
 import { LoadDetails } from './LoadDetails'
 import { WeeklyChart } from './WeeklyChart'
-import { formatTrainingLoadPl, weeklySummaryLabels as labels } from './weeklySummaryLabels'
+import { TypicalWeekComparison } from './TypicalWeekComparison'
+import { formatWeeklyLoadPl, weeklySummaryLabels as labels } from './weeklySummaryLabels'
 
 function RecordedTimeRow({ time, total, label, recordedLabel }: {
   time: RecordedTime; total: number; label: string; recordedLabel: string
@@ -19,12 +21,13 @@ function RecordedTimeRow({ time, total, label, recordedLabel }: {
   </div>
 }
 
-function LoadRows({ summary: { load, workoutCount } }: { summary: WeeklySummaryData }) {
+function LoadRows({ summary }: { summary: WeeklySummaryData }) {
+  const { load, workoutCount } = summary
   const incomplete = load.knownCount < workoutCount
   return <>
     <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1">
       <dt className="text-sm text-muted">{incomplete ? labels.recordedLoad : labels.load}</dt>
-      <dd className="tabular-nums">{workoutCount === 0 ? formatTrainingLoadPl(0) : load.units === null ? labels.noData : formatTrainingLoadPl(load.units)}</dd>
+      <dd className="tabular-nums">{formatWeeklyLoadPl(summary)}</dd>
       <dd className="col-span-2 text-xs text-muted">{labels.loadHint}</dd>
       {workoutCount > 0 && <dd className="col-span-2 text-sm">{labels.rpe(load.knownCount, workoutCount)}</dd>}
       {incomplete && load.knownCount > 0 && <dd className="col-span-2 text-xs text-muted">{labels.loadPartial}</dd>}
@@ -60,6 +63,7 @@ export function WeeklySummary({ weekStart }: { weekStart: string }) {
         <RecordedTimeRow time={summary.sparring} total={summary.workoutCount} label={labels.sparring} recordedLabel={labels.recordedSparring} />
         <LoadRows summary={summary} />
       </dl>
+      <TypicalWeekComparison typical={calculateTypicalWeek(weekStart, sessions.items)} summary={summary} isCurrent={weekStart === currentWeek} />
       {summary.sessionLoads.length > 0 && <LoadDetails sessionLoads={summary.sessionLoads} />}
       {sessions.hasPendingWrites && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
       <WeeklyChart weeks={calculateWeeklySeries(weekStart, sessions.items, currentWeek)} />
