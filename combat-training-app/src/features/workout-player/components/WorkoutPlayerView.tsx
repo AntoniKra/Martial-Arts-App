@@ -287,7 +287,7 @@ function WorkoutPlayerRuntime({
 }: WorkoutPlayerRuntimeProps) {
   const [preparation] = useState(readStoredWorkoutPreparation)
   const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly, getRecording } = useWorkoutSessionRecorder(plan, timeline, initialWorkout?.recorder, focusSkills)
-  const { unlockGong, onGongPlaybackEvent } = useWorkoutGong(timeline)
+  const { unlockGong, onGongPlaybackEvent, playEndWarning } = useWorkoutGong(timeline)
   const [soundMuted, setSoundMuted] = useState(!!initialWorkout)
   const enableSound = useCallback(() => { unlockGong(); setSoundMuted(false) }, [unlockGong])
   const handlePlaybackEvent = useCallback((event: WorkoutPlaybackEvent) => {
@@ -316,7 +316,8 @@ function WorkoutPlayerRuntime({
     restart,
     adjustTime,
     getPlaybackSnapshot,
-  } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent, preparation, initialWorkout })
+  } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent, onEndWarning: playEndWarning,
+    preparation, initialWorkout })
 
   const discard = useActiveWorkoutPersistence(plan, playback, getPlaybackSnapshot, getRecording, activeWorkoutRepository,
     saveState.status === 'saved' || hasNoWork)

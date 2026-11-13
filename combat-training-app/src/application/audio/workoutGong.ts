@@ -1,4 +1,4 @@
-export type WorkoutGongSignal = 'workEnd' | 'restEnd' | 'workoutEnd'
+export type WorkoutGongSignal = 'workEnd' | 'restEnd' | 'workoutEnd' | 'endingSoon'
 
 export interface WorkoutGong {
   unlock: () => void

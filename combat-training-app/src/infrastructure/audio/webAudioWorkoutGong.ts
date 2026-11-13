@@ -47,6 +47,12 @@ function playSignal(context: AudioContext, signal: WorkoutGongSignal): void {
       strike(context, 660, now, 0.3)
       strike(context, 880, now + 0.25, 0.3)
       strike(context, 1100, now + 0.5, 0.7)
+      return
+    case 'endingSoon':
+      // Short, low percussive knocks, distinct from the sustained transition bells.
+      strike(context, 220, now, 0.04)
+      strike(context, 220, now + 0.12, 0.04)
+      strike(context, 220, now + 0.24, 0.04)
   }
 }
 
