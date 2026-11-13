@@ -88,7 +88,7 @@ Nowa sesja z planu otrzymuje ID z `crypto.randomUUID()` przy rozpoczęciu pierws
 | `source` | `plan`, `quickTimer`, `manual` | ADR 0005 |
 | `status` | `completed`, `partial` | Ręczny wpis ma zawsze `completed` |
 | `disciplineKey` | klucz dyscypliny | |
-| `category` | typ bloku bez rozgrzewki i rozluźnienia albo `mixed` | ADR 0005. Szybki stoper: wybór użytkownika, ustalimy w jego issue |
+| `category` | typ bloku bez rozgrzewki i rozluźnienia albo `mixed` | ADR 0005. Szybki stoper: jeden z sześciu rodzajów (bez rozgrzewki, rozluźnienia i `mixed`), wybierany w oknie „Nowy” i zmieniany w podsumowaniu (`feedback-system.md`) |
 | `workoutDate`, `timezone` | dzień, strefa IANA | ADR 0005 |
 | `durationSeconds` | liczba > 0 | Czas treningu; z odtwarzacza może mieć ułamki sekundy, ręczny: liczba całkowita 60–28 800 |
 | `workSeconds`, `sparringSeconds` | liczba całkowita ≥ 0 albo `null` | `null` tylko w ręcznym wpisie („nieznane”) |
@@ -272,6 +272,9 @@ Wdrożone pomiary z datą jako kluczem dokumentu.
 | Co | Gdzie | Dlaczego |
 | --- | --- | --- |
 | Motyw (D4) | `localStorage` urządzenia | Wybór dotyczy urządzenia |
+| Przygotowanie przed treningiem i sygnał 10 s | `localStorage` urządzenia, bez `uid` | Ustawienia urządzenia; zostają po usunięciu konta |
+| Ostatnie ustawienia szybkiego stopera | `localStorage`, klucz `combat-training.quickTimer.{uid}` | Dyscyplina, rodzaj, format, liczba rund, czas pracy i przerwy na następny raz; zostają po wylogowaniu, usuwane razem z kontem |
+| Zamknięte przypomnienia RPE | `localStorage`, klucz `combat-training.rpeDismissals.{uid}` | ID wpisów, przy których zamknięto przypomnienie o RPE na Start; zostają po wylogowaniu, usuwane razem z kontem |
 | Trwający trening do wznowienia (Q8) | pamięć urządzenia, osobno dla każdego `uid` | Zmienia się co sekundę, a po zapisie wpisu jest kasowany |
 | Szkic kreatora | pamięć urządzenia | Zapis w chmurze dopiero po świadomej akcji |
 | Pamięć podręczna Firestore | IndexedDB (`persistentLocalCache`) | Czyszczona przy wylogowaniu |
