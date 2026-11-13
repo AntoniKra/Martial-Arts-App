@@ -75,6 +75,9 @@ export function createFirebaseAuthService(
     async refreshVerification() {
       const user = auth.currentUser
       if (!user) return null
+      // Security rules read email_verified from the ID token, and reload() alone keeps the token issued at sign-up
+      // for up to an hour. Refresh it first, so listeners never see a verified user with a stale token.
+      await user.getIdToken(true)
       await reload(user)
       return toSession(auth.currentUser)
     },

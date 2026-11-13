@@ -51,6 +51,9 @@ test('adds sparring from home, shows manual cards, and counts toward summary and
   await expect(recent).toContainText('Trening poza aplikacją · Sparing')
   await expect(recent).toContainText('90 min')
   await expect(recent).not.toContainText('0/0')
+  // Reload only after the server acknowledged the entry: an immediate reload can drop the local write.
+  await expect.poll(async () => (await app.readSessions()).length).toBe(1)
+  await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
   const history = await app.openHistory()
   await expect(historyCard(page)).toBeVisible()
   await expect(historyCard(page)).toContainText('RPE 7')
@@ -72,6 +75,9 @@ test('marks a four-day-old RPE in history and load details and returns to histor
   await save(page)
   await expect(page).toHaveURL(/\/workouts\?tab=history$/)
   await expect(historyCard(page).getByText('z pamięci', { exact: true })).toBeVisible()
+  // Reload only after the server acknowledged the entry: an immediate reload can drop the local write.
+  await expect.poll(async () => (await app.readSessions()).length).toBe(1)
+  await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
   await app.open('/progress/week/2026-11-02')
   await summary(page).getByText('Szczegóły obciążenia', { exact: true }).click()
   await expect(summary(page).getByText('z pamięci', { exact: true })).toBeVisible()
