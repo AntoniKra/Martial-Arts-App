@@ -43,6 +43,8 @@ describe('WeeklySummary collection states', () => {
     expect(html).not.toContain('Szczegóły obciążenia')
     expect(html).not.toContain('Ostatnie 12 tygodni')
     expect(html).not.toContain('role="img"')
+    expect(html).not.toContain('Na tle 3 poprzednich tygodni')
+    expect(html).not.toContain('Porównanie pojawi się')
   })
 
   it('renders recovered data, then recalculates when the collection changes', () => {
@@ -91,6 +93,51 @@ describe('WeeklySummary collection states', () => {
     expect(html).not.toContain('Suma obejmuje')
     expect(html).not.toContain('Szczegóły obciążenia')
     expect(html).toContain('Pokaż dane')
+  })
+})
+
+describe('WeeklySummary typical week comparison', () => {
+  const comparison = (html: string) => html.match(/<table[^>]*><caption[^>]*>Na tle 3 poprzednich tygodni[\s\S]*?<\/table>/)?.[0]
+  const cells = (html: string) => [...(comparison(html) ?? '').matchAll(/<td[^>]*>([^<]*)<\/td>/g)].map((match) => match[1])
+  const previous = [timed('first', '2026-10-19', 60, 5), timed('second', '2026-10-26', 30, 4),
+    timed('third', '2026-11-02', 30, 3), timed('fourth', '2026-11-08', 60, 0)]
+
+  it('shows only the explanatory sentence for short or empty history', () => {
+    expect(render()).toContain('Porównanie pojawi się po 3 pełnych tygodniach treningów.')
+    expect(comparison(render())).toBeUndefined()
+    data.sessions.items = []
+    expect(render()).toContain('Porównanie pojawi się po 3 pełnych tygodniach treningów.')
+  })
+
+  it('renders caption and scoped headers before load details, with shared formatting and a neutral explanation', () => {
+    data.sessions.items = [...previous, timed('current', weekStart, 130, 3)]
+    const html = render()
+    const table = comparison(html) ?? ''
+    expect(table).toContain('<th scope="col" class="pb-2 pr-2">Ten tydzień (trwa)</th>')
+    expect(table).toContain('Zwykle</th>')
+    expect(table.match(/scope="row"/g)).toHaveLength(3)
+    expect(cells(html)).toEqual(['1', '1,3', '130 min', '60 min', '390 j.u.', '170 j.u.'])
+    expect(cells(html)[2]).toBe(row(html, 'Czas treningu'))
+    expect(cells(html)[4]).toBe(row(html, 'Obciążenie tygodnia'))
+    expect(html.indexOf(table)).toBeLessThan(html.indexOf('Szczegóły obciążenia'))
+    expect(html).toContain('Zwykle = średnia z 3 tygodni przed tym tygodniem. Tygodnie bez treningów liczą się jako 0. To opis, nie ocena.')
+    data.currentWeek = '2026-11-16'
+    expect(comparison(render())).toContain('>Ten tydzień</th>')
+    expect(comparison(render())).not.toContain('(trwa)')
+  })
+
+  it('distinguishes incomplete usual load and unknown current load from known zero', () => {
+    data.sessions.items = [...previous, timed('missing', '2026-10-27', 30, null), timed('current', weekStart, 30, null)]
+    expect(cells(render())).toEqual(['1', '1,7', '30 min', '70 min', 'Brak danych', 'Brak pełnych danych'])
+    data.sessions.items = [...previous, timed('current', weekStart, 30, 0)]
+    expect(cells(render())[4]).toBe('0 j.u.')
+    data.sessions.items = [...previous, timed('known', weekStart, 30, 3), timed('unknown', weekStart, 10, null)]
+    expect(cells(render())[4]).toBe(row(render(), 'Zarejestrowane obciążenie'))
+  })
+
+  it('retains zero for a genuinely empty selected week and for three empty previous weeks', () => {
+    data.sessions.items = [timed('old', '2026-10-18', 30, null)]
+    expect(cells(render())).toEqual(['0', '0,0', '0 s', '0 s', '0 j.u.', '0 j.u.'])
   })
 })
 

@@ -116,7 +116,9 @@ Wdrożony **Q5 etap 2**: ta sama sekcja pokazuje obciążenie tygodnia jako sum�
 
 Wdrożony **Q5 etap 3**: pod podsumowaniem jest wykres 12 tygodni kończących się wybranym tygodniem; zmiana tygodnia przesuwa okno. Domyślnie słupki pokazują liczbę treningów, a przełącznik „Minuty” sumę `durationSeconds` / 60 zaokrągloną w górę jak w podsumowaniu. Wszystkie źródła i oba statusy liczymy według zapisanego `workoutDate`, od poniedziałku do niedzieli, tą samą funkcją co podsumowanie. Pusty tydzień ma wartość 0; bieżący ma pusty słupek i podpis „trwa”, wybrany — obrys i pogrubiony podpis. Opis dla czytników ekranu i zwijane „Pokaż dane” udostępniają wersję tekstową. Własny SVG bez biblioteki (ADR 0011), tokeny jasnego i ciemnego motywu, bez animacji. Przy błędzie, ładowaniu lub niepełnej historii wykres korzysta ze stanu podsumowania i nie pokazuje pozornych zer. Bez obciążenia na wykresie, trendu, średniej, strzałek, celu tygodnia i kolorów „lepiej/gorzej”.
 
-Dalszy zakres Q5 poniżej pozostaje niezrealizowany: twarde rundy, kompletność ocen ćwiczeń celu i porównania. Etapy 1–3 nie oznaczają ukończenia całego Q5.
+Wdrożony **Q5 etap 4**: pod wierszami podsumowania, przed szczegółami obciążenia, tabela „Na tle 3 poprzednich tygodni” zestawia wybrany tydzień ze średnią liczby treningów, czasu treningu i obciążenia z trzech bezpośrednio poprzedzających tygodni. Bieżący tydzień ma dopisek „trwa”. Liczymy wszystkie źródła i oba statusy według zapisanego `workoutDate`, tą samą funkcją co podsumowanie. Najwcześniejszy dzień treningu musi sięgać poniedziałku pierwszego z trzech tygodni; wcześniej pokazujemy „Porównanie pojawi się po 3 pełnych tygodniach treningów.”. Tygodnie bez treningów liczą się jako 0. Obciążenie „Zwykle” wymaga RPE dla każdego treningu w tym okresie, inaczej pokazujemy „Brak pełnych danych”. Liczba treningów „Zwykle” ma jedną cyfrę po przecinku, a czas i obciążenie korzystają z formatowania podsumowania. Tabela korzysta ze stanu historii: ładowanie, błąd i niepełne dane blokują porównanie. To opis, nie ocena: bez słów „więcej/mniej niż zwykle”, strzałek, kolorów oceniających i procentów.
+
+Dalszy zakres Q5 poniżej pozostaje niezrealizowany: twarde rundy i kompletność ocen ćwiczeń celu. Etapy 1–4 nie oznaczają ukończenia całego Q5.
 
 Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 
@@ -126,7 +128,7 @@ Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 - sumę obciążenia, obok czas i RPE;
 - liczbę twardych rund;
 - **kompletność danych**, np. „RPE w 4 z 5 treningów”, „oceny ćwiczeń celu w 2 z 3”. Dzień bez treningu to odpoczynek, a nie brak danych;
-- porównanie ze średnią z 3 poprzednich tygodni słowami, np. „więcej niż zwykle”, dopiero gdy są 3 pełne tygodnie danych;
+- wdrożone porównanie liczb w tabeli „Ten tydzień” i „Zwykle”: liczba treningów, czas treningu i obciążenie obok średniej z 3 poprzednich tygodni; bez słownej oceny i arbitralnego progu „więcej niż zwykle”, dopiero gdy historia sięga początku tego okresu;
 - wdrożony wykres ostatnich 12 tygodni: liczba treningów lub minuty czasu treningu (ADR 0011), bez obciążenia.
 
 Przy wpisie z planu pokazujemy też **porównanie z poprzednim wykonaniem tego samego planu**.
