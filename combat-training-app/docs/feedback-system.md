@@ -40,6 +40,7 @@ Do tego **„Nie umiem ocenić”**. Ta odpowiedź zostaje zapisana, ale nie wch
 - Opcjonalna, przy ocenie ćwiczenia celu: jeden problem i jedna poprawka, np. „opuszczam prawą rękę” i „dotykam rękawicą policzka”.
 - Przy następnym treningu z tym ćwiczeniem celu aplikacja pokazuje notatkę w podglądzie planu, a w podsumowaniu pyta: **lepiej, bez zmian, nie sprawdzono**.
 - „Lepiej” zamyka notatkę. „Bez zmian” i „nie sprawdzono” zostawiają ją na kolejny trening. Nowa notatka zastępuje poprzednią.
+- Usunięcie wpisu zamyka otwartą notatkę z tego wpisu.
 
 ### Trend
 
