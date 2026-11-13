@@ -38,7 +38,8 @@ jobs:
   e2e:
     name: Firestore rules and Playwright E2E (Chromium)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The full suite (three viewports) takes 9-13 minutes on GitHub runners plus about 2.5 minutes of setup.
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: combat-training-app
