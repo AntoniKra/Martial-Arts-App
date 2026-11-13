@@ -28,7 +28,6 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
   const focusSkills = ready.then((repositories) => repositories.focusSkills)
   const weekPlans = ready.then((repositories) => repositories.weekPlans)
   const profile = ready.then((repositories) => repositories.profile)
-  const bodyWeights = ready.then((repositories) => repositories.bodyWeights)
   return {
     profile: {
       subscribe: deferredSubscription(profile),
@@ -36,9 +35,10 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
       withdrawConsent: async () => (await profile).withdrawConsent(),
     },
     bodyWeights: {
-      subscribe: deferredSubscription(bodyWeights),
-      save: async (value) => (await bodyWeights).save(value),
-      delete: async (date) => (await bodyWeights).delete(date),
+      // No weight subscription exists before consent, including a failed bootstrap.
+      subscribe: (onChange, onError) => deferredSubscription(ready.then((repositories) => repositories.bodyWeights))(onChange, onError),
+      save: async (value) => (await ready).bodyWeights.save(value),
+      delete: async (date) => (await ready).bodyWeights.delete(date),
     },
     weekPlans: {
       subscribe: (currentWeek, onChange, onError) => {

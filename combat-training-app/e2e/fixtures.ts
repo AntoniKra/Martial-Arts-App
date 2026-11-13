@@ -6,6 +6,8 @@ import type { FocusSkill } from '../src/domain/focus-skill/focusSkill.types'
 import type { WorkoutSession } from '../src/domain/workout-session/workoutSession.types'
 import type { WeekPlan } from '../src/domain/week-plan/weekPlan.types'
 import { seedWeekPlan, seedInvalidWeekPlan, readWeekPlans, removeWorkoutDocument } from './firestoreEmulator'
+import { readProfile, readBodyWeights, seedBodyWeight } from './firestoreEmulator'
+import type { BodyWeight } from '../src/domain/profile/profile.types'
 
 class WorkoutApp {
   private authenticated = false
@@ -60,6 +62,9 @@ class WorkoutApp {
   async seedWeekPlan(plan: WeekPlan) { await seedWeekPlan(this.page.request, this.uid, plan) }
   async seedInvalidWeekPlan(weekStart: string) { await seedInvalidWeekPlan(this.page.request, this.uid, weekStart) }
   async readWeekPlans() { return readWeekPlans(this.page.request, this.uid) }
+  async readProfile() { return readProfile(this.page.request, this.uid) }
+  async readBodyWeights() { return readBodyWeights(this.page.request, this.uid) }
+  async seedBodyWeight(weight: BodyWeight) { return seedBodyWeight(this.page.request, this.uid, weight) }
   async removeWorkoutDocument(collection: 'workoutPlans' | 'workoutSessions', id: string) { await removeWorkoutDocument(this.page.request, this.uid, collection, id) }
 
   async createPlan(name = 'Plan E2E', roundDurationLabel: '1:00' | '3:00' = '1:00') {
@@ -163,6 +168,8 @@ class WorkoutApp {
     const toggle = this.page.getByRole('button', { name: label, exact: true })
     if (await toggle.isVisible()) await toggle.click()
     await expect(this.page.locator('html')).toHaveAttribute('data-theme', theme)
+    // The attribute can change before inherited colors settle in Chromium.
+    await expect(this.page.locator('html')).toHaveCSS('color', theme === 'light' ? 'rgb(17, 17, 19)' : 'rgb(244, 244, 241)')
   }
 }
 
