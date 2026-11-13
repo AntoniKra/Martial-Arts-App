@@ -31,7 +31,9 @@ async function accessible(page: Page) {
 }
 
 async function capture(page: Page, info: TestInfo, name: string, theme: string) {
-  if (process.env.CAPTURE_PROFILE_SCREENSHOTS !== '1' || info.project.name !== 'phone' || info.repeatEachIndex !== 0) return
+  const captureAll = process.env.CAPTURE_PROFILE_SCREENSHOTS === '1'
+  const captureStatistics = process.env.CAPTURE_PROFILE_STATISTICS_SCREENSHOTS === '1' && name === 'statistics'
+  if ((!captureAll && !captureStatistics) || info.project.name !== 'phone' || info.repeatEachIndex !== 0) return
   const folder = path.resolve('docs/screenshots/issue-100')
   await mkdir(folder, { recursive: true })
   await page.evaluate(() => document.fonts.ready)
@@ -82,9 +84,9 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(statistics(page)).toContainText('co najmniej 9')
     await expect(statistics(page)).toContainText('(w 1 treningu liczba rund nieznana)')
     await expect(statistics(page)).toContainText('od 16.10.2026')
-    await expect(statistics(page).getByRole('definition')).toHaveText(['4', '76 min', 'co najmniej 9(w 1 treningu liczba rund nieznana)', '51 min', '15 min'])
+    await expect(statistics(page).getByRole('definition')).toHaveText(['4', '1 h 16 min', 'co najmniej 9(w 1 treningu liczba rund nieznana)', '51 min', '15 min'])
     await expect(statistics(page)).toContainText('17.10.2026–13.11.2026')
-    await expect(statistics(page)).toContainText('Suma66 min')
+    await expect(statistics(page)).toContainText('Suma1 h 6 min')
     await statistics(page).evaluate((element) => element.scrollIntoView({ block: 'start' }))
     await accessible(page); await capture(page, info, 'statistics', theme)
 

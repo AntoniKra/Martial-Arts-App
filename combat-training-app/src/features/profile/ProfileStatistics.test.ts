@@ -34,7 +34,8 @@ describe('profile statistics data states', () => {
       items: [workoutSession({ workoutDate: '2026-11-13', durationSeconds: 3600,
         sparring: [{ blockId: 'one', intensity: null, rounds: 3 }, { blockId: 'two', intensity: null, rounds: null }] })] }
     const html = render()
-    expect(html).toContain('60 min')
+    expect(html.match(/>1 h</g)).toHaveLength(3)
+    expect(html).not.toContain('60 min')
     expect(html).toContain('co najmniej 3')
     expect(html).toContain('(w 1 treningu liczba rund nieznana)')
     expect(html).toContain('Czeka na wysłanie')

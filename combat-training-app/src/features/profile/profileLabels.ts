@@ -57,3 +57,13 @@ export function measurementCountLabel(count: number): string {
   const plural = new Intl.PluralRules('pl').select(count)
   return `${count} ${plural === 'one' ? 'pomiar' : plural === 'few' ? 'pomiary' : 'pomiarów'}`
 }
+
+export function formatProfileDurationSecondsPl(totalSeconds: number): string {
+  if (totalSeconds < 60) return `${totalSeconds} s`
+  // Round the summed duration once, as in the journal, then split into hours and minutes.
+  const minutes = Math.ceil(totalSeconds / 60)
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const remainder = minutes % 60
+  return remainder ? `${hours} h ${remainder} min` : `${hours} h`
+}
