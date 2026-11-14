@@ -174,10 +174,12 @@ service cloud.firestore {
     }
 
     function isProfile(data) {
-      return hasExactKeys(data, ['schemaVersion', 'healthDataConsent', 'weightClassLabel', 'createdAt', 'updatedAt'])
+      return data.keys().hasAll(['schemaVersion', 'healthDataConsent', 'weightClassLabel', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['schemaVersion', 'healthDataConsent', 'wellbeingConsent', 'weightClassLabel', 'createdAt', 'updatedAt'])
         && data.schemaVersion is int && data.schemaVersion == 1
         && isInstant(data.createdAt) && isInstant(data.updatedAt)
         && isHealthConsent(data.healthDataConsent)
+        && isHealthConsent(data.get('wellbeingConsent', null))
         && (data.weightClassLabel == null || isBoundedText(data.weightClassLabel, 20))
         && (data.healthDataConsent != null || data.weightClassLabel == null);
     }
@@ -190,13 +192,43 @@ service cloud.firestore {
         && isInstant(data.createdAt) && isInstant(data.updatedAt);
     }
 
+    function isWellbeingRating(value) {
+      return value is int && value >= 1 && value <= 5;
+    }
+
+    function isWellbeing(data, date) {
+      return hasExactKeys(data, ['schemaVersion', 'questionsVersion', 'date', 'sleep', 'energy', 'soreness', 'stress', 'note', 'createdAt', 'updatedAt'])
+        && data.schemaVersion is int && data.schemaVersion == 1
+        && data.questionsVersion is int && data.questionsVersion == 1
+        && data.date is string && data.date == date && data.date.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && isWellbeingRating(data.sleep) && isWellbeingRating(data.energy)
+        && isWellbeingRating(data.soreness) && isWellbeingRating(data.stress)
+        && (data.note == null || (data.note is string && data.note.size() <= 300))
+        && isInstant(data.createdAt) && isInstant(data.updatedAt);
+    }
+
+    function hasWellbeingConsent(uid) {
+      let consent = get(/databases/$(database)/documents/users/$(uid)).data.get('wellbeingConsent', null);
+      return consent != null && isHealthConsent(consent) && consent.noticeVersion == '2026-11';
+    }
+
     match /users/{uid} {
       allow read, delete: if isVerifiedOwner(uid);
       allow create: if isVerifiedOwner(uid) && isProfile(request.resource.data);
       allow update: if isVerifiedOwner(uid) && isProfile(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt
         && (resource.data.healthDataConsent == null || request.resource.data.healthDataConsent == null
-          || request.resource.data.healthDataConsent == resource.data.healthDataConsent);
+          || request.resource.data.healthDataConsent == resource.data.healthDataConsent)
+        && (resource.data.get('wellbeingConsent', null) == null || request.resource.data.get('wellbeingConsent', null) == null
+          || request.resource.data.get('wellbeingConsent', null) == resource.data.get('wellbeingConsent', null));
+    }
+
+    match /users/{uid}/readiness/{date} {
+      // Reads/deletes remain available for export, account deletion and interrupted withdrawal.
+      allow read, delete: if isVerifiedOwner(uid);
+      allow create: if isVerifiedOwner(uid) && hasWellbeingConsent(uid) && isWellbeing(request.resource.data, date);
+      allow update: if isVerifiedOwner(uid) && hasWellbeingConsent(uid) && isWellbeing(request.resource.data, date)
+        && request.resource.data.createdAt == resource.data.createdAt;
     }
 
     match /users/{uid}/bodyWeights/{date} {

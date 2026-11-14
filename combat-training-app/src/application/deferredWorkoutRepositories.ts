@@ -4,10 +4,11 @@ import type { WorkoutSessionRepository } from './workout-session/workoutSessionR
 import type { FocusSkillRepository } from './focus-skill/focusSkillRepository'
 import type { WeekPlanRepository } from './week-plan/weekPlanRepository'
 import type { BodyWeightRepository, ProfileRepository } from './profile/profileRepository'
+import type { WellbeingRepository } from './profile/wellbeingRepository'
 
 export interface WorkoutRepositories {
   plans: WorkoutPlanRepository; sessions: WorkoutSessionRepository; focusSkills: FocusSkillRepository; weekPlans: WeekPlanRepository
-  profile: ProfileRepository; bodyWeights: BodyWeightRepository
+  profile: ProfileRepository; bodyWeights: BodyWeightRepository; wellbeing: WellbeingRepository
 }
 
 function deferredSubscription<T>(ready: Promise<SubscribableRepository<T>>): SubscribableRepository<T>['subscribe'] {
@@ -39,6 +40,11 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
       subscribe: (onChange, onError) => deferredSubscription(ready.then((repositories) => repositories.bodyWeights))(onChange, onError),
       save: async (value) => (await ready).bodyWeights.save(value),
       delete: async (date) => (await ready).bodyWeights.delete(date),
+    },
+    wellbeing: {
+      subscribe: (onChange, onError) => deferredSubscription(ready.then((repositories) => repositories.wellbeing))(onChange, onError),
+      save: async (entry) => (await ready).wellbeing.save(entry),
+      withdrawConsent: async () => (await ready).wellbeing.withdrawConsent(),
     },
     weekPlans: {
       subscribe: (currentWeek, onChange, onError) => {

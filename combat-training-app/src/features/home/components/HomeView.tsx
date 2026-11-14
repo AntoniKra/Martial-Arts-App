@@ -21,6 +21,7 @@ interface HomeViewProps {
   onRetryLoadRecentSessions: () => void
   rpeReminder?: ReactNode
   weekPlan?: ReactNode
+  wellbeing?: ReactNode
 }
 
 function FeaturedPlanLoadingState() {
@@ -83,6 +84,7 @@ export function HomeView({
   onRetryLoadRecentSessions,
   rpeReminder,
   weekPlan,
+  wellbeing,
 }: HomeViewProps) {
   const isEmptyPlanState =
     featuredPlanLoadState.status === 'success' && featuredPlanLoadState.plan === null
@@ -171,6 +173,7 @@ export function HomeView({
         </header>
 
         {rpeReminder}
+        {wellbeing}
         {weekPlan}
 
         <div className="space-y-6 md:grid md:grid-cols-2 md:items-start md:gap-8 md:space-y-0">

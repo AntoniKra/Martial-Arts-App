@@ -15,6 +15,7 @@ export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession, hasP
   const hasRounds = summary.plannedRoundCount > 0
 
   return {
+    workoutDate: session.workoutDate,
     editPath: session.source === 'manual' ? routes.editManualWorkout(session.id) : undefined,
     isManual: session.source === 'manual', rpe: session.rpe, rpeFromMemory: isRpeFromMemory(session),
     feedbackPath: session.source !== 'manual' ? routes.workoutFeedback(session.id) : undefined,

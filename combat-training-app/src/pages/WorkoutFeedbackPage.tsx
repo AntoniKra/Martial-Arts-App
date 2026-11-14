@@ -11,6 +11,7 @@ import { useAuth } from '@/features/auth/authContext'
 import { prepareQuickTimerFeedback } from '@/domain/quick-timer/quickTimerFeedback'
 import { QuickTimerFeedbackForm } from '@/features/quick-timer/QuickTimerFeedbackForm'
 import { WorkoutRpeSummary } from '@/features/workout-feedback/WorkoutRpeSummary'
+import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWorkoutLine'
 
 export function Component() {
   const { sessionId = '' } = useParams()
@@ -33,12 +34,12 @@ export function Component() {
   return <><WorkoutDataWarning /><WorkoutRpeSummary key={session.id} session={session} uid={uid} initialOpen={searchParams.get('rpe') === '1'}
     onSave={async (value, recordedAt) => {
       if (!await sessionRepository.saveRpe(session.id, value, recordedAt)) throw new Error('Session no longer available')
-    }}>{(rpeCard) => session.source === 'quickTimer' ? <QuickTimerFeedbackForm key={session.id} session={session} pending={sessions.pendingIds.has(session.id)} rpeCard={rpeCard}
+    }}>{(rpeCard) => session.source === 'quickTimer' ? <QuickTimerFeedbackForm key={session.id} session={session} pending={sessions.pendingIds.has(session.id)} rpeCard={<>{rpeCard}<LazyWellbeingWorkoutLine date={session.workoutDate} /></>}
       onSave={async (draft) => {
         const feedback = prepareQuickTimerFeedback(session, draft, new Date().toISOString())
         if (!await sessionRepository.saveQuickTimerFeedback(session.id, feedback)) throw new Error('Session no longer available')
         await navigate(`${routes.workouts}?tab=history`)
-      }} /> : <WorkoutFeedbackForm key={session.id} session={session} skills={focusSkills.items} rpeCard={rpeCard}
+      }} /> : <WorkoutFeedbackForm key={session.id} session={session} skills={focusSkills.items} rpeCard={<>{rpeCard}<LazyWellbeingWorkoutLine date={session.workoutDate} /></>}
     previousRun={findPreviousPlanRun(session, sessions.items, plans.status === 'ready' ? plans.items.find((plan) => plan.id === session.workoutPlanId) : undefined)}
     pending={sessions.pendingIds.has(session.id)} onSave={async (draft) => {
       const feedback = prepareWorkoutFeedback(session, draft, focusSkills.items, new Date().toISOString())

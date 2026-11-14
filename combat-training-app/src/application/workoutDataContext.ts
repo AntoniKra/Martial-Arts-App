@@ -11,8 +11,13 @@ import type { WeekPlanRepository } from './week-plan/weekPlanRepository'
 import type { WeekPlanCollectionState } from './week-plan/useWeekPlanCollection'
 import type { AthleteProfile, BodyWeight } from '@/domain/profile/profile.types'
 import type { ProfileRepository, BodyWeightRepository } from './profile/profileRepository'
+import type { WellbeingEntry } from '@/domain/wellbeing/wellbeing'
+import type { WellbeingRepository } from './profile/wellbeingRepository'
 
 export interface WorkoutData {
+  wellbeing: CollectionState<WellbeingEntry>
+  wellbeingRepository: WellbeingRepository
+  retryWellbeing: () => void
   profile: CollectionState<AthleteProfile>
   bodyWeights: CollectionState<BodyWeight>
   profileRepository: ProfileRepository

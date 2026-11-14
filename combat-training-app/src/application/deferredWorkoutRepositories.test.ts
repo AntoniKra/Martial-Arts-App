@@ -24,6 +24,7 @@ describe('deferred workout repositories', () => {
     unsubscribe()
     connect({ profile: { subscribe, save: async () => {}, withdrawConsent: async () => {} },
       bodyWeights: { subscribe, save: async () => {}, delete: async () => {} },
+      wellbeing: { subscribe, save: async () => {}, withdrawConsent: async () => {} },
       weekPlans: { subscribe, save: async () => {} }, plans: { subscribe, save: async () => {}, delete: async () => {} },
       sessions: { subscribe, save: async () => {}, saveManual: async () => {}, delete: async () => true, updateNote: async () => true, saveFeedback: async () => true, saveQuickTimerFeedback: async () => true, saveRpe: async () => true },
       focusSkills: { subscribe, save: async () => {}, archive: async () => {}, deleteUnused: async () => {}, restore: async () => {} } })
@@ -46,9 +47,11 @@ describe('deferred workout repositories', () => {
     expect(subscriptions).toBe(0)
     const stopProfile = repositories.profile.subscribe(() => {}, () => {})
     const stopWeights = repositories.bodyWeights.subscribe(() => {}, () => {})
-    await vi.waitFor(() => expect(subscriptions).toBe(2))
+    const stopWellbeing = repositories.wellbeing.subscribe(() => {}, () => {})
+    await vi.waitFor(() => expect(subscriptions).toBe(3))
     stopProfile()
     stopWeights()
+    stopWellbeing()
     expect(subscriptions).toBe(0)
   })
 })

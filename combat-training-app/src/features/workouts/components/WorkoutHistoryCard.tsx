@@ -17,6 +17,7 @@ import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabe
 import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import { RpeRecallBadge } from '@/features/workout-feedback/RpeRecallBadge'
 import { manualWorkoutLabels } from '@/features/manual-workout/manualWorkoutLabels'
+import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWorkoutLine'
 
 const NOTE_SAVE_ERROR_MESSAGE = 'Nie udało się zapisać notatki.'
 const DELETE_ERROR_MESSAGE = 'Nie udało się usunąć wpisu.'
@@ -207,6 +208,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
           {session.rpe != null && <span className="flex flex-wrap items-baseline gap-1">RPE <span className="font-semibold text-ink">{session.rpe}</span>{session.rpeFromMemory && <RpeRecallBadge />}</span>}
           {session.hasPendingWrites ? <span className="whitespace-nowrap font-semibold">{workoutDataLabels.pending}</span> : null}
         </div>
+        {session.workoutDate && <LazyWellbeingWorkoutLine date={session.workoutDate} />}
       </div>
 
       {!session.isManual && <div className="h-0.5 bg-elevated" aria-hidden="true">

@@ -10,6 +10,7 @@ import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { ProgressDataState, ProgressDataWarning } from '@/features/progress/ProgressDataState'
 import { progressLabels as labels } from '@/features/progress/progressLabels'
 import { WeekPlanSummary } from '@/features/week-plan/WeekPlanSummary'
+import { WellbeingProgressCard } from '@/features/wellbeing/WellbeingProgressCard'
 
 function SkillCard({ skill }: { skill: FocusSkill }) {
   const { sessions, focusSkills } = useWorkoutData()
@@ -33,6 +34,7 @@ export function Component() {
   return <div className="space-y-6 px-4 py-6 md:px-0">
     <h1 className="font-display text-3xl font-bold">{labels.title}</h1>
     <WeekPlanSummary />
+    <WellbeingProgressCard />
     {plans.hasPendingWrites || focusSkills.hasPendingWrites ? <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p> : null}
     <ProgressDataWarning />
     {!ready ? <ProgressDataState /> : <section aria-labelledby="focus-skills-heading" className="space-y-4">

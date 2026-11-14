@@ -9,15 +9,20 @@ import { WorkoutDataWarning } from '@/features/workouts/components/WorkoutDataWa
 import { RpeReminder } from '@/features/home/components/RpeReminder'
 import { useAuth } from '@/features/auth/authContext'
 import { WeekPlanSummary } from '@/features/week-plan/WeekPlanSummary'
+import { lazy, Suspense } from 'react'
+import { hasWellbeingConsent } from '@/domain/wellbeing/wellbeingConsent'
+
+const WellbeingHomeCard = lazy(() => import('@/features/wellbeing/WellbeingHomeCard').then((module) => ({ default: module.WellbeingHomeCard })))
 
 export function HomePage() {
-  const { plans, sessions, retry } = useWorkoutData()
+  const { plans, sessions, profile, retry } = useWorkoutData()
   const { state } = useAuth()
   const uid = state.status === 'ready' ? state.session?.uid : undefined
   const latest = selectLatestWorkoutPlan(plans.items)
   return <>
     <WorkoutDataWarning />
     <HomeView
+      wellbeing={uid && profile.status === 'ready' && hasWellbeingConsent(profile.items[0]) ? <Suspense fallback={null}><WellbeingHomeCard key={uid} uid={uid} /></Suspense> : null}
       weekPlan={<WeekPlanSummary />}
       rpeReminder={uid && sessions.status === 'ready' ? <RpeReminder key={uid} uid={uid} sessions={sessions.items} /> : null}
       featuredPlanLoadState={plans.status === 'ready'

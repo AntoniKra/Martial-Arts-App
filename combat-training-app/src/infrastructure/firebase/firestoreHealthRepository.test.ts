@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Firestore } from 'firebase/firestore'
 import type { AthleteProfile, BodyWeight } from '@/domain/profile/profile.types'
 import { createFirestoreHealthRepositories } from './firestoreHealthRepository'
+import type { WellbeingEntry } from '@/domain/wellbeing/wellbeing'
 
 type Change = (snapshot: unknown) => void
 const sdk = vi.hoisted(() => ({
@@ -118,6 +119,53 @@ describe('health repository local writes and subscriptions', () => {
     // Cleanup is the same path used by the account provider and clearFirestoreCache.
     sdk.errors.get(weightPath)?.(new Error('closed'))
     await rejected
+  })
+})
+
+describe('wellbeing repository', () => {
+  const path = `${profilePath}/readiness`
+  const entry: WellbeingEntry = { date: '2026-11-13', questionsVersion: 1, sleep: 3, energy: 3, soreness: 3, stress: 3, note: null, createdAt: instant, updatedAt: instant }
+  const consented = { ...profile, wellbeingConsent: profile.healthDataConsent }
+  function emitEntries(entries: WellbeingEntry[], pending = false) {
+    sdk.listeners.get(path)?.({ docs: entries.map((value) => ({ id: value.date, data: () => ({ ...value, schemaVersion: 1 }), metadata: metadata(false, pending) })), metadata: metadata(false, pending) })
+  }
+  it('requires separate consent, accepts only today, and confirms offline writes from local snapshots', async () => {
+    const { repositories } = subscribed(), change = vi.fn()
+    repositories.wellbeing.subscribe(change, vi.fn()); emitEntries([])
+    await expect(repositories.wellbeing.save(entry)).rejects.toThrow('consent')
+    emitProfile(consented)
+    await expect(repositories.wellbeing.save({ ...entry, date: '2026-11-12' })).rejects.toThrow('today')
+    await expect(repositories.wellbeing.save({ ...entry, date: '2026-11-14' })).rejects.toThrow('today')
+    await expect(repositories.wellbeing.save({ ...entry, sleep: 0 })).rejects.toThrow()
+    const saved = repositories.wellbeing.save(entry)
+    emitEntries([entry], true)
+    await expect(saved).resolves.toBeUndefined()
+    expect(change.mock.lastCall?.[0].hasPendingWrites).toBe(true)
+    await expect(repositories.wellbeing.save({ ...entry, createdAt: '2026-11-12T09:00:00.000Z' })).rejects.toThrow('Creation')
+    await expect(repositories.profile.save({ ...consented, wellbeingConsent: null })).rejects.toThrow('Withdraw')
+  })
+  it.each([0, 1, 499, 500, 1200])('deletes all %s entries and clears only wellbeing consent in the last batch', async (count) => {
+    const { repositories } = subscribed(); emitProfile(consented)
+    sdk.read.mockResolvedValue({ docs: Array.from({ length: count }, (_, i) => ({ id: `record-${i}` })) })
+    await repositories.wellbeing.withdrawConsent()
+    expect(sdk.read).toHaveBeenCalledWith(path)
+    const operations = sdk.batches.flat()
+    expect(operations.filter((operation) => (operation as string[])[0] === 'delete')).toHaveLength(count)
+    expect(sdk.batches.every((batch) => batch.length <= 499)).toBe(true)
+    expect(operations.at(-1)).toEqual(['update', profilePath, { wellbeingConsent: null, updatedAt: instant }])
+  })
+  it('does nothing after a failed server read and retains consent after interrupted deletion', async () => {
+    const { repositories } = subscribed(); emitProfile(consented)
+    sdk.read.mockRejectedValueOnce(new Error('offline'))
+    await expect(repositories.wellbeing.withdrawConsent()).rejects.toThrow('offline')
+    expect(sdk.commit).not.toHaveBeenCalled()
+    sdk.read.mockResolvedValue({ docs: Array.from({ length: 500 }, (_, i) => ({ id: String(i) })) })
+    sdk.commit.mockRejectedValueOnce(new Error('interrupted'))
+    await expect(repositories.wellbeing.withdrawConsent()).rejects.toThrow('interrupted')
+    expect(sdk.batches.flat().some((operation) => (operation as string[])[0] === 'update')).toBe(false)
+    sdk.read.mockResolvedValue({ docs: [] })
+    await repositories.wellbeing.withdrawConsent()
+    expect(sdk.batches.at(-1)).toEqual([['update', profilePath, { wellbeingConsent: null, updatedAt: instant }]])
   })
 })
 

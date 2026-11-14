@@ -496,10 +496,81 @@ describe('manual session', () => {
   })
 })
 
+describe('wellbeing consent and daily entries', () => {
+  const path = `${profilePath}/readiness/${weightDate}`
+  const entry = (): Document => ({ schemaVersion: 1, questionsVersion: 1, date: weightDate, sleep: 1, energy: 5, soreness: 3, stress: 3,
+    note: null, createdAt: instant, updatedAt: instant })
+  const enabled = () => ({ ...profileDocument(), wellbeingConsent: consent })
+  it('keeps old profiles valid, requires separate consent and preserves existing consent identity', async () => {
+    const db = ownerDatabase(), profile = db.doc(profilePath), ref = db.doc(path)
+    await assertFails(ref.set(entry()))
+    await assertSucceeds(profile.set(profileDocument()))
+    await assertFails(ref.set(entry()))
+    await assertSucceeds(profile.update({ wellbeingConsent: consent }))
+    await assertSucceeds(ref.set(entry()))
+    await assertSucceeds(ref.get())
+    await assertSucceeds(db.collection(`${profilePath}/readiness`).get())
+    await assertSucceeds(ref.update({ sleep: 5, energy: 1, note: 'x'.repeat(300) }))
+    await assertFails(ref.update({ createdAt: '2026-11-13T09:00:00.000Z' }))
+    await assertFails(profile.update({ wellbeingConsent: { ...consent, grantedAt: '2026-11-13T09:00:00.000Z' } }))
+    await assertSucceeds(profile.update({ wellbeingConsent: null }))
+    await assertFails(ref.update({ sleep: 2 }))
+    await assertSucceeds(ref.get())
+    await assertSucceeds(ref.delete())
+    expect((await profile.get()).data()?.healthDataConsent).toEqual(consent)
+    await assertSucceeds(profile.update({ wellbeingConsent: consent }))
+  })
+  it.each([false, null, 1])('rejects invalid adult confirmation %s', async (adultConfirmed) => {
+    await assertFails(ownerDatabase().doc(profilePath).set({ ...enabled(), wellbeingConsent: { ...consent, adultConfirmed } }))
+  })
+  it('rejects granting consent and writing an entry in the same batch with no partial writes', async () => {
+    const db = ownerDatabase(), profile = db.doc(profilePath), ref = db.doc(path)
+    await profile.set({ ...profileDocument(), wellbeingConsent: null })
+    const batch = db.batch(); batch.update(profile, { wellbeingConsent: consent }); batch.set(ref, entry())
+    await assertFails(batch.commit())
+    expect((await profile.get()).data()?.wellbeingConsent).toBeNull()
+    expect((await ref.get()).exists).toBe(false)
+  })
+  it('rejects consent plus entry when the profile does not exist yet', async () => {
+    const db = ownerDatabase(), batch = db.batch()
+    batch.set(db.doc(profilePath), enabled()); batch.set(db.doc(path), entry())
+    await assertFails(batch.commit())
+    expect((await db.doc(profilePath).get()).exists).toBe(false)
+  })
+  it.each([
+    ['sleep', 0], ['sleep', 6], ['energy', 2.5], ['soreness', '3'], ['stress', null], ['note', 'x'.repeat(301)], ['note', 3],
+    ['date', '2026-11-12'], ['date', 'yesterday'], ['schemaVersion', 2], ['questionsVersion', 2], ['createdAt', null], ['updatedAt', 'today'], ['extra', true],
+  ] as [string, unknown][])('rejects invalid %s on create and update (%j)', async (field, value) => {
+    const db = ownerDatabase(), ref = db.doc(path)
+    await db.doc(profilePath).set(enabled())
+    await assertFails(ref.set({ ...entry(), [field]: value }))
+    await ref.set(entry())
+    await assertFails(ref.update({ [field]: value }))
+  })
+  it('requires exactly all daily entry fields', async () => {
+    const db = ownerDatabase(), ref = db.doc(path)
+    await db.doc(profilePath).set(enabled())
+    for (const field of Object.keys(entry())) {
+      const partial = entry(); delete partial[field]
+      await assertFails(ref.set(partial))
+    }
+  })
+  it.each(['other', 'signedOut', 'unverified', 'missingClaim'])('denies all operations for %s', async (actor) => {
+    const owner = ownerDatabase()
+    await owner.doc(profilePath).set(enabled()); await owner.doc(path).set(entry())
+    const context = actor === 'signedOut' ? environment.unauthenticatedContext()
+      : environment.authenticatedContext(actor === 'other' ? 'athlete-two' : ownerId, actor === 'missingClaim' ? {} : { email_verified: actor !== 'unverified' })
+    const db = context.firestore(), ref = db.doc(path)
+    await assertFails(ref.get()); await assertFails(db.collection(`${profilePath}/readiness`).get())
+    await assertFails(ref.set(entry())); await assertFails(ref.update({ sleep: 2 })); await assertFails(ref.delete())
+    await owner.doc(path).delete(); await assertFails(ref.set(entry()))
+  })
+})
+
 describe('default denial', () => {
   it.each([
     `users/${ownerId}/inne/${documentId}`,
-    ...['readiness', 'controlTests', 'controlTestResults']
+    ...['controlTests', 'controlTestResults']
       .map((collection) => `users/${ownerId}/${collection}/${documentId}`),
     `users/${ownerId}/workoutPlans/${documentId}/nested/${documentId}`,
     `users/${ownerId}/workoutSessions/${documentId}/nested/${documentId}`,

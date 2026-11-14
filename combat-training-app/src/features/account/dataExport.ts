@@ -9,10 +9,11 @@ import { categoryLabel } from '@/features/week-plan/weekPlanLabels'
 import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import { sparringIntensityLabels } from '@/features/workout-feedback/sparringIntensityLabels'
 import { accountLabels as labels } from './accountLabels'
+import type { WellbeingEntry } from '@/domain/wellbeing/wellbeing'
 
-export function exportFileName(kind: 'json' | 'csv', date: Date): string {
+export function exportFileName(kind: 'json' | 'csv' | 'wellbeingCsv', date: Date): string {
   const day = [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-')
-  return `combat-training-${kind === 'json' ? 'dane' : 'dziennik'}-${day}.${kind}`
+  return `combat-training-${kind === 'json' ? 'dane' : kind === 'wellbeingCsv' ? 'samopoczucie' : 'dziennik'}-${day}.${kind === 'json' ? 'json' : 'csv'}`
 }
 export function buildAccountJson(data: AccountData, account: Pick<AuthSession, 'uid' | 'email'>, exportedAt: Date): string {
   const collections = Object.fromEntries(Object.entries(data.collections).map(([name, documents]) => [
@@ -24,6 +25,12 @@ export function csvCell(value: string | number | null): string {
   let text = value === null ? '' : String(value)
   if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`
   return /[;"\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
+}
+export function buildWellbeingCsv(entries: readonly WellbeingEntry[]): string {
+  const headers = ['Data', 'Sen', 'Wypoczęcie', 'Mięśnie', 'Stres', 'Notatka', 'Wersja pytań', 'Utworzono', 'Zmieniono']
+  const rows = [...entries].sort((a, b) => a.date.localeCompare(b.date)).map((entry) => [entry.date, entry.sleep, entry.energy,
+    entry.soreness, entry.stress, entry.note, entry.questionsVersion, entry.createdAt, entry.updatedAt].map(csvCell).join(';'))
+  return '\uFEFF' + [headers.map(csvCell).join(';'), ...rows].join('\r\n') + '\r\n'
 }
 const minutes = (seconds: number | null) => seconds === null ? null : (seconds / 60).toFixed(1).replace('.', ',')
 export function buildJournalCsv(sessions: readonly WorkoutSession[]): string {

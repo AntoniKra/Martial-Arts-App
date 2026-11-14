@@ -13,7 +13,7 @@ Dokument nadrzędny to `thesis-card.md`. Wiąże temat pracy, a technologie i li
 - **Cele treningowe:** plan tygodnia z paskiem postępu. Pozycja to plan z aplikacji albo rodzaj treningu spoza aplikacji, np. sparing w klubie (R3, decyzja z 8.11). To moduł celów z karty pracy.
 - **Po treningu** (`feedback-system.md`): ocena ćwiczeń celu według kryterium z opisaną skalą 1–5 (R1), notatka „problem i poprawka” ze sprawdzeniem na kolejnym treningu (R2), ocena pozostałych ćwiczeń opcjonalnie, RPE po 10 minutach wyciszenia z przypomnieniem w aplikacji (Q2), intensywność sparingu i twarde rundy (Q4), notatka.
 - **Analiza:** podsumowanie tygodnia z kompletnością danych i wykres 12 tygodni (Q5): liczba treningów z przełącznikiem „Minuty”, własny SVG (`adr/0011-weekly-chart-svg.md`); porównanie z poprzednim wykonaniem tego samego planu, trend ćwiczeń celu.
-- **Gotowość przed treningiem:** 4 pytania 1–5, domyślnie wyłączona, włączana zgodą na dane o zdrowiu (Q3).
+- **Samopoczucie (Q3, issue #146):** 4 pytania 1–5 na Starcie, wyżej = lepiej, domyślnie wyłączone. Osobna zgoda 18+ w Profilu, niezależna od masy ciała. Norma osobista i cztery wykresy w Postępie; kontekst dnia przy RPE we wszystkich źródłach treningu, Historii i „Poprzednio ten plan”. Bez wyniku 0–100 i zaleceń; szczegóły w `feedback-system.md` i ADR 0015.
 - **Testy kontrolne:** test własny, burpees 3 min, KAST dla kickboxingu i K-1, z paszportem warunków (R4).
 - **Profil zawodnika:** pomiary masy ciała za osobną zgodą 18+, opcjonalna etykieta kategorii i statystyki z dziennika bez zgody (szczegóły niżej).
 - **Moje dane:** eksport JSON i CSV oraz usunięcie konta ze wszystkimi danymi (Q7).
@@ -71,5 +71,4 @@ Funkcje społecznościowe, funkcje AI, integracje ze smartwatchami, komunikaty g
 
 ## Otwarte decyzje
 
-- Opisy stopni skali gotowości: w issue gotowości.
 - Pytanie o trwałe przechowywanie w Firefoksie: zostaje po zalogowaniu albo przechodzi po pierwszym zapisanym treningu.

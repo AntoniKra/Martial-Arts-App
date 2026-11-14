@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { AccountService } from './accountService'
 import { AccountDeletionError, deleteAccount, deletionBatches, reauthenticationOptions } from './deleteAccount'
 
-const names = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights']
+const names = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights', 'readiness']
 function fixture() {
   const calls: string[] = []
   const service: AccountService = {
@@ -20,7 +20,7 @@ describe('account deletion', () => {
   it('deletes health data first, all data before Auth, and cleans up after Auth', async () => {
     const { service, notice, calls } = fixture()
     await deleteAccount(service, names, notice)
-    expect(calls).toEqual(['bodyWeights', 'workoutSessions', 'focusSkills', 'weekPlans', 'workoutPlans', 'profile', 'notice', 'auth', 'cleanup'])
+    expect(calls).toEqual(['readiness', 'bodyWeights', 'workoutSessions', 'focusSkills', 'weekPlans', 'workoutPlans', 'profile', 'notice', 'auth', 'cleanup'])
   })
   it('does not delete Auth or profile after an interrupted collection and can be repeated', async () => {
     const { service, notice } = fixture()

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { workoutSession } from '@/test/workoutSessionBuilders'
 import type { ManualWorkoutSession, QuickTimerWorkoutSession } from '@/domain/workout-session/workoutSession.types'
-import { buildAccountJson, buildJournalCsv, csvCell, exportFileName } from './dataExport'
+import { buildAccountJson, buildJournalCsv, buildWellbeingCsv, csvCell, exportFileName } from './dataExport'
 import { accountLabels } from './accountLabels'
 
 const instant = '2026-11-13T09:00:00.000Z'
@@ -17,6 +17,16 @@ const quick: QuickTimerWorkoutSession = { ...timed, id: 'quick', source: 'quickT
   completion: { completed: 2, planned: 3, unit: 'round' }, sparring: [{ blockId: null, intensity: null, rounds: null }] }
 
 describe('data export', () => {
+  it('exports daily wellbeing also on days without workouts, in date order with safe CSV notes', () => {
+    const entry = { date: '2026-11-13', questionsVersion: 1, sleep: 1, energy: 5, soreness: 3, stress: 4, note: '=1+1', createdAt: instant, updatedAt: instant }
+    const csv = buildWellbeingCsv([entry, { ...entry, date: '2026-11-12', note: 'one;two' }])
+    expect(csv).toContain('\uFEFFData;Sen;Wypoczęcie;Mięśnie;Stres;Notatka;Wersja pytań;Utworzono;Zmieniono\r\n')
+    expect(csv).toContain("2026-11-13;1;5;3;4;'=1+1;1;")
+    expect(csv).toContain('2026-11-12;1;5;3;4;"one;two";1;')
+    expect(csv.indexOf('2026-11-12')).toBeLessThan(csv.indexOf('2026-11-13'))
+    expect(exportFileName('wellbeingCsv', new Date(instant))).toBe('combat-training-samopoczucie-2026-11-13.csv')
+    expect(JSON.parse(buildAccountJson({ profile: null, collections: { readiness: [{ id: entry.date, data: entry }] } }, { uid: 'a', email: 'a@example.test' }, new Date(instant))).collections.readiness).toEqual([entry])
+  })
   it('exports raw invalid documents in id order without changing fields or adding ids, with no profile', () => {
     const invalid = { schemaVersion: 99, strange: ['raw', 7] }
     const json = buildAccountJson({ profile: null, collections: { workoutSessions: [
