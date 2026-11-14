@@ -12,8 +12,16 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
   await mkdir(folder, { recursive: true })
   const shots: { file: string; caption: string }[] = []
   const externalOrigins = new Set<string>()
+  let simulatingOffline = false
   await context.route('**/*', async (route) => {
     const url = new URL(route.request().url())
+    // Firestore WebChannel probes connectivity after a failed local connection.
+    // Keep that expected offline image probe blocked without treating it as app traffic.
+    if (simulatingOffline && url.origin === 'https://www.google.com' && url.pathname === '/images/cleardot.gif'
+      && route.request().method() === 'GET' && route.request().resourceType() === 'image') {
+      await route.abort('internetdisconnected')
+      return
+    }
     if (url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.protocol === 'data:' || url.protocol === 'blob:') {
       await route.continue()
     } else {
@@ -126,7 +134,13 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await expect(page).toHaveURL(/\/feedback$/)
     await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
 
-    await open(`/workouts/${demoPlans[0].id}`, demoPlans[0].nameSnapshot)
+    // Preserve the feedback module in this document; routing disables the HTTP cache
+    // and service workers are blocked, so a hard navigation loses offline lazy routes.
+    await nav().getByRole('link', { name: 'Treningi', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
+    await page.getByRole('article').filter({ has: page.getByRole('heading', { name: demoPlans[0].nameSnapshot, exact: true }) })
+      .getByRole('link', { name: 'Zobacz plan', exact: true }).click()
+    await expect(page.getByRole('heading', { name: demoPlans[0].nameSnapshot, exact: true })).toBeVisible()
     await page.getByRole('link', { name: 'Rozpocznij trening', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Rozpocznij trening', exact: true })).toBeVisible()
     const start = Date.parse(demoInstant) + 480_000
@@ -137,9 +151,11 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await expect(page.getByText('PRACA', { exact: true })).toBeVisible()
     await capture(7, 'odtwarzacz-praca', 'Odtwarzacz — praca')
     await page.clock.setFixedTime(new Date(start + (300 + 180) * 1000))
-    await expect(page.getByText('PRZERWA', { exact: true })).toBeVisible()
+    // The warmup and first round end in roundRest; PRZERWA labels a standalone break.
+    await expect(page.getByText('ODPOCZYNEK', { exact: true })).toBeVisible()
     await capture(8, 'odtwarzacz-przerwa', 'Odtwarzacz — przerwa między rundami')
     // Keep the loaded modules available offline, then finish and retain the pending workout.
+    simulatingOffline = true
     await context.setOffline(true)
     await page.clock.setFixedTime(new Date(start + 2460_000))
     await expect(page).toHaveURL(/\/feedback$/)
@@ -150,6 +166,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await capture(25, 'wylogowanie-niewyslane', 'Wylogowanie z niewysłanym treningiem')
     await page.getByRole('dialog').getByRole('button', { name: 'Anuluj', exact: true }).click()
     await context.setOffline(false)
+    simulatingOffline = false
     await expect.poll(async () => (await readSessions(page.request, account.uid)).length).toBe(29)
   } finally {
     // The fixture closes its isolated context after failures, including timeout.
