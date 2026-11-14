@@ -5,12 +5,18 @@ import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
 import { VitePWA } from 'vite-plugin-pwa'
 import { readDeployFirebaseConfig } from './src/infrastructure/firebase/firebaseConfig.ts'
+import { performancePanelPlugin } from './scripts/perf/panel-plugin.ts'
+import packageInfo from './package.json' with { type: 'json' }
 
 // Project in .firebaserc under the "prod" alias. `npm run build:deploy` refuses any other target.
 const deployProjectId = 'combat-training-830fb'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), {
+  define: {
+    __PERF_WEB_VITALS_VERSION__: JSON.stringify(packageInfo.dependencies['web-vitals']),
+    __PERF_FIREBASE_VERSION__: JSON.stringify(packageInfo.dependencies.firebase),
+  },
+  plugins: [performancePanelPlugin(), react(), tailwindcss(), {
     // Fail the deploy build early instead of publishing the configuration error screen.
     name: 'deploy-firebase-config',
     apply: 'build',
@@ -43,7 +49,7 @@ export default defineConfig({
       globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2}'],
       // Polish text needs only the latin and latin-ext font subsets. Other subsets still load from the
       // network when a page uses them, but they are not downloaded up front for offline use.
-      globIgnores: ['**/*-{cyrillic,greek,vietnamese}-*.woff2'],
+      globIgnores: ['**/*-{cyrillic,greek,vietnamese}-*.woff2', '**/performance-panel-*.js', '**/performanceNetwork-*.js'],
       navigateFallback: '/index.html',
       // Firebase Hosting serves the Google sign-in handler under /__/auth/ when authDomain is the app domain.
       navigateFallbackDenylist: [/^\/__\//],
