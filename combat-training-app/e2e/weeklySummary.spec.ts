@@ -3,7 +3,7 @@ import { mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import type { Page, TestInfo } from '@playwright/test'
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 import { createVerifiedAccount, signIn } from './authEmulator'
 import { block, continuousExercise, workoutPlan } from '../src/test/workoutBuilders'
 import { sessionStep, workoutSession } from '../src/test/workoutSessionBuilders'
@@ -178,11 +178,12 @@ test('updates RPE and load locally offline, confirms after reconnect, and clears
   await expect.poll(async () => (await app.readSessions())[0]?.rpe).toBe(0)
   await expect(section.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
   await expect(totals(page).nth(4)).toHaveText('0 j.u.')
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
   const second = await createVerifiedAccount(page.request)
   await signIn(page, second)
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   await page.goto(`/progress/week/${weekStart}`)
   await expect(section.getByText('Treningi: 0', { exact: true })).toBeVisible()
   await expect(section.getByText('RPE w 1 z 1 treningów', { exact: true })).toHaveCount(0)

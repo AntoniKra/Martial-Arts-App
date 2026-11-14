@@ -38,7 +38,7 @@ test('covers existing progress routes and returns home after an import failure',
   await expect(page.getByRole('alert')).toHaveText(labels.chunkLoadError)
   await page.getByRole('link', { name: labels.home, exact: true }).click()
   await expect(page).toHaveURL('/')
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
 })
 
 test('hides unexpected technical errors and reports them to the console', async ({ app, page }) => {

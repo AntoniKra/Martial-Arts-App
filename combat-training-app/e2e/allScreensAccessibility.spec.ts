@@ -5,7 +5,7 @@ import type { QuickTimerWorkoutSession } from '../src/domain/workout-session/wor
 import { manualFocusRating, manualWorkoutSession } from '../src/test/manualWorkoutBuilder'
 import { block, continuousExercise, workoutPlan } from '../src/test/workoutBuilders'
 import { sessionStep, workoutSession } from '../src/test/workoutSessionBuilders'
-import { test, expect } from './fixtures'
+import { test, expect, openProfile, expandProfileSection } from './fixtures'
 
 const BLOCKING_IMPACTS: readonly string[] = ['critical', 'serious', 'moderate']
 const instant = '2026-11-12T12:00:00.000Z'
@@ -184,6 +184,8 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/profile')
     await app.seedSession(current)
     await app.setTheme(theme)
+    await expandProfileSection(page, 'Statystyki')
+    await expandProfileSection(page, 'Masa ciała')
     await expect(page.getByRole('region', { name: 'Statystyki', exact: true }).getByRole('definition').first()).toHaveText('1')
     await expect(page.getByRole('link', { name: 'Włącz zapisywanie masy ciała', exact: true })).toBeVisible()
     await audit(page, info, 'profile-without-consent', theme)
@@ -194,6 +196,7 @@ for (const theme of ['dark', 'light'] as const) {
     await page.getByRole('checkbox', { name: 'Zgadzam się na zapisywanie mojej masy ciała i kategorii wagowej na moim koncie.', exact: true }).check()
     await page.getByRole('button', { name: 'Włącz', exact: true }).click()
     await expect(page).toHaveURL('/profile')
+    await expandProfileSection(page, 'Masa ciała')
     for (const [date, weightKg] of [['2026-11-10', 76.2], ['2026-11-11', 76.4], ['2026-11-12', 76.3]] as const) {
       await app.seedBodyWeight({ date, weightKg, createdAt: instant, updatedAt: instant })
     }
@@ -223,6 +226,10 @@ for (const theme of ['dark', 'light'] as const) {
     await app.seedFocusSkill(skill)
     await app.seedPlan(plan)
     await app.open(`/workouts/${plan.id}`)
+    // Load account settings in this document before deliberately disabling network requests.
+    await openProfile(page)
+    await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+    await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
     await app.setTheme(theme)
     await page.getByRole('textbox', { name: 'Nazwa planu' }).fill('Plan zmieniony offline')
@@ -230,6 +237,7 @@ for (const theme of ['dark', 'light'] as const) {
     try {
       await page.getByRole('button', { name: 'Zapisz zmiany', exact: true }).click()
       await expect(page).toHaveURL(`/workouts/${plan.id}`)
+      await openProfile(page)
       await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
       const dialog = page.getByRole('dialog', { name: 'Wylogować się?', exact: true })
       await expect(dialog).toHaveAccessibleDescription('Masz dane, które nie zostały jeszcze wysłane. Po wylogowaniu przepadną.')

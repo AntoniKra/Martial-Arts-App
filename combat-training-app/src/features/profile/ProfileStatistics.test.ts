@@ -35,6 +35,7 @@ describe('profile statistics data states', () => {
         sparring: [{ blockId: 'one', intensity: null, rounds: 3 }, { blockId: 'two', intensity: null, rounds: null }] })] }
     const html = render()
     expect(html.match(/>1 h</g)).toHaveLength(3)
+    expect(html).toContain('aria-expanded="false"')
     expect(html).not.toContain('60 min')
     expect(html).toContain('co najmniej 3')
     expect(html).toContain('(w 1 treningu liczba rund nieznana)')

@@ -1,5 +1,5 @@
 import * as z from 'zod/mini'
-import { getAuth, EmailAuthProvider, GoogleAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup, reauthenticateWithRedirect, getIdTokenResult, deleteUser } from 'firebase/auth'
+import { getAuth, EmailAuthProvider, GoogleAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup, reauthenticateWithRedirect, getIdTokenResult, deleteUser, updatePassword } from 'firebase/auth'
 import { collection, doc, getDocFromServer, getDocsFromServer, deleteDoc, writeBatch } from 'firebase/firestore'
 import type { AccountService } from '@/application/account/accountService'
 import { deletionBatches } from '@/application/account/deleteAccount'
@@ -45,6 +45,12 @@ export function createFirebaseAccountService(uid: string): AccountService {
       const user = currentUser()
       if (!user.email) throw new Error('Missing email')
       await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password))
+    },
+    async changePassword(currentPassword, newPassword) {
+      const user = currentUser()
+      if (!user.email || !user.providerData.some((provider) => provider.providerId === 'password')) throw new Error('Password provider required')
+      await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, currentPassword))
+      await updatePassword(currentUser(), newPassword)
     },
     async reauthenticateGoogle() {
       const method = chooseGoogleSignInMethod(readSignInEnvironment())

@@ -31,7 +31,7 @@ import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createW
 import { getWorkoutStepKindShortLabelPl } from '@/features/workout-player/utils/workoutStepTimerPresentation'
 import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
 import { quickTimerLabels } from '@/features/quick-timer/quickTimerLabels'
-import { readStoredWorkoutEndWarning } from '@/infrastructure/storage/workoutEndWarningStorage'
+import { readStoredWorkoutEndWarnings } from '@/infrastructure/storage/workoutEndWarningStorage'
 
 interface WorkoutSummaryOptions {
   source?: 'plan' | 'quickTimer'
@@ -292,7 +292,7 @@ function WorkoutPlayerRuntime({
   saveWorkoutSession,
 }: WorkoutPlayerRuntimeProps) {
   const [preparation] = useState(readStoredWorkoutPreparation)
-  const [endWarningEnabled] = useState(readStoredWorkoutEndWarning)
+  const [endWarnings] = useState(readStoredWorkoutEndWarnings)
   const { onPlaybackEvent, completedSession, runGeneration, hasRecorderError, hasNoWork, endedEarly, getRecording } = useWorkoutSessionRecorder(plan, timeline, initialWorkout?.recorder, focusSkills, source)
   const { unlockGong, onGongPlaybackEvent, playEndWarning } = useWorkoutGong(timeline)
   const [soundMuted, setSoundMuted] = useState(!!initialWorkout)
@@ -324,7 +324,7 @@ function WorkoutPlayerRuntime({
     adjustTime,
     getPlaybackSnapshot,
   } = useWorkoutPlayback(timeline, { onPlaybackEvent: handlePlaybackEvent, onEndWarning: playEndWarning,
-    endWarningEnabled, preparation, initialWorkout })
+    endWarnings, preparation, initialWorkout })
 
   const discard = useActiveWorkoutPersistence(plan, playback, getPlaybackSnapshot, getRecording, activeWorkoutRepository,
     saveState.status === 'saved' || hasNoWork, source)

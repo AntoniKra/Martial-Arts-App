@@ -6,6 +6,7 @@ import { seedRawAccountDocument, readSessions } from '../firestoreEmulator'
 import { demoInstant, demoPlans, demoProfile } from './data'
 import { seedDemo } from './seed'
 import { createDemoAccount } from './account'
+import { expandProfileSection } from '../fixtures'
 
 test('captures the demo athlete journey', async ({ page, context }, info) => {
   const folder = path.resolve('screenshots-tour')
@@ -47,7 +48,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false })))
     await page.goto(url)
     await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
+    await expect(nav().getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   }
   const nav = () => page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true })
   try {
@@ -66,6 +67,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await capture(20, 'zgoda', 'Zgoda na dane o zdrowiu')
     await seedRawAccountDocument(page.request, account.uid, '', { ...demoProfile, schemaVersion: 1 })
     await expect(page.getByRole('heading', { name: 'Profil', exact: true })).toBeVisible()
+    await expandProfileSection(page, 'Masa ciała')
     await expect(page.getByRole('region', { name: 'Lista pomiarów', exact: true }).getByRole('listitem')).toHaveCount(14)
     await capture(19, 'profil', 'Profil i wykres masy ciała')
     await open('/profile/delete-account', 'Usuń konto')
@@ -134,8 +136,10 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await expect(page).toHaveURL(/\/feedback$/)
     await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
 
-    // Preserve the feedback module in this document; routing disables the HTTP cache
+    // Preserve feedback and profile modules in this document; routing disables the HTTP cache
     // and service workers are blocked, so a hard navigation loses offline lazy routes.
+    await nav().getByRole('link', { name: 'Profil', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
     await nav().getByRole('link', { name: 'Treningi', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
     await page.getByRole('article').filter({ has: page.getByRole('heading', { name: demoPlans[0].nameSnapshot, exact: true }) })
@@ -161,6 +165,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await expect(page).toHaveURL(/\/feedback$/)
     await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
     await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+    await nav().getByRole('link', { name: 'Profil', exact: true }).click()
     await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
     await expect(page.getByRole('dialog', { name: 'Wylogować się?', exact: true })).toBeVisible()
     await capture(25, 'wylogowanie-niewyslane', 'Wylogowanie z niewysłanym treningiem')

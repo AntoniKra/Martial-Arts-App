@@ -24,6 +24,8 @@ import { WORKOUT_PREPARATION_DEFAULT, type WorkoutPreparation } from '@/domain/w
 import { finalizePlaybackSteps, getNextWorkoutItemStepIndex } from '@/features/workout-player/utils/finishPlaybackSteps'
 import { adjustPlaybackTime, applyStepDurations } from '../utils/adjustPlaybackTime'
 import { shouldPlayEndWarning } from '../utils/shouldPlayEndWarning'
+import { selectEndWarningSeconds } from '../utils/selectEndWarningSeconds'
+import { DEFAULT_WORKOUT_END_WARNINGS, type WorkoutEndWarnings } from '@/domain/workout-playback/workoutEndWarning'
 import {
   calculatePerformedDurationSeconds,
   deriveStepOutcome,
@@ -35,7 +37,7 @@ const INITIAL_STEP_REVISION = 1
 interface UseWorkoutPlaybackOptions {
   onPlaybackEvent?: (event: WorkoutPlaybackEvent) => void
   onEndWarning?: () => void
-  endWarningEnabled?: boolean
+  endWarnings?: WorkoutEndWarnings
   preparation?: WorkoutPreparation
   initialWorkout?: ActiveWorkout
 }
@@ -204,12 +206,13 @@ export function useWorkoutPlayback(
   const generationRef = useRef(0)
   const previousRemainingMsRef = useRef<number | null>(initialRemainingMs)
   const onEndWarning = options?.onEndWarning
-  const endWarningEnabled = options?.endWarningEnabled ?? true
-  const checkEndWarning = useCallback((remainingMs: number, stepDurationMs: number, running: boolean) => {
+  const { round: roundWarning, rest: restWarning } = options?.endWarnings ?? DEFAULT_WORKOUT_END_WARNINGS
+  const checkEndWarning = useCallback((remainingMs: number, step: WorkoutPlaybackStep, running: boolean) => {
+    const warningSeconds = selectEndWarningSeconds(step, { round: roundWarning, rest: restWarning })
     if (shouldPlayEndWarning({ previousRemainingMs: previousRemainingMsRef.current, remainingMs,
-      stepDurationMs, running, enabled: endWarningEnabled })) onEndWarning?.()
+      stepDurationMs: step.durationSeconds * 1000, running, warningSeconds })) onEndWarning?.()
     previousRemainingMsRef.current = running ? remainingMs : null
-  }, [onEndWarning, endWarningEnabled])
+  }, [onEndWarning, roundWarning, restWarning])
   const getPlaybackSnapshot = useCallback(() => ({
     playback: playbackRef.current,
     deadlineMs: deadlineRef.current,
@@ -291,7 +294,7 @@ export function useWorkoutPlayback(
 
     if (!bumpRevision) {
       checkEndWarning(Math.max(0, deadlineMs - nowMs),
-        stepsRef.current[current.currentStepIndex].durationSeconds * 1000, true)
+        stepsRef.current[current.currentStepIndex], true)
     }
 
     emitElapsedTransitions(current, resolved.playback, stepsRef.current, nowMs, emitEvent)
@@ -394,7 +397,7 @@ export function useWorkoutPlayback(
     pausedPlaybackRef.current = current.status === 'paused'
       ? { playback: adjusted.playback, remainingMs: adjusted.pausedRemainingMs! } : null
     checkEndWarning(Math.max(0, (adjusted.deadlineMs ?? nowMs) - nowMs),
-      adjusted.step.durationSeconds * 1000, current.status === 'running')
+      adjusted.step, current.status === 'running')
     commitPlayback(adjusted.playback, adjusted.deadlineMs)
   }, [commitPlayback, emitEvent, runTick, checkEndWarning])
 

@@ -25,4 +25,12 @@ describe('body weight SVG', () => {
     expect(html).toContain('Brak pomiarów z ostatnich 12 tygodni.')
     expect(html.match(/Brak danych/g)).toHaveLength(12)
   })
+  it('replaces the chart with a short explanation until the second measurement', () => {
+    const entry = { date: '2026-11-13', weightKg: 76, createdAt: '2026-11-13T09:00:00Z', updatedAt: '2026-11-13T09:00:00Z' }
+    const one = renderToStaticMarkup(createElement(BodyWeightChart, { weeks: calculateWeeklyWeights([entry], '2026-11-13') }))
+    expect(one).not.toContain('<svg')
+    expect(one).toContain('Wykres pojawi się po 2 pomiarach')
+    const two = renderToStaticMarkup(createElement(BodyWeightChart, { weeks: calculateWeeklyWeights([entry, { ...entry, date: '2026-11-12' }], '2026-11-13') }))
+    expect(two).toContain('<svg')
+  })
 })

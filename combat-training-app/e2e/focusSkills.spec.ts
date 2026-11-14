@@ -2,8 +2,10 @@ import AxeBuilder from '@axe-core/playwright'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import type { Locator, Page, TestInfo } from '@playwright/test'
-import { expect, test } from './fixtures'
+import { expect, test, openProfile } from './fixtures'
 import { createVerifiedAccount, signIn } from './authEmulator'
+
+test.use({ serviceWorkers: 'allow' })
 
 const skillName = 'Jab z krokiem w przód'
 const criterion = 'Przednia stopa ląduje przed rękawicą, nie po niej.'
@@ -143,20 +145,23 @@ test('saves a focus skill offline, warns before sign-out and isolates the next a
   await form.getByRole('button', { name: 'Zapisz ćwiczenie', exact: true }).click()
   await expect(skillOption(first)).toBeChecked()
   await expect(first.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
+  await app.savePlan()
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Wylogować się?', exact: true })
   await expect(dialog).toBeVisible()
   await dialog.getByRole('button', { name: 'Anuluj', exact: true }).click()
   await context.setOffline(false)
-  await expect(first.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
-  await app.savePlan()
+  await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+  await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   // The newly saved plan may still be waiting for server acknowledgement.
   if (await dialog.isVisible()) await dialog.getByRole('button', { name: 'Wyloguj mimo to', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
   const second = await createVerifiedAccount(page.request)
   await signIn(page, second)
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   await page.goto('/workouts/new')
   await prepareBuilder(page, 'Plan drugiego konta', ['Nowe ćwiczenie'])
   const secondCard = cardFor(page, 'Nowe ćwiczenie')

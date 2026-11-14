@@ -1,5 +1,5 @@
 import { block, roundsExercise, workoutPlan } from '../src/test/workoutBuilders'
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 import AxeBuilder from '@axe-core/playwright'
 
 const time = Date.parse('2026-11-08T10:00:00.000Z')
@@ -133,7 +133,7 @@ test('discards a pause older than twelve hours without adding a journal entry', 
   await page.getByRole('dialog', { name: 'Niedokończony trening', exact: true }).getByRole('button', { name: 'Porzuć', exact: true }).click()
   await expect(page).toHaveURL(/\/$/)
   await page.reload()
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   await expect(page.getByRole('dialog')).toHaveCount(0)
   expect(await app.readSessions()).toHaveLength(0)
   expect(await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('combat-training.activeWorkout.')))).toEqual([])
@@ -152,7 +152,7 @@ test('drops an interrupted first round without asking when no work was completed
   await page.goto('about:blank')
   await page.clock.setFixedTime(new Date(time + 600_000))
   await page.goto('/')
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   await expect(page).toHaveURL(/\/$/)
   await expect(page.getByRole('dialog')).toHaveCount(0)
   expect(await app.readSessions()).toHaveLength(0)
@@ -170,9 +170,10 @@ test('clears the active snapshot on sign-out', async ({ app, page }) => {
   const saved = await page.evaluate(() => Object.entries(localStorage).find(([key]) => key.startsWith('combat-training.activeWorkout.'))!)
   await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Porzuć', exact: false }).click()
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   // Reintroduce the account's active snapshot while on a screen that permits sign-out.
   await page.evaluate(([key, value]) => localStorage.setItem(key, value), saved)
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
   expect(await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('combat-training.activeWorkout.')))).toEqual([])
@@ -255,6 +256,6 @@ test('keeps completed recovery cleared when leaving the player', async ({ app, p
   await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
   expect(await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('combat-training.activeWorkout.')))).toEqual([])
   await page.goto('/')
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   await expect(page).toHaveURL(/\/$/)
 })

@@ -1,10 +1,11 @@
 import { createContext } from 'react'
 
-import type { ThemeMode } from '@/features/theme/theme.types'
+import type { ThemeMode, ThemePreference } from '@/features/theme/theme.types'
 
 export interface ThemeContextValue {
   theme: ThemeMode
-  setTheme: (mode: ThemeMode) => void
+  preference: ThemePreference
+  setTheme: (mode: ThemePreference) => void
   toggleTheme: () => void
 }
 

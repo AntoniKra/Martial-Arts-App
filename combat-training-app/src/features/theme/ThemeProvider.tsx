@@ -9,10 +9,10 @@ import {
   resolveThemeMode,
   subscribeToSystemTheme,
 } from '@/features/theme/themeStorage'
-import type { ThemeMode } from '@/features/theme/theme.types'
+import type { ThemePreference } from '@/features/theme/theme.types'
 
 export function ThemeProvider({ children }: PropsWithChildren) {
-  const [preference, setPreference] = useState<ThemeMode | null>(readStoredThemeMode)
+  const [preference, setPreference] = useState<ThemePreference>(() => readStoredThemeMode() ?? 'system')
   const systemTheme = useSyncExternalStore(subscribeToSystemTheme, readSystemThemeMode)
   const theme = resolveThemeMode(preference, systemTheme)
 
@@ -20,7 +20,7 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     applyThemeToDocument(theme)
   }, [theme])
 
-  const setTheme = useCallback((mode: ThemeMode) => {
+  const setTheme = useCallback((mode: ThemePreference) => {
     setPreference(mode)
     persistThemeMode(mode)
   }, [])
@@ -30,7 +30,7 @@ export function ThemeProvider({ children }: PropsWithChildren) {
   }, [setTheme, theme])
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, preference, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   )

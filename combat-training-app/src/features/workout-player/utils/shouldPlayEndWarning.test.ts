@@ -3,10 +3,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 import { adjustPlaybackTime } from './adjustPlaybackTime'
 import { shouldPlayEndWarning } from './shouldPlayEndWarning'
+import { selectEndWarningSeconds } from './selectEndWarningSeconds'
 import { block, continuousExercise, playbackStep, roundsExercise, workoutBreak, workoutPlan } from '@/test/workoutBuilders'
 
 const defaults = { previousRemainingMs: 10_001, remainingMs: 10_000, stepDurationMs: 40_000,
-  running: true, enabled: true }
+  running: true, warningSeconds: 10 }
 
 afterEach(() => vi.useRealTimers())
 
@@ -19,13 +20,13 @@ describe('workout end warning', () => {
     expect(shouldPlayEndWarning({ ...defaults, remainingMs })).toBe(false)
   })
 
-  it.each([20_000, 30_000, 31_000])('requires a target longer than 30 seconds: %i ms', (stepDurationMs) => {
-    expect(shouldPlayEndWarning({ ...defaults, stepDurationMs })).toBe(stepDurationMs > 30_000)
+  it.each([5000, 9999, 10_000, 30_000])('requires a phase at least as long as the selected warning: %i ms', (stepDurationMs) => {
+    expect(shouldPlayEndWarning({ ...defaults, stepDurationMs })).toBe(stepDurationMs >= 10_000)
   })
 
   it('stays silent while paused, preparing or disabled', () => {
     expect(shouldPlayEndWarning({ ...defaults, running: false })).toBe(false)
-    expect(shouldPlayEndWarning({ ...defaults, enabled: false })).toBe(false)
+    expect(shouldPlayEndWarning({ ...defaults, warningSeconds: null })).toBe(false)
   })
 
   it.each([null, 10_000, 9999, 7000])('does not repeat or replay a warning after resume/reload from %s ms', (previousRemainingMs) => {
@@ -80,5 +81,41 @@ describe('workout end warning', () => {
     for (const step of timeline.steps) {
       expect(shouldPlayEndWarning({ ...defaults, stepDurationMs: step.durationSeconds * 1000 })).toBe(true)
     }
+  })
+
+  it.each([5, 10, 15, 30])('warns once at %i seconds using exact deadlines after a background return', (warningSeconds) => {
+    vi.useFakeTimers()
+    const deadlineMs = 60_000, thresholdMs = warningSeconds * 1000
+    let previousRemainingMs = 60_000
+    let count = 0
+    for (const nowMs of [60_000 - thresholdMs - 1, 60_000 - thresholdMs + 250, 60_000 - thresholdMs + 1000]) {
+      vi.setSystemTime(nowMs)
+      const remainingMs = deadlineMs - Date.now()
+      if (shouldPlayEndWarning({ ...defaults, warningSeconds, previousRemainingMs, remainingMs, stepDurationMs: 60_000 })) count++
+      previousRemainingMs = remainingMs
+    }
+    expect(count).toBe(1)
+    expect(shouldPlayEndWarning({ ...defaults, warningSeconds, previousRemainingMs: thresholdMs + 1,
+      remainingMs: thresholdMs - 3000 })).toBe(true)
+    expect(shouldPlayEndWarning({ ...defaults, warningSeconds, previousRemainingMs: thresholdMs + 1,
+      remainingMs: thresholdMs - 3001 })).toBe(false)
+  })
+
+  it.each([5, 10])('supports %i-second rest warnings independently of round settings', (seconds) => {
+    const timeline = createWorkoutPlaybackTimeline(workoutPlan([block('b1', [
+      roundsExercise('rounds', 2, 60, 20), workoutBreak('break', 5),
+    ])]))
+    const settings = { round: 'off' as const, rest: String(seconds) as '5' | '10' }
+    const [work, rest, , shortBreak] = timeline.steps
+    expect(selectEndWarningSeconds(work, settings)).toBeNull()
+    expect(selectEndWarningSeconds(rest, settings)).toBe(seconds)
+    expect(shouldPlayEndWarning({ ...defaults, warningSeconds: seconds, previousRemainingMs: seconds * 1000 + 1,
+      remainingMs: seconds * 1000, stepDurationMs: shortBreak.durationSeconds * 1000 })).toBe(seconds === 5)
+  })
+
+  it('preserves the minimum exercise length and defaults to silent rests', () => {
+    const settings = { round: '10' as const, rest: 'off' as const }
+    const timeline = createWorkoutPlaybackTimeline(workoutPlan([block('b1', [roundsExercise('work', 2, 30, 40)])]))
+    for (const step of timeline.steps) expect(selectEndWarningSeconds(step, settings)).toBeNull()
   })
 })

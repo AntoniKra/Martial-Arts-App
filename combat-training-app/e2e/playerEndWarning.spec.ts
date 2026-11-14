@@ -2,11 +2,11 @@ import path from 'node:path'
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
 
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 import { block, continuousExercise, roundsExercise, workoutBreak, workoutPlan } from '../src/test/workoutBuilders'
 
-const settingLabel = 'Sygnał 10 s przed końcem rundy i przerwy'
-const storageKey = 'combat-training.endWarningEnabled'
+const settingLabel = 'Sygnał przed końcem rundy'
+const storageKey = 'combat-training.endWarnings'
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -54,18 +54,20 @@ for (const theme of ['dark', 'light'] as const) {
     await app.seedPlan(plan)
     await app.open(`/workouts/${plan.id}`)
     await app.setTheme(theme)
-    const setting = page.getByRole('switch', { name: settingLabel, exact: true })
+    await openProfile(page)
+    const group = page.getByRole('radiogroup', { name: settingLabel, exact: true })
+    const setting = group.getByRole('radio', { name: '10 s', exact: true })
     await expect(setting).toBeChecked()
     const label = setting.locator('..')
     const box = (await label.boundingBox())!
     expect(box.height).toBeGreaterThanOrEqual(44)
     expect(box.width).toBeGreaterThanOrEqual(44)
     await setting.focus()
-    await setting.press('Space')
+    await setting.press('Home')
     await expect(setting).not.toBeChecked()
-    await app.open(`/workouts/${plan.id}`)
+    await page.reload()
     await expect(setting).not.toBeChecked()
-    await setting.check()
+    await setting.click()
     await page.evaluate(() => document.fonts.ready)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width)
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) =>
@@ -84,8 +86,11 @@ test('warns once at ten seconds in rounds, rests, breaks and final continuous wo
     workoutBreak('break', 40), continuousExercise('continuous', 40)])])
   await app.seedPlan(plan)
   await app.open(`/workouts/${plan.id}`)
+  await openProfile(page)
+  await page.getByRole('radiogroup', { name: 'Sygnał przed końcem przerwy', exact: true }).getByRole('radio', { name: '10 s', exact: true }).click()
   await page.getByRole('radiogroup', { name: 'Przygotowanie przed startem', exact: true })
     .getByRole('radio', { name: '30 s', exact: true }).click()
+  await app.open(`/workouts/${plan.id}`)
   await app.openPlayer()
   await app.freezeClock()
   await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
@@ -110,13 +115,15 @@ test('keeps a disabled preference for the current workout even if storage change
   const plan = workoutPlan([block('b1', [continuousExercise('work', 40)])])
   await app.seedPlan(plan)
   await app.open(`/workouts/${plan.id}`)
-  await page.getByRole('switch', { name: settingLabel, exact: true }).uncheck()
+  await openProfile(page)
+  await page.getByRole('radiogroup', { name: settingLabel, exact: true }).getByRole('radio', { name: 'Wyłączony', exact: true }).click()
+  await page.reload()
+  await expect(page.getByRole('radiogroup', { name: settingLabel, exact: true }).getByRole('radio', { name: 'Wyłączony', exact: true })).toBeChecked()
   await app.open(`/workouts/${plan.id}`)
-  await expect(page.getByRole('switch', { name: settingLabel, exact: true })).not.toBeChecked()
   await app.openPlayer()
   await app.freezeClock()
   await app.startWorkout()
-  await page.evaluate((key) => localStorage.setItem(key, 'true'), storageKey)
+  await page.evaluate((key) => localStorage.setItem(key, JSON.stringify({ round: '10', rest: '10' })), storageKey)
   await page.clock.runFor(30_000)
   await expectWarnings(page, 0)
   await page.clock.runFor(10_000)
@@ -195,4 +202,37 @@ test('skips a late threshold and does not replay it when reloaded below ten seco
   await page.clock.setFixedTime(new Date(time + 34_000))
   await expect(page.getByText('Pozostały czas: 6 sekund', { exact: true })).toBeAttached()
   await expectWarnings(page, 0)
+})
+
+test('uses independent profile warning times in the quick timer and avoids duplicates after a background return', async ({ app, page }) => {
+  await app.open('/profile')
+  await page.getByRole('radiogroup', { name: 'Sygnał przed końcem rundy', exact: true }).getByRole('radio', { name: '15 s', exact: true }).click()
+  await page.getByRole('radiogroup', { name: 'Sygnał przed końcem przerwy', exact: true }).getByRole('radio', { name: '5 s', exact: true }).click()
+  await app.open('/quick-timer')
+  await page.getByRole('button', { name: 'Worek', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Dyscyplina', exact: true }).selectOption('boxing')
+  await page.getByRole('button', { name: '3 × 2:00 · przerwa 1:00', exact: true }).click()
+  await page.getByRole('button', { name: 'Start', exact: true }).click()
+  await app.freezeClock()
+  await app.startWorkout()
+  await page.clock.runFor(104_750)
+  await expectWarnings(page, 0)
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await page.clock.fastForward(1250)
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await expectWarnings(page, 1)
+  await page.clock.runFor(14_000)
+  await expectWarnings(page, 1)
+  await page.clock.runFor(54_750)
+  await expectWarnings(page, 1)
+  await page.clock.runFor(250)
+  await expectWarnings(page, 2)
+  await page.clock.runFor(5000)
+  await expectWarnings(page, 2)
 })

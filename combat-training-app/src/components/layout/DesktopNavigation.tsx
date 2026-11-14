@@ -1,6 +1,5 @@
 import { primaryNavigationItems } from '@/components/layout/navigationConfig'
 import { NavigationLink } from '@/components/layout/NavigationLink'
-import { ThemeToggle } from '@/components/layout/ThemeToggle'
 
 export function DesktopNavigation() {
   return (
@@ -15,9 +14,6 @@ export function DesktopNavigation() {
         {primaryNavigationItems.map((item) => (
           <NavigationLink key={item.id} item={item} variant="desktop" />
         ))}
-      </div>
-      <div className="mt-auto px-3 pt-6">
-        <ThemeToggle />
       </div>
     </nav>
   )

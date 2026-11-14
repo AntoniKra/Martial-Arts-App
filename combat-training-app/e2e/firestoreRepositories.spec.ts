@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 import { createVerifiedAccount, signIn } from './authEmulator'
 
 // Keep Firestore's week query in the playback week. Moving the date across weeks
@@ -11,6 +11,7 @@ test('isolates two accounts in the same browser', async ({ app, page }) => {
   await app.openPlayer()
   await app.finishWorkout()
   await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
   const second = await createVerifiedAccount(page.request)

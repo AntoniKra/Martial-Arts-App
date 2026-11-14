@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 import { createVerifiedAccount, signIn, signInWithFakeGoogle, uniqueEmail } from './authEmulator'
 import { seedPlan } from './firestoreEmulator'
 import { block, roundsExercise, workoutPlan } from '../src/test/workoutBuilders'
@@ -31,6 +31,7 @@ test('opens Start after password login and after signing in again from a previou
   await expect(page.getByRole('link', { name: 'Start', exact: true })).toHaveAttribute('aria-current', 'page')
   for (const previous of ['Profil', 'Treningi']) {
     await page.getByRole('link', { name: previous, exact: true }).click()
+    await openProfile(page)
     await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
     await expect(page).toHaveURL('/login')
     // Firebase's redirect flow reloads this same login URL and its history state.
@@ -80,6 +81,7 @@ test.describe('Google redirect', () => {
   test('opens Start after Google login from the previous Profile route', async ({ app, page }) => {
     await app.open('/')
     await page.getByRole('link', { name: 'Profil', exact: true }).click()
+    await openProfile(page)
     await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
     await expect(page).toHaveURL('/login')
     await page.getByRole('button', { name: 'Kontynuuj z Google', exact: true }).click()
