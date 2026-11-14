@@ -1,10 +1,14 @@
-import { createElement } from 'react'
+import { createElement, type ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { MemoryRouter } from 'react-router-dom'
+import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import { workoutSession } from '@/test/workoutSessionBuilders'
 import { WorkoutFeedbackForm } from './WorkoutFeedbackForm'
 import { sparringIntensityLabels } from './sparringIntensityLabels'
+
+function FeedbackTestRouter({ children }: { children?: ReactNode }) {
+  return createElement(RouterProvider, { router: createMemoryRouter([{ path: '/', element: children }]) })
+}
 
 it.each([
   { skippedIndex: 0, completedCount: 1 },
@@ -14,7 +18,7 @@ it.each([
     blockId: `completed-${index}`, intensity: null, rounds: 1,
   }))
   sparring.splice(skippedIndex, 0, { blockId: 'skipped', intensity: null, rounds: 0 })
-  const html = renderToStaticMarkup(createElement(MemoryRouter, {}, createElement(WorkoutFeedbackForm, {
+  const html = renderToStaticMarkup(createElement(FeedbackTestRouter, {}, createElement(WorkoutFeedbackForm, {
     session: workoutSession({ sparring }), skills: [], pending: false, rpeCard: null, onSave: async () => {},
   })))
   expect(html.match(/Sparing \d+ · intensywność \(opcjonalnie\)/g)).toEqual(
@@ -28,7 +32,7 @@ it('prefills saved intensity, leaves unknown intensity empty, and excludes entri
     { blockId: 'skipped', intensity: 'hard', rounds: 0 }, { blockId: 'unknown-rounds', intensity: null, rounds: null },
     { blockId: null, intensity: 'hard', rounds: 2 },
   ] })
-  const html = renderToStaticMarkup(createElement(MemoryRouter, {}, createElement(WorkoutFeedbackForm, {
+  const html = renderToStaticMarkup(createElement(FeedbackTestRouter, {}, createElement(WorkoutFeedbackForm, {
     session, skills: [], pending: false, rpeCard: null, onSave: async () => {},
   })))
   expect(html).toContain('Sparing 1 · intensywność (opcjonalnie)')
@@ -44,7 +48,7 @@ it('uses the same metrics for both runs and shows the previous date, missing RPE
   const previous = workoutSession({ id: 'previous', durationSeconds: 3130.8, workSeconds: 900,
     completedAt: '2026-11-06T10:00:00.000Z', completion: { completed: 5, planned: 5, unit: 'exercise' },
     rpe: null, exerciseRatings: [{ workoutItemId: 'old', nameSnapshot: 'Hidden previous exercise', blockType: 'bag', rating: 2 }] })
-  const html = renderToStaticMarkup(createElement(MemoryRouter, {}, createElement(WorkoutFeedbackForm, {
+  const html = renderToStaticMarkup(createElement(FeedbackTestRouter, {}, createElement(WorkoutFeedbackForm, {
     session: { ...previous, id: 'current', exerciseRatings: [] }, skills: [], pending: false, rpeCard: null,
     previousRun: { session: previous, planChanged: true }, onSave: async () => {},
   })))
@@ -58,7 +62,7 @@ it('uses the same metrics for both runs and shows the previous date, missing RPE
 
 it.each([0, 7])('shows previous RPE %s without a plan-edit notice', (rpe) => {
   const session = workoutSession()
-  const html = renderToStaticMarkup(createElement(MemoryRouter, {}, createElement(WorkoutFeedbackForm, {
+  const html = renderToStaticMarkup(createElement(FeedbackTestRouter, {}, createElement(WorkoutFeedbackForm, {
     session, skills: [], pending: false, rpeCard: null, previousRun: { session: { ...session, rpe }, planChanged: false }, onSave: async () => {},
   })))
   expect(html).toContain(`RPE: ${rpe}`)
@@ -66,7 +70,7 @@ it.each([0, 7])('shows previous RPE %s without a plan-edit notice', (rpe) => {
 })
 
 it('omits the comparison entirely when there is no previous run', () => {
-  const html = renderToStaticMarkup(createElement(MemoryRouter, {}, createElement(WorkoutFeedbackForm, {
+  const html = renderToStaticMarkup(createElement(FeedbackTestRouter, {}, createElement(WorkoutFeedbackForm, {
     session: workoutSession(), skills: [], pending: false, rpeCard: null, previousRun: null, onSave: async () => {},
   })))
   expect(html).not.toContain('Poprzednio ten plan')

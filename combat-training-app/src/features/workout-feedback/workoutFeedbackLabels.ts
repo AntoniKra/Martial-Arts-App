@@ -49,6 +49,7 @@ export const workoutFeedbackLabels = {
   noteHeading: 'Notatka do treningu · opcjonalnie',
   notePlaceholder: 'Co zadziałało? Jaki błąd się powtarzał? Co zrobić następnym razem?',
   done: 'Gotowe',
+  discardDescription: 'Oceny i notatka nie zostaną zapisane.',
   back: 'Wróć do historii',
   backToPlan: 'Wróć do planu',
   loading: 'Ładowanie podsumowania…',
