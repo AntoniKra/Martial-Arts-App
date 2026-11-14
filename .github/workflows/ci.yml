@@ -35,12 +35,10 @@ jobs:
       - run: npm test
       - run: npm run build
 
-  e2e:
-    name: Firestore rules and Playwright E2E (Chromium)
+  rules:
+    name: Firestore rules
     runs-on: ubuntu-latest
-    # The full suite (three viewports, 585 tests in November 2026) takes 10-15 minutes on GitHub runners
-    # plus about 2.5 minutes of setup; the same commit varies by up to 4 minutes between runners.
-    timeout-minutes: 30
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: combat-training-app
@@ -59,14 +57,41 @@ jobs:
           java-version: '21'
       - run: npm ci
       - run: npm run test:rules
+
+  e2e:
+    name: Playwright E2E (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    # Each runner tests one viewport; expect 6-8 minutes including about 2.5 minutes of setup.
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [phone, tablet, desktop]
+    defaults:
+      run:
+        working-directory: combat-training-app
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.12.0
+          cache: npm
+          cache-dependency-path: combat-training-app/package-lock.json
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - run: npm run test:e2e:project -- ${{ matrix.project }}
 
       - name: Upload Playwright report and screenshots
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: |
             combat-training-app/playwright-report/
             combat-training-app/test-results/
