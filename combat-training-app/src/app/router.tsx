@@ -19,6 +19,7 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorScreen />,
     hydrateFallbackElement: <AuthLoadingScreen />,
     children: [
+      { path: '/lab/video-frames', lazy: () => import('@/features/video-frames/VideoFramesPage') },
       {
         element: <AuthGate />,
         children: [
