@@ -154,7 +154,7 @@ test('opens New with the keyboard, traps focus, restores it on Escape and works 
   for (const desktop of [false, true]) {
     if (desktop) await page.setViewportSize({ width: 1280, height: 800 })
     const nav = page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true })
-    await expect(nav.getByRole('link')).toHaveText(['Start', 'Treningi', 'Postęp', 'Profil'])
+    await expect(nav.getByRole('link')).toHaveText(['Start', 'Postęp', 'Treningi', 'Profil'])
     const trigger = nav.getByRole('button', { name: 'Nowy', exact: true })
     for (const control of [...await nav.getByRole('link').all(), trigger]) {
       const box = await control.boundingBox()

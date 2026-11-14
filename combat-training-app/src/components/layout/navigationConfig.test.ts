@@ -1,5 +1,12 @@
 import { expect, it } from 'vitest'
-import { primaryNavigationItems, isNavigationItemActive } from './navigationConfig'
+import { primaryNavigationItems, getMobileNavigationItems, isNavigationItemActive } from './navigationConfig'
+
+it('uses the same order on desktop and phone with New in the middle', () => {
+  const labels = ['Start', 'Postęp', 'Nowy', 'Treningi', 'Profil']
+  expect(primaryNavigationItems.map((entry) => entry.label)).toEqual(labels)
+  expect(getMobileNavigationItems().map((entry) => entry.label)).toEqual(labels)
+  expect(getMobileNavigationItems()[2].mobileVariant).toBe('create')
+})
 
 const item = primaryNavigationItems.find((value) => value.id === 'newWorkout')!
 it.each(['/workouts/new', '/quick-timer', '/workout-sessions/new', '/quick-timer/'])('highlights the New button at %s', (path) => {

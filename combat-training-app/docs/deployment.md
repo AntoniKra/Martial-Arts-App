@@ -65,6 +65,12 @@ Ten sam adres e-mail zarejestrowany wcześniej hasłem: aplikacja nie łączy ko
 
 Podgląd PR: logowanie Google nie działa na kanałach `combat-training-830fb--pr-…web.app`, bo tych domen nie ma w Authorized domains, a ich nazwy zmieniają się z każdym kanałem. Nawet po ich dodaniu `authDomain` wskazuje domenę produkcyjną, inną niż domena podglądu, więc przekierowanie w Safari i nowszym Chrome i tak trafi na blokadę danych stron trzecich. Logowanie Google testujemy na emulatorze (`npm run test:e2e`, plik `e2e/googleSignIn.spec.ts`) i po wdrożeniu na produkcję. Logowanie hasłem w podglądzie działa jak dotąd.
 
+## Powrót z e-maili weryfikacji i resetu hasła (issue #148)
+
+Obie wiadomości dostają `actionCodeSettings.url`: `https://<VITE_FIREBASE_AUTH_DOMAIN>/`. Konfiguracja wskazuje domenę aplikacji, więc strona Firebase po wykonaniu operacji może pokazać przycisk „Kontynuuj” prowadzący na Start. Na emulatorze adresem powrotu jest lokalny origin aplikacji; testy nie otwierają prawdziwego projektu.
+
+Zgodnie z [dokumentacją Firebase](https://firebase.google.com/docs/auth/web/passing-state-in-email-actions) domena adresu powrotu musi należeć do Authorized domains. Dotychczasowa instrukcja logowania Google już wymaga `combat-training-830fb.web.app`. Faktycznej listy produkcyjnej nie odczytujemy w testach. Właściciel przed sprawdzeniem wiadomości: Firebase Console → Authentication → Settings → Authorized domains → sprawdź domenę z `VITE_FIREBASE_AUTH_DOMAIN`, a jeżeli jej brakuje, dodaj ją. Następnie wyślij nową wiadomość weryfikacji i resetu hasła oraz sprawdź przycisk „Kontynuuj”; stare wiadomości nie otrzymają nowego adresu.
+
 ## Zabezpieczenia
 
 - **`.firebaserc` nie ma domyślnego projektu.** Prawdziwy projekt ma tylko alias `prod`, więc polecenie bez `-P prod` nie trafi do produkcji. Testy i emulatory zawsze podają `--project demo-combat-training`.

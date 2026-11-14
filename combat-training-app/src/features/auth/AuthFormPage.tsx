@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { safeReturnTo } from '@/application/auth/resolveAuthRoute'
 import { Button } from '@/components/ui/Button'
 import { clearCleanupError, deletionNotice, readDeletionNotice, readCleanupError, subscribeCleanup } from '@/infrastructure/storage/accountDeletionNotice'
 import { AuthFrame } from './AuthFrame'
@@ -17,6 +18,7 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
   useEffect(() => { if (cleanupError) clearCleanupError() }, [cleanupError])
   const auth = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const inFlight = useRef(false)
@@ -68,6 +70,11 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
     inFlight.current = true
     setGooglePending(true)
     try {
+      // A full Google redirect replaces history state. Keep only the validated destination in its return URL.
+      const returnTo = safeReturnTo(location.state?.returnTo ?? new URLSearchParams(location.search).get('returnTo'))
+      if (returnTo !== '/') {
+        await navigate({ search: new URLSearchParams({ returnTo }).toString() }, { replace: true, state: location.state })
+      }
       setFormError(await auth.execute(() => auth.service.signInWithGoogle()))
     } finally {
       inFlight.current = false
@@ -117,10 +124,10 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
         </Button>
       </>}
       <nav aria-label={labels.login} className="mt-4 flex flex-col items-start">
-        {mode !== 'login' && <Link className="flex min-h-touch items-center text-sm underline" to="/login" state={location.state}>{labels.login}</Link>}
+        {mode !== 'login' && <Link className="flex min-h-touch items-center text-sm underline" to={{ pathname: '/login', search: location.search }} state={location.state}>{labels.login}</Link>}
         {mode === 'login' && <>
-          <Link className="flex min-h-touch items-center text-sm underline" to="/register" state={location.state}>{labels.register}</Link>
-          <Link className="flex min-h-touch items-center text-sm underline" to="/forgot-password" state={location.state}>{labels.forgotPassword}</Link>
+          <Link className="flex min-h-touch items-center text-sm underline" to={{ pathname: '/register', search: location.search }} state={location.state}>{labels.register}</Link>
+          <Link className="flex min-h-touch items-center text-sm underline" to={{ pathname: '/forgot-password', search: location.search }} state={location.state}>{labels.forgotPassword}</Link>
         </>}
       </nav>
     </AuthFrame>
