@@ -12,7 +12,7 @@ export function shouldPlayEndWarning({
 }: EndWarningOptions): boolean {
   if (warningSeconds === null) return false
   const thresholdMs = warningSeconds * 1000
-  return running && stepDurationMs >= thresholdMs &&
+  return running && stepDurationMs > thresholdMs &&
     previousRemainingMs !== null && previousRemainingMs > thresholdMs &&
     remainingMs <= thresholdMs && remainingMs >= thresholdMs - 3000
 }

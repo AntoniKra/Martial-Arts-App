@@ -20,8 +20,8 @@ describe('workout end warning', () => {
     expect(shouldPlayEndWarning({ ...defaults, remainingMs })).toBe(false)
   })
 
-  it.each([5000, 9999, 10_000, 30_000])('requires a phase at least as long as the selected warning: %i ms', (stepDurationMs) => {
-    expect(shouldPlayEndWarning({ ...defaults, stepDurationMs })).toBe(stepDurationMs >= 10_000)
+  it.each([5000, 9999, 10_000, 10_001, 30_000])('requires a phase longer than the selected warning: %i ms', (stepDurationMs) => {
+    expect(shouldPlayEndWarning({ ...defaults, stepDurationMs })).toBe(stepDurationMs > 10_000)
   })
 
   it('stays silent while paused, preparing or disabled', () => {
@@ -110,7 +110,9 @@ describe('workout end warning', () => {
     expect(selectEndWarningSeconds(work, settings)).toBeNull()
     expect(selectEndWarningSeconds(rest, settings)).toBe(seconds)
     expect(shouldPlayEndWarning({ ...defaults, warningSeconds: seconds, previousRemainingMs: seconds * 1000 + 1,
-      remainingMs: seconds * 1000, stepDurationMs: shortBreak.durationSeconds * 1000 })).toBe(seconds === 5)
+      remainingMs: seconds * 1000, stepDurationMs: rest.durationSeconds * 1000 })).toBe(true)
+    expect(shouldPlayEndWarning({ ...defaults, warningSeconds: seconds, previousRemainingMs: seconds * 1000 + 1,
+      remainingMs: seconds * 1000, stepDurationMs: shortBreak.durationSeconds * 1000 })).toBe(false)
   })
 
   it('preserves the minimum exercise length and defaults to silent rests', () => {

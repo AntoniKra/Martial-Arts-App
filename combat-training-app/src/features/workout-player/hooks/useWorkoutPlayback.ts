@@ -292,9 +292,15 @@ export function useWorkoutPlayback(
     const resolved = resolveRunningPlaybackAtTime(current, deadlineMs, nowMs, stepsRef.current)
     const bumpRevision = shouldBumpStepRevision(current, resolved.playback)
 
-    if (!bumpRevision) {
-      checkEndWarning(Math.max(0, deadlineMs - nowMs),
-        stepsRef.current[current.currentStepIndex], true)
+    if (resolved.playback.status === 'running' && resolved.deadlineMs !== null) {
+      if (bumpRevision && previousRemainingMsRef.current !== null) {
+        // Project the last exact sample onto the current stage's deadline before resetting it.
+        // Finished stages are never checked, even when suspension spans several stages.
+        const previousSampleMs = deadlineMs - previousRemainingMsRef.current
+        previousRemainingMsRef.current = resolved.deadlineMs - previousSampleMs
+      }
+      checkEndWarning(Math.max(0, resolved.deadlineMs - nowMs),
+        stepsRef.current[resolved.playback.currentStepIndex], true)
     }
 
     emitElapsedTransitions(current, resolved.playback, stepsRef.current, nowMs, emitEvent)

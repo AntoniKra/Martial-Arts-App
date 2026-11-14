@@ -46,6 +46,41 @@ async function expectWarnings(page: Page, count: number) {
   expect(await warningCount(page)).toBe(count)
 }
 
+async function setWarningTimes(page: Page, round: string, rest: string) {
+  await page.getByRole('radiogroup', { name: settingLabel, exact: true }).getByRole('radio', { name: round, exact: true }).click()
+  await page.getByRole('radiogroup', { name: 'Sygnał przed końcem przerwy', exact: true }).getByRole('radio', { name: rest, exact: true }).click()
+}
+
+async function openQuickTimer(page: Page, restSeconds = 60) {
+  await page.getByRole('button', { name: 'Worek', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Dyscyplina', exact: true }).selectOption('boxing')
+  await page.getByRole('button', { name: '3 × 2:00 · przerwa 1:00', exact: true }).click()
+  if (restSeconds !== 60) {
+    await page.getByRole('button', { name: 'Własny', exact: true }).click()
+    for (let seconds = 60; seconds > restSeconds; seconds -= 5) {
+      await page.getByRole('button', { name: 'Zmniejsz: Przerwa między rundami', exact: true }).click()
+    }
+  }
+  await page.getByRole('button', { name: 'Start', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Rozpocznij trening', exact: true })).toBeVisible()
+}
+
+async function returnFromSuspension(page: Page, elapsedMs: number) {
+  const warnings = await warningCount(page)
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  const before = await page.evaluate(() => Date.now())
+  // Change wall time without firing intervals: only visibilitychange may reconcile the hook.
+  await page.clock.setSystemTime(new Date(before + elapsedMs))
+  await expectWarnings(page, warnings)
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+}
+
 for (const theme of ['dark', 'light'] as const) {
   test(`shows an accessible remembered device setting in ${theme}`, async ({ app, page }, testInfo) => {
     await app.open('/workouts')
@@ -235,4 +270,125 @@ test('uses independent profile warning times in the quick timer and avoids dupli
   await expectWarnings(page, 2)
   await page.clock.runFor(5000)
   await expectWarnings(page, 2)
+})
+
+for (const source of ['plan', 'quickTimer'] as const) {
+  for (const remainingMs of [9000, 7000, 6999]) {
+    test(`reconciles the real playback hook into the next rest at ${remainingMs} ms in ${source}`, async ({ app, page }) => {
+      await app.open('/profile')
+      await setWarningTimes(page, 'Wyłączony', '10 s')
+      if (source === 'plan') {
+        await app.open('/workouts')
+        const plan = workoutPlan([block('b1', [roundsExercise('work', 2, 40, 20)])])
+        await app.seedPlan(plan)
+        await app.open(`/workouts/${plan.id}`)
+        await app.openPlayer()
+      } else {
+        await app.open('/quick-timer')
+        await openQuickTimer(page)
+      }
+      await app.freezeClock()
+      await app.startWorkout()
+      const hiddenAtMs = source === 'plan' ? 35_000 : 119_000
+      const restDeadlineMs = source === 'plan' ? 60_000 : 180_000
+      await page.clock.runFor(hiddenAtMs)
+      await expectWarnings(page, 0)
+      await returnFromSuspension(page, restDeadlineMs - hiddenAtMs - remainingMs)
+      await expect(page.getByText('ODPOCZYNEK', { exact: true })).toBeVisible()
+      await expect(page.getByText(`Pozostały czas: ${Math.ceil(remainingMs / 1000)} sekund`, { exact: true })).toBeAttached()
+      const expected = remainingMs >= 7000 ? 1 : 0
+      await expectWarnings(page, expected)
+      await page.evaluate(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+      await page.clock.runFor(remainingMs + 500)
+      await expectWarnings(page, expected)
+    })
+  }
+
+  test(`reconciles the real playback hook into the next work warning in ${source}`, async ({ app, page }) => {
+    await app.open('/profile')
+    await setWarningTimes(page, '10 s', 'Wyłączony')
+    if (source === 'plan') {
+      await app.open('/workouts')
+      const plan = workoutPlan([block('b1', [roundsExercise('work', 2, 40, 20)])])
+      await app.seedPlan(plan)
+      await app.open(`/workouts/${plan.id}`)
+      await app.openPlayer()
+    } else {
+      await app.open('/quick-timer')
+      await openQuickTimer(page)
+    }
+    await app.freezeClock()
+    await app.startWorkout()
+    const hiddenAtMs = source === 'plan' ? 55_000 : 175_000
+    const workDeadlineMs = source === 'plan' ? 100_000 : 300_000
+    await page.clock.runFor(hiddenAtMs)
+    await expectWarnings(page, 1)
+    await returnFromSuspension(page, workDeadlineMs - hiddenAtMs - 9000)
+    await expect(page.getByText('PRACA', { exact: true })).toBeVisible()
+    await expect(page.getByText('Pozostały czas: 9 sekund', { exact: true })).toBeAttached()
+    await expectWarnings(page, 2)
+    await page.clock.runFor(500)
+    await expectWarnings(page, 2)
+  })
+}
+
+for (const seconds of [5, 10]) {
+  test(`keeps equal ${seconds}-second round rests and standalone breaks silent in the real hook`, async ({ app, page }) => {
+    await app.open('/profile')
+    await setWarningTimes(page, 'Wyłączony', `${seconds} s`)
+    await app.open('/workouts')
+    const plan = workoutPlan([block('b1', [roundsExercise('work', 2, 40, seconds), workoutBreak('break', seconds), continuousExercise('last', 40)])])
+    await app.seedPlan(plan)
+    await app.open(`/workouts/${plan.id}`)
+    await app.openPlayer()
+    await app.freezeClock()
+    await app.startWorkout()
+    await page.clock.runFor(40_000)
+    await expect(page.getByText('ODPOCZYNEK', { exact: true })).toBeVisible()
+    await expectWarnings(page, 0)
+    await page.clock.runFor(seconds * 1000)
+    await page.clock.runFor(40_000)
+    await expect(page.getByText('PRZERWA', { exact: true })).toBeVisible()
+    await expectWarnings(page, 0)
+    await page.clock.runFor(seconds * 1000)
+    await expectWarnings(page, 0)
+  })
+}
+
+test('keeps a rest equal to the threshold silent after crossing into it in the quick timer hook', async ({ app, page }) => {
+  await app.open('/profile')
+  await setWarningTimes(page, 'Wyłączony', '10 s')
+  await app.open('/quick-timer')
+  await openQuickTimer(page, 10)
+  await app.freezeClock()
+  await app.startWorkout()
+  await page.clock.runFor(119_000)
+  await returnFromSuspension(page, 2000)
+  await expect(page.getByText('ODPOCZYNEK', { exact: true })).toBeVisible()
+  await expect(page.getByText('Pozostały czas: 9 sekund', { exact: true })).toBeAttached()
+  await expectWarnings(page, 0)
+  await page.clock.runFor(9500)
+  await expectWarnings(page, 0)
+})
+
+test('warns only for the current phase when suspension spans multiple stages', async ({ app, page }) => {
+  await app.open('/profile')
+  await setWarningTimes(page, 'Wyłączony', '10 s')
+  await app.open('/workouts')
+  const plan = workoutPlan([block('b1', [roundsExercise('work', 3, 40, 20)])])
+  await app.seedPlan(plan)
+  await app.open(`/workouts/${plan.id}`)
+  await app.openPlayer()
+  await app.freezeClock()
+  await app.startWorkout()
+  await page.clock.runFor(35_000)
+  await returnFromSuspension(page, 76_000)
+  await expect(page.getByText('ODPOCZYNEK', { exact: true })).toBeVisible()
+  await expect(page.getByText('Pozostały czas: 9 sekund', { exact: true })).toBeAttached()
+  await expectWarnings(page, 1)
+  await page.clock.runFor(9500)
+  await expectWarnings(page, 1)
 })
