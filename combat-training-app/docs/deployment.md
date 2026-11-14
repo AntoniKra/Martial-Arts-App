@@ -2,6 +2,8 @@
 
 Aplikacja działa pod adresem `https://combat-training-830fb.web.app`. Po zielonym CI na `main` wgrywa ją GitHub Actions. Wdrożenie z komputera właściciela zostaje jako droga awaryjna. Decyzja: `adr/0010-automatic-hosting-deploy.md`.
 
+Workflow `CI` równolegle sprawdza typy, lint, testy jednostkowe i build w jobie `Typecheck, lint, test, build`, reguły Firestore w jobie `Firestore rules` oraz E2E na trzech maszynach w jobach `Playwright E2E (phone/tablet/desktop)`, po jednym rozmiarze ekranu na maszynę. Raporty E2E i zrzuty błędów są w artefaktach przebiegu Actions `playwright-report-phone`, `playwright-report-tablet` i `playwright-report-desktop` przez 14 dni; wdrożenie po scaleniu wymaga sukcesu wszystkich jobów CI.
+
 ## Automatyczne wdrożenie po scaleniu
 
 Po udanym workflow `CI` na `main` (zdarzenie `push`) workflow `Hosting live deploy` wdraża hosting z tego commita na kanał `live`, ale tylko gdy commit jest nadal czubkiem `main`. Ponowne uruchomienie starszego CI nie wgrywa hostingu i nie cofa strony. Wdrożenia idą po kolei i nie przerywają trwającego. Najpierw buduje aplikację raz (`npm ci` i `npm run build:deploy`), potem wgrywa gotowy katalog `dist`. Żeby CLI nie zbudowało aplikacji drugi raz, job usuwa `predeploy` tylko w swojej kopii `firebase.json`. Plik w repozytorium się nie zmienia. Reguł Firestore ten workflow nie wdraża.

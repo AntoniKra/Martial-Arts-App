@@ -10,6 +10,8 @@ Zasada: każda funkcja ma pomagać kontrolować postęp. Jakość wykonania i il
 2. **Podsumowanie** pokazuje oceny ćwiczeń celu, notatkę i intensywność sparingu.
 3. **RPE po 10 minutach wyciszenia.** Podsumowanie odlicza 10 minut i kończy odliczanie gongiem. Można odpowiedzieć wcześniej albo pominąć pytanie (Q2).
 
+Wyjście z podsumowania treningu z planu lub szybkiego stopera z niezapisanymi zmianami formularza wymaga potwierdzenia odrzucenia ocen i notatki; RPE zapisuje się osobno i nie uruchamia ostrzeżenia.
+
 ## Ćwiczenia celu (Q1, R1, R2)
 
 Ćwiczenie celu to umiejętność, nad którą pracujesz, np. „Lewy prosty, powrót do gardy”. Ma nazwę i kryterium oceny. Działa we wszystkich planach: jeden wykres zbiera oceny z każdego planu.
@@ -133,7 +135,7 @@ Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 - wdrożone porównanie liczb w tabeli „Ten tydzień” i „Zwykle”: liczba treningów, czas treningu i obciążenie obok średniej z 3 poprzednich tygodni; bez słownej oceny i arbitralnego progu „więcej niż zwykle”, dopiero gdy historia sięga początku tego okresu;
 - wdrożony wykres ostatnich 12 tygodni: liczba treningów lub minuty czasu treningu (ADR 0011), bez obciążenia.
 
-Wdrożone (issue #127): pod liczbami w podsumowaniu treningu z planu pokazujemy blok **„Poprzednio ten plan”** z datą jak w Historii, czasem treningu i pracy, liczbą ukończonych i zaplanowanych ćwiczeń oraz RPE („RPE: brak”, gdy go nie podano). Poprzednie wykonanie to najnowsza inna sesja z tego samego `workoutPlanId`, wcześniejsza według `startedAt`, a przy remisie według `id`; ręczne wpisy i szybki stoper nie biorą udziału. Gdy plan zmieniono po zakończeniu tamtego treningu, pokazujemy „Plan zmieniono po tamtym treningu.”. Po usunięciu planu porównanie działa nadal, bez dopisku. Link „Zobacz” otwiera podsumowanie poprzedniego treningu; przy pierwszym wykonaniu blok jest niewidoczny. Bez poprzednich ocen ćwiczeń, strzałek, kolorów oceniających i procentów.
+Wdrożone (issue #127): pod liczbami w podsumowaniu treningu z planu pokazujemy blok **„Poprzednio ten plan”** z datą jak w Historii, czasem treningu i pracy, liczbą ukończonych i zaplanowanych ćwiczeń oraz RPE („RPE: brak”, gdy go nie podano). Poprzednie wykonanie to najnowsza inna sesja z tego samego `workoutPlanId`, wcześniejsza według `startedAt`, a przy remisie według `id`; ręczne wpisy i szybki stoper nie biorą udziału. Dopisek „Plan zmieniono po tamtym treningu.” pokazujemy, gdy zapisane listy `stepResults` obu sesji różnią się długością lub układem kroków (`blockId`, `workoutItemId`, `kind`, `roundNumber`, `roundCount`, porównane po kolei), także po usunięciu planu. Przy tym samym układzie dopisek wymaga różnicy `plannedDurationSeconds` co najmniej jednego kroku oraz istniejącego planu z `updatedAt` późniejszym niż `completedAt` poprzedniej sesji, ponieważ korekty zegara też zmieniają zapisany czas docelowy. Sama zmiana nazwy lub odpięcie ćwiczenia celu nie wywołuje dopisku. Link „Zobacz” otwiera podsumowanie poprzedniego treningu; przy pierwszym wykonaniu blok jest niewidoczny. Bez poprzednich ocen ćwiczeń, strzałek, kolorów oceniających i procentów.
 
 Nie pokazujemy: ACWR, monotonii i strain Fostera, wyniku 0–100, prognoz.
 

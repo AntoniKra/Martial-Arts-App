@@ -21,8 +21,18 @@ export function findPreviousPlanRun(
     if (compare(session, current) >= 0) continue
     if (!previous || compare(session, previous) > 0) previous = session
   }
-  return previous ? {
+  if (!previous) return null
+  const layoutChanged = current.stepResults.length !== previous.stepResults.length || current.stepResults.some((step, index) => {
+    const previousStep = previous.stepResults[index]
+    return step.blockId !== previousStep.blockId || step.workoutItemId !== previousStep.workoutItemId ||
+      step.kind !== previousStep.kind || step.roundNumber !== previousStep.roundNumber || step.roundCount !== previousStep.roundCount
+  })
+  // Timer corrections also change stored target durations, so require a later plan edit.
+  const durationChanged = !layoutChanged && plan !== undefined && plan.id === current.workoutPlanId &&
+    Date.parse(plan.updatedAt) > Date.parse(previous.completedAt) &&
+    current.stepResults.some((step, index) => step.plannedDurationSeconds !== previous.stepResults[index].plannedDurationSeconds)
+  return {
     session: previous,
-    planChanged: plan !== undefined && plan.id === current.workoutPlanId && Date.parse(plan.updatedAt) > Date.parse(previous.completedAt),
-  } : null
+    planChanged: layoutChanged || durationChanged,
+  }
 }

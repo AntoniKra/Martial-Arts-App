@@ -22,7 +22,7 @@ const second = { ...first, id: 'second', status: 'partial' as const, startedAt: 
 }
 const previousHeading = 'Poprzednio ten plan: 6 lis'
 
-test('compares seeded plan runs, reports subsequent plan edits, and opens the first summary', async ({ app, page }) => {
+test('compares seeded plan runs, reports changed run durations, and opens the first summary', async ({ app, page }) => {
   await app.open('/workouts')
   await app.seedPlan({ ...plan, updatedAt: first.completedAt })
   await app.seedSession(first); await app.seedSession(second)
@@ -41,7 +41,17 @@ test('compares seeded plan runs, reports subsequent plan edits, and opens the fi
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
   }
-  await app.seedPlan({ ...plan, updatedAt: '2026-11-07T10:00:00.000Z' })
+  await app.seedPlan({ ...plan, updatedAt: '2026-11-14T10:00:00.000Z' })
+  await expect(previous.getByText('Plan zmieniono po tamtym treningu.', { exact: true })).toHaveCount(0)
+  // A timer correction alone does not establish that the plan changed.
+  await app.seedPlan({ ...plan, updatedAt: first.completedAt })
+  await app.seedSession({ ...second, durationSeconds: 3315, workSeconds: 735, stepResults: second.stepResults.map((step, index) => index === 0
+    ? { ...step, plannedDurationSeconds: 195, performedDurationSeconds: 195 } : step) })
+  await app.open(`/workout-sessions/${second.id}/feedback`)
+  await expect(page.locator('header dl dd')).toHaveText(['55:15', '12:15', '4/5'])
+  await expect(previous.getByText('Plan zmieniono po tamtym treningu.', { exact: true })).toHaveCount(0)
+  await app.seedPlan({ ...plan, blocks: [block('bag', Array.from({ length: 5 }, (_, index) => continuousExercise(`exercise-${index}`, index === 0 ? 195 : 180)), 'bag')],
+    updatedAt: '2026-11-07T10:00:00.000Z' })
   await expect(previous.getByText('Plan zmieniono po tamtym treningu.', { exact: true })).toBeVisible()
   await previous.getByRole('link', { name: 'Zobacz', exact: true }).click()
   await expect(page).toHaveURL(/\/workout-sessions\/first\/feedback$/)
@@ -49,7 +59,7 @@ test('compares seeded plan runs, reports subsequent plan edits, and opens the fi
   await expect(page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })).toHaveValue('Notatka pierwszego treningu.')
 })
 
-test('compares a deleted plan without an edit notice and distinguishes absent RPE from zero', async ({ app, page }) => {
+test('compares deleted plans by run layout and distinguishes absent RPE from zero', async ({ app, page }) => {
   await app.open('/workouts')
   await app.seedPlan(plan)
   await app.seedSession({ ...first, rpe: null, rpeRecordedAt: null }); await app.seedSession(second)
@@ -61,6 +71,8 @@ test('compares a deleted plan without an edit notice and distinguishes absent RP
   await expect(previous.locator('dd')).toHaveText(['52:10', '15:00', '5/5'])
   await app.seedSession({ ...first, rpe: 0 })
   await expect(previous.getByText('RPE: 0', { exact: true })).toBeVisible()
+  await app.seedSession({ ...second, stepResults: [second.stepResults[1], second.stepResults[0], ...second.stepResults.slice(2)] })
+  await expect(previous.getByText('Plan zmieniono po tamtym treningu.', { exact: true })).toBeVisible()
   await previous.getByRole('link', { name: 'Zobacz', exact: true }).click()
   await expect(page).toHaveURL(/\/workout-sessions\/first\/feedback$/)
   await expect(page.getByRole('heading', { name: /Poprzednio ten plan/ })).toHaveCount(0)

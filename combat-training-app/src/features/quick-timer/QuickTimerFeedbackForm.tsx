@@ -12,6 +12,7 @@ import { workoutFeedbackLabels as feedbackLabels } from '@/features/workout-feed
 import { sparringIntensityLabels } from '@/features/workout-feedback/sparringIntensityLabels'
 import { rpeLabels } from '@/features/workout-feedback/rpeLabels'
 import { Button } from '@/components/ui/Button'
+import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
 import { QuickTimerCategoryField } from './QuickTimerCategoryField'
 import { quickTimerLabels as labels } from './quickTimerLabels'
 
@@ -19,9 +20,13 @@ export function QuickTimerFeedbackForm({ session, pending, rpeCard, onSave }: {
   session: QuickTimerWorkoutSession; pending: boolean; rpeCard: ReactNode
   onSave: (draft: QuickTimerFeedbackDraft) => Promise<void>
 }) {
-  const [category, setCategory] = useState<QuickTimerCategory | null>(() => isQuickTimerCategory(session.category) ? session.category : null)
-  const [intensity, setIntensity] = useState<SparringIntensity | null>(session.sparring[0]?.intensity ?? null)
-  const [note, setNote] = useState(session.note ?? '')
+  const [initial] = useState(() => ({ category: isQuickTimerCategory(session.category) ? session.category : null,
+    intensity: session.sparring[0]?.intensity ?? null, note: session.note ?? '' }))
+  const [category, setCategory] = useState<QuickTimerCategory | null>(initial.category)
+  const [intensity, setIntensity] = useState<SparringIntensity | null>(initial.intensity)
+  const [note, setNote] = useState(initial.note)
+  const allowLeave = useRef(false)
+  const isDirty = category !== initial.category || intensity !== initial.intensity || note !== initial.note
   const [categoryError, setCategoryError] = useState<string>()
   const [noteError, setNoteError] = useState<string>()
   const [error, setError] = useState(false)
@@ -38,12 +43,15 @@ export function QuickTimerFeedbackForm({ session, pending, rpeCard, onSave }: {
       return
     }
     busy.current = true; setSaving(true); setError(false)
-    try { await onSave({ category, intensity, note }) } catch { setError(true) }
+    // The save callback also navigates; restore protection if saving fails.
+    allowLeave.current = true
+    try { await onSave({ category, intensity, note }) } catch { allowLeave.current = false; setError(true) }
     finally { busy.current = false; setSaving(false) }
   }
   const metrics = [formatSecondsAsClock(Math.floor(session.durationSeconds)), formatSecondsAsClock(session.workSeconds), `${session.completion.completed}/${session.completion.planned}`]
   const metricLabels = [feedbackLabels.metrics[0], feedbackLabels.metrics[1], labels.roundsMetric]
-  return <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
+  return <UnsavedPlanChangesGuard isDirty={isDirty} allowLeaveRef={allowLeave} description={feedbackLabels.discardDescription}>
+    <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
     <Link to={`${routes.workouts}?tab=history`} className="inline-flex min-h-touch items-center text-xs font-semibold text-muted">{feedbackLabels.back}</Link>
     <header className="space-y-3">
       <p className="font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-crimson-ink">{feedbackLabels.status[session.status]}</p>
@@ -79,4 +87,5 @@ export function QuickTimerFeedbackForm({ session, pending, rpeCard, onSave }: {
       <p className="text-center text-xs leading-relaxed text-muted">{rpeLabels.reminderHint}</p>
     </form>
   </div>
+  </UnsavedPlanChangesGuard>
 }
