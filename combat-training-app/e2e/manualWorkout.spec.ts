@@ -117,7 +117,7 @@ test('clears sparring details on deselection and preserves untouched legacy mixe
   const oldCard = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Trening poza aplikacją · Mieszany', exact: true }) })
   await expect(oldCard).toBeVisible()
   await oldCard.getByRole('link', { name: 'Popraw', exact: true }).click()
-  await expect(form(page)).toContainText('Dawny wpis nie zawiera pełnej listy części.')
+  await expect(form(page)).toContainText('Ten wpis był zapisany jako „Mieszany”. Zaznacz, co było na zajęciach.')
   expect((await app.readSessions())[0]).toMatchObject({ schemaVersion: 1, category: 'mixed' })
   expect((await app.readSessions())[0]).not.toHaveProperty('parts')
   await category(page).getByRole('checkbox', { name: /^Sparing/ }).check()
@@ -129,6 +129,44 @@ test('clears sparring details on deselection and preserves untouched legacy mixe
   await category(page).getByRole('checkbox', { name: /^Sparing/ }).check()
   await expect(form(page).getByRole('region', { name: 'Szczegóły sparingu' }).getByRole('radio', { checked: true })).toHaveCount(0)
   await expect(form(page).getByRole('spinbutton', { name: 'Liczba rund (opcjonalnie)' })).toHaveValue('')
+})
+
+test('requires confirmed parts for legacy mixed sparring and preserves saved focus places until explicitly changed', async ({ app, page }, info) => {
+  await app.open('/workouts?tab=history')
+  await app.seedFocusSkill({ ...skill, openCorrection: null })
+  const rating = manualFocusRating({ skillNameSnapshot: skill.name, criterionSnapshot: skill.criterion, blockType: 'pads' })
+  const original = manualWorkoutSession({ category: 'mixed', note: 'Pierwotna notatka.', focusRatings: [rating],
+    sparring: [{ blockId: null, intensity: 'hard', rounds: 6 }] })
+  await app.seedSession(original)
+  const oldCard = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Trening poza aplikacją · Mieszany', exact: true }) })
+  await oldCard.getByRole('link', { name: 'Popraw', exact: true }).click()
+  await expect(category(page).getByRole('checkbox', { checked: true })).toHaveCount(0)
+  await expect(form(page)).toContainText('Ten wpis był zapisany jako „Mieszany”. Zaznacz, co było na zajęciach.')
+  const focusCard = form(page).getByRole('article', { name: skill.name, exact: true })
+  const place = focusCard.getByRole('combobox', { name: 'Gdzie ćwiczyłeś?', exact: true })
+  await expect(place).toHaveValue('pads')
+  await form(page).getByPlaceholder('Czego się uczyłeś? Co poprawiał trener?').fill('Poprawiona notatka.')
+  await save(page)
+  await expect(form(page).getByRole('alert')).toContainText('Wybierz co najmniej jedną część zajęć')
+  expect((await app.readSessions())[0]).toMatchObject({ schemaVersion: 1, category: 'mixed', note: original.note, focusRatings: [rating] })
+  await category(page).scrollIntoViewIfNeeded(); await capture(page, info, 'legacy-mixed-choice-required')
+  await category(page).getByRole('checkbox', { name: /^Sparing/ }).check()
+  await expect(place).toHaveValue('pads')
+  await expect(form(page).getByRole('radio', { name: /^Twardy/ })).toBeChecked()
+  await expect(form(page).getByRole('spinbutton', { name: 'Liczba rund (opcjonalnie)' })).toHaveValue('6')
+  await save(page)
+  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect.poll(async () => (await app.readSessions())[0]?.note).toBe('Poprawiona notatka.')
+  expect((await app.readSessions())[0]).toMatchObject({ schemaVersion: 2, parts: ['sparring'], category: 'sparring', focusRatings: [rating],
+    durationSeconds: 5400, createdAt: original.createdAt, rpeRecordedAt: original.rpeRecordedAt })
+  await historyCard(page).getByRole('link', { name: 'Popraw', exact: true }).click()
+  await expect(place).toHaveValue('pads')
+  await place.selectOption('bag')
+  await save(page)
+  await expect.poll(async () => {
+    const updated = (await app.readSessions())[0]
+    return updated?.source === 'manual' ? updated.focusRatings[0]?.blockType : null
+  }).toBe('bag')
 })
 
 test('adds sparring from home, shows manual cards, and counts toward summary and the category goal', async ({ app, page }) => {

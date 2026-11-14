@@ -146,7 +146,7 @@ Po korekcie zegara `−15 s` / `+15 s` (issue #91) `stepResults[].plannedDuratio
 
 Zapis sesji z planu tworzy po jednym wpisie dla każdego ćwiczenia celu z `assessment: null`. Podsumowanie uzupełnia oceny.
 
-Ręczny wpis zawiera najwyżej 3 unikalne `focusSkillId`; ocena 1–5 albo `unableToRate` jest wymagana dla każdego wybranego ćwiczenia (bez `null`). Miejsce nie może być rozgrzewką ani rozluźnieniem. Wynika z rodzaju treningu; przy „Mieszany” i „Kondycja” wybiera je użytkownik. Sesja i zmiany `focusSkills.openCorrection` trafiają do jednego `writeBatch`, także offline. Oceny ręczne wchodzą do trendu oraz blokują usunięcie ćwiczenia celu.
+Ręczny wpis zawiera najwyżej 3 unikalne `focusSkillId`; ocena 1–5 albo `unableToRate` jest wymagana dla każdego wybranego ćwiczenia (bez `null`). Miejsce nie może być rozgrzewką ani rozluźnieniem. Dla nowej oceny wynika z pojedynczej nazwanej części; przy kilku częściach, „Inne” i „Kondycja” wybiera je użytkownik. Przy edycji zapisane miejsce istniejącej oceny pozostaje niezmienione, dopóki użytkownik sam nie zmieni go w polu miejsca. Edycja dawnego v1 `mixed` startuje bez części, również gdy zapisano szczegóły sparingu, i wymaga świadomego wskazania pełnej listy przed konwersją do v2. Sesja i zmiany `focusSkills.openCorrection` trafiają do jednego `writeBatch`, także offline. Oceny ręczne wchodzą do trendu oraz blokują usunięcie ćwiczenia celu.
 
 ### `ExerciseRating` (ocena pozostałych ćwiczeń, opcjonalna)
 
@@ -193,8 +193,8 @@ Lista zawiera 0–14 pozycji z unikalnymi ID. Ten sam plan można wybrać wielok
 Dopasowanie liczymy czysto w `src/domain`, bez zmieniania sesji ani planu:
 1. Wybieramy wpisy po utrwalonym `workoutDate` (poniedziałek–niedziela). Nie odtwarzamy dnia z UTC ani ze strefy urządzenia.
 2. Ukończone sesje `plan` przypisujemy do wolnych pozycji o identycznym `workoutPlanId`.
-3. Pozostałe ukończone sesje dowolnego źródła przypisujemy do wolnych pozycji rodzaju z identyczną `category`.
-4. Następnie analogicznie przypisujemy częściowe: najpierw dokładny plan, potem rodzaj.
+3. Pozostałe ukończone sesje dowolnego źródła przypisujemy do wolnych pozycji rodzaju. Dla ręcznego v2 rodzaj musi wystąpić w `parts`; pozostałe wpisy wymagają identycznej `category`. Przypisanie maksymalizuje liczbę zaliczonych pozycji niezależnie od kolejności różnych celów: może przesunąć wcześniejsze przypisania wewnątrz tej fazy, bez naruszania dokładnych planów.
+4. Następnie analogicznie przypisujemy częściowe: najpierw dokładny plan, potem rodzaj; zakończonych wcześniejszych faz już nie zmieniamy.
 5. Każda sesja i pozycja uczestniczy najwyżej w jednym dopasowaniu. W każdej fazie kolejność to `workoutDate`, `startedAt` (sesje czasowe) lub `createdAt` (ręczne), następnie `id`; identyczne pozycje zachowują kolejność listy.
 6. Pasek to **wyłącznie ukończone / zaplanowane**, najwyżej 100%. Częściowe, niewykonane i dodatkowe mają osobne liczniki. Pozostałe sesje są dodatkowe tylko przy istniejącym celu. Brak dokumentu lub `items: []` oznacza brak celu: liczba treningów i możliwość ułożenia planu, bez paska i „dodatkowych”. Loading, błąd, niepoprawne lub niepełne dane nie oznaczają braku celu ani zera sesji.
 

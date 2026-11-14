@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { MANUAL_WORKOUT_PARTS, type ManualWorkoutSession, type WorkoutSession } from '@/domain/workout-session/workoutSession.types'
-import { manualSessionParts } from '@/domain/workout-session/manualWorkoutParts'
+import { manualDraftParts } from '@/domain/workout-session/manualWorkoutParts'
 import { changeManualParts, createManualWorkoutDraft, findManualWorkoutDuplicate, latestManualWorkout, previousWorkoutNotes, applyPreviousManualWorkout, manualFocusPlace, validateManualWorkout,
   type ManualWorkoutDraft, type ManualWorkoutErrors, type ManualWorkoutValues } from '@/domain/workout-session/manualWorkoutEntry'
 import { calculateWorkoutDate } from '@/domain/workout-session/workoutSessionDefinitions'
@@ -95,7 +95,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
     if (!original && hasPerformanceObserver()) reportPerformanceEvent({ type: 'save-click', at: performance.now() })
     const available = skillsStatus === 'ready'
     const result = validateManualWorkout({ ...draft, focusRatings: available ? draft.focusRatings : original?.focusRatings ?? [] },
-      calculateWorkoutDate(new Date().toISOString(), timezone), original?.workoutDate)
+      calculateWorkoutDate(new Date().toISOString(), timezone), original?.workoutDate, original)
     if (!result.ok) {
       setErrors(result.errors)
       requestAnimationFrame(() => {
@@ -124,8 +124,8 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
             <Button variant="secondary" onClick={() => {
               setDraft((current) => applyPreviousManualWorkout(current, previous))
               setCustomDuration(!['60', '90', '120'].includes(String(previous.durationSeconds / 60)))
-              setCopied({ disciplineKey: true, durationMinutes: true, parts: manualSessionParts(previous).length > 0 }); setErrors({})
-              const hasSparring = manualSessionParts(previous).includes('sparring')
+              setCopied({ disciplineKey: true, durationMinutes: true, parts: manualDraftParts(previous).length > 0 }); setErrors({})
+              const hasSparring = manualDraftParts(previous).includes('sparring')
               setSparringAnnouncement(hasSparring ? labels.sparringOpened : '')
               if (hasSparring && !draft.parts.includes('sparring')) requestAnimationFrame(() => sparringSection.current?.focus())
             }}>{labels.usePrevious}</Button></div>
@@ -158,7 +158,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
               <input type="checkbox" checked={draft.parts.includes(part)} aria-controls={part === 'sparring' ? `${id}-sparring` : undefined}
                 aria-expanded={part === 'sparring' ? draft.parts.includes(part) : undefined} onChange={() => {
                   const selected = !draft.parts.includes(part)
-                  setDraft((current) => changeManualParts(current, selected ? [...current.parts, part] : current.parts.filter((value) => value !== part)))
+                  setDraft((current) => changeManualParts(current, selected ? [...current.parts, part] : current.parts.filter((value) => value !== part), original))
                   setCopied((current) => ({ ...current, parts: false })); setErrors({})
                   if (part === 'sparring') {
                     setSparringAnnouncement(selected ? labels.sparringOpened : labels.sparringClosed)
@@ -227,7 +227,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
                       <FocusCard session={{ id: original?.id ?? 'new-manual-entry', workoutDate: draft.workoutDate }} rating={rating} skills={skills} first
                         correctionLabel={labels.newCorrection} error={error?.startsWith('Problem') ? error : undefined}
                         onChange={(value) => { set('focusRatings', draft.focusRatings.map((current) => current.focusSkillId === value.focusSkillId ? value : current)); setErrors({}) }}>
-                        {(draft.category === 'mixed' || draft.category === 'conditioning') && <label className="block text-sm font-semibold">
+                        {(original?.focusRatings.some((saved) => saved.focusSkillId === rating.focusSkillId) || draft.category === 'mixed' || draft.category === 'conditioning') && <label className="block text-sm font-semibold">
                           {labels.place}<select value={rating.blockType ?? ''} onChange={(event) => {
                             const blockType = WEEK_PLAN_CATEGORIES.find((value) => value !== 'mixed' && value === event.target.value)
                             set('focusRatings', draft.focusRatings.map((value) => value.focusSkillId === rating.focusSkillId ? { ...value, blockType: blockType && blockType !== 'mixed' ? blockType : null } : value))

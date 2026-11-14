@@ -11,7 +11,7 @@ export const manualWorkoutLabels = {
   saveError: 'Nie udało się zapisać wpisu. Spróbuj ponownie.',
   date: 'Data', dateHint: 'Do 7 dni wstecz.', today: 'Dziś', yesterday: 'Wczoraj', discipline: 'Dyscyplina', category: 'Części zajęć',
   previous: 'Jak ostatnio:', usePrevious: 'Użyj', copied: 'jak ostatnio', partsHint: 'Zaznacz wszystkie części tych zajęć. Wybierz co najmniej jedną.',
-  legacyPartsHint: 'Dawny wpis nie zawiera pełnej listy części. Zaznacz części tych zajęć.',
+  legacyPartsHint: 'Ten wpis był zapisany jako „Mieszany”. Zaznacz, co było na zajęciach.',
   duration: 'Czas trwania', durationHint: 'Cały czas zajęć, razem z rozgrzewką.', customDuration: 'Inny', minutes: 'Czas w minutach',
   rpe: 'Wysiłek (RPE)', rpeHint: 'Oceń cały trening, nie ostatnią rundę.',
   recall: (days: number) => `Ten trening był ${days} dni temu. RPE dostanie znaczek „z pamięci”, bo ocena po kilku dniach jest mniej dokładna.`,

@@ -7,6 +7,7 @@ import { isRpeFromMemory } from './rpeRecall'
 import { getPreviousCorrection, prepareWorkoutFeedback } from './workoutFeedback'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { hasFocusSkillEntries, selectFocusSkillAssessments } from '@/domain/focus-skill/focusSkillProgress'
+import { calculateProfileStatistics } from '@/domain/profile/profileStatistics'
 
 const today = '2026-11-12', now = '2026-11-12T12:00:00.000Z'
 const draft = (patch: Partial<ManualWorkoutDraft> = {}): ManualWorkoutDraft => ({
@@ -73,6 +74,33 @@ describe('manual workout validation and construction', () => {
 })
 
 describe('manual parts and reusable answers', () => {
+  it('requires a conscious parts choice when editing only the note of legacy mixed sparring', () => {
+    const original = manualWorkoutSession({ category: 'mixed', sparring: [{ blockId: null, intensity: 'hard', rounds: 6 }],
+      focusRatings: [manualFocusRating({ blockType: 'pads' })] })
+    const before = structuredClone(original)
+    const edited = { ...createManualWorkoutDraft(today, '', original), note: 'Only the note changed' }
+    expect(edited.parts).toEqual([])
+    expect(edited.focusRatings).toEqual(original.focusRatings)
+    expect(validateManualWorkout(edited, today, original.workoutDate, original)).toMatchObject({ ok: false, errors: { parts: expect.any(String) } })
+    expect(calculateProfileStatistics([original], today).categories).toEqual([])
+    expect(calculateProfileStatistics([original], today).partCounts).toEqual([{ part: 'sparring', count: 1 }])
+    expect(original).toEqual(before)
+    expect(applyPreviousManualWorkout(createManualWorkoutDraft(today), original).parts).toEqual([])
+  })
+  it.each([undefined, ['technique', 'pads'] as const].map((parts) => ({ parts })))('preserves saved focus places across parts changes and allows explicit place edits, parts=%j', ({ parts }) => {
+    const original = manualWorkoutSession({ category: 'mixed', ...(parts ? { parts: [...parts] } : {}),
+      sparring: parts ? [] : [{ blockId: null, intensity: 'hard', rounds: 6 }], focusRatings: [manualFocusRating({ blockType: 'pads' })] })
+    const selected = changeManualParts(createManualWorkoutDraft(today, '', original), ['sparring'], original)
+    expect(selected.focusRatings[0].blockType).toBe('pads')
+    const validated = validateManualWorkout({ ...selected, intensity: 'hard' }, today, original.workoutDate, original)
+    if (!validated.ok) throw new Error('Invalid confirmed parts')
+    const saved = buildManualWorkoutSession(validated.values, { id: 'ignored', now, timezone: 'UTC', original })
+    expect(saved).toMatchObject({ parts: ['sparring'], category: 'sparring', focusRatings: original.focusRatings, createdAt: original.createdAt })
+    const changedPlace = { ...selected, intensity: 'hard' as const, focusRatings: [manualFocusRating({ blockType: 'bag' })] }
+    const explicit = validateManualWorkout(changedPlace, today, original.workoutDate, original)
+    if (!explicit.ok) throw new Error('Invalid explicit place')
+    expect(explicit.values.focusRatings[0].blockType).toBe('bag')
+  })
   it('starts without parts or RPE, reads legacy categories and never guesses a mixed breakdown', () => {
     expect(createManualWorkoutDraft(today)).toMatchObject({ parts: [], rpe: null })
     expect(createManualWorkoutDraft(today, '', manualWorkoutSession()).parts).toEqual(['bag'])

@@ -12,3 +12,8 @@ export function manualSessionParts(session: ManualWorkoutSession): ManualWorkout
   if (session.sparring.length && !parts.includes('sparring')) parts.push('sparring')
   return parts
 }
+
+/** Known sparring in a legacy mixed entry is not a confirmed full breakdown. */
+export function manualDraftParts(session: ManualWorkoutSession): ManualWorkoutPart[] {
+  return !session.parts && session.category === 'mixed' ? [] : manualSessionParts(session)
+}

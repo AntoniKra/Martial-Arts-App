@@ -2,7 +2,7 @@ import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import type { SparringIntensity } from '@/domain/workout/workout.types'
 import { shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
 import { MANUAL_WORKOUT_PARTS, type ManualWorkoutPart, type ManualFocusRating, type ManualWorkoutSession, type WorkoutSession, type WorkoutSessionCategory } from './workoutSession.types'
-import { manualSessionParts, manualWorkoutCategory } from './manualWorkoutParts'
+import { manualDraftParts, manualSessionParts, manualWorkoutCategory } from './manualWorkoutParts'
 
 export interface ManualFocusRatingDraft extends Omit<ManualFocusRating, 'blockType' | 'assessment'> {
   blockType: ManualFocusRating['blockType'] | null
@@ -41,14 +41,15 @@ export function manualFocusPlace(category: ManualWorkoutDraft['category']): Manu
   return category === '' || category === 'mixed' || category === 'conditioning' ? null : category
 }
 
-export function changeManualParts(draft: ManualWorkoutDraft, parts: ManualWorkoutPart[]): ManualWorkoutDraft {
+export function changeManualParts(draft: ManualWorkoutDraft, parts: ManualWorkoutPart[], original?: ManualWorkoutSession): ManualWorkoutDraft {
   const category = manualWorkoutCategory(parts)
   return { ...draft, parts, category, intensity: parts.includes('sparring') ? draft.intensity : '', rounds: parts.includes('sparring') ? draft.rounds : '',
-    focusRatings: draft.focusRatings.map((rating) => ({ ...rating, blockType: manualFocusPlace(category) })) }
+    focusRatings: draft.focusRatings.map((rating) => original?.focusRatings.some((saved) => saved.focusSkillId === rating.focusSkillId)
+      ? rating : { ...rating, blockType: manualFocusPlace(category) }) }
 }
 
 export function createManualWorkoutDraft(today: string, latestDiscipline: DisciplineKey | '' = '', session?: ManualWorkoutSession): ManualWorkoutDraft {
-  const parts = session ? manualSessionParts(session) : []
+  const parts = session ? manualDraftParts(session) : []
   return session ? { workoutDate: session.workoutDate, disciplineKey: session.disciplineKey, category: manualWorkoutCategory(parts), parts,
     durationMinutes: String(session.durationSeconds / 60), rpe: session.rpe,
     intensity: session.sparring[0]?.intensity ?? '', rounds: session.sparring[0]?.rounds?.toString() ?? '',
@@ -64,7 +65,7 @@ export function latestManualWorkout(sessions: readonly WorkoutSession[]): Manual
 
 /** Copy only the three reusable fields; every subjective answer remains the user's own. */
 export function applyPreviousManualWorkout(draft: ManualWorkoutDraft, previous: ManualWorkoutSession): ManualWorkoutDraft {
-  return { ...changeManualParts(draft, manualSessionParts(previous)), disciplineKey: previous.disciplineKey,
+  return { ...changeManualParts(draft, manualDraftParts(previous)), disciplineKey: previous.disciplineKey,
     durationMinutes: String(previous.durationSeconds / 60) }
 }
 
@@ -74,7 +75,7 @@ export function previousWorkoutNotes(sessions: readonly WorkoutSession[], exclud
     .map((session) => session.note?.trim()).filter((note): note is string => !!note))].slice(0, 3)
 }
 
-export function validateManualWorkout(draft: ManualWorkoutDraft, today: string, savedDate?: string):
+export function validateManualWorkout(draft: ManualWorkoutDraft, today: string, savedDate?: string, original?: ManualWorkoutSession):
   { ok: true; values: ManualWorkoutValues } | { ok: false; errors: ManualWorkoutErrors } {
   const errors: ManualWorkoutErrors = {}
   if (!isCalendarDate(draft.workoutDate)) errors.workoutDate = 'Wybierz datę treningu.'
@@ -95,7 +96,8 @@ export function validateManualWorkout(draft: ManualWorkoutDraft, today: string, 
   if (draft.focusRatings.length > 3) errors.focusRatings = 'Oceń najwyżej 3 ćwiczenia celu.'
   for (const rating of draft.focusRatings) {
     const key = `focus-${rating.focusSkillId}` as const
-    const place = manualFocusPlace(category) ?? rating.blockType
+    const hasSavedPlace = original?.focusRatings.some((saved) => saved.focusSkillId === rating.focusSkillId)
+    const place = hasSavedPlace ? rating.blockType : manualFocusPlace(category) ?? rating.blockType
     if (rating.assessment !== 'unableToRate' && !isIntegerInRange(rating.assessment, 1, 5)) errors[key] = 'Wybierz ocenę albo odznacz ćwiczenie celu.'
     else if (!place) errors[key] = 'Wybierz, gdzie ćwiczyłeś.'
     if (seen.has(rating.focusSkillId)) errors[key] = 'Każde ćwiczenie celu można ocenić tylko raz.'
