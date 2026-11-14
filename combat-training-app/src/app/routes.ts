@@ -10,6 +10,7 @@ export const routes = {
   profile: '/profile',
   deleteAccount: '/profile/delete-account',
   profileConsent: '/profile/consent',
+  wellbeingConsent: '/profile/wellbeing-consent',
   weekPlan: (weekStart: string) => `/progress/week/${weekStart}`,
   focusSkillProgress: (focusSkillId: string) => `/progress/focus-skills/${focusSkillId}`,
   workoutDetails: (workoutId: string) => `/workouts/${workoutId}`,

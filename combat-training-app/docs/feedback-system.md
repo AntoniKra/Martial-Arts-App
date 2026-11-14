@@ -100,11 +100,26 @@ Wdrożone (issue #122): podsumowanie treningu z planu pozwala zmienić lub pozos
 
 Jedno pole tekstowe (do 1000 znaków) z podpowiedziami: co zadziałało, jaki błąd się powtarzał, co zrobić następnym razem.
 
-## Gotowość przed treningiem (Q3)
+## Samopoczucie (Q3, issue #146)
 
-- Cztery pytania 1–5: sen, zmęczenie, bolesność mięśni, stres. Raz dziennie, przed pierwszym treningiem.
-- Domyślnie wyłączona. Włącza ją zgoda na dane o zdrowiu, wspólna z wagą. Wycofanie zgody usuwa te dane.
-- Porównanie z własną normą dopiero po około 2 tygodniach wpisów. Bez wyniku 0–100 i bez zaleceń typu „nie trenuj”.
+Domyślnie wyłączone. Osobny ekran zgody w Profilu wymaga dwóch niezaznaczonych pól: potwierdzenia 18+ i wyraźnej zgody na opisany cel przetwarzania danych o zdrowiu. To osobna zgoda od masy ciała. Wyłączenie przełącznikiem, z potwierdzeniem, usuwa wszystkie wpisy przez sieć; zgodę zerujemy dopiero na końcu. Szczegóły: ADR 0015.
+
+Na Starcie karta „Jak się dziś czujesz?” zawiera cztery pytania, każde jednym dotknięciem 1–5, **wyżej = lepiej**, ze słowną etykietą każdego stopnia:
+
+| Pole i pytanie | 1 | 2 | 3 | 4 | 5 |
+| --- | --- | --- | --- | --- | --- |
+| `sleep`: Jak oceniasz jakość snu ostatniej nocy? | bardzo zła | zła | przeciętna | dobra | bardzo dobra |
+| `energy`: Jak wypoczęty czujesz się teraz? | skrajnie zmęczony | zmęczony | normalnie | wypoczęty | w pełni wypoczęty |
+| `soreness`: Jak odczuwasz teraz mięśnie (bolesność, sztywność)? | silny ból | wyraźna bolesność | lekka bolesność | prawie nic | brak bolesności |
+| `stress`: Jaki jest dziś Twój ogólny poziom stresu (trening, praca, życie)? | bardzo wysoki | wysoki | umiarkowany | niski | bardzo niski |
+
+Opcjonalna notatka „Coś nietypowego?” ma do 300 znaków i nie jest analizowana. Nie pytamy o choroby, leki ani okolicę bólu. Jeden wpis na lokalny dzień; do końca tego dnia można go poprawić w Profilu. Zapis offline pokazuje „Czeka na wysłanie”. Karta znika po wpisie lub „Nie dziś” (zapamiętane na urządzeniu dla konta na dany dzień). Bez automatycznych okien, powiadomień, serii i kar.
+
+Norma dla każdego pytania to mediana i P25–P75 z 28 dni **przed** ocenianym dniem. Wymaga ≥14 wpisów obejmujących ≥21 dni kalendarzowych, z oboma końcami. Kwartyle interpolowane liniowo; remisy z progiem są typowe. Niżej niż P25: „gorzej niż zwykle”, wyżej niż P75: „lepiej niż zwykle”, pozostałe: „typowo dla Ciebie”. „Od N dni” liczy kolejne ostatnie gorsze wpisy, każdy względem swojej ówczesnej normy, bez wypełniania luk. Wersja pytań zmienia zbiór normy. Progi są założeniem projektowym, nie zwalidowanym testem.
+
+W Postępie karta „Samopoczucie” pokazuje cztery wiersze z kategoriami ostatniego wpisu i wykresami ostatnich 28 dni. Szare pasmo pokazuje P25–P75 sprzed każdego dnia; punkty to odpowiedzi 1–5, pominięte dni są puste. Każdy wykres ma tabelę danych, a status opis słowny, bez czerwieni i zieleni. Przed normą widać ostatnie odpowiedzi i „Jeszcze N wpisów do Twojej normy” oraz warunek 21 dni. Stopka: „To nie jest ocena medyczna. Jeśli coś Cię niepokoi albo dolegliwości się utrzymują, skonsultuj się z lekarzem.”
+
+Przy RPE podsumowania planu, szybkiego stopera, formularza ręcznego wpisu i szczegółów Historii pokazujemy „Dziś rano: …” według `workoutDate`: tylko pytania gorsze niż norma albo „typowo dla Ciebie”, gdy żadne nie jest gorsze. Dla „Poprzednio ten plan” prefiks to „Tamtego dnia”. Bez normy lub wpisu z tamtego dnia linia jest ukryta. Dane pozostają oddzielone od RPE i nie zmieniają obciążenia. Bez wyniku 0–100, procentów i zaleceń treningowych.
 
 ## Podsumowanie tygodnia (Q5, R3)
 

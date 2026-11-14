@@ -10,7 +10,7 @@ import type { ManualWorkoutSession } from '../src/domain/workout-session/workout
 
 test.use({ screenshot: 'off' })
 const instant = '2026-11-13T09:00:00.000Z'
-const names = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights']
+const names = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights', 'readiness']
 const jsonButton = (page: Page) => page.getByRole('button', { name: 'Pobierz wszystkie dane (JSON)', exact: true })
 const csvButton = (page: Page) => page.getByRole('button', { name: 'Pobierz dziennik (CSV)', exact: true })
 const profile = { schemaVersion: 1, healthDataConsent: { grantedAt: instant, noticeVersion: '2026-11', adultConfirmed: true },
@@ -48,7 +48,7 @@ test('exports every raw document including invalid records and the profile as JS
   await seedRawAccountDocument(page.request, account.uid, '', profile)
   const documents = Object.fromEntries(names.map((name) => [name, { schemaVersion: 99, invalid: name, unknown: ['raw', 4] }]))
   for (const name of names) await seedRawAccountDocument(page.request, account.uid, `${name}/raw`, documents[name])
-  await expect(page.getByText('Plik zawiera dane o zdrowiu (masa ciała). Przechowuj go bezpiecznie.')).toBeVisible()
+  await expect(page.getByText('Eksport może zawierać dane o zdrowiu (masa ciała, samopoczucie). Przechowuj go bezpiecznie.')).toBeVisible()
   const download = await downloaded(page, jsonButton(page))
   expect(download.suggestedFilename()).toMatch(/^combat-training-dane-\d{4}-\d{2}-\d{2}\.json$/)
   const content = JSON.parse((await bytes(download)).toString('utf8'))
@@ -76,10 +76,11 @@ test('downloads BOM CSV with manual and plan entries and safely escaped multilin
   expect(csv).toContain(';1,5;1,0;')
 })
 
-test('disables both exports offline with an explanation', async ({ page, context }) => {
+test('disables exports offline with an explanation', async ({ page, context }) => {
   await openAccount(page)
   await context.setOffline(true)
   await expect(jsonButton(page)).toBeDisabled(); await expect(csvButton(page)).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Pobierz samopoczucie (CSV)', exact: true })).toBeDisabled()
   await expect(page.getByText('Pobranie danych wymaga połączenia z internetem.', { exact: true })).toBeVisible()
   await context.setOffline(false)
 })

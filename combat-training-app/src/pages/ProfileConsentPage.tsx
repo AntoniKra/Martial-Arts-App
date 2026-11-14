@@ -20,7 +20,7 @@ export function Component() {
     const now = new Date().toISOString()
     pending.current = true; setBusy(true); setError(null)
     try {
-      await profileRepository.save({ healthDataConsent: { grantedAt: now, noticeVersion: HEALTH_NOTICE_VERSION, adultConfirmed: true },
+      await profileRepository.save({ ...current, healthDataConsent: { grantedAt: now, noticeVersion: HEALTH_NOTICE_VERSION, adultConfirmed: true },
         weightClassLabel: null, createdAt: current?.createdAt ?? now, updatedAt: now })
       void navigate(routes.profile, { replace: true })
     } catch { setError(labels.saveFailed); pending.current = false; setBusy(false) }

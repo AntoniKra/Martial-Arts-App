@@ -18,6 +18,7 @@ import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedba
 import { WEEK_PLAN_CATEGORIES, categoryLabel } from '@/features/week-plan/weekPlanLabels'
 import { workoutSessionName } from '@/features/workouts/utils/workoutSessionPresentation'
 import { manualCategoryDescriptions, manualWorkoutLabels as labels } from './manualWorkoutLabels'
+import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWorkoutLine'
 import { hasPerformanceObserver, reportPerformanceEvent } from '@/application/performance/performanceEvents'
 
 const inputClass = 'mt-2 block min-h-touch w-full border border-bd bg-input p-3 text-base text-ink'
@@ -148,6 +149,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
           <fieldset className={groupClass} {...invalidProps('rpe')} tabIndex={errors.rpe ? -1 : undefined}>
             <legend className={legendClass}>{labels.rpe}</legend><p className="text-sm text-muted">{labels.rpeHint}</p>
             <RpeScale value={draft.rpe} onChange={(value) => set('rpe', value)} />
+            <LazyWellbeingWorkoutLine date={draft.workoutDate} />
             {daysAgo >= 3 && <p className="text-sm leading-relaxed text-muted">{labels.recall(daysAgo)}</p>}
             <FieldError message={errors.rpe} id={errorId('rpe')} />
           </fieldset>

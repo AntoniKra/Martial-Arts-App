@@ -3,6 +3,7 @@ import { routes } from '@/app/routes'
 import type { PreviousPlanRun } from '@/domain/workout-session/previousPlanRun'
 import { formatWorkoutSessionDatePl } from '@/features/workouts/utils/formatWorkoutSessionLabels'
 import { formatWorkoutFeedbackMetrics, workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
+import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWorkoutLine'
 
 export function PreviousPlanRunSummary({ previous }: { previous: PreviousPlanRun }) {
   const { session, planChanged } = previous
@@ -18,6 +19,7 @@ export function PreviousPlanRunSummary({ previous }: { previous: PreviousPlanRun
       </div>)}
     </dl>
     <p className="text-[13px] tabular-nums text-muted">{labels.previousPlanRunRpe(session.rpe)}</p>
+    <LazyWellbeingWorkoutLine date={session.workoutDate} previous />
     {planChanged && <p className="text-[13px] leading-relaxed text-muted">{labels.planChanged}</p>}
   </section>
 }

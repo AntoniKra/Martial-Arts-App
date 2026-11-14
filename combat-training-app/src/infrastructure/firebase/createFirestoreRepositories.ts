@@ -117,6 +117,7 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
   return {
     profile: { ...health.profile, subscribe: trackedSubscribe(health.profile) },
     bodyWeights: { ...health.bodyWeights, subscribe: trackedSubscribe(health.bodyWeights) },
+    wellbeing: { ...health.wellbeing, subscribe: trackedSubscribe(health.wellbeing) },
     weekPlans: {
       subscribe: (currentWeek, onChange, onError) => {
         const unsubscribe = weekPlans.subscribe(currentWeek, onChange, onError)

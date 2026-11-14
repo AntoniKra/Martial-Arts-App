@@ -1,17 +1,20 @@
 import * as z from 'zod/mini'
 import { instantSchema } from './workoutDocumentSchemas'
 
-const consent = z.strictObject({
+export const healthConsentSchema = z.strictObject({
   grantedAt: instantSchema,
   noticeVersion: z.string().check(z.regex(/^[0-9]{4}-[0-9]{2}$/)),
   adultConfirmed: z.literal(true),
 })
 
 export const profileDocumentSchema = z.strictObject({
-  schemaVersion: z.literal(1), healthDataConsent: z.nullable(consent),
+  schemaVersion: z.literal(1), healthDataConsent: z.nullable(healthConsentSchema),
+  wellbeingConsent: z.optional(z.nullable(healthConsentSchema)),
+  wellbeingWithdrawal: z.optional(z.nullable(z.strictObject({ generation: z.int().check(z.minimum(1)), pending: z.boolean() }))),
   weightClassLabel: z.nullable(z.string().check(z.minLength(1), z.maxLength(20))),
   createdAt: instantSchema, updatedAt: instantSchema,
-}).check(z.refine((profile) => profile.healthDataConsent !== null || profile.weightClassLabel === null))
+}).check(z.refine((profile) => (profile.healthDataConsent !== null || profile.weightClassLabel === null)
+  && (!profile.wellbeingWithdrawal?.pending || profile.wellbeingConsent != null)))
 
 export const bodyWeightDocumentSchema = z.strictObject({
   schemaVersion: z.literal(1), date: z.iso.date(),

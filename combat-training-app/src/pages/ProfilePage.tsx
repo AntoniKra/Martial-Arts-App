@@ -11,6 +11,8 @@ import { profileDataUnavailable } from '@/features/profile/profileDataUnavailabl
 import { ProfileStatistics } from '@/features/profile/ProfileStatistics'
 import { profileLabels as labels } from '@/features/profile/profileLabels'
 import { useProfileToday } from '@/features/profile/useProfileToday'
+import { WellbeingSettings } from '@/features/wellbeing/WellbeingSettings'
+import { hasWellbeingConsent } from '@/domain/wellbeing/wellbeingConsent'
 
 export function Component() {
   const { profile, retryProfile } = useWorkoutData()
@@ -27,7 +29,8 @@ export function Component() {
         {profile.hasPendingWrites && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
       </>}
     </section>
+    <WellbeingSettings today={today} />
     <ProfileStatistics today={today} />
-    <AccountDataSection health={hasValidHealthConsent(current)} />
+    <AccountDataSection health={hasValidHealthConsent(current) || hasWellbeingConsent(current)} />
   </div>
 }

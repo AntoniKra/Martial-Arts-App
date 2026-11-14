@@ -1,6 +1,6 @@
 # Model danych w Firestore
 
-Stan: 13 listopada 2026. Decyzje: `adr/0008-firestore-document-model.md` (ten model), `adr/0007-firestore-reads-with-onsnapshot.md` (pobieranie danych), `adr/0005-journal-entry-definitions.md` (wpis w dzienniku), `adr/0012-body-weight-health-consent.md` (zgoda na masę ciała). Funkcje i oceny opisuje `feedback-system.md`.
+Stan: 14 listopada 2026. Decyzje: `adr/0008-firestore-document-model.md` (ten model), `adr/0007-firestore-reads-with-onsnapshot.md` (pobieranie danych), `adr/0005-journal-entry-definitions.md` (wpis w dzienniku), `adr/0012-body-weight-health-consent.md` (zgoda na masę ciała), `adr/0015-wellbeing-consent-and-personal-baseline.md` (Samopoczucie). Funkcje i oceny opisuje `feedback-system.md`.
 
 Model zastępuje lokalny storage. Dane z `localStorage` to dane pokazowe: nie importujemy ich, Firestore zaczyna od zera (decyzja D2). Opis dawnego storage v1–v3 jest w historii Gita i w `domain-model.md`.
 
@@ -8,7 +8,7 @@ Model zastępuje lokalny storage. Dane z `localStorage` to dane pokazowe: nie im
 
 - **Wszystko pod `users/{uid}`.** Konta nie dzielą żadnych danych. Biblioteka kombinacji i opisy testów wbudowanych są w kodzie, nie w bazie.
 - **`schemaVersion` w każdym dokumencie.** Każda kolekcja zaczyna od `1`, niezależnie od wersji dawnego `localStorage`. Zmiana kształtu dokumentu podnosi wersję, a odczyt obsługuje starsze wersje.
-- **Identyfikatory nadaje aplikacja** (`crypto.randomUUID()`), żeby zapis działał bez sieci. Pole `id` w dokumencie jest równe ID dokumentu. Wyjątek: dokumenty „jeden na dzień” albo „jeden na tydzień” mają ID równe dacie (`weekPlans`, `bodyWeights` oraz zaplanowane `readiness`). Zapas zgodności dla ID sesji opisano w sekcji `workoutSessions`.
+- **Identyfikatory nadaje aplikacja** (`crypto.randomUUID()`), żeby zapis działał bez sieci. Pole `id` w dokumencie jest równe ID dokumentu. Wyjątek: dokumenty „jeden na dzień” albo „jeden na tydzień” mają ID równe dacie (`weekPlans`, `bodyWeights`, `readiness`). Zapas zgodności dla ID sesji opisano w sekcji `workoutSessions`.
 - **Daty jako tekst.** Dzień: `YYYY-MM-DD`. Chwila: ISO 8601 w UTC z `toISOString()`, np. `2026-11-08T01:51:00.000Z`, więc sortuje się jak tekst. Nie używamy `serverTimestamp()`: dokument zapisany offline ma od razu komplet pól.
 - **`createdAt` i `updatedAt`** są w każdym dokumencie.
 - **Jednostki:** czasy w sekundach, waga w kg z dokładnością do 0,1.
@@ -25,31 +25,34 @@ Model zastępuje lokalny storage. Dane z `localStorage` to dane pokazowe: nie im
 | `users/{uid}/workoutSessions/{sessionId}` | wpisy w dzienniku z ocenami i RPE | UUID albo zapasowe ID opisane niżej | wdrożone: przejście na Firestore |
 | `users/{uid}/focusSkills/{focusSkillId}` | ćwiczenia celu z kryterium | UUID | wdrożone: ćwiczenia celu (R1) |
 | `users/{uid}/weekPlans/{weekStart}` | plan tygodnia, czyli moduł celów | poniedziałek `YYYY-MM-DD` | wdrożone: plan tygodnia (R3) |
-| `users/{uid}/readiness/{date}` | gotowość przed treningiem | dzień `YYYY-MM-DD` | **zaplanowane, jeszcze niewdrożone**: gotowość (Q3) |
+| `users/{uid}/readiness/{date}` | samopoczucie | dzień `YYYY-MM-DD` | wdrożone: Samopoczucie (Q3, issue #146) |
 | `users/{uid}/bodyWeights/{date}` | pomiary masy ciała | dzień `YYYY-MM-DD` | wdrożone: Profil |
 | `users/{uid}/controlTests/{testId}` | testy kontrolne z paszportem | UUID | **zaplanowane, jeszcze niewdrożone**: testy (R4) |
 | `users/{uid}/controlTestResults/{resultId}` | wyniki testów | UUID | **zaplanowane, jeszcze niewdrożone**: testy (R4) |
 
-Lista jest zamknięta. Kod trzyma ją w `src/infrastructure/firebase/userCollections.ts` (`USER_COLLECTIONS`). Wdrożone w kodzie kolekcje to `workoutPlans`, `workoutSessions`, `focusSkills`, `weekPlans` i `bodyWeights`; pozostałe nazwy opisują przyszłe funkcje. Sam rejestr nie otwiera reguł ani nasłuchów. Eksport i usunięcie konta korzystają wyłącznie z `IMPLEMENTED_USER_COLLECTIONS`; kolekcje zaplanowane nie są odczytywane, bo reguły odmawiają dostępu. Dokument `users/{uid}` obsługują osobno. Nowa kolekcja wymaga dopisania jej do rejestru, reguł i testów reguł.
+Lista jest zamknięta. Kod trzyma ją w `src/infrastructure/firebase/userCollections.ts` (`USER_COLLECTIONS`). Wdrożone w kodzie kolekcje to `workoutPlans`, `workoutSessions`, `focusSkills`, `weekPlans`, `bodyWeights` i `readiness`; pozostałe nazwy opisują przyszłe funkcje. Sam rejestr nie otwiera reguł ani nasłuchów. Eksport i usunięcie konta korzystają wyłącznie z `IMPLEMENTED_USER_COLLECTIONS`; kolekcje zaplanowane nie są odczytywane, bo reguły odmawiają dostępu. Dokument `users/{uid}` obsługują osobno. Nowa kolekcja wymaga dopisania jej do rejestru, reguł i testów reguł.
 
-Kolekcje `readiness`, `controlTests` i `controlTestResults` pozostają zaplanowane, bez obsługi danych i reguł zezwalających na dostęp.
+Kolekcje `controlTests` i `controlTestResults` pozostają zaplanowane, bez obsługi danych i reguł zezwalających na dostęp.
 
 ## `users/{uid}`
 
-Wdrożony profil i zgoda na pomiary masy ciała oraz opcjonalną kategorię. Gotowość (Q3) nie jest jeszcze objęta informacją o zgodzie.
+Wdrożony profil oraz dwie niezależne zgody: na pomiary masy ciała z kategorią i na Samopoczucie (Q3).
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
 | `schemaVersion` | `1` | |
 | `healthDataConsent` | `{ grantedAt, noticeVersion, adultConfirmed: true }` albo `null` | Wyraźna zgoda 18+; wersja informacji `2026-11` |
+| `wellbeingConsent` | taka sama mapa albo `null`; pole opcjonalne | Osobna zgoda 18+ na Samopoczucie; wersja `2026-11`; brak pola w starym profilu oznacza brak zgody |
+| `wellbeingWithdrawal` | `{ generation: number, pending: boolean }`, `null` lub brak pola | Wspólna blokada i trwały licznik wycofań (dodatnia bezpieczna liczba całkowita); po zakończeniu zachowujemy numer i `pending: false`, brak/null oznacza początkowe 0 (ADR 0015) |
 | `weightClassLabel` | tekst 1–20 znaków albo `null` | Etykieta użytkownika, wyłącznie przy zgodzie |
 | `createdAt`, `updatedAt` | chwila | |
 
-- Dokument powstaje przy pierwszej zgodzie. Konto bez zgody może go nie mieć.
+- Dokument powstaje przy pierwszej z dowolnych zgód. Konto bez zgody może go nie mieć. Schemat i reguły nadal przyjmują stare dokumenty bez `wellbeingConsent`.
 - Domyślnie zgody nie ma. Oba pola wyboru na osobnym ekranie są niezaznaczone; zgoda wymaga potwierdzenia pełnoletności. Statystyki i treningi działają bez zgody.
 - Obecnie istnieje tylko wersja informacji `2026-11`; nie wdrażamy przejść między wersjami. Zgoda jest ważna, gdy nie jest `null` i ma `adultConfirmed: true`.
 - Reguły chronią `createdAt` oraz istniejącą mapę zgody: można zmienić kategorię, ale nową zgodę ustawia się tylko z `null` (lub tworząc dokument).
 - **Wycofanie zgody wymaga sieci:** `getDocsFromServer` pobiera wszystkie pomiary, a `writeBatch` usuwa je partiami do 499 operacji. Dopiero ostatnia partia ustawia `healthDataConsent: null`, `weightClassLabel: null` i nowe `updatedAt`. Ostatnia partia może zawierać do 498 usunięć i zmianę profilu; po pełnej partii 499 usunięć profil trafia do osobnej partii. Przerwany proces można powtórzyć. Błąd odczytu z serwera niczego nie zmienia.
+- Samopoczucie najpierw ustawia w transakcji `wellbeingWithdrawal: { generation, pending: true }` i czeka na potwierdzenie serwera; rozpoczęcie wymaga dokładnie poprzedniej generacji + 1 (pierwsza to 1), a ponowienie podejmuje tę samą aktywną generację. Potem odczytuje całą kolekcję `readiness` i usuwa najwyżej 498 wpisów w partii, dodając do każdej partii aktualizację profilu z aktualną aktywną generacją. Ostatnia partia zeruje `wellbeingConsent` i ustawia `pending: false`, zachowując numer również po kolejnym włączeniu. Licznika nie można usunąć ani cofnąć. Reguły blokują zapisy wpisów podczas wycofywania i odrzucają spóźnione partie z dowolnej wcześniejszej operacji, również po zakończeniu nowszego wycofania i ponownym włączeniu zgody. Odczyt i każda partia sprawdzają sieć; utrata połączenia zwraca błąd, zwalnia dialog i pozwala ponowić. Wspólna blokada pozostaje do dokończenia. Zgody są niezależne; pomiary masy ciała nie są zmieniane.
 - Motyw (D4) zostaje na urządzeniu, nie w tym dokumencie.
 
 ## `workoutPlans`
@@ -201,19 +204,23 @@ Home pokazuje zwięzły cel, a „Postęp” prowadzi do leniwie ładowanych szc
 
 Zapis potwierdza lokalny snapshot i pokazuje „Czeka na wysłanie” do potwierdzenia serwera. Późniejsze odrzucenie pokazuje błąd i wymaga ponowienia odczytu, zamiast pozostawiać komunikat sukcesu. Zmiana konta i wylogowanie zamykają nasłuch oraz czyszczą jego dane; cel nie trafia do globalnego `localStorage`.
 
-## `readiness` (gotowość, Q3)
+## `readiness` (Samopoczucie, Q3, issue #146)
 
-**Zaplanowane, jeszcze niewdrożone.** Poniżej docelowy model, bez obsługi danych i zezwalających reguł.
+Wdrożone dzienne samooceny, bez rekomendacji i wyniku zbiorczego. Historyczna nazwa techniczna kolekcji pozostaje bez zmian; moduł w kodzie to `wellbeing` (ADR 0015).
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
 | `schemaVersion` | `1` | |
+| `questionsVersion` | `1` | Wersja zestawu pytań; zmiana rozpoczyna normę od nowa |
 | `date` | `YYYY-MM-DD` | Równy ID dokumentu |
-| `sleep`, `fatigue`, `soreness`, `stress` | liczba całkowita 1–5 | Opisy stopni ustalimy w issue gotowości |
-| `recordedAt`, `updatedAt` | chwila | |
+| `sleep`, `energy`, `soreness`, `stress` | liczba całkowita 1–5 | Wyżej zawsze znaczy lepiej; pełne etykiety w `feedback-system.md` |
+| `note` | tekst do 300 znaków albo `null` | Opcjonalna, bez analizy |
+| `createdAt`, `updatedAt` | chwila | Pierwszy zapis i ostatnia poprawka; `createdAt` jest niezmienne |
 
-- Jeden dokument na dzień, przed pierwszym treningiem. Poprawka nadpisuje ten sam dokument.
-- Zapis wymaga zgody w `users/{uid}`.
+- Jeden dokument na lokalny dzień urządzenia. Formularz tworzy i poprawia tylko dzisiejszy wpis. Zapis działa offline; późniejsza synchronizacja nie porównuje daty do czasu serwera.
+- Formularz i „Nie dziś” działają także po ponownym otwarciu aplikacji offline z migawką zgody w cache. Pełność kolekcji nie blokuje dziennego wpisu. Znane `createdAt` jest chronione lokalnie, a przy konflikcie z dokumentem nieznanym cache — przez reguły. Późniejsze odrzucenie jest widocznym błędem, nie zastąpieniem danych serwerowych.
+- Zapis wymaga osobnej aktywnej zgody `wellbeingConsent` przez `get(/users/{uid})`, więc partia nadająca zgodę i tworząca wpis jest odrzucana. Dokładne klucze, całkowite oceny 1–5, limit notatki i zgodność ID z datą są sprawdzane przez reguły; prawdziwą datę sprawdza `zod/mini`. Odczyt i usunięcie pozostają dostępne zweryfikowanemu właścicielowi dla eksportu i sprzątania, tak jak w `bodyWeights`.
+- Norma osobno dla każdego pytania: poprzednie 28 dni bez dnia ocenianego, ≥14 wpisów obejmujących ≥21 dni kalendarzowych z oboma końcami. Mediana, P25 i P75 z interpolacją liniową; brak imputacji. Kontekst RPE korzysta z `workoutDate`, nie daty dzisiejszej. Nie zapisujemy norm ani pochodnych kategorii w bazie.
 
 ## `bodyWeights` (masa ciała)
 
@@ -287,7 +294,7 @@ Stare klucze `localStorage` z planami i sesjami aplikacja usuwa raz, po przejśc
 - Wszystko, czego reguła nie zezwala wprost, jest zabronione.
 - Wdrożone kolekcje: dozwolone klucze (`hasOnly`) i wymagane klucze (`hasAll`), typy, `schemaVersion == 1`, tożsamość dokumentu (`id`, a w `weekPlans` — `weekStart`), znaczniki czasu oraz odpowiednie dla modelu długości tekstów, rozmiary list i zakresy liczb, np. RPE 0–10.
 - Profil wymaga dokładnych kluczy, wersji 1, poprawnych znaczników czasu oraz dokładnej mapy zgody z potwierdzeniem 18+. Kategoria 1–20 znaków musi być `null` bez zgody. Aktualizacja zachowuje `createdAt` i nie podmienia istniejącej zgody.
-- `bodyWeights` wymaga przy zapisie niepustej zgody z `get(/users/{uid})`; odczyt i usunięcie pozostają dostępne zweryfikowanemu właścicielowi. `readiness`, `controlTests` i `controlTestResults` nadal odmawiają wszystkich operacji.
+- `bodyWeights` i `readiness` wymagają przy zapisie własnej aktywnej zgody z `get(/users/{uid})`; odczyt i usunięcie pozostają dostępne zweryfikowanemu właścicielowi. `controlTests` i `controlTestResults` nadal odmawiają wszystkich operacji.
 - Elementów list (`stepResults`, `blocks`) reguły nie sprawdzają pole po polu. Sprawdzają typ i rozmiar listy, a resztę schemat `zod/mini` w aplikacji.
 - Gałąź `manual` wymaga dokładnie kluczy wspólnych i `focusRatings` (lista ≤ 3), całkowitego RPE 0–10 i chwili jego podania, `null` czasów pracy i sparingu, całkowitego czasu 60–28 800 s oraz listy sparingu ≤ 1. Szczegóły elementów, unikalność ocen i sparing wymagany dla rodzaju „Sparing” sprawdza `zod/mini`. Zakresu 7 dni nie sprawdzamy względem `request.time`, aby późniejsza synchronizacja offline i edycja starszego wpisu mogły się powieść.
 - Testy na emulatorze dla wdrożonych kolekcji: właściciel, drugie konto, niezalogowany, konto bez potwierdzonego e-maila, zły `schemaVersion`, nadmiarowe pole. Dodatkowo profil i pomiary sprawdzają zgodę 18+, jej niezmienność, kategorię bez zgody, granice masy, zgodność daty z ID i usuwanie po wycofaniu. Zaplanowane kolekcje nadal mają testy odmowy.
@@ -300,7 +307,7 @@ Stare klucze `localStorage` z planami i sesjami aplikacja usuwa raz, po przejśc
 | `weekPlans` | bieżący i 12 poprzednich tygodni oraz wszystkie przyszłe plany (`weekStart >=` dolna granica) |
 | `bodyWeights` | całą kolekcję tylko przy ważnej zgodzie; sortowanie w `src/domain` |
 | `controlTests`, `controlTestResults` | **zaplanowane, jeszcze niewdrożone:** całą kolekcję; sortowanie w `src/domain` |
-| `readiness` | **zaplanowane, jeszcze niewdrożone:** ostatnie 28 dni (`date >=`) |
+| `readiness` | całą kolekcję tylko przy osobnej aktywnej zgodzie; poprzednie dni są potrzebne do normy historycznego RPE i każdego punktu wykresu (ADR 0015) |
 | `users/{uid}` | dokument zawsze po zalogowaniu |
 
 Profil i pomiary mają wspólnego providera danych z pozostałymi kolekcjami. `hasPendingWrites` obu źródeł wchodzi do ostrzeżenia przy wylogowaniu. Gdy migawki nie pokazują zaległych zapisów, aplikacja sprawdza całą kolejkę Firestore przez `waitForPendingWrites` z limitem 1 s: zakończenie pozwala wylogować bez okna, a limit czasu lub błąd powoduje ostrzeżenie. Jeśli baza nie była jeszcze otwarta w tym uruchomieniu, aplikacja otwiera ją, żeby sprawdzić kolejkę. Obejmuje to także usunięcia i zapisy z poprzedniego uruchomienia. Wycofanie zgody zamyka nasłuch pomiarów, a wylogowanie zamyka wszystkie nasłuchy przed czyszczeniem cache. Wylogowanie czyści również pamięć IndexedDB z poprzednich uruchomień, gdy baza nie była jeszcze otwarta w tym uruchomieniu: tworzy instancję z tą samą konfiguracją (w tym emulatora), kończy ją i usuwa pamięć. Jeśli nie uda się wczytać samego modułu bazy, dotychczasowa obsługa błędu pozostaje bez zmian.
@@ -312,11 +319,12 @@ Profil i pomiary mają wspólnego providera danych z pozostałymi kolekcjami. `h
 
 - **Eksport:** dwa osobne pliki: `combat-training-dane-RRRR-MM-DD.json` i `combat-training-dziennik-RRRR-MM-DD.csv` z lokalną datą. JSON ma `format: 'combat-training-export'`, `formatVersion: 1`, chwilę ISO `exportedAt`, identyfikator i e-mail konta, surowy profil albo `null` i dokumenty kolekcji z `IMPLEMENTED_USER_COLLECTIONS`, w kolejności ID dokumentu, z wcięciem 2 spacje. Pola pozostają bez zmian, również `schemaVersion`; zachowujemy także niepoprawne dokumenty. Nie odczytujemy kolekcji zaplanowanych. Przy zgodzie na masę ciała UI ostrzega o danych o zdrowiu.
 - **CSV dziennika:** UTF-8 z BOM, separator `;`, minuty z jedną cyfrą po przecinku i przecinkiem dziesiętnym; cudzysłowy i nowe linie są escapowane. Komórki zaczynające się od `=`, `+`, `-`, `@`, tabulatora lub CR dostają apostrof. Jeden wiersz na poprawny wpis, od najstarszego (`workoutDate`, `startedAt` lub `createdAt`, `id`); niepoprawne dokumenty nadal są dostępne w JSON. Polskie etykiety są współdzielone z UI, wartości nieznane pozostają puste. Realizacja rozróżnia ćwiczenia i rundy; ręczny wpis ma ją pustą. Szybki stoper bierze nazwę z `workoutSessionName`, nie ma ocen celu, a intensywność `null` pozostaje pusta. „RPE z pamięci” korzysta ze wspólnego obliczenia.
+- **CSV samopoczucia:** osobny plik `combat-training-samopoczucie-RRRR-MM-DD.csv`, także UTF-8 z BOM, `;` i ochroną komórek. Wszystkie poprawne wpisy według daty, również dni bez treningów: cztery oceny, notatka, wersja pytań, utworzenie i poprawka. JSON zawiera także surowe niepoprawne wpisy `readiness`; ostrzeżenie eksportu obejmuje obie grupy danych o zdrowiu.
 - **Źródło:** tylko serwer (`getDocFromServer`, `getDocsFromServer`); bez sieci lub przy `hasPendingWrites` eksport i usunięcie są zablokowane.
 - **Usunięcie konta:** bez Cloud Functions i karencji (ADR 0013).
   1. Ponowne logowanie hasłem lub Google. Powrót z Google uznaje się za potwierdzony wyłącznie przy zgodnym `uid` znacznika i wyniku `reauthenticate` odebranym raz przez AuthProvider. Usunięcie zawsze wymaga osobnego przycisku.
   2. Odświeżenie tokenu i kontrola `authTime` (do 4 minut); błąd lub stare potwierdzenie nie usuwa żadnych danych.
-  3. Odczyt z serwera i usunięcie kolejno `bodyWeights`, `workoutSessions`, `focusSkills`, `weekPlans`, `workoutPlans`, partiami najwyżej 500, także dokumentów niezgodnych ze schematem.
+  3. Odczyt z serwera i usunięcie kolejno `readiness`, `bodyWeights`, `workoutSessions`, `focusSkills`, `weekPlans`, `workoutPlans`, partiami najwyżej 500, także dokumentów niezgodnych ze schematem.
   4. Usunięcie `users/{uid}`, potem konta Authentication.
   5. Zamknięcie nasłuchów i wyczyszczenie Firestore; usunięcie wszystkich kluczy `localStorage` pasujących do `combat-training.*.{uid}` oraz znacznika przekierowania. Klucze innego konta i ustawienia bez `uid` (motyw, przygotowanie, sygnał 10 s) zostają. Sprzątanie jest niezależne od odmontowania ekranu.
   6. Jednorazowy komunikat na logowaniu. Trasa usuwania nigdy nie jest celem powrotu po logowaniu.

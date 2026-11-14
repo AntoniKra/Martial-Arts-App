@@ -496,10 +496,217 @@ describe('manual session', () => {
   })
 })
 
+describe('wellbeing consent and daily entries', () => {
+  const path = `${profilePath}/readiness/${weightDate}`
+  const entry = (): Document => ({ schemaVersion: 1, questionsVersion: 1, date: weightDate, sleep: 1, energy: 5, soreness: 3, stress: 3,
+    note: null, createdAt: instant, updatedAt: instant })
+  const enabled = () => ({ ...profileDocument(), wellbeingConsent: consent })
+  const withdrawalGeneration = 1
+  const laterGeneration = 2
+  it('keeps old profiles valid, requires separate consent and preserves existing consent identity', async () => {
+    const db = ownerDatabase(), profile = db.doc(profilePath), ref = db.doc(path)
+    await assertFails(ref.set(entry()))
+    await assertSucceeds(profile.set(profileDocument()))
+    await assertFails(ref.set(entry()))
+    await assertSucceeds(profile.update({ wellbeingConsent: consent }))
+    await assertSucceeds(ref.set(entry()))
+    await assertSucceeds(ref.get())
+    await assertSucceeds(db.collection(`${profilePath}/readiness`).get())
+    await assertSucceeds(ref.update({ sleep: 5, energy: 1, note: 'x'.repeat(300) }))
+    await assertFails(ref.update({ createdAt: '2026-11-13T09:00:00.000Z' }))
+    await assertFails(profile.update({ wellbeingConsent: { ...consent, grantedAt: '2026-11-13T09:00:00.000Z' } }))
+    await assertFails(profile.update({ wellbeingConsent: null }))
+    await assertSucceeds(profile.update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: true } }))
+    await assertSucceeds(profile.update({ wellbeingConsent: null, wellbeingWithdrawal: { generation: withdrawalGeneration, pending: false } }))
+    await assertFails(ref.update({ sleep: 2 }))
+    await assertSucceeds(ref.get())
+    await assertSucceeds(ref.delete())
+    expect((await profile.get()).data()?.healthDataConsent).toEqual(consent)
+    await assertSucceeds(profile.update({ wellbeingConsent: consent }))
+  })
+  it.each([false, null, 1])('rejects invalid adult confirmation %s', async (adultConfirmed) => {
+    await assertFails(ownerDatabase().doc(profilePath).set({ ...enabled(), wellbeingConsent: { ...consent, adultConfirmed } }))
+  })
+  it('blocks writes from another session before taking the deletion snapshot, leaving no late document', async () => {
+    const deleting = ownerDatabase(), writing = environment.authenticatedContext(ownerId, { email_verified: true }).firestore()
+    await deleting.doc(profilePath).set(enabled())
+    await writing.doc(path).set(entry())
+    await deleting.doc(profilePath).update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: true } })
+    const snapshot = await deleting.collection(`${profilePath}/readiness`).get()
+    const batch = deleting.batch()
+    for (const document of snapshot.docs) batch.delete(document.ref)
+    batch.update(deleting.doc(profilePath), { wellbeingConsent: null, wellbeingWithdrawal: { generation: withdrawalGeneration, pending: false } })
+    const latePath = `${profilePath}/readiness/2026-11-14`
+    await Promise.all([
+      assertFails(writing.doc(latePath).set({ ...entry(), date: '2026-11-14' })),
+      assertFails(writing.doc(path).update({ sleep: 4 })),
+      assertSucceeds(batch.commit()),
+    ])
+    expect((await deleting.collection(`${profilePath}/readiness`).get()).size).toBe(0)
+    expect((await deleting.doc(profilePath).get()).data()?.wellbeingConsent).toBeNull()
+  })
+  it('prevents unlocking, dropping or replacing an active marker without completing that generation', async () => {
+    const ref = ownerDatabase().doc(profilePath)
+    await ref.set(enabled())
+    await ref.update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: true } })
+    for (const wellbeingWithdrawal of [null, { generation: withdrawalGeneration, pending: false }, { generation: laterGeneration, pending: true }]) {
+      await assertFails(ref.update({ wellbeingWithdrawal }))
+    }
+    await assertFails(ref.set(enabled()))
+    await assertFails(ref.update({ wellbeingConsent: { ...consent, grantedAt: '2026-11-13T09:00:00.000Z' } }))
+    await assertSucceeds(ref.update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: false }, wellbeingConsent: null }))
+    await ref.update({ wellbeingConsent: consent })
+    await assertSucceeds(ownerDatabase().doc(path).set(entry()))
+  })
+  it.each([null, false, 1, {}, { pending: true },
+    ...['bad', 0, -1, 1.5, 9007199254740992].map((generation) => ({ generation, pending: true })),
+    { generation: withdrawalGeneration, pending: 'true' }, { generation: withdrawalGeneration, pending: true, extra: true }])(
+    'rejects an invalid start marker %j', async (wellbeingWithdrawal) => {
+      const ref = ownerDatabase().doc(profilePath)
+      await ref.set(enabled())
+      if (wellbeingWithdrawal === null) {
+        await ref.update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: true } })
+      }
+      await assertFails(ref.update({ wellbeingWithdrawal }))
+    })
+  it.each([undefined, null])('starts old profiles with marker %s at generation one and requires each exact successor', async (marker) => {
+    const ref = ownerDatabase().doc(profilePath)
+    await ref.set({ ...enabled(), ...(marker === undefined ? {} : { wellbeingWithdrawal: marker }) })
+    await assertFails(ref.update({ wellbeingWithdrawal: { generation: 2, pending: true } }))
+    for (const generation of [1, 2, 3]) {
+      await assertFails(ref.update({ wellbeingWithdrawal: { generation, pending: false }, wellbeingConsent: null }))
+      await assertSucceeds(ref.update({ wellbeingWithdrawal: { generation, pending: true } }))
+      await assertSucceeds(ref.update({ wellbeingWithdrawal: { generation, pending: true } }))
+      await assertFails(ref.update({ wellbeingWithdrawal: { generation: generation + 1, pending: false }, wellbeingConsent: null }))
+      await assertSucceeds(ref.update({ wellbeingWithdrawal: { generation, pending: false }, wellbeingConsent: null }))
+      await assertFails(ref.update({ wellbeingWithdrawal: null }))
+      await assertFails(ref.set(enabled()))
+      await assertFails(ref.update({ wellbeingWithdrawal: { generation: generation + 1, pending: false } }))
+      await assertSucceeds(ref.update({ wellbeingConsent: consent }))
+      expect((await ref.get()).data()?.wellbeingWithdrawal).toEqual({ generation, pending: false })
+      for (const invalid of [generation, generation - 1, generation + 2]) {
+        await assertFails(ref.update({ wellbeingWithdrawal: { generation: invalid, pending: true } }))
+      }
+    }
+  })
+  it('rejects late intermediate and final batches after a regrant, also during a later withdrawal', async () => {
+    const db = ownerDatabase(), profile = db.doc(profilePath), ref = db.doc(path)
+    await profile.set(enabled())
+    await profile.update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: true } })
+    await profile.update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: false }, wellbeingConsent: null })
+    await profile.update({ wellbeingConsent: consent })
+    await ref.set(entry())
+    for (const startNext of [false, true]) {
+      if (startNext) await profile.update({ wellbeingWithdrawal: { generation: laterGeneration, pending: true } })
+      for (const pending of [true, false]) {
+        const queued = db.batch()
+        queued.delete(ref)
+        queued.update(profile, { wellbeingWithdrawal: { generation: withdrawalGeneration, pending }, ...(pending ? {} : { wellbeingConsent: null }) })
+        await assertFails(queued.commit())
+        expect((await ref.get()).exists).toBe(true)
+        expect((await profile.get()).data()?.wellbeingConsent).toEqual(consent)
+      }
+    }
+  })
+  it('rejects the entire delayed intermediate A batch after B finishes and consent is regranted again', async () => {
+    const first = ownerDatabase(), second = environment.authenticatedContext(ownerId, { email_verified: true }).firestore()
+    const profile = first.doc(profilePath), today = '2026-11-14'
+    const collection = first.collection(`${profilePath}/readiness`)
+    await profile.set(enabled())
+    const seed = first.batch()
+    for (let offset = 0; offset < 498; offset++) {
+      const date = new Date(Date.UTC(2026, 10, 14 - offset)).toISOString().slice(0, 10)
+      seed.set(collection.doc(date), { ...entry(), date })
+    }
+    await seed.commit()
+    await profile.update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: true } })
+    const snapshot = await collection.get()
+    expect(snapshot.size).toBe(498)
+    // Hold A's full intermediate batch until both generations have finished.
+    const delayedA = first.batch()
+    for (const document of snapshot.docs) delayedA.delete(document.ref)
+    delayedA.update(profile, { wellbeingWithdrawal: { generation: withdrawalGeneration, pending: true } })
+
+    const finishA = second.batch()
+    for (const document of snapshot.docs) finishA.delete(second.doc(document.ref.path))
+    finishA.update(second.doc(profilePath), { wellbeingWithdrawal: { generation: withdrawalGeneration, pending: true } })
+    await finishA.commit()
+    await second.doc(profilePath).update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: false }, wellbeingConsent: null })
+    await second.doc(profilePath).update({ wellbeingConsent: consent })
+    await second.doc(profilePath).update({ wellbeingWithdrawal: { generation: laterGeneration, pending: true } })
+    await second.doc(profilePath).update({ wellbeingWithdrawal: { generation: laterGeneration, pending: false }, wellbeingConsent: null })
+    const regranted = { ...consent, grantedAt: '2026-11-14T10:00:00.000Z' }
+    await second.doc(profilePath).update({ wellbeingConsent: regranted })
+    const fresh = { ...entry(), date: today, note: 'New entry after B' }
+    await second.doc(`${profilePath}/readiness/${today}`).set(fresh)
+    const profileBefore = (await second.doc(profilePath).get()).data()
+
+    await assertFails(delayedA.commit())
+    expect((await second.doc(`${profilePath}/readiness/${today}`).get()).data()).toEqual(fresh)
+    expect((await collection.get()).size).toBe(1)
+    expect((await second.doc(profilePath).get()).data()).toEqual(profileBefore)
+  })
+  it.each(['other', 'signedOut', 'unverified'])('denies starting or finishing withdrawal as %s', async (actor) => {
+    const owner = ownerDatabase()
+    await owner.doc(profilePath).set(enabled()); await owner.doc(path).set(entry())
+    const context = actor === 'signedOut' ? environment.unauthenticatedContext()
+      : environment.authenticatedContext(actor === 'other' ? 'athlete-two' : ownerId, { email_verified: actor !== 'unverified' })
+    const db = context.firestore()
+    await assertFails(db.doc(profilePath).update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: true } }))
+    await owner.doc(profilePath).update({ wellbeingWithdrawal: { generation: withdrawalGeneration, pending: true } })
+    const batch = db.batch(); batch.delete(db.doc(path))
+    batch.update(db.doc(profilePath), { wellbeingConsent: null, wellbeingWithdrawal: { generation: withdrawalGeneration, pending: false } })
+    await assertFails(batch.commit())
+    expect((await owner.doc(path).get()).exists).toBe(true)
+  })
+  it('rejects granting consent and writing an entry in the same batch with no partial writes', async () => {
+    const db = ownerDatabase(), profile = db.doc(profilePath), ref = db.doc(path)
+    await profile.set({ ...profileDocument(), wellbeingConsent: null })
+    const batch = db.batch(); batch.update(profile, { wellbeingConsent: consent }); batch.set(ref, entry())
+    await assertFails(batch.commit())
+    expect((await profile.get()).data()?.wellbeingConsent).toBeNull()
+    expect((await ref.get()).exists).toBe(false)
+  })
+  it('rejects consent plus entry when the profile does not exist yet', async () => {
+    const db = ownerDatabase(), batch = db.batch()
+    batch.set(db.doc(profilePath), enabled()); batch.set(db.doc(path), entry())
+    await assertFails(batch.commit())
+    expect((await db.doc(profilePath).get()).exists).toBe(false)
+  })
+  it.each([
+    ['sleep', 0], ['sleep', 6], ['energy', 2.5], ['soreness', '3'], ['stress', null], ['note', 'x'.repeat(301)], ['note', 3],
+    ['date', '2026-11-12'], ['date', 'yesterday'], ['schemaVersion', 2], ['questionsVersion', 2], ['createdAt', null], ['updatedAt', 'today'], ['extra', true],
+  ] as [string, unknown][])('rejects invalid %s on create and update (%j)', async (field, value) => {
+    const db = ownerDatabase(), ref = db.doc(path)
+    await db.doc(profilePath).set(enabled())
+    await assertFails(ref.set({ ...entry(), [field]: value }))
+    await ref.set(entry())
+    await assertFails(ref.update({ [field]: value }))
+  })
+  it('requires exactly all daily entry fields', async () => {
+    const db = ownerDatabase(), ref = db.doc(path)
+    await db.doc(profilePath).set(enabled())
+    for (const field of Object.keys(entry())) {
+      const partial = entry(); delete partial[field]
+      await assertFails(ref.set(partial))
+    }
+  })
+  it.each(['other', 'signedOut', 'unverified', 'missingClaim'])('denies all operations for %s', async (actor) => {
+    const owner = ownerDatabase()
+    await owner.doc(profilePath).set(enabled()); await owner.doc(path).set(entry())
+    const context = actor === 'signedOut' ? environment.unauthenticatedContext()
+      : environment.authenticatedContext(actor === 'other' ? 'athlete-two' : ownerId, actor === 'missingClaim' ? {} : { email_verified: actor !== 'unverified' })
+    const db = context.firestore(), ref = db.doc(path)
+    await assertFails(ref.get()); await assertFails(db.collection(`${profilePath}/readiness`).get())
+    await assertFails(ref.set(entry())); await assertFails(ref.update({ sleep: 2 })); await assertFails(ref.delete())
+    await owner.doc(path).delete(); await assertFails(ref.set(entry()))
+  })
+})
+
 describe('default denial', () => {
   it.each([
     `users/${ownerId}/inne/${documentId}`,
-    ...['readiness', 'controlTests', 'controlTestResults']
+    ...['controlTests', 'controlTestResults']
       .map((collection) => `users/${ownerId}/${collection}/${documentId}`),
     `users/${ownerId}/workoutPlans/${documentId}/nested/${documentId}`,
     `users/${ownerId}/workoutSessions/${documentId}/nested/${documentId}`,

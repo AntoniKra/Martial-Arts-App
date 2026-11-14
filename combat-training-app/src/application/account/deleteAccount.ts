@@ -16,7 +16,7 @@ export async function deleteAccount(service: AccountService, collections: readon
   }
   try {
     // Health records first; all remaining implemented collections must still be included.
-    const ordered = ['bodyWeights', 'workoutSessions', 'focusSkills', 'weekPlans', 'workoutPlans']
+    const ordered = ['readiness', 'bodyWeights', 'workoutSessions', 'focusSkills', 'weekPlans', 'workoutPlans']
     for (const name of [...ordered.filter((name) => collections.includes(name)), ...collections.filter((name) => !ordered.includes(name))]) {
       await service.deleteCollection(name)
     }
