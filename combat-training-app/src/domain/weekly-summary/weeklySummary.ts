@@ -18,6 +18,13 @@ export interface WeeklySessionLoad {
   load: number | null
 }
 
+export interface SparringSummary {
+  hardRounds: number
+  workoutCount: number
+  intensityKnownCount: number
+  hardRoundsUnknownCount: number
+}
+
 export interface WeeklySummary {
   workoutCount: number
   completedCount: number
@@ -25,6 +32,7 @@ export interface WeeklySummary {
   durationSeconds: number
   work: RecordedTime
   sparring: RecordedTime
+  sparringIntensity: SparringSummary
   rpeCount: number
   load: RecordedLoad
   sessionLoads: WeeklySessionLoad[]
@@ -65,6 +73,18 @@ function newestFirst(left: WorkoutSession, right: WorkoutSession): number {
   return right.workoutDate.localeCompare(left.workoutDate) || (left.id < right.id ? -1 : left.id > right.id ? 1 : 0)
 }
 
+function summarizeSparring(sessions: readonly WorkoutSession[]): SparringSummary {
+  const withSparring = sessions.map((session) => session.sparring.filter((entry) => entry.rounds === null || entry.rounds >= 1))
+    .filter((entries) => entries.length > 0)
+  return {
+    hardRounds: withSparring.reduce((total, entries) => total + entries.reduce((rounds, entry) =>
+      rounds + (entry.intensity === 'hard' ? entry.rounds ?? 0 : 0), 0), 0),
+    workoutCount: withSparring.length,
+    intensityKnownCount: withSparring.filter((entries) => entries.every((entry) => entry.intensity !== null)).length,
+    hardRoundsUnknownCount: withSparring.filter((entries) => entries.some((entry) => entry.intensity === 'hard' && entry.rounds === null)).length,
+  }
+}
+
 /** Uses the saved calendar day; goals and timestamps do not affect journal totals. */
 export function calculateWeeklySummary(weekStart: string, sessions: readonly WorkoutSession[]): WeeklySummary {
   const weekEnd = shiftCalendarDate(weekStart, 6)
@@ -77,6 +97,7 @@ export function calculateWeeklySummary(weekStart: string, sessions: readonly Wor
     durationSeconds: selected.reduce((total, session) => total + session.durationSeconds, 0),
     work: sumRecordedTime(selected, 'workSeconds'),
     sparring: sumRecordedTime(selected, 'sparringSeconds'),
+    sparringIntensity: summarizeSparring(selected),
     rpeCount: selected.filter((session) => session.rpe !== null).length,
     load: sumRecordedLoad(sessionLoads),
     sessionLoads,

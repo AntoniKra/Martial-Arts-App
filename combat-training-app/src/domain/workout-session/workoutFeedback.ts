@@ -1,9 +1,10 @@
 import type { FocusSkill, FocusSkillCorrection } from '@/domain/focus-skill/focusSkill.types'
-import type { ExerciseRating, FocusRating, ManualFocusRating, ManualWorkoutSession, PlanWorkoutSession } from './workoutSession.types'
+import type { ExerciseRating, FocusRating, ManualFocusRating, ManualWorkoutSession, PlanWorkoutSession, SparringEntry } from './workoutSession.types'
 
 export interface WorkoutFeedbackDraft {
   focusRatings: FocusRating[]
   exerciseRatings: ExerciseRating[]
+  sparring: SparringEntry[]
   note: string | null
 }
 
@@ -26,6 +27,10 @@ export interface ManualWorkoutFeedbackUpdate extends ManualWorkoutFeedbackDraft 
 export function hasCompletedExercise(session: PlanWorkoutSession, workoutItemId: string): boolean {
   return session.stepResults.some((step) => step.kind === 'exercise'
     && step.workoutItemId === workoutItemId && step.outcome === 'completed')
+}
+
+export function canEditSparringIntensity(entry: SparringEntry): boolean {
+  return entry.blockId !== null && entry.rounds !== null && entry.rounds >= 1
 }
 
 export function getPreviousCorrection(session: Pick<PlanWorkoutSession, 'id' | 'workoutDate'>, skill: FocusSkill | undefined): FocusSkillCorrection | null {
@@ -75,7 +80,11 @@ function preparePlanFeedback(
     const edited = draft.exerciseRatings.find((value) => value.workoutItemId === exercise.workoutItemId)
     return edited ? [{ ...exercise, rating: edited.rating }] : []
   })
-  return { ...draft, focusRatings, exerciseRatings, updatedAt,
+  const sparring = session.sparring.map((original) => {
+    const edited = draft.sparring.find((entry) => entry.blockId === original.blockId)
+    return canEditSparringIntensity(original) && edited ? { ...original, intensity: edited.intensity } : { ...original }
+  })
+  return { ...draft, focusRatings, exerciseRatings, sparring, updatedAt,
     correctionUpdates: prepareCorrectionUpdates(session, focusRatings, skills) }
 }
 

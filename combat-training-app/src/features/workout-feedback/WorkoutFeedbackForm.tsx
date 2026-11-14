@@ -3,29 +3,33 @@ import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { PlanWorkoutSession } from '@/domain/workout-session/workoutSession.types'
-import { hasCompletedExercise, selectOtherExercises, type WorkoutFeedbackDraft } from '@/domain/workout-session/workoutFeedback'
-import { formatSecondsAsClock } from '@/domain/time/formatDuration'
+import { canEditSparringIntensity, hasCompletedExercise, selectOtherExercises, type WorkoutFeedbackDraft } from '@/domain/workout-session/workoutFeedback'
+import type { PreviousPlanRun } from '@/domain/workout-session/previousPlanRun'
 import { Button } from '@/components/ui/Button'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { AssessmentScale, FocusCard } from './FocusCard'
 import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
-import { workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
+import { formatWorkoutFeedbackMetrics, workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
+import { PreviousPlanRunSummary } from './PreviousPlanRunSummary'
 import { rpeLabels } from './rpeLabels'
+import { sparringIntensityLabels } from './sparringIntensityLabels'
 
-export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard }: {
+export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, previousRun }: {
   session: PlanWorkoutSession; skills: readonly FocusSkill[]; pending: boolean
+  previousRun?: PreviousPlanRun | null
   rpeCard: ReactNode
   onSave: (draft: WorkoutFeedbackDraft) => Promise<void>
 }) {
-  const [draft, setDraft] = useState<WorkoutFeedbackDraft>(() => ({ focusRatings: structuredClone(session.focusRatings), exerciseRatings: structuredClone(session.exerciseRatings), note: session.note }))
+  const [draft, setDraft] = useState<WorkoutFeedbackDraft>(() => ({ focusRatings: structuredClone(session.focusRatings), exerciseRatings: structuredClone(session.exerciseRatings), sparring: structuredClone(session.sparring), note: session.note }))
   const [errors, setErrors] = useState<FeedbackErrors>({ corrections: {} })
   const [saveError, setSaveError] = useState(false)
   const [saving, setSaving] = useState(false)
   const busy = useRef(false)
   const form = useRef<HTMLFormElement>(null)
   const others = selectOtherExercises(session)
+  const editableSparring = draft.sparring.map((entry, index) => ({ entry, index })).filter(({ entry }) => canEditSparringIntensity(entry))
   const assessed = draft.focusRatings.filter((rating) => hasCompletedExercise(session, rating.workoutItemId) && rating.assessment !== null).length
-  const metrics = [formatSecondsAsClock(Math.floor(session.durationSeconds)), formatSecondsAsClock(session.workSeconds), `${session.completion.completed}/${session.completion.planned}`]
+  const metrics = formatWorkoutFeedbackMetrics(session)
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -57,9 +61,19 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard 
         </div>)}
       </dl>
     </header>
+    {previousRun && <PreviousPlanRunSummary previous={previousRun} />}
     {rpeCard}
     <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-6">
       <fieldset disabled={saving} className="min-w-0 space-y-6">
+        {editableSparring.map(({ entry, index }, visibleIndex) => <fieldset key={entry.blockId} className="min-w-0 space-y-2">
+          <legend className="mb-2 text-sm font-semibold text-ink">{labels.sparringIntensity(visibleIndex + 1)}</legend>
+          {(['light', 'technical', 'hard'] as const).map((intensity) => <button key={intensity} type="button" aria-pressed={entry.intensity === intensity}
+            onClick={() => setDraft((current) => ({ ...current, sparring: current.sparring.map((value, valueIndex) => valueIndex === index
+              ? { ...value, intensity: value.intensity === intensity ? null : intensity } : value) }))}
+            className={`block min-h-touch w-full border p-3 text-left text-sm leading-relaxed ${entry.intensity === intensity ? 'border-crimson bg-elevated font-semibold text-ink' : 'border-bd bg-surface text-muted'}`}>
+            {entry.intensity === intensity && <span aria-hidden="true">✓ </span>}{sparringIntensityLabels[intensity]}
+          </button>)}
+        </fieldset>)}
         {draft.focusRatings.length > 0 && <section aria-labelledby="focus-feedback-heading" className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="focus-feedback-heading" className="font-display text-[12px] font-semibold uppercase tracking-[0.1em] text-ink">{labels.focusHeading}</h2>

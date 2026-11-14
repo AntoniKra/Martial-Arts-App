@@ -16,6 +16,8 @@ export interface AuthService {
   signInWithGoogle(): Promise<void>
   /** Settles the Google redirect that brought the user back to the app; rejects with its error. */
   completeGoogleRedirect(): Promise<'signIn' | 'link' | 'reauthenticate' | null>
+  /** Checks the persistent write queue before sign-out; uncertainty requires a warning. */
+  hasUnsentWrites(): Promise<boolean>
   signOut(): Promise<void>
   sendVerificationEmail(): Promise<void>
   refreshVerification(): Promise<AuthSession | null>

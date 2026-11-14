@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
 import type { QuickTimerWorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { prepareQuickTimerFeedback } from '@/domain/quick-timer/quickTimerFeedback'
+import { prepareWorkoutFeedback } from '@/domain/workout-session/workoutFeedback'
 import { manualWorkoutSession } from '@/test/manualWorkoutBuilder'
 
 const sdk = vi.hoisted(() => ({
@@ -31,6 +32,30 @@ function emit<T extends { id: string }>(collection: string, items: T[], pending 
 afterEach(async () => { await clearFirestoreCache(); vi.clearAllMocks() })
 
 describe('workout feedback repository', () => {
+  it('validates sparring intensity in the feedback batch and resolves offline without changing rounds or RPE', async () => {
+    const { sessions } = createFirestoreRepositories('athlete')
+    const changed = vi.fn()
+    sessions.subscribe(changed, vi.fn())
+    const entry = workoutSession({ stepResults: [sessionStep()], rpe: 6, rpeRecordedAt: instant,
+      sparring: [{ blockId: 'block-1', intensity: 'technical', rounds: 3 }] })
+    emit('workoutSessions', [entry])
+    const update = prepareWorkoutFeedback(entry, { focusRatings: [], exerciseRatings: [], note: 'Notes',
+      sparring: [{ blockId: 'block-1', intensity: 'hard', rounds: 99 }] }, [], instant)
+    const saved = sessions.saveFeedback(entry.id, update)
+    const { correctionUpdates: _corrections, ...fields } = update
+    expect(sdk.update).toHaveBeenCalledWith('users/athlete/workoutSessions/session-1', {
+      ...fields, sparring: [{ blockId: 'block-1', intensity: 'hard', rounds: 3 }],
+    })
+    expect(sdk.commit).toHaveBeenCalledOnce()
+    emit('workoutSessions', [{ ...entry, ...fields }], true)
+    await expect(saved).resolves.toBe(true)
+    expect(changed.mock.lastCall?.[0]).toMatchObject({ items: [{ rpe: 6, rpeRecordedAt: instant, note: 'Notes',
+      sparring: [{ blockId: 'block-1', intensity: 'hard', rounds: 3 }] }], hasPendingWrites: true })
+    // An invalid resulting document must not commit any part of the batch.
+    await expect(sessions.saveFeedback(entry.id, { ...update, sparring: [{ blockId: 'block-1', intensity: 'hard', rounds: -1 }] })).rejects.toThrow()
+    await expect(sessions.saveFeedback(entry.id, { ...update, note: 'x'.repeat(1001) })).rejects.toThrow()
+    expect(sdk.commit).toHaveBeenCalledOnce()
+  })
   it('creates a manual entry and closes a correction in one batch, waiting only for both local snapshots', async () => {
     const repositories = createFirestoreRepositories('athlete')
     repositories.sessions.subscribe(vi.fn(), vi.fn())
@@ -72,7 +97,7 @@ describe('workout feedback repository', () => {
     const entry = workoutSession({ stepResults: [sessionStep()] })
     emit('workoutSessions', [entry])
     emit('focusSkills', [{ id: 'guard', name: 'Guard', criterion: 'Chin', openCorrection: null, archivedAt: null, createdAt: instant, updatedAt: instant }])
-    await expect(repositories.sessions.saveFeedback(entry.id, { focusRatings: [], exerciseRatings: [], note: 'Notes', updatedAt: instant,
+    await expect(repositories.sessions.saveFeedback(entry.id, { focusRatings: [], exerciseRatings: [], sparring: [], note: 'Notes', updatedAt: instant,
       correctionUpdates: [{ focusSkillId: 'guard', openCorrection: { problem: '', fix: 'Fix', sessionId: entry.id, workoutDate: entry.workoutDate } }] })).rejects.toThrow()
     expect(sdk.commit).not.toHaveBeenCalled()
   })
@@ -85,11 +110,11 @@ describe('workout feedback repository', () => {
     emit('workoutSessions', [entry])
     emit('focusSkills', [{ id: 'guard', name: 'Guard', criterion: 'Chin', openCorrection: null, archivedAt: null, createdAt: instant, updatedAt: instant }])
     const correction = { problem: 'Dropped hand', fix: 'Touch chin', sessionId: entry.id, workoutDate: entry.workoutDate }
-    const saved = repositories.sessions.saveFeedback(entry.id, { focusRatings: [], exerciseRatings: [], note: 'Notes', updatedAt: instant,
+    const saved = repositories.sessions.saveFeedback(entry.id, { focusRatings: [], exerciseRatings: [], sparring: [], note: 'Notes', updatedAt: instant,
       correctionUpdates: [{ focusSkillId: 'guard', openCorrection: correction }] })
     expect(sdk.commit).toHaveBeenCalledOnce()
     expect(sdk.update.mock.calls).toEqual([
-      ['users/athlete/workoutSessions/session-1', { focusRatings: [], exerciseRatings: [], note: 'Notes', updatedAt: instant }],
+      ['users/athlete/workoutSessions/session-1', { focusRatings: [], exerciseRatings: [], sparring: [], note: 'Notes', updatedAt: instant }],
       ['users/athlete/focusSkills/guard', { openCorrection: correction, updatedAt: instant }],
     ])
     let locallySaved = false

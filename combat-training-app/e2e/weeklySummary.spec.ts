@@ -24,7 +24,9 @@ const quick: QuickTimerWorkoutSession = { ...timedFields, id: 'quick', source: '
 const loadHint = 'Jednostki umowne: minuty treningu × RPE', partialHint = 'Suma obejmuje tylko treningi z RPE.'
 const phoneViewports = [{ width: 360, height: 800 }, { width: 390, height: 844 }] as const
 const summary = (page: Page) => page.getByRole('region', { name: 'Podsumowanie treningów', exact: true })
-const totals = (page: Page) => summary(page).locator(':scope > dl').getByRole('definition')
+// Sparring intensity has its own scenario in sparringIntensity.spec.ts.
+const totals = (page: Page) => summary(page).locator(':scope > dl > div')
+  .filter({ hasNot: page.locator('dt', { hasText: /^Twarde rundy sparingu$/ }) }).getByRole('definition')
 const loadDetails = (page: Page) => summary(page).getByRole('list', { name: 'Szczegóły obciążenia', exact: true }).getByRole('listitem')
 const form = (page: Page) => page.getByRole('form', { name: 'Edytuj plan tygodnia', exact: true })
 

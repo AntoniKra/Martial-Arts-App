@@ -38,6 +38,7 @@ describe('calculateWeeklySummary', () => {
     expect(totals).toEqual({
       workoutCount: 4, completedCount: 3, partialCount: 1, durationSeconds: 90.4 + 60.4 + 60 + 90.4,
       work: { seconds: 140, knownCount: 3 }, sparring: { seconds: 10, knownCount: 3 }, rpeCount: 3,
+      sparringIntensity: { hardRounds: 0, workoutCount: 0, intensityKnownCount: 0, hardRoundsUnknownCount: 0 },
       load: { units: 7 * 90.4 / 60, durationSeconds: 60 + 60.4 + 90.4, knownCount: 3 },
     })
     expect(sessionLoads.map(({ session, load }) => [session.id, load])).toEqual([
@@ -75,6 +76,7 @@ describe('calculateWeeklySummary', () => {
     expect(calculateWeeklySummary(monday, [])).toEqual({
       workoutCount: 0, completedCount: 0, partialCount: 0, durationSeconds: 0,
       work: { seconds: null, knownCount: 0 }, sparring: { seconds: null, knownCount: 0 }, rpeCount: 0,
+      sparringIntensity: { hardRounds: 0, workoutCount: 0, intensityKnownCount: 0, hardRoundsUnknownCount: 0 },
       load: { units: null, durationSeconds: null, knownCount: 0 }, sessionLoads: [],
     })
   })
@@ -86,6 +88,70 @@ describe('calculateWeeklySummary', () => {
     Object.freeze(entries)
     expect(calculateWeeklySummary(monday, entries)).toEqual(calculateWeeklySummary(monday, [...entries].reverse()))
     expect(entries).toEqual(original)
+  })
+})
+
+describe('weekly sparring intensity', () => {
+  it('sums hard rounds from every source and status, counting coverage per workout rather than per block', () => {
+    const entries: WorkoutSession[] = [
+      { ...plan(), category: 'mixed', sparring: [
+        { blockId: 'first', intensity: 'hard', rounds: 3 }, { blockId: 'second', intensity: 'technical', rounds: 2 },
+      ] },
+      { ...quick, sparring: [{ blockId: null, intensity: 'hard', rounds: 2 }] },
+      manual({ sparring: [{ blockId: null, intensity: 'hard', rounds: 4 }] }),
+      { ...plan(), id: 'light', sparring: [{ blockId: 'light', intensity: 'light', rounds: 5 }] },
+      { ...plan(), id: 'none', sparring: [] },
+      manual({ id: 'outside', workoutDate: '2027-01-04', sparring: [{ blockId: null, intensity: 'hard', rounds: 20 }] }),
+    ]
+    expect(calculateWeeklySummary(monday, entries).sparringIntensity).toEqual({
+      hardRounds: 9, workoutCount: 4, intensityKnownCount: 4, hardRoundsUnknownCount: 0,
+    })
+  })
+
+  it('keeps known rounds in mixed-coverage workouts and counts workouts with missing hard rounds once', () => {
+    const entries: WorkoutSession[] = [
+      { ...plan(), sparring: [{ blockId: 'known', intensity: 'hard', rounds: 3 }, { blockId: 'missing', intensity: null, rounds: 5 }] },
+      { ...quick, sparring: [{ blockId: null, intensity: null, rounds: 2 }] },
+      manual({ sparring: [{ blockId: null, intensity: 'hard', rounds: null }] }),
+      { ...plan(), id: 'unknown-rounds', sparring: [
+        { blockId: 'a', intensity: 'hard', rounds: null }, { blockId: 'b', intensity: 'hard', rounds: null },
+        { blockId: 'c', intensity: 'hard', rounds: 1 },
+      ] },
+    ]
+    const before = structuredClone(entries)
+    expect(calculateWeeklySummary(monday, entries).sparringIntensity).toEqual({
+      hardRounds: 4, workoutCount: 4, intensityKnownCount: 2, hardRoundsUnknownCount: 2,
+    })
+    expect(entries).toEqual(before)
+  })
+
+  it('does not infer rounds or intensity from time and distinguishes unknown hard rounds from zero', () => {
+    expect(calculateWeeklySummary(monday, [
+      { ...plan(), sparring: [{ blockId: 'zero', intensity: 'hard', rounds: 0 }] },
+      manual({ sparring: [{ blockId: null, intensity: 'technical', rounds: null }] }),
+    ]).sparringIntensity).toEqual({ hardRounds: 0, workoutCount: 1, intensityKnownCount: 1, hardRoundsUnknownCount: 0 })
+    expect(calculateWeeklySummary(monday, [{ ...quick, sparring: [{ blockId: null, intensity: null, rounds: 3 }] }]).sparringIntensity)
+      .toEqual({ hardRounds: 0, workoutCount: 1, intensityKnownCount: 0, hardRoundsUnknownCount: 0 })
+  })
+
+  it('excludes skipped sparring workouts and ignores skipped blocks when checking intensity coverage', () => {
+    const entries = [
+      { ...plan(), id: 'skipped', sparring: [{ blockId: 'skipped', intensity: null, rounds: 0 }] },
+      { ...plan(), id: 'mixed', sparring: [
+        { blockId: 'skipped', intensity: null, rounds: 0 },
+        { blockId: 'completed', intensity: 'hard' as const, rounds: 1 },
+      ] },
+    ]
+    const before = structuredClone(entries)
+    const summary = calculateWeeklySummary(monday, entries)
+    expect(summary.workoutCount).toBe(2)
+    expect(summary.sparringIntensity).toEqual({
+      hardRounds: 1, workoutCount: 1, intensityKnownCount: 1, hardRoundsUnknownCount: 0,
+    })
+    expect(entries).toEqual(before)
+    expect(calculateWeeklySummary(monday, [entries[0]]).sparringIntensity).toEqual({
+      hardRounds: 0, workoutCount: 0, intensityKnownCount: 0, hardRoundsUnknownCount: 0,
+    })
   })
 })
 
