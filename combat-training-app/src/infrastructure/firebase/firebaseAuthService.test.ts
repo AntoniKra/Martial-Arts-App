@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as sdk from 'firebase/auth'
 import { initializeApp } from 'firebase/app'
 import { createFirebaseAuthService, readSignInEnvironment } from './firebaseAuthService'
@@ -29,12 +29,22 @@ const config = { apiKey: 'demo-config', authDomain: 'demo.example.test', project
 
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.stubGlobal('location', { origin: 'http://127.0.0.1:4173' })
   fake.auth.currentUser = fake.user
   fake.user.emailVerified = false
   vi.mocked(sdk.initializeAuth).mockReturnValue(fake.auth as unknown as sdk.Auth)
 })
+afterEach(() => vi.unstubAllGlobals())
 
 describe('Firebase AuthService', () => {
+  it.each(['athlete-app.example.test', 'another-app.example.test'])('uses the configured app domain %s for both email actions', async (authDomain) => {
+    const service = createFirebaseAuthService({ ...config, authDomain, emulatorHost: undefined })
+    await service.sendVerificationEmail()
+    await service.requestPasswordReset('athlete@example.test')
+    const settings = { url: `https://${authDomain}/` }
+    expect(sdk.sendEmailVerification).toHaveBeenCalledWith(fake.user, settings)
+    expect(sdk.sendPasswordResetEmail).toHaveBeenCalledWith(fake.auth, 'athlete@example.test', settings)
+  })
   it.each([false, true])('delegates the unsent write check returning %s', async (pending) => {
     fake.hasUnsentWrites.mockResolvedValueOnce(pending)
     await expect(createFirebaseAuthService(config).hasUnsentWrites()).resolves.toBe(pending)
@@ -118,7 +128,7 @@ describe('Firebase AuthService', () => {
     await service.sendVerificationEmail()
     vi.mocked(sdk.reload).mockImplementation(async () => { user.emailVerified = true })
     expect(await service.refreshVerification()).toEqual({ uid: user.uid, email: user.email, emailVerified: true })
-    expect(sdk.sendEmailVerification).toHaveBeenCalledWith(user)
+    expect(sdk.sendEmailVerification).toHaveBeenCalledWith(user, { url: 'http://127.0.0.1:4173/' })
     expect(user.getIdToken).toHaveBeenCalledWith(true)
     expect(user.getIdToken.mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(sdk.reload).mock.invocationCallOrder[0])
   })
@@ -159,7 +169,7 @@ describe('Firebase AuthService', () => {
     const service = createFirebaseAuthService(config)
     vi.mocked(sdk.sendPasswordResetEmail).mockRejectedValue({ code: 'auth/user-not-found' })
     await expect(service.requestPasswordReset('missing@example.test')).resolves.toBeUndefined()
-    expect(sdk.sendPasswordResetEmail).toHaveBeenCalledWith(fake.auth, 'missing@example.test')
+    expect(sdk.sendPasswordResetEmail).toHaveBeenCalledWith(fake.auth, 'missing@example.test', { url: 'http://127.0.0.1:4173/' })
   })
   it('preserves network and rate limit errors for display', async () => {
     const service = createFirebaseAuthService(config)

@@ -17,6 +17,18 @@ describe('resolveAuthRoute', () => {
     expect(resolveAuthRoute(signedOut, '/workouts', '/workouts?tab=plans#list'))
       .toEqual({ type: 'redirect', to: '/login', returnTo: '/workouts?tab=plans#list' })
   })
+  it.each(['/profile', '/progress', '/workouts', '/workouts/plan-1'])('opens Start after a session ends on %s', (path) => {
+    expect(resolveAuthRoute(signedOut, path, path, false, undefined, true))
+      .toEqual({ type: 'redirect', to: '/login', returnTo: '/' })
+    expect(resolveAuthRoute(verified, '/login', undefined, false, '/'))
+      .toEqual({ type: 'redirect', to: '/' })
+  })
+  it.each(['/profile', '/workouts/plan-1?source=link#details'])('preserves an explicit incoming link to %s', (target) => {
+    expect(resolveAuthRoute(signedOut, target.split(/[?#]/)[0], target))
+      .toEqual({ type: 'redirect', to: '/login', returnTo: target })
+    expect(resolveAuthRoute(verified, '/login', undefined, false, target))
+      .toEqual({ type: 'redirect', to: target })
+  })
   it.each(['/login', '/register', '/forgot-password'])('allows signed out access to %s', (path) => {
     expect(resolveAuthRoute(signedOut, path)).toEqual({ type: 'allow' })
   })

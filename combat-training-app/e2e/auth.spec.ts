@@ -1,6 +1,24 @@
 import { test, expect } from './fixtures'
 import { createVerifiedAccount, signIn, testPassword, uniqueEmail, verificationLink } from './authEmulator'
 
+test('opens Start after the first email verification and includes a local continue URL', async ({ page, request, baseURL }) => {
+  const email = uniqueEmail()
+  await page.goto('/register')
+  await page.getByLabel('Adres e-mail', { exact: true }).fill(email)
+  await page.getByLabel('Hasło', { exact: true }).fill(testPassword)
+  await page.getByRole('button', { name: 'Utwórz konto', exact: true }).click()
+  await expect(page).toHaveURL('/verify-email')
+  await expect(page.getByRole('status')).toHaveText('Wysłaliśmy wiadomość weryfikacyjną.')
+  const link = await verificationLink(request, email)
+  expect(new URL(link).searchParams.get('continueUrl')).toBe(`${baseURL}/`)
+  const actionPage = await page.context().newPage()
+  await actionPage.goto(link)
+  await actionPage.close()
+  await page.getByRole('button', { name: 'Potwierdziłem adres', exact: true }).click()
+  await expect(page).toHaveURL('/')
+  await expect(page.getByRole('link', { name: 'Start', exact: true })).toHaveAttribute('aria-current', 'page')
+})
+
 test('registers, waits for email verification and opens the app after following the emulator link', async ({ page, request }) => {
   const email = uniqueEmail()
   await page.goto('/register')

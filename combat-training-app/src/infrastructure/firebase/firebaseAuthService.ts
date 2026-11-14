@@ -41,6 +41,8 @@ export function createFirebaseAuthService(
   auth.languageCode = 'pl'
   const google = new GoogleAuthProvider()
   google.setCustomParameters({ prompt: 'select_account' })
+  // authDomain is the configured Hosting domain; emulator emails must return to the local app.
+  const emailActionSettings = () => ({ url: emulatorHost ? `${location.origin}/` : `https://${config.authDomain}/` })
 
   let redirectResult: ReturnType<typeof getRedirectResult> | undefined
   return {
@@ -78,7 +80,7 @@ export function createFirebaseAuthService(
     },
     async sendVerificationEmail() {
       if (!auth.currentUser) throw new Error('Missing authentication session')
-      await sendEmailVerification(auth.currentUser)
+      await sendEmailVerification(auth.currentUser, emailActionSettings())
     },
     async refreshVerification() {
       const user = auth.currentUser
@@ -91,7 +93,7 @@ export function createFirebaseAuthService(
     },
     async requestPasswordReset(email) {
       try {
-        await sendPasswordResetEmail(auth, email)
+        await sendPasswordResetEmail(auth, email, emailActionSettings())
       } catch (error) {
         // Older projects without enumeration protection can still return this code.
         if (!(typeof error === 'object' && error !== null && 'code' in error && error.code === 'auth/user-not-found')) throw error

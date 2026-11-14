@@ -23,6 +23,7 @@ export function resolveAuthRoute(
   target: string = pathname,
   activeWorkoutAdmitted = false,
   returnTo?: unknown,
+  sessionEndedOnRoute = false,
 ): AuthRouteDecision {
   pathname = pathname.replace(/\/+$/, '') || '/'
   // Admission belongs to this mounted player, never to a direct unauthenticated visit.
@@ -33,7 +34,7 @@ export function resolveAuthRoute(
   if (!state.session) {
     return isAuthPath && pathname !== '/verify-email'
       ? { type: 'allow' }
-      : { type: 'redirect', to: '/login', returnTo: pathname === '/verify-email' ? safeReturnTo(returnTo) : safeReturnTo(target) }
+      : { type: 'redirect', to: '/login', returnTo: sessionEndedOnRoute ? '/' : pathname === '/verify-email' ? safeReturnTo(returnTo) : safeReturnTo(target) }
   }
   if (!state.session.emailVerified) {
     return pathname === '/verify-email'
