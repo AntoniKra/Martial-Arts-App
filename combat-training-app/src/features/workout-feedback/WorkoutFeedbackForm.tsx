@@ -7,12 +7,14 @@ import { canEditSparringIntensity, hasCompletedExercise, selectOtherExercises, t
 import type { PreviousPlanRun } from '@/domain/workout-session/previousPlanRun'
 import { Button } from '@/components/ui/Button'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
+import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
 import { AssessmentScale, FocusCard } from './FocusCard'
 import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
 import { formatWorkoutFeedbackMetrics, workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
 import { PreviousPlanRunSummary } from './PreviousPlanRunSummary'
 import { rpeLabels } from './rpeLabels'
 import { sparringIntensityLabels } from './sparringIntensityLabels'
+import { hasUnsavedWorkoutFeedback } from './unsavedWorkoutFeedback'
 
 export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, previousRun }: {
   session: PlanWorkoutSession; skills: readonly FocusSkill[]; pending: boolean
@@ -20,7 +22,9 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
   rpeCard: ReactNode
   onSave: (draft: WorkoutFeedbackDraft) => Promise<void>
 }) {
-  const [draft, setDraft] = useState<WorkoutFeedbackDraft>(() => ({ focusRatings: structuredClone(session.focusRatings), exerciseRatings: structuredClone(session.exerciseRatings), sparring: structuredClone(session.sparring), note: session.note }))
+  const [initial] = useState<WorkoutFeedbackDraft>(() => ({ focusRatings: structuredClone(session.focusRatings), exerciseRatings: structuredClone(session.exerciseRatings), sparring: structuredClone(session.sparring), note: session.note ?? '' }))
+  const [draft, setDraft] = useState(initial)
+  const allowLeave = useRef(false)
   const [errors, setErrors] = useState<FeedbackErrors>({ corrections: {} })
   const [saveError, setSaveError] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -41,10 +45,13 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
       return
     }
     setErrors({ corrections: {} }); setSaveError(false); setSaving(true); busy.current = true
-    try { await onSave(result.values) } catch { setSaveError(true) } finally { setSaving(false); busy.current = false }
+    // The save callback also navigates; restore protection if saving fails.
+    allowLeave.current = true
+    try { await onSave(result.values) } catch { allowLeave.current = false; setSaveError(true) } finally { setSaving(false); busy.current = false }
   }
 
-  return <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
+  return <UnsavedPlanChangesGuard isDirty={hasUnsavedWorkoutFeedback(draft, initial)} allowLeaveRef={allowLeave} description={labels.discardDescription}>
+    <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
     <div className="flex flex-wrap justify-between gap-x-4">
       <Link to={routes.workoutDetails(session.workoutPlanId)} className="inline-flex min-h-touch items-center text-[12px] font-semibold text-muted"><span aria-hidden="true" className="mr-1">←</span>{labels.backToPlan}</Link>
       <Link to={`${routes.workouts}?tab=history`} className="inline-flex min-h-touch items-center text-[12px] font-semibold text-muted">{labels.back}</Link>
@@ -112,4 +119,5 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
       <p className="text-center text-[12px] leading-relaxed text-muted">{rpeLabels.reminderHint}</p>
     </form>
   </div>
+  </UnsavedPlanChangesGuard>
 }

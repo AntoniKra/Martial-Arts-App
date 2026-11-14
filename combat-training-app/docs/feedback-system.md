@@ -10,6 +10,8 @@ Zasada: każda funkcja ma pomagać kontrolować postęp. Jakość wykonania i il
 2. **Podsumowanie** pokazuje oceny ćwiczeń celu, notatkę i intensywność sparingu.
 3. **RPE po 10 minutach wyciszenia.** Podsumowanie odlicza 10 minut i kończy odliczanie gongiem. Można odpowiedzieć wcześniej albo pominąć pytanie (Q2).
 
+Wyjście z podsumowania treningu z planu lub szybkiego stopera z niezapisanymi zmianami formularza wymaga potwierdzenia odrzucenia ocen i notatki; RPE zapisuje się osobno i nie uruchamia ostrzeżenia.
+
 ## Ćwiczenia celu (Q1, R1, R2)
 
 Ćwiczenie celu to umiejętność, nad którą pracujesz, np. „Lewy prosty, powrót do gardy”. Ma nazwę i kryterium oceny. Działa we wszystkich planach: jeden wykres zbiera oceny z każdego planu.
