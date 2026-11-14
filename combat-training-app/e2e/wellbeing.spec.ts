@@ -39,6 +39,32 @@ async function accessible(page: Page) {
 }
 test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(instant)) })
 
+test.describe('cached startup', () => {
+  test.use({ serviceWorkers: 'allow' })
+  test('reopens offline with cached consent, allows Not today and saves the following day offline', async ({ app, page, context }) => {
+    await app.open('/profile'); await grant(page); await nav(page, 'Start').click()
+    await expect(card(page)).toBeVisible(); await app.prepareOffline()
+    await context.setOffline(true)
+    try {
+      await app.open('/')
+      await expect(card(page).getByRole('button', { name: 'Zapisz', exact: true })).toBeVisible()
+      await card(page).getByRole('button', { name: 'Nie dziś', exact: true }).click()
+      await app.open('/'); await expect(card(page)).toHaveCount(0)
+      await page.clock.setFixedTime(new Date('2026-11-15T09:00:00.000Z'))
+      await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+      await expect(card(page)).toBeVisible()
+      await answer(page)
+      await card(page).getByRole('button', { name: 'Zapisz', exact: true }).click()
+      await expect(card(page)).toHaveCount(0)
+      await expect(page.getByText('Samopoczucie: Czeka na wysłanie', { exact: true })).toBeVisible()
+      await nav(page, 'Postęp').click()
+      await expect(progress(page).getByRole('alert')).toContainText('niepełne')
+      await expect(progress(page).getByRole('img')).toHaveCount(0)
+    } finally { await context.setOffline(false) }
+    await expect.poll(() => app.readWellbeing()).toMatchObject([{ date: '2026-11-15', sleep: 3, energy: 3 }])
+  })
+})
+
 test('separate consent, offline daily entry, progress, same-day edit and deletion on withdrawal', async ({ app, page, context }) => {
   await app.open()
   await expect(card(page)).toHaveCount(0)

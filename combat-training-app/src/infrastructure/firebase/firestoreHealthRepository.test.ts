@@ -10,6 +10,8 @@ const sdk = vi.hoisted(() => ({
   set: vi.fn<() => Promise<void>>(), remove: vi.fn<() => Promise<void>>(),
   read: vi.fn<() => Promise<{ docs: { id: string }[] }>>(),
   commit: vi.fn<(operations: unknown[]) => Promise<void>>(), batches: [] as unknown[][],
+  lock: vi.fn<() => Promise<void>>(), profileData: {} as Record<string, unknown>,
+  transactionUpdates: [] as Record<string, unknown>[],
 }))
 vi.mock('firebase/firestore', () => ({
   collection: (_db: unknown, ...path: string[]) => path.join('/'),
@@ -19,6 +21,12 @@ vi.mock('firebase/firestore', () => ({
     return () => { sdk.listeners.delete(path); sdk.errors.delete(path) }
   },
   setDoc: sdk.set, deleteDoc: sdk.remove, getDocsFromServer: sdk.read,
+  runTransaction: async (_db: unknown, action: (transaction: { get: () => Promise<unknown>; update: (path: string, fields: Record<string, unknown>) => void }) => Promise<unknown>) => {
+    const result = await action({ get: async () => ({ exists: () => true, data: () => sdk.profileData }),
+      update: (_path, fields) => { sdk.transactionUpdates.push(fields); sdk.profileData = { ...sdk.profileData, ...fields } } })
+    await sdk.lock()
+    return result
+  },
   writeBatch: () => {
     const operations: unknown[] = []
     return { delete: (path: string) => operations.push(['delete', path]),
@@ -34,6 +42,7 @@ const profile: AthleteProfile = { healthDataConsent: { grantedAt: instant, notic
 const weight: BodyWeight = { date: '2026-11-13', weightKg: 76.4, createdAt: instant, updatedAt: instant }
 const metadata = (fromCache = false, hasPendingWrites = false) => ({ fromCache, hasPendingWrites })
 function emitProfile(value: unknown = profile, fromCache = false, pending = false) {
+  sdk.profileData = value ? { ...value, schemaVersion: 1 } : {}
   sdk.listeners.get(profilePath)?.({ id: uid, exists: () => value !== null,
     data: () => value && { ...value, schemaVersion: 1 }, metadata: metadata(fromCache, pending) })
 }
@@ -49,13 +58,20 @@ function subscribed() {
   emitProfile(); emitWeights()
   return { repositories, profileChange, weightChange, error, stopProfile, stopWeights }
 }
+const browserEvents = new EventTarget()
+const lockId = 'ce3371c8-85bb-4ae1-88ac-56a10077fb0f'
 beforeEach(() => {
   vi.useFakeTimers(); vi.setSystemTime(new Date(instant))
+  vi.stubGlobal('navigator', { onLine: true })
+  vi.stubGlobal('addEventListener', browserEvents.addEventListener.bind(browserEvents))
+  vi.stubGlobal('removeEventListener', browserEvents.removeEventListener.bind(browserEvents))
+  vi.spyOn(crypto, 'randomUUID').mockReturnValue(lockId)
   sdk.set.mockImplementation(() => new Promise(() => {}))
   sdk.remove.mockImplementation(() => new Promise(() => {}))
   sdk.read.mockResolvedValue({ docs: [] }); sdk.commit.mockResolvedValue()
+  sdk.lock.mockResolvedValue()
 })
-afterEach(() => { vi.useRealTimers(); vi.clearAllMocks(); sdk.listeners.clear(); sdk.errors.clear(); sdk.batches.length = 0 })
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.clearAllMocks(); sdk.listeners.clear(); sdk.errors.clear(); sdk.batches.length = 0; sdk.transactionUpdates.length = 0 })
 
 describe('health repository local writes and subscriptions', () => {
   it('confirms pending profile and weight writes from local snapshots before server acknowledgement', async () => {
@@ -126,8 +142,8 @@ describe('wellbeing repository', () => {
   const path = `${profilePath}/readiness`
   const entry: WellbeingEntry = { date: '2026-11-13', questionsVersion: 1, sleep: 3, energy: 3, soreness: 3, stress: 3, note: null, createdAt: instant, updatedAt: instant }
   const consented = { ...profile, wellbeingConsent: profile.healthDataConsent }
-  function emitEntries(entries: WellbeingEntry[], pending = false) {
-    sdk.listeners.get(path)?.({ docs: entries.map((value) => ({ id: value.date, data: () => ({ ...value, schemaVersion: 1 }), metadata: metadata(false, pending) })), metadata: metadata(false, pending) })
+  function emitEntries(entries: WellbeingEntry[], pending = false, fromCache = false) {
+    sdk.listeners.get(path)?.({ docs: entries.map((value) => ({ id: value.date, data: () => ({ ...value, schemaVersion: 1 }), metadata: metadata(fromCache, pending) })), metadata: metadata(fromCache, pending) })
   }
   it('requires separate consent, accepts only today, and confirms offline writes from local snapshots', async () => {
     const { repositories } = subscribed(), change = vi.fn()
@@ -152,7 +168,9 @@ describe('wellbeing repository', () => {
     const operations = sdk.batches.flat()
     expect(operations.filter((operation) => (operation as string[])[0] === 'delete')).toHaveLength(count)
     expect(sdk.batches.every((batch) => batch.length <= 499)).toBe(true)
-    expect(operations.at(-1)).toEqual(['update', profilePath, { wellbeingConsent: null, updatedAt: instant }])
+    expect(operations.at(-1)).toEqual(['update', profilePath, { wellbeingConsent: null, wellbeingWithdrawal: { id: lockId, pending: false }, updatedAt: instant }])
+    expect(sdk.lock.mock.invocationCallOrder[0]).toBeLessThan(sdk.read.mock.invocationCallOrder[0])
+    expect(sdk.batches.every((batch) => (batch.at(-1) as unknown[])[0] === 'update')).toBe(true)
   })
   it('does nothing after a failed server read and retains consent after interrupted deletion', async () => {
     const { repositories } = subscribed(); emitProfile(consented)
@@ -162,10 +180,66 @@ describe('wellbeing repository', () => {
     sdk.read.mockResolvedValue({ docs: Array.from({ length: 500 }, (_, i) => ({ id: String(i) })) })
     sdk.commit.mockRejectedValueOnce(new Error('interrupted'))
     await expect(repositories.wellbeing.withdrawConsent()).rejects.toThrow('interrupted')
-    expect(sdk.batches.flat().some((operation) => (operation as string[])[0] === 'update')).toBe(false)
+    expect(sdk.batches.flat()).not.toContainEqual(['update', profilePath, expect.objectContaining({ wellbeingConsent: null })])
     sdk.read.mockResolvedValue({ docs: [] })
     await repositories.wellbeing.withdrawConsent()
-    expect(sdk.batches.at(-1)).toEqual([['update', profilePath, { wellbeingConsent: null, updatedAt: instant }]])
+    expect(sdk.batches.at(-1)).toEqual([['update', profilePath, { wellbeingConsent: null, wellbeingWithdrawal: { id: lockId, pending: false }, updatedAt: instant }]])
+  })
+  it('permits today after reopening with cache-only snapshots and preserves cached createdAt', async () => {
+    const repositories = createFirestoreHealthRepositories({} as Firestore, uid)
+    const error = vi.fn()
+    repositories.profile.subscribe(vi.fn(), error); repositories.wellbeing.subscribe(vi.fn(), error)
+    emitProfile(consented, true); emitEntries([], false, true)
+    const created = repositories.wellbeing.save(entry)
+    emitEntries([entry], true, true)
+    await expect(created).resolves.toBeUndefined()
+    await expect(repositories.wellbeing.save({ ...entry, createdAt: '2026-11-12T09:00:00.000Z' })).rejects.toThrow('Creation')
+    sdk.set.mockRejectedValueOnce(new Error('permission-denied: server createdAt differs'))
+    await expect(repositories.wellbeing.save({ ...entry, sleep: 4 })).rejects.toThrow('server createdAt differs')
+    expect(error).toHaveBeenCalledOnce()
+    emitEntries([entry])
+    expect(error).toHaveBeenCalledTimes(2)
+  })
+  it('waits for the shared lock acknowledgement before reading any documents', async () => {
+    const { repositories } = subscribed(); emitProfile(consented)
+    let unlock!: () => void
+    sdk.lock.mockImplementationOnce(() => new Promise((resolve) => { unlock = resolve }))
+    const withdrawal = repositories.wellbeing.withdrawConsent()
+    await vi.waitFor(() => expect(sdk.lock).toHaveBeenCalledOnce())
+    expect(sdk.read).not.toHaveBeenCalled()
+    unlock(); await withdrawal
+  })
+  it('rejects local writes with a cached withdrawal marker from another session', async () => {
+    const { repositories } = subscribed()
+    emitProfile({ ...consented, wellbeingWithdrawal: { id: lockId, pending: true } }, true)
+    repositories.wellbeing.subscribe(vi.fn(), vi.fn()); emitEntries([], false, true)
+    await expect(repositories.wellbeing.save(entry)).rejects.toThrow('consent')
+    expect(sdk.set).not.toHaveBeenCalled()
+  })
+  it('returns offline errors during a queued batch, releases the local guard, and reuses the shared generation on retry', async () => {
+    const { repositories } = subscribed(); emitProfile(consented)
+    let completeQueued!: () => void
+    sdk.commit.mockImplementationOnce(() => new Promise((resolve) => { completeQueued = resolve }))
+    const first = repositories.wellbeing.withdrawConsent(), rejected = expect(first).rejects.toThrow('Offline')
+    await vi.waitFor(() => expect(sdk.commit).toHaveBeenCalledOnce())
+    vi.stubGlobal('navigator', { onLine: false }); browserEvents.dispatchEvent(new Event('offline'))
+    await rejected
+    vi.stubGlobal('navigator', { onLine: true })
+    await repositories.wellbeing.withdrawConsent()
+    expect(sdk.transactionUpdates).toHaveLength(1)
+    expect(sdk.batches.at(-1)).toEqual([['update', profilePath, { wellbeingConsent: null,
+      wellbeingWithdrawal: { id: lockId, pending: false }, updatedAt: expect.any(String) }]])
+    completeQueued()
+    await Promise.resolve()
+  })
+  it('does not enqueue another batch when the connection drops between batches', async () => {
+    const { repositories } = subscribed(); emitProfile(consented)
+    sdk.read.mockResolvedValue({ docs: Array.from({ length: 500 }, (_, i) => ({ id: String(i) })) })
+    sdk.commit.mockImplementationOnce(async () => { vi.stubGlobal('navigator', { onLine: false }) })
+    await expect(repositories.wellbeing.withdrawConsent()).rejects.toThrow('Offline')
+    expect(sdk.commit).toHaveBeenCalledOnce()
+    expect(sdk.batches[0]).toHaveLength(499)
+    expect(sdk.batches[0].at(-1)).toEqual(['update', profilePath, { wellbeingWithdrawal: { id: lockId, pending: true }, updatedAt: instant }])
   })
 })
 
@@ -203,8 +277,7 @@ describe('online consent withdrawal', () => {
     let finish!: () => void
     sdk.commit.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
     const withdrawal = repositories.profile.withdrawConsent()
-    await Promise.resolve()
-    expect(sdk.batches).toHaveLength(1)
+    await vi.waitFor(() => expect(sdk.batches).toHaveLength(1))
     await expect(repositories.bodyWeights.save(weight)).rejects.toThrow('consent')
     await expect(repositories.profile.save(profile)).rejects.toThrow('progress')
     finish(); await withdrawal

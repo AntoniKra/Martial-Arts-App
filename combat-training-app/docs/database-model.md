@@ -43,6 +43,7 @@ Wdrożony profil oraz dwie niezależne zgody: na pomiary masy ciała z kategori�
 | `schemaVersion` | `1` | |
 | `healthDataConsent` | `{ grantedAt, noticeVersion, adultConfirmed: true }` albo `null` | Wyraźna zgoda 18+; wersja informacji `2026-11` |
 | `wellbeingConsent` | taka sama mapa albo `null`; pole opcjonalne | Osobna zgoda 18+ na Samopoczucie; wersja `2026-11`; brak pola w starym profilu oznacza brak zgody |
+| `wellbeingWithdrawal` | `{ id: UUID, pending: boolean }`, `null` lub brak pola | Wspólna blokada i identyfikator wycofania; po zakończeniu zachowujemy ID i `pending: false` (ADR 0015) |
 | `weightClassLabel` | tekst 1–20 znaków albo `null` | Etykieta użytkownika, wyłącznie przy zgodzie |
 | `createdAt`, `updatedAt` | chwila | |
 
@@ -51,7 +52,7 @@ Wdrożony profil oraz dwie niezależne zgody: na pomiary masy ciała z kategori�
 - Obecnie istnieje tylko wersja informacji `2026-11`; nie wdrażamy przejść między wersjami. Zgoda jest ważna, gdy nie jest `null` i ma `adultConfirmed: true`.
 - Reguły chronią `createdAt` oraz istniejącą mapę zgody: można zmienić kategorię, ale nową zgodę ustawia się tylko z `null` (lub tworząc dokument).
 - **Wycofanie zgody wymaga sieci:** `getDocsFromServer` pobiera wszystkie pomiary, a `writeBatch` usuwa je partiami do 499 operacji. Dopiero ostatnia partia ustawia `healthDataConsent: null`, `weightClassLabel: null` i nowe `updatedAt`. Ostatnia partia może zawierać do 498 usunięć i zmianę profilu; po pełnej partii 499 usunięć profil trafia do osobnej partii. Przerwany proces można powtórzyć. Błąd odczytu z serwera niczego nie zmienia.
-- Samopoczucie ma tę samą procedurę, ale usuwa wszystkie dokumenty `readiness` i w ostatniej partii zeruje wyłącznie `wellbeingConsent`. Zgody są niezależne i nie można zastąpić istniejącej mapy zgody inną bez wycofania.
+- Samopoczucie najpierw ustawia w transakcji `wellbeingWithdrawal: { id, pending: true }` i czeka na potwierdzenie serwera; ponowienie podejmuje ten sam aktywny identyfikator. Potem odczytuje całą kolekcję `readiness` i usuwa najwyżej 498 wpisów w partii, dodając do każdej partii aktualizację profilu z tym samym ID. Ostatnia partia zeruje `wellbeingConsent` i ustawia `pending: false`. Reguły blokują zapisy wpisów podczas wycofywania i odrzucają spóźnione partie z poprzedniej operacji, również po ponownym włączeniu zgody. Odczyt i każda partia sprawdzają sieć; utrata połączenia zwraca błąd, zwalnia dialog i pozwala ponowić. Wspólna blokada pozostaje do dokończenia. Zgody są niezależne; pomiary masy ciała nie są zmieniane.
 - Motyw (D4) zostaje na urządzeniu, nie w tym dokumencie.
 
 ## `workoutPlans`
@@ -217,6 +218,7 @@ Wdrożone dzienne samooceny, bez rekomendacji i wyniku zbiorczego. Historyczna n
 | `createdAt`, `updatedAt` | chwila | Pierwszy zapis i ostatnia poprawka; `createdAt` jest niezmienne |
 
 - Jeden dokument na lokalny dzień urządzenia. Formularz tworzy i poprawia tylko dzisiejszy wpis. Zapis działa offline; późniejsza synchronizacja nie porównuje daty do czasu serwera.
+- Formularz i „Nie dziś” działają także po ponownym otwarciu aplikacji offline z migawką zgody w cache. Pełność kolekcji nie blokuje dziennego wpisu. Znane `createdAt` jest chronione lokalnie, a przy konflikcie z dokumentem nieznanym cache — przez reguły. Późniejsze odrzucenie jest widocznym błędem, nie zastąpieniem danych serwerowych.
 - Zapis wymaga osobnej aktywnej zgody `wellbeingConsent` przez `get(/users/{uid})`, więc partia nadająca zgodę i tworząca wpis jest odrzucana. Dokładne klucze, całkowite oceny 1–5, limit notatki i zgodność ID z datą są sprawdzane przez reguły; prawdziwą datę sprawdza `zod/mini`. Odczyt i usunięcie pozostają dostępne zweryfikowanemu właścicielowi dla eksportu i sprzątania, tak jak w `bodyWeights`.
 - Norma osobno dla każdego pytania: poprzednie 28 dni bez dnia ocenianego, ≥14 wpisów obejmujących ≥21 dni kalendarzowych z oboma końcami. Mediana, P25 i P75 z interpolacją liniową; brak imputacji. Kontekst RPE korzysta z `workoutDate`, nie daty dzisiejszej. Nie zapisujemy norm ani pochodnych kategorii w bazie.
 

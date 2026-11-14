@@ -501,6 +501,8 @@ describe('wellbeing consent and daily entries', () => {
   const entry = (): Document => ({ schemaVersion: 1, questionsVersion: 1, date: weightDate, sleep: 1, energy: 5, soreness: 3, stress: 3,
     note: null, createdAt: instant, updatedAt: instant })
   const enabled = () => ({ ...profileDocument(), wellbeingConsent: consent })
+  const withdrawalId = 'ce3371c8-85bb-4ae1-88ac-56a10077fb0f'
+  const laterId = '2979883e-b98e-497f-8f40-c7d5f553c394'
   it('keeps old profiles valid, requires separate consent and preserves existing consent identity', async () => {
     const db = ownerDatabase(), profile = db.doc(profilePath), ref = db.doc(path)
     await assertFails(ref.set(entry()))
@@ -513,7 +515,9 @@ describe('wellbeing consent and daily entries', () => {
     await assertSucceeds(ref.update({ sleep: 5, energy: 1, note: 'x'.repeat(300) }))
     await assertFails(ref.update({ createdAt: '2026-11-13T09:00:00.000Z' }))
     await assertFails(profile.update({ wellbeingConsent: { ...consent, grantedAt: '2026-11-13T09:00:00.000Z' } }))
-    await assertSucceeds(profile.update({ wellbeingConsent: null }))
+    await assertFails(profile.update({ wellbeingConsent: null }))
+    await assertSucceeds(profile.update({ wellbeingWithdrawal: { id: withdrawalId, pending: true } }))
+    await assertSucceeds(profile.update({ wellbeingConsent: null, wellbeingWithdrawal: { id: withdrawalId, pending: false } }))
     await assertFails(ref.update({ sleep: 2 }))
     await assertSucceeds(ref.get())
     await assertSucceeds(ref.delete())
@@ -522,6 +526,78 @@ describe('wellbeing consent and daily entries', () => {
   })
   it.each([false, null, 1])('rejects invalid adult confirmation %s', async (adultConfirmed) => {
     await assertFails(ownerDatabase().doc(profilePath).set({ ...enabled(), wellbeingConsent: { ...consent, adultConfirmed } }))
+  })
+  it('blocks writes from another session before taking the deletion snapshot, leaving no late document', async () => {
+    const deleting = ownerDatabase(), writing = environment.authenticatedContext(ownerId, { email_verified: true }).firestore()
+    await deleting.doc(profilePath).set(enabled())
+    await writing.doc(path).set(entry())
+    await deleting.doc(profilePath).update({ wellbeingWithdrawal: { id: withdrawalId, pending: true } })
+    const snapshot = await deleting.collection(`${profilePath}/readiness`).get()
+    const batch = deleting.batch()
+    for (const document of snapshot.docs) batch.delete(document.ref)
+    batch.update(deleting.doc(profilePath), { wellbeingConsent: null, wellbeingWithdrawal: { id: withdrawalId, pending: false } })
+    const latePath = `${profilePath}/readiness/2026-11-14`
+    await Promise.all([
+      assertFails(writing.doc(latePath).set({ ...entry(), date: '2026-11-14' })),
+      assertFails(writing.doc(path).update({ sleep: 4 })),
+      assertSucceeds(batch.commit()),
+    ])
+    expect((await deleting.collection(`${profilePath}/readiness`).get()).size).toBe(0)
+    expect((await deleting.doc(profilePath).get()).data()?.wellbeingConsent).toBeNull()
+  })
+  it('prevents unlocking, dropping or replacing an active marker without completing that generation', async () => {
+    const ref = ownerDatabase().doc(profilePath)
+    await ref.set(enabled())
+    await ref.update({ wellbeingWithdrawal: { id: withdrawalId, pending: true } })
+    for (const wellbeingWithdrawal of [null, { id: withdrawalId, pending: false }, { id: laterId, pending: true }]) {
+      await assertFails(ref.update({ wellbeingWithdrawal }))
+    }
+    await assertFails(ref.set(enabled()))
+    await assertFails(ref.update({ wellbeingConsent: { ...consent, grantedAt: '2026-11-13T09:00:00.000Z' } }))
+    await assertSucceeds(ref.update({ wellbeingWithdrawal: { id: withdrawalId, pending: false }, wellbeingConsent: null }))
+    await ref.update({ wellbeingConsent: consent })
+    await assertSucceeds(ownerDatabase().doc(path).set(entry()))
+  })
+  it.each([null, false, 1, {}, { id: 'bad', pending: true }, { id: withdrawalId, pending: 'true' }, { id: withdrawalId, pending: true, extra: true }])(
+    'rejects an invalid start marker %j', async (wellbeingWithdrawal) => {
+      const ref = ownerDatabase().doc(profilePath)
+      await ref.set(enabled())
+      if (wellbeingWithdrawal === null) {
+        await ref.update({ wellbeingWithdrawal: { id: withdrawalId, pending: true } })
+      }
+      await assertFails(ref.update({ wellbeingWithdrawal }))
+    })
+  it('rejects late intermediate and final batches after a regrant, also during a later withdrawal', async () => {
+    const db = ownerDatabase(), profile = db.doc(profilePath), ref = db.doc(path)
+    await profile.set(enabled())
+    await profile.update({ wellbeingWithdrawal: { id: withdrawalId, pending: true } })
+    await profile.update({ wellbeingWithdrawal: { id: withdrawalId, pending: false }, wellbeingConsent: null })
+    await profile.update({ wellbeingConsent: consent })
+    await ref.set(entry())
+    for (const startNext of [false, true]) {
+      if (startNext) await profile.update({ wellbeingWithdrawal: { id: laterId, pending: true } })
+      for (const pending of [true, false]) {
+        const queued = db.batch()
+        queued.delete(ref)
+        queued.update(profile, { wellbeingWithdrawal: { id: withdrawalId, pending }, ...(pending ? {} : { wellbeingConsent: null }) })
+        await assertFails(queued.commit())
+        expect((await ref.get()).exists).toBe(true)
+        expect((await profile.get()).data()?.wellbeingConsent).toEqual(consent)
+      }
+    }
+  })
+  it.each(['other', 'signedOut', 'unverified'])('denies starting or finishing withdrawal as %s', async (actor) => {
+    const owner = ownerDatabase()
+    await owner.doc(profilePath).set(enabled()); await owner.doc(path).set(entry())
+    const context = actor === 'signedOut' ? environment.unauthenticatedContext()
+      : environment.authenticatedContext(actor === 'other' ? 'athlete-two' : ownerId, { email_verified: actor !== 'unverified' })
+    const db = context.firestore()
+    await assertFails(db.doc(profilePath).update({ wellbeingWithdrawal: { id: withdrawalId, pending: true } }))
+    await owner.doc(profilePath).update({ wellbeingWithdrawal: { id: withdrawalId, pending: true } })
+    const batch = db.batch(); batch.delete(db.doc(path))
+    batch.update(db.doc(profilePath), { wellbeingConsent: null, wellbeingWithdrawal: { id: withdrawalId, pending: false } })
+    await assertFails(batch.commit())
+    expect((await owner.doc(path).get()).exists).toBe(true)
   })
   it('rejects granting consent and writing an entry in the same batch with no partial writes', async () => {
     const db = ownerDatabase(), profile = db.doc(profilePath), ref = db.doc(path)

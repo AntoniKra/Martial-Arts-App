@@ -57,6 +57,13 @@ describe('profile input and consent', () => {
 })
 
 describe('withdrawal batches', () => {
+  it.each([0, 1, 498, 499, 500, 1200])('reserves one guard write in every batch for %s documents', (count) => {
+    const ids = Array.from({ length: count }, (_, index) => String(index))
+    const batches = createConsentWithdrawalBatches(ids, true)
+    expect(batches.flatMap((batch) => batch.ids)).toEqual(ids)
+    expect(batches.every((batch) => batch.ids.length + 1 <= 499)).toBe(true)
+    expect(batches.filter((batch) => batch.withdrawConsent)).toEqual([batches.at(-1)])
+  })
   it.each([0, 1, 499, 500, 1200])('deletes %s documents before clearing consent in the last batch', (count) => {
     const ids = Array.from({ length: count }, (_, index) => String(index))
     const batches = createConsentWithdrawalBatches(ids)

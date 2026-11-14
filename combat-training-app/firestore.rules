@@ -175,11 +175,13 @@ service cloud.firestore {
 
     function isProfile(data) {
       return data.keys().hasAll(['schemaVersion', 'healthDataConsent', 'weightClassLabel', 'createdAt', 'updatedAt'])
-        && data.keys().hasOnly(['schemaVersion', 'healthDataConsent', 'wellbeingConsent', 'weightClassLabel', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['schemaVersion', 'healthDataConsent', 'wellbeingConsent', 'wellbeingWithdrawal', 'weightClassLabel', 'createdAt', 'updatedAt'])
         && data.schemaVersion is int && data.schemaVersion == 1
         && isInstant(data.createdAt) && isInstant(data.updatedAt)
         && isHealthConsent(data.healthDataConsent)
         && isHealthConsent(data.get('wellbeingConsent', null))
+        && isWellbeingWithdrawal(data.get('wellbeingWithdrawal', null))
+        && (data.get('wellbeingWithdrawal', null) == null || !data.wellbeingWithdrawal.pending || data.get('wellbeingConsent', null) != null)
         && (data.weightClassLabel == null || isBoundedText(data.weightClassLabel, 20))
         && (data.healthDataConsent != null || data.weightClassLabel == null);
     }
@@ -208,19 +210,43 @@ service cloud.firestore {
     }
 
     function hasWellbeingConsent(uid) {
-      let consent = get(/databases/$(database)/documents/users/$(uid)).data.get('wellbeingConsent', null);
-      return consent != null && isHealthConsent(consent) && consent.noticeVersion == '2026-11';
+      let profile = get(/databases/$(database)/documents/users/$(uid)).data;
+      let consent = profile.get('wellbeingConsent', null);
+      let withdrawal = profile.get('wellbeingWithdrawal', null);
+      return consent != null && isHealthConsent(consent) && consent.noticeVersion == '2026-11'
+        && (withdrawal == null || !withdrawal.pending);
+    }
+
+    function isWellbeingWithdrawal(value) {
+      return value == null || (value is map && hasExactKeys(value, ['id', 'pending'])
+        && value.id is string && value.id.matches('[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}')
+        && value.pending is bool);
+    }
+
+    function isWellbeingConsentTransition(before, after) {
+      let previous = before.get('wellbeingWithdrawal', null);
+      let next = after.get('wellbeingWithdrawal', null);
+      let consent = before.get('wellbeingConsent', null);
+      let nextConsent = after.get('wellbeingConsent', null);
+      let pending = previous != null && previous.pending;
+      // A queued batch from an earlier generation must never finish a later withdrawal.
+      return pending
+        ? (next != null && next.id == previous.id
+          && (next.pending ? nextConsent == consent : nextConsent == null))
+        : ((next == previous && (consent == null || nextConsent == consent))
+          || (next != null && next.pending && consent != null && nextConsent == consent
+            && (previous == null || next.id != previous.id)));
     }
 
     match /users/{uid} {
       allow read, delete: if isVerifiedOwner(uid);
-      allow create: if isVerifiedOwner(uid) && isProfile(request.resource.data);
+      allow create: if isVerifiedOwner(uid) && isProfile(request.resource.data)
+        && request.resource.data.get('wellbeingWithdrawal', null) == null;
       allow update: if isVerifiedOwner(uid) && isProfile(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt
         && (resource.data.healthDataConsent == null || request.resource.data.healthDataConsent == null
           || request.resource.data.healthDataConsent == resource.data.healthDataConsent)
-        && (resource.data.get('wellbeingConsent', null) == null || request.resource.data.get('wellbeingConsent', null) == null
-          || request.resource.data.get('wellbeingConsent', null) == resource.data.get('wellbeingConsent', null));
+        && isWellbeingConsentTransition(resource.data, request.resource.data);
     }
 
     match /users/{uid}/readiness/{date} {

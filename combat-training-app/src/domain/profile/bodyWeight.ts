@@ -54,12 +54,13 @@ export function calculateWeeklyWeights(weights: readonly BodyWeight[], today: st
 }
 
 /** No batch exceeds 499 writes, including the final profile update. */
-export function createConsentWithdrawalBatches(ids: readonly string[]): { ids: string[]; withdrawConsent: boolean }[] {
+export function createConsentWithdrawalBatches(ids: readonly string[], guardEveryBatch = false): { ids: string[]; withdrawConsent: boolean }[] {
   const batches: { ids: string[]; withdrawConsent: boolean }[] = []
   let offset = 0
-  while (ids.length - offset >= 499) {
-    batches.push({ ids: ids.slice(offset, offset + 499), withdrawConsent: false })
-    offset += 499
+  const limit = guardEveryBatch ? 498 : 499
+  while (ids.length - offset >= limit) {
+    batches.push({ ids: ids.slice(offset, offset + limit), withdrawConsent: false })
+    offset += limit
   }
   batches.push({ ids: ids.slice(offset), withdrawConsent: true })
   return batches

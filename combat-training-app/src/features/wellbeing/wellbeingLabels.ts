@@ -21,6 +21,7 @@ export const wellbeingLabels = {
   later: 'Nie teraz', withdrawTitle: 'Wyłączyć Samopoczucie?', withdrawConfirm: 'Usuń wpisy i wyłącz',
   withdrawDescription: 'Usuniemy wszystkie wpisy samopoczucia i wycofamy tę zgodę. Tego nie da się cofnąć. Zgoda na masę ciała pozostanie bez zmian.',
   withdrawalFailed: 'Nie udało się zakończyć usuwania. Zgoda pozostaje aktywna. Połącz się z internetem i ponów wyłączenie.',
+  withdrawalPending: 'Trwa wycofywanie zgody. Zapisy są zablokowane. Jeśli usuwanie przerwano, połącz się z internetem i ponów wyłączenie w Profilu.',
   onlineRequired: 'Wyłączenie wymaga internetu, żeby usunąć wszystkie wpisy.',
   disclaimer: 'To nie jest ocena medyczna. Jeśli coś Cię niepokoi albo dolegliwości się utrzymują, skonsultuj się z lekarzem.',
   empty: 'Nie masz jeszcze wpisów samopoczucia. Pierwszy możesz dodać na Starcie.',

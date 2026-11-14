@@ -13,14 +13,15 @@ export function WellbeingHomeCard({ uid }: { uid: string }) {
   return <DailyCard key={today} uid={uid} today={today} />
 }
 function DailyCard({ uid, today }: { uid: string; today: string }) {
-  const { wellbeing, wellbeingRepository, retryWellbeing } = useWorkoutData()
+  const { profile, wellbeing, wellbeingRepository, retryWellbeing } = useWorkoutData()
   const [dismissed, setDismissed] = useState(() => wellbeingDismissalStorage(uid).dismissed(today))
   const entry = wellbeing.items.find((item) => item.date === today)
-  if (entry) return wellbeing.pendingIds.has(today) ? <p role="status" className="text-sm text-muted">{labels.title}: {workoutDataLabels.pending}</p> : null
+  const withdrawalPending = profile.items[0]?.wellbeingWithdrawal?.pending
+  if (entry && wellbeing.status !== 'error' && !withdrawalPending) return wellbeing.pendingIds.has(today) ? <p role="status" className="text-sm text-muted">{labels.title}: {workoutDataLabels.pending}</p> : null
   if (dismissed) return null
   return <section aria-label={labels.prompt} className="space-y-4 border border-bd bg-surface p-4">
     <h2 className="font-display text-xl font-semibold">{labels.prompt}</h2>
-    {wellbeing.status !== 'ready' || !wellbeing.complete || wellbeing.invalidDocumentIds.length ? <WellbeingDataState loading={wellbeing.status === 'loading'} retry={retryWellbeing} /> : <>
+    {withdrawalPending ? <p role="status" className="text-sm text-muted">{labels.withdrawalPending}</p> : wellbeing.status !== 'ready' || wellbeing.invalidDocumentIds.length ? <WellbeingDataState loading={wellbeing.status === 'loading'} retry={retryWellbeing} /> : <>
       <WellbeingForm date={today} onSave={(value) => wellbeingRepository.save(value)} />
       <button type="button" className={getButtonClassName({ variant: 'ghost' })} onClick={() => { wellbeingDismissalStorage(uid).dismiss(today); setDismissed(true) }}>{labels.skip}</button>
     </>}

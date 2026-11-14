@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, getDocsFromServer, onSnapshot, setDoc, writeBatch,
+import { collection, deleteDoc, doc, getDocsFromServer, onSnapshot, runTransaction, setDoc, writeBatch,
   type DocumentData, type Firestore } from 'firebase/firestore'
 import type { RepositorySnapshot, SubscribableRepository } from '@/application/repositorySubscription'
 import type { AthleteProfile, BodyWeight } from '@/domain/profile/profile.types'
@@ -8,6 +8,7 @@ import { parseBodyWeightDocument, parseProfileDocument } from './profileDocument
 import type { WellbeingEntry } from '@/domain/wellbeing/wellbeing'
 import { hasWellbeingConsent } from '@/domain/wellbeing/wellbeingConsent'
 import { parseWellbeingDocument } from './wellbeingDocumentSchema'
+import { commitWhileOnline } from './commitWhileOnline'
 
 interface LocalWrite<T> {
   matches: (items: ReadonlyMap<string, T>) => boolean
@@ -24,6 +25,7 @@ class HealthRepository<T extends { createdAt: string; updatedAt: string }> imple
   private reportError: ((error: unknown) => void) | null = null
   private complete = false
   private failed = false
+  private received = false
 
   constructor(private db: Firestore, private uid: string, private kind: 'profile' | 'bodyWeights' | 'readiness',
     private parse: (value: unknown) => T, private identity: (value: T) => string) {
@@ -47,6 +49,7 @@ class HealthRepository<T extends { createdAt: string; updatedAt: string }> imple
         } catch { invalidDocumentIds.push(document.id) }
       }
       this.items = items
+      this.received = true
       this.invalid = new Set(invalidDocumentIds)
       if (!metadata.fromCache) this.complete = true
       onChange({ items: [...items.values()], pendingIds, invalidDocumentIds, ...metadata })
@@ -67,6 +70,7 @@ class HealthRepository<T extends { createdAt: string; updatedAt: string }> imple
       this.items.clear()
       this.invalid.clear()
       this.complete = false
+      this.received = false
       this.rejectWrites(new Error('Repository subscription closed'))
     }
   }
@@ -82,8 +86,8 @@ class HealthRepository<T extends { createdAt: string; updatedAt: string }> imple
     this.reportError?.(error)
   }
 
-  current(id: string): T | undefined {
-    if (!this.reportError || this.failed || this.invalid.size || (!this.items.has(id) && !this.complete)) {
+  current(id: string, allowCachedAbsence = false): T | undefined {
+    if (!this.reportError || !this.received || this.failed || this.invalid.size || (!this.items.has(id) && !this.complete && !allowCachedAbsence)) {
       throw new Error('Health data is not safely available')
     }
     return this.items.get(id)
@@ -102,9 +106,9 @@ class HealthRepository<T extends { createdAt: string; updatedAt: string }> imple
     })
   }
 
-  async save(value: T): Promise<void> {
+  async save(value: T, allowCachedAbsence = false): Promise<void> {
     const parsed = this.parse({ ...value, schemaVersion: 1 }), id = this.identity(parsed)
-    const previous = this.current(id)
+    const previous = this.current(id, allowCachedAbsence)
     if (previous && previous.createdAt !== parsed.createdAt) throw new Error('Creation time must be preserved')
     const reference = this.kind === 'profile' ? doc(this.db, 'users', this.uid) : doc(this.db, 'users', this.uid, this.kind, id)
     await this.write(() => setDoc(reference, { ...parsed, schemaVersion: 1 }),
@@ -122,21 +126,41 @@ export function createFirestoreHealthRepositories(db: Firestore, uid: string) {
   const weights = new HealthRepository<BodyWeight>(db, uid, 'bodyWeights', parseBodyWeightDocument, (value) => value.date)
   const wellbeing = new HealthRepository<WellbeingEntry>(db, uid, 'readiness', parseWellbeingDocument, (value) => value.date)
   let withdrawing = false
+  async function lockWellbeingWithdrawal(): Promise<string | null> {
+    return commitWhileOnline(() => runTransaction(db, async (transaction) => {
+      const reference = doc(db, 'users', uid), snapshot = await transaction.get(reference)
+      if (!snapshot.exists()) throw new Error('Profile missing')
+      const current = parseProfileDocument(snapshot.data())
+      if (!hasWellbeingConsent(current)) return null
+      if (current.wellbeingWithdrawal?.pending) return current.wellbeingWithdrawal.id
+      const id = crypto.randomUUID()
+      transaction.update(reference, { wellbeingWithdrawal: { id, pending: true }, updatedAt: new Date().toISOString() })
+      return id
+    }))
+  }
   async function withdraw(collectionName: 'bodyWeights' | 'readiness') {
     if (withdrawing) throw new Error('Consent withdrawal in progress')
     profile.current(uid)
     withdrawing = true
     try {
+      // Wait for the shared lock on the server before taking the list to delete.
+      const withdrawalId = collectionName === 'readiness' ? await lockWellbeingWithdrawal() : null
+      if (collectionName === 'readiness' && withdrawalId === null) return
       // Read every document from the server, including invalid documents, before deleting anything.
-      const snapshot = await getDocsFromServer(collection(db, 'users', uid, collectionName))
-      for (const part of createConsentWithdrawalBatches(snapshot.docs.map((entry) => entry.id))) {
+      const snapshot = await commitWhileOnline(() => getDocsFromServer(collection(db, 'users', uid, collectionName)))
+      for (const part of createConsentWithdrawalBatches(snapshot.docs.map((entry) => entry.id), collectionName === 'readiness')) {
         const batch = writeBatch(db)
         for (const id of part.ids) batch.delete(doc(db, 'users', uid, collectionName, id))
-        if (part.withdrawConsent) batch.update(doc(db, 'users', uid), {
-          ...(collectionName === 'readiness' ? { wellbeingConsent: null } : { healthDataConsent: null, weightClassLabel: null }),
+        if (collectionName === 'readiness') batch.update(doc(db, 'users', uid), {
+          wellbeingWithdrawal: { id: withdrawalId, pending: !part.withdrawConsent },
+          ...(part.withdrawConsent ? { wellbeingConsent: null } : {}),
           updatedAt: new Date().toISOString(),
         })
-        await batch.commit()
+        else if (part.withdrawConsent) batch.update(doc(db, 'users', uid), {
+          healthDataConsent: null, weightClassLabel: null, updatedAt: new Date().toISOString(),
+        })
+        // Every wellbeing batch guards its generation atomically, including delayed offline batches.
+        await commitWhileOnline(() => batch.commit())
       }
     } finally { withdrawing = false }
   }
@@ -158,10 +182,12 @@ export function createFirestoreHealthRepositories(db: Firestore, uid: string) {
     wellbeing: {
       subscribe: wellbeing.subscribe.bind(wellbeing),
       save: async (value: WellbeingEntry) => {
-        if (withdrawing || !hasWellbeingConsent(profile.current(uid))) throw new Error('Current wellbeing consent required')
+        const current = profile.current(uid)
+        if (withdrawing || !hasWellbeingConsent(current) || current?.wellbeingWithdrawal?.pending) throw new Error('Current wellbeing consent required')
         const today = calculateWorkoutDate(new Date().toISOString(), Intl.DateTimeFormat().resolvedOptions().timeZone)
         if (value.date !== today) throw new Error('Only today can be edited')
-        await wellbeing.save(value)
+        // A missing cache record can be created offline. Rules preserve server createdAt on a late conflict.
+        await wellbeing.save(value, true)
       },
       withdrawConsent: () => withdraw('readiness'),
     },
