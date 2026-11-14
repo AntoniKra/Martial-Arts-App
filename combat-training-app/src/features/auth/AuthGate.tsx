@@ -9,6 +9,11 @@ import { AuthLoadingScreen } from './AuthLoadingScreen'
 export function AuthGate() {
   const { state } = useAuth()
   const location = useLocation()
+  // A route already visited with a session is not an incoming deep link when that session ends.
+  const [authenticatedLocationKey, setAuthenticatedLocationKey] = useState<string | null>(null)
+  if (state.status === 'ready' && state.session && authenticatedLocationKey !== location.key) {
+    setAuthenticatedLocationKey(location.key)
+  }
   const [admission, setAdmission] = useState({ pathname: location.pathname, admitted: false })
   const canAdmit = isActiveWorkoutPath(location.pathname) && state.status === 'ready' && state.session?.emailVerified === true
   if (admission.pathname !== location.pathname || (canAdmit && !admission.admitted)) {
@@ -16,7 +21,7 @@ export function AuthGate() {
   }
   const decision = resolveAuthRoute(state, location.pathname,
     location.pathname + location.search + location.hash, admission.pathname === location.pathname && admission.admitted,
-    location.state?.returnTo)
+    location.state?.returnTo ?? new URLSearchParams(location.search).get('returnTo'), authenticatedLocationKey === location.key)
 
   if (decision.type === 'allow') return <Outlet />
   if (decision.type === 'redirect') {

@@ -39,6 +39,7 @@ test.describe('on a mouse-first screen', () => {
     await page.getByRole('button', googleButton).click()
     const popup = await popupOpened
     await signInWithFakeGoogle(popup, email)
+    await expect(page).toHaveURL('/')
     await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
     expect(await accountsWithEmail(request, email)).toEqual([{ uid: expect.any(String), providers: ['google.com'] }])
   })
@@ -60,7 +61,7 @@ test('registers with Google through a redirect and opens the app without email v
   await page.getByRole('button', googleButton).click()
   await signInWithFakeGoogle(page, email)
   await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
-  await expect(page).not.toHaveURL(/\/(register|login|verify-email)$/)
+  await expect(page).toHaveURL('/')
   expect(await accountsWithEmail(request, email)).toEqual([{ uid: expect.any(String), providers: ['google.com'] }])
 })
 

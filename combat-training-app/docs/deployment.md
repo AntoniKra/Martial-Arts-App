@@ -65,6 +65,12 @@ Ten sam adres e-mail zarejestrowany wcześniej hasłem: aplikacja nie łączy ko
 
 Podgląd PR: logowanie Google nie działa na kanałach `combat-training-830fb--pr-…web.app`, bo tych domen nie ma w Authorized domains, a ich nazwy zmieniają się z każdym kanałem. Nawet po ich dodaniu `authDomain` wskazuje domenę produkcyjną, inną niż domena podglądu, więc przekierowanie w Safari i nowszym Chrome i tak trafi na blokadę danych stron trzecich. Logowanie Google testujemy na emulatorze (`npm run test:e2e`, plik `e2e/googleSignIn.spec.ts`) i po wdrożeniu na produkcję. Logowanie hasłem w podglądzie działa jak dotąd.
 
+## Powrót z e-maili weryfikacji i resetu hasła (issue #148)
+
+Obie wiadomości dostają `actionCodeSettings.url`: `https://<VITE_FIREBASE_AUTH_DOMAIN>/`. Konfiguracja wskazuje domenę aplikacji, więc strona Firebase po wykonaniu operacji może pokazać przycisk „Kontynuuj” prowadzący na Start. Na emulatorze adresem powrotu jest lokalny origin aplikacji; testy nie otwierają prawdziwego projektu.
+
+Zgodnie z [dokumentacją Firebase](https://firebase.google.com/docs/auth/web/passing-state-in-email-actions) domena adresu powrotu musi należeć do Authorized domains. Dotychczasowa instrukcja logowania Google już wymaga `combat-training-830fb.web.app`. Faktycznej listy produkcyjnej nie odczytujemy w testach. Właściciel przed sprawdzeniem wiadomości: Firebase Console → Authentication → Settings → Authorized domains → sprawdź domenę z `VITE_FIREBASE_AUTH_DOMAIN`, a jeżeli jej brakuje, dodaj ją. Następnie wyślij nową wiadomość weryfikacji i resetu hasła oraz sprawdź przycisk „Kontynuuj”; stare wiadomości nie otrzymają nowego adresu.
+
 ## Zabezpieczenia
 
 - **`.firebaserc` nie ma domyślnego projektu.** Prawdziwy projekt ma tylko alias `prod`, więc polecenie bez `-P prod` nie trafi do produkcji. Testy i emulatory zawsze podają `--project demo-combat-training`.
@@ -105,10 +111,28 @@ Reguły na produkcję wdraża ręcznie właściciel, osobno od Hostingu, po spra
 
 | Ścieżka | `Cache-Control` | Powód |
 | --- | --- | --- |
-| `/`, `/index.html`, trasy aplikacji, `/sw.js`, `/manifest.webmanifest` | `no-cache` | Nowa wersja ma być widoczna od razu, a service worker pyta o aktualizację. |
+| `/`, `/index.html`, trasy aplikacji, `/sw.js`, `/manifest.webmanifest`, `/theme-bootstrap.js` | `no-cache` | Nowa wersja ma być widoczna od razu, a service worker pyta o aktualizację. |
 | `/assets/**`, `/workbox-*.js` | `max-age=31536000, immutable` | Nazwy plików zawierają skrót treści, więc się nie zmieniają. |
 
-Wszystkie odpowiedzi mają `X-Content-Type-Options: nosniff` i `Referrer-Policy: strict-origin-when-cross-origin`. Polityka CSP i nagłówki ramek to osobne zadanie; muszą dopuścić ramkę `/__/auth/` i domeny Google używane przy logowaniu.
+Wszystkie odpowiedzi mają `X-Content-Type-Options: nosniff` i `Referrer-Policy: strict-origin-when-cross-origin`. Odpowiedzi aplikacji mają też wymuszający nagłówek `Content-Security-Policy` z `firebase.json` (ADR 0014):
+
+```text
+default-src 'self'; script-src 'self' https://apis.google.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; frame-src 'self'; img-src 'self' data: https://www.google.com/images/cleardot.gif; font-src 'self'; style-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'
+```
+
+- `default-src 'self'` ogranicza pozostałe zasoby do domeny aplikacji.
+- `script-src` pozwala na własne skrypty i `apis.google.com/js/api.js`, ładowany przez Firebase Auth przy logowaniu Google. Nie dopuszcza skryptów wbudowanych w HTML ani `eval`.
+- `connect-src` dopuszcza własną domenę oraz Firestore, operacje Authentication (`identitytoolkit`) i odświeżanie tokenów (`securetoken`). Źródła sprawdzono w zainstalowanym SDK: `@firebase/auth` (konfiguracja hostów, `getIframeUrl`, `_loadGapi`) i `@firebase/firestore` (domyślny host i transport HTTP). Aplikacja nie używa telefonu/reCAPTCHA, App Check ani Analytics; ich domen nie dodajemy na zapas.
+- `frame-src 'self'` pozwala na `/__/auth/iframe`, bo produkcyjny `authDomain` to domena aplikacji. Strona dostawcy Google otwiera się w osobnym oknie albo przez przekierowanie, a nie w ramce aplikacji.
+- `img-src 'self' data:` dopuszcza własne obrazy i dane obrazu w adresie oraz dokładną ścieżkę `https://www.google.com/images/cleardot.gif` (parametry zapytania mogą się zmieniać). Transport Firestore (`@firebase/webchannel-wrapper`, funkcja `R`) używa tego obrazka diagnostycznego po błędzie połączenia, także offline; E2E potwierdził próbę jego pobrania. Nie dopuszczamy pozostałych obrazów Google; `font-src 'self'` i `style-src 'self'` ograniczają fonty i arkusze do aplikacji. Build zapisuje CSS w pliku, nie wstrzykuje `<style>`. Ustawianie pojedynczych właściwości stylu przez React nie wymaga `'unsafe-inline'`.
+- `worker-src 'self'` i `manifest-src 'self'` dopuszczają własnego service workera i manifest PWA.
+- `object-src 'none'` blokuje osadzone obiekty; `base-uri 'self'` blokuje obcy adres bazowy; `form-action 'self'` ogranicza wysyłanie formularzy; `frame-ancestors 'self'` chroni przed osadzaniem aplikacji na obcej stronie.
+
+Dotychczasowy wzorzec `source: "**"` pasuje także do `/__/auth/handler` i `/__/auth/iframe` (sprawdzone matcherem używanym przez emulator Hosting w `superstatic`). Dlatego CSP ma oddzielny wzorzec `!/__/**`, wyłączający zastrzeżone ścieżki Firebase. Strony obsługi logowania są zarządzane przez Firebase i mogą potrzebować własnych skryptów oraz stylów; polityka aplikacji nie powinna ich ograniczać. Pozostałe nagłówki pozostają bez zmian. Sprawdzenie lokalne nie zastępuje kontroli odpowiedzi zarządzanych przez produkcyjny Hosting po wdrożeniu.
+
+Skrypt `/theme-bootstrap.js` wykonuje się synchronicznie w `<head>`, przed uruchomieniem React, bez `async` i `defer`. Odczytuje motyw przed pierwszym wyświetleniem i jest precache'owany do pracy offline. Ma `no-cache`, ponieważ jego nazwa nie zawiera skrótu treści.
+
+`vite preview` czyta tę samą politykę z `firebase.json` przez `config/contentSecurityPolicy.ts`. Dodaje wyłącznie połączenia HTTP do emulatorów `127.0.0.1:8080` i `127.0.0.1:9099` oraz ramkę Auth na `127.0.0.1:9099`; produkcyjny nagłówek pozostaje bez adresów lokalnych. Test jednostkowy pilnuje tej różnicy oraz braku `'unsafe-inline'` i `'unsafe-eval'`. E2E zbiera `securitypolicyviolation` i komunikaty konsoli przy starcie, logowaniu hasłem, zapisie sesji i nawigacji offline przez service workera; sprawdza też nagłówek odpowiedzi sieciowej i odpowiedzi z cache.
 
 Reguły sprawdzono w emulatorze Hosting. Po pierwszym wdrożeniu sprawdź produkcję:
 
@@ -118,6 +142,12 @@ curl -sI https://combat-training-830fb.web.app/sw.js
 ```
 
 Obie odpowiedzi powinny mieć `cache-control: no-cache`.
+
+Kontrola CSP przez właściciela:
+
+1. Na podglądzie PR: zaloguj się e-mailem, zapisz trening i sprawdź konsolę przeglądarki na komputerze — bez błędów CSP. Uwaga: workflow podglądu pobiera `firebase.json` z `main`, a z PR tylko `dist`. Dlatego podgląd PR wprowadzającego CSP nie dostanie jeszcze nowego nagłówka; pełną politykę przed scaleniem sprawdza lokalny E2E na `vite preview`. Nie zmieniamy mechanizmu wdrażania w tym zadaniu.
+2. Po scaleniu i wdrożeniu: sprawdź logowanie Google na komputerze i iPhonie. W odpowiedzi dokumentu w zakładce Network sprawdź wymuszający `Content-Security-Policy`. Sprawdź też odpowiedzi `/__/auth/handler` i `/__/auth/iframe`: nie powinny otrzymywać CSP aplikacji.
+3. Jeśli logowanie nie działa: Firebase Console → Hosting → poprzednia wersja → „Rollback”, potem komentarz w PR.
 
 ## Test na telefonie po wdrożeniu
 
