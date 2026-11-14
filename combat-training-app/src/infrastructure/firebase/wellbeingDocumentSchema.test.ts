@@ -23,11 +23,17 @@ it('reads old profiles and validates a separate optional consent', () => {
 })
 it('validates withdrawal markers without requiring them in old profiles', () => {
   const profile = { schemaVersion: 1, healthDataConsent: null, weightClassLabel: null, wellbeingConsent: { grantedAt: instant, adultConfirmed: true, noticeVersion: '2026-11' }, createdAt: instant, updatedAt: instant }
-  const marker = { id: 'ce3371c8-85bb-4ae1-88ac-56a10077fb0f', pending: true }
+  const marker = { generation: 1, pending: true }
+  expect(profileDocumentSchema.safeParse(profile).success).toBe(true)
+  expect(profileDocumentSchema.safeParse({ ...profile, wellbeingWithdrawal: null }).success).toBe(true)
   expect(profileDocumentSchema.safeParse({ ...profile, wellbeingWithdrawal: marker }).success).toBe(true)
   expect(profileDocumentSchema.safeParse({ ...profile, wellbeingWithdrawal: { ...marker, pending: false }, wellbeingConsent: null }).success).toBe(true)
-  for (const wellbeingWithdrawal of [{ ...marker, id: 'bad' }, { ...marker, pending: 1 }, { ...marker, extra: true }]) {
+  for (const wellbeingWithdrawal of [
+    ...['bad', 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1].map((generation) => ({ ...marker, generation })),
+    { pending: true }, { ...marker, pending: 1 }, { ...marker, extra: true },
+  ]) {
     expect(profileDocumentSchema.safeParse({ ...profile, wellbeingWithdrawal }).success).toBe(false)
   }
+  expect(profileDocumentSchema.safeParse({ ...profile, wellbeingWithdrawal: { generation: Number.MAX_SAFE_INTEGER, pending: false } }).success).toBe(true)
   expect(profileDocumentSchema.safeParse({ ...profile, wellbeingWithdrawal: marker, wellbeingConsent: null }).success).toBe(false)
 })

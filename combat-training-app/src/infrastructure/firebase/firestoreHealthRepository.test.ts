@@ -59,13 +59,12 @@ function subscribed() {
   return { repositories, profileChange, weightChange, error, stopProfile, stopWeights }
 }
 const browserEvents = new EventTarget()
-const lockId = 'ce3371c8-85bb-4ae1-88ac-56a10077fb0f'
+const lockGeneration = 1
 beforeEach(() => {
   vi.useFakeTimers(); vi.setSystemTime(new Date(instant))
   vi.stubGlobal('navigator', { onLine: true })
   vi.stubGlobal('addEventListener', browserEvents.addEventListener.bind(browserEvents))
   vi.stubGlobal('removeEventListener', browserEvents.removeEventListener.bind(browserEvents))
-  vi.spyOn(crypto, 'randomUUID').mockReturnValue(lockId)
   sdk.set.mockImplementation(() => new Promise(() => {}))
   sdk.remove.mockImplementation(() => new Promise(() => {}))
   sdk.read.mockResolvedValue({ docs: [] }); sdk.commit.mockResolvedValue()
@@ -160,7 +159,7 @@ describe('wellbeing repository', () => {
     await expect(repositories.wellbeing.save({ ...entry, createdAt: '2026-11-12T09:00:00.000Z' })).rejects.toThrow('Creation')
     await expect(repositories.profile.save({ ...consented, wellbeingConsent: null })).rejects.toThrow('Withdraw')
   })
-  it.each([0, 1, 499, 500, 1200])('deletes all %s entries and clears only wellbeing consent in the last batch', async (count) => {
+  it.each([0, 1, 498, 499, 500, 1200])('deletes all %s entries and clears only wellbeing consent in the last batch', async (count) => {
     const { repositories } = subscribed(); emitProfile(consented)
     sdk.read.mockResolvedValue({ docs: Array.from({ length: count }, (_, i) => ({ id: `record-${i}` })) })
     await repositories.wellbeing.withdrawConsent()
@@ -168,7 +167,7 @@ describe('wellbeing repository', () => {
     const operations = sdk.batches.flat()
     expect(operations.filter((operation) => (operation as string[])[0] === 'delete')).toHaveLength(count)
     expect(sdk.batches.every((batch) => batch.length <= 499)).toBe(true)
-    expect(operations.at(-1)).toEqual(['update', profilePath, { wellbeingConsent: null, wellbeingWithdrawal: { id: lockId, pending: false }, updatedAt: instant }])
+    expect(operations.at(-1)).toEqual(['update', profilePath, { wellbeingConsent: null, wellbeingWithdrawal: { generation: lockGeneration, pending: false }, updatedAt: instant }])
     expect(sdk.lock.mock.invocationCallOrder[0]).toBeLessThan(sdk.read.mock.invocationCallOrder[0])
     expect(sdk.batches.every((batch) => (batch.at(-1) as unknown[])[0] === 'update')).toBe(true)
   })
@@ -183,7 +182,22 @@ describe('wellbeing repository', () => {
     expect(sdk.batches.flat()).not.toContainEqual(['update', profilePath, expect.objectContaining({ wellbeingConsent: null })])
     sdk.read.mockResolvedValue({ docs: [] })
     await repositories.wellbeing.withdrawConsent()
-    expect(sdk.batches.at(-1)).toEqual([['update', profilePath, { wellbeingConsent: null, wellbeingWithdrawal: { id: lockId, pending: false }, updatedAt: instant }]])
+    expect(sdk.batches.at(-1)).toEqual([['update', profilePath, { wellbeingConsent: null, wellbeingWithdrawal: { generation: lockGeneration, pending: false }, updatedAt: instant }]])
+  })
+  it.each([
+    { previous: undefined, expected: 1 },
+    { previous: null, expected: 1 },
+    { previous: { generation: 7, pending: false }, expected: 8 },
+    { previous: { generation: 7, pending: true }, expected: 7 },
+  ])('starts or resumes the server generation from $previous as $expected', async ({ previous, expected }) => {
+    const { repositories } = subscribed(); emitProfile(consented)
+    // The transaction must use the server counter even when the subscription is stale.
+    sdk.profileData = { ...consented, schemaVersion: 1, ...(previous === undefined ? {} : { wellbeingWithdrawal: previous }) }
+    sdk.read.mockResolvedValue({ docs: Array.from({ length: 498 }, (_, i) => ({ id: String(i) })) })
+    await repositories.wellbeing.withdrawConsent()
+    expect(sdk.transactionUpdates).toEqual(previous?.pending ? [] : [{ wellbeingWithdrawal: { generation: expected, pending: true }, updatedAt: instant }])
+    expect(sdk.batches[0].at(-1)).toEqual(['update', profilePath, { wellbeingWithdrawal: { generation: expected, pending: true }, updatedAt: instant }])
+    expect(sdk.batches[1]).toEqual([['update', profilePath, { wellbeingWithdrawal: { generation: expected, pending: false }, wellbeingConsent: null, updatedAt: instant }]])
   })
   it('permits today after reopening with cache-only snapshots and preserves cached createdAt', async () => {
     const repositories = createFirestoreHealthRepositories({} as Firestore, uid)
@@ -211,7 +225,7 @@ describe('wellbeing repository', () => {
   })
   it('rejects local writes with a cached withdrawal marker from another session', async () => {
     const { repositories } = subscribed()
-    emitProfile({ ...consented, wellbeingWithdrawal: { id: lockId, pending: true } }, true)
+    emitProfile({ ...consented, wellbeingWithdrawal: { generation: lockGeneration, pending: true } }, true)
     repositories.wellbeing.subscribe(vi.fn(), vi.fn()); emitEntries([], false, true)
     await expect(repositories.wellbeing.save(entry)).rejects.toThrow('consent')
     expect(sdk.set).not.toHaveBeenCalled()
@@ -228,7 +242,7 @@ describe('wellbeing repository', () => {
     await repositories.wellbeing.withdrawConsent()
     expect(sdk.transactionUpdates).toHaveLength(1)
     expect(sdk.batches.at(-1)).toEqual([['update', profilePath, { wellbeingConsent: null,
-      wellbeingWithdrawal: { id: lockId, pending: false }, updatedAt: expect.any(String) }]])
+      wellbeingWithdrawal: { generation: lockGeneration, pending: false }, updatedAt: expect.any(String) }]])
     completeQueued()
     await Promise.resolve()
   })
@@ -239,7 +253,7 @@ describe('wellbeing repository', () => {
     await expect(repositories.wellbeing.withdrawConsent()).rejects.toThrow('Offline')
     expect(sdk.commit).toHaveBeenCalledOnce()
     expect(sdk.batches[0]).toHaveLength(499)
-    expect(sdk.batches[0].at(-1)).toEqual(['update', profilePath, { wellbeingWithdrawal: { id: lockId, pending: true }, updatedAt: instant }])
+    expect(sdk.batches[0].at(-1)).toEqual(['update', profilePath, { wellbeingWithdrawal: { generation: lockGeneration, pending: true }, updatedAt: instant }])
   })
 })
 

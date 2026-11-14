@@ -10,7 +10,7 @@ export const healthConsentSchema = z.strictObject({
 export const profileDocumentSchema = z.strictObject({
   schemaVersion: z.literal(1), healthDataConsent: z.nullable(healthConsentSchema),
   wellbeingConsent: z.optional(z.nullable(healthConsentSchema)),
-  wellbeingWithdrawal: z.optional(z.nullable(z.strictObject({ id: z.uuid(), pending: z.boolean() }))),
+  wellbeingWithdrawal: z.optional(z.nullable(z.strictObject({ generation: z.int().check(z.minimum(1)), pending: z.boolean() }))),
   weightClassLabel: z.nullable(z.string().check(z.minLength(1), z.maxLength(20))),
   createdAt: instantSchema, updatedAt: instantSchema,
 }).check(z.refine((profile) => (profile.healthDataConsent !== null || profile.weightClassLabel === null)

@@ -126,16 +126,16 @@ export function createFirestoreHealthRepositories(db: Firestore, uid: string) {
   const weights = new HealthRepository<BodyWeight>(db, uid, 'bodyWeights', parseBodyWeightDocument, (value) => value.date)
   const wellbeing = new HealthRepository<WellbeingEntry>(db, uid, 'readiness', parseWellbeingDocument, (value) => value.date)
   let withdrawing = false
-  async function lockWellbeingWithdrawal(): Promise<string | null> {
+  async function lockWellbeingWithdrawal(): Promise<number | null> {
     return commitWhileOnline(() => runTransaction(db, async (transaction) => {
       const reference = doc(db, 'users', uid), snapshot = await transaction.get(reference)
       if (!snapshot.exists()) throw new Error('Profile missing')
       const current = parseProfileDocument(snapshot.data())
       if (!hasWellbeingConsent(current)) return null
-      if (current.wellbeingWithdrawal?.pending) return current.wellbeingWithdrawal.id
-      const id = crypto.randomUUID()
-      transaction.update(reference, { wellbeingWithdrawal: { id, pending: true }, updatedAt: new Date().toISOString() })
-      return id
+      if (current.wellbeingWithdrawal?.pending) return current.wellbeingWithdrawal.generation
+      const generation = (current.wellbeingWithdrawal?.generation ?? 0) + 1
+      transaction.update(reference, { wellbeingWithdrawal: { generation, pending: true }, updatedAt: new Date().toISOString() })
+      return generation
     }))
   }
   async function withdraw(collectionName: 'bodyWeights' | 'readiness') {
@@ -144,15 +144,15 @@ export function createFirestoreHealthRepositories(db: Firestore, uid: string) {
     withdrawing = true
     try {
       // Wait for the shared lock on the server before taking the list to delete.
-      const withdrawalId = collectionName === 'readiness' ? await lockWellbeingWithdrawal() : null
-      if (collectionName === 'readiness' && withdrawalId === null) return
+      const withdrawalGeneration = collectionName === 'readiness' ? await lockWellbeingWithdrawal() : null
+      if (collectionName === 'readiness' && withdrawalGeneration === null) return
       // Read every document from the server, including invalid documents, before deleting anything.
       const snapshot = await commitWhileOnline(() => getDocsFromServer(collection(db, 'users', uid, collectionName)))
       for (const part of createConsentWithdrawalBatches(snapshot.docs.map((entry) => entry.id), collectionName === 'readiness')) {
         const batch = writeBatch(db)
         for (const id of part.ids) batch.delete(doc(db, 'users', uid, collectionName, id))
         if (collectionName === 'readiness') batch.update(doc(db, 'users', uid), {
-          wellbeingWithdrawal: { id: withdrawalId, pending: !part.withdrawConsent },
+          wellbeingWithdrawal: { generation: withdrawalGeneration, pending: !part.withdrawConsent },
           ...(part.withdrawConsent ? { wellbeingConsent: null } : {}),
           updatedAt: new Date().toISOString(),
         })

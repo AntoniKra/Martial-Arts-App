@@ -218,8 +218,8 @@ service cloud.firestore {
     }
 
     function isWellbeingWithdrawal(value) {
-      return value == null || (value is map && hasExactKeys(value, ['id', 'pending'])
-        && value.id is string && value.id.matches('[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}')
+      return value == null || (value is map && hasExactKeys(value, ['generation', 'pending'])
+        && value.generation is int && value.generation >= 1 && value.generation <= 9007199254740991
         && value.pending is bool);
     }
 
@@ -229,13 +229,14 @@ service cloud.firestore {
       let consent = before.get('wellbeingConsent', null);
       let nextConsent = after.get('wellbeingConsent', null);
       let pending = previous != null && previous.pending;
-      // A queued batch from an earlier generation must never finish a later withdrawal.
+      let generation = previous == null ? 0 : previous.generation;
+      // Keep the completed counter: no earlier batch may restart or finish a later generation.
       return pending
-        ? (next != null && next.id == previous.id
+        ? (next != null && next.generation == generation
           && (next.pending ? nextConsent == consent : nextConsent == null))
         : ((next == previous && (consent == null || nextConsent == consent))
           || (next != null && next.pending && consent != null && nextConsent == consent
-            && (previous == null || next.id != previous.id)));
+            && next.generation == generation + 1));
     }
 
     match /users/{uid} {
