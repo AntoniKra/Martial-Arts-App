@@ -139,7 +139,8 @@ service cloud.firestore {
           && hasExactKeys(data, common.concat(timed))
           && isTimedSession(data, 'round'))
         || (data.source == 'manual'
-          && hasExactKeys(data, common.concat(['focusRatings']))
+          && (data.schemaVersion == 1 ? hasExactKeys(data, common.concat(['focusRatings']))
+            : data.schemaVersion == 2 && hasExactKeys(data, common.concat(['focusRatings', 'parts'])) && isManualParts(data))
           && data.status == 'completed'
           && data.completion == null
           && data.workSeconds == null && data.sparringSeconds == null
@@ -150,9 +151,18 @@ service cloud.firestore {
           && data.sparring is list && data.sparring.size() <= 1);
     }
 
+    function isManualParts(data) {
+      return data.parts is list && data.parts.size() >= 1 && data.parts.size() <= 6
+        && data.parts.toSet().size() == data.parts.size()
+        && data.parts.hasOnly(['technique', 'pads', 'bag', 'sparring', 'conditioning', 'other'])
+        && data.category == (data.parts.size() == 1 && data.parts[0] != 'other' ? data.parts[0] : 'mixed')
+        && data.sparring.size() == (data.parts.hasAny(['sparring']) ? 1 : 0);
+    }
+
     function isWorkoutSession(data, documentId) {
       return isSessionSource(data)
-        && isDocumentIdentity(data, documentId)
+        && (isDocumentIdentity(data, documentId) || (data.source == 'manual' && data.schemaVersion is int && data.schemaVersion == 2
+          && data.id is string && data.id == documentId && isInstant(data.createdAt) && isInstant(data.updatedAt)))
         && data.status in ['completed', 'partial']
         && isDiscipline(data.disciplineKey)
         && isCategory(data.category)

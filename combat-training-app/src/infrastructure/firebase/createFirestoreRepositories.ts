@@ -5,6 +5,7 @@ import type { WorkoutRepositories } from '@/application/deferredWorkoutRepositor
 import { readFirebaseConfig } from './firebaseConfig'
 import { FirestoreWorkoutRepository } from './firestoreWorkoutRepository'
 import { workoutPlanDocumentSchema, workoutSessionDocumentSchema } from './workoutDocumentSchemas'
+import { workoutDocumentVersion } from './workoutDocumentVersion'
 import { focusSkillDocumentSchema } from './focusSkillDocumentSchema'
 import { FirestoreWeekPlanRepository } from './firestoreWeekPlanRepository'
 import { createFirestoreHealthRepositories } from './firestoreHealthRepository'
@@ -134,7 +135,7 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     sessions: {
       subscribe: trackedSubscribe(sessions), save: sessions.save.bind(sessions),
       saveManual: async (session, correctionUpdates) => {
-        const parsed = workoutSessionDocumentSchema.parse({ ...session, schemaVersion: 1 })
+        const parsed = workoutSessionDocumentSchema.parse({ ...session, schemaVersion: workoutDocumentVersion(session) })
         const skillFields = correctionUpdates.map((update) => {
           const changes = { openCorrection: update.openCorrection, updatedAt: session.updatedAt }
           focusSkills.validateUpdate(update.focusSkillId, changes)

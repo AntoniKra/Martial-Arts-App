@@ -1,7 +1,8 @@
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import type { SparringIntensity } from '@/domain/workout/workout.types'
 import { shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
-import type { ManualFocusRating, ManualWorkoutSession, WorkoutSession, WorkoutSessionCategory } from './workoutSession.types'
+import { MANUAL_WORKOUT_PARTS, type ManualWorkoutPart, type ManualFocusRating, type ManualWorkoutSession, type WorkoutSession, type WorkoutSessionCategory } from './workoutSession.types'
+import { manualSessionParts, manualWorkoutCategory } from './manualWorkoutParts'
 
 export interface ManualFocusRatingDraft extends Omit<ManualFocusRating, 'blockType' | 'assessment'> {
   blockType: ManualFocusRating['blockType'] | null
@@ -11,9 +12,9 @@ export interface ManualWorkoutDraft {
   workoutDate: string
   disciplineKey: DisciplineKey | ''
   category: WorkoutSessionCategory | ''
+  parts: ManualWorkoutPart[]
   durationMinutes: string
   rpe: number | null
-  hasSparring: boolean
   intensity: SparringIntensity | ''
   rounds: string
   focusRatings: ManualFocusRatingDraft[]
@@ -27,7 +28,6 @@ export interface ManualWorkoutValues extends Omit<ManualWorkoutDraft, 'disciplin
 }
 export type ManualWorkoutErrors = Partial<Record<keyof ManualWorkoutDraft | `focus-${string}`, string>>
 const disciplines = new Set(['boxing', 'kickboxing', 'muay_thai', 'k1', 'mma_striking'])
-const categories = new Set(['technique', 'pads', 'bag', 'sparring', 'conditioning', 'strengthAndConditioning', 'mixed'])
 function isIntegerInRange(value: unknown, minimum: number, maximum: number): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= minimum && value <= maximum
 }
@@ -41,18 +41,37 @@ export function manualFocusPlace(category: ManualWorkoutDraft['category']): Manu
   return category === '' || category === 'mixed' || category === 'conditioning' ? null : category
 }
 
-export function changeManualCategory(draft: ManualWorkoutDraft, category: WorkoutSessionCategory): ManualWorkoutDraft {
-  return { ...draft, category, hasSparring: category === 'sparring' || draft.hasSparring,
+export function changeManualParts(draft: ManualWorkoutDraft, parts: ManualWorkoutPart[]): ManualWorkoutDraft {
+  const category = manualWorkoutCategory(parts)
+  return { ...draft, parts, category, intensity: parts.includes('sparring') ? draft.intensity : '', rounds: parts.includes('sparring') ? draft.rounds : '',
     focusRatings: draft.focusRatings.map((rating) => ({ ...rating, blockType: manualFocusPlace(category) })) }
 }
 
 export function createManualWorkoutDraft(today: string, latestDiscipline: DisciplineKey | '' = '', session?: ManualWorkoutSession): ManualWorkoutDraft {
-  return session ? { workoutDate: session.workoutDate, disciplineKey: session.disciplineKey, category: session.category,
-    durationMinutes: String(session.durationSeconds / 60), rpe: session.rpe, hasSparring: session.sparring.length > 0,
+  const parts = session ? manualSessionParts(session) : []
+  return session ? { workoutDate: session.workoutDate, disciplineKey: session.disciplineKey, category: manualWorkoutCategory(parts), parts,
+    durationMinutes: String(session.durationSeconds / 60), rpe: session.rpe,
     intensity: session.sparring[0]?.intensity ?? '', rounds: session.sparring[0]?.rounds?.toString() ?? '',
     focusRatings: structuredClone(session.focusRatings), note: session.note ?? '' }
-    : { workoutDate: today, disciplineKey: latestDiscipline, category: '', durationMinutes: '', rpe: null,
-      hasSparring: false, intensity: '', rounds: '', focusRatings: [], note: '' }
+    : { workoutDate: today, disciplineKey: latestDiscipline, category: '', parts: [], durationMinutes: '', rpe: null,
+      intensity: '', rounds: '', focusRatings: [], note: '' }
+}
+
+export function latestManualWorkout(sessions: readonly WorkoutSession[]): ManualWorkoutSession | undefined {
+  return sessions.filter((session): session is ManualWorkoutSession => session.source === 'manual')
+    .sort((a, b) => b.workoutDate.localeCompare(a.workoutDate) || b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id))[0]
+}
+
+/** Copy only the three reusable fields; every subjective answer remains the user's own. */
+export function applyPreviousManualWorkout(draft: ManualWorkoutDraft, previous: ManualWorkoutSession): ManualWorkoutDraft {
+  return { ...changeManualParts(draft, manualSessionParts(previous)), disciplineKey: previous.disciplineKey,
+    durationMinutes: String(previous.durationSeconds / 60) }
+}
+
+export function previousWorkoutNotes(sessions: readonly WorkoutSession[], excludeId?: string): string[] {
+  return [...new Set(sessions.filter((session) => session.id !== excludeId)
+    .sort((a, b) => b.workoutDate.localeCompare(a.workoutDate) || b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id))
+    .map((session) => session.note?.trim()).filter((note): note is string => !!note))].slice(0, 3)
 }
 
 export function validateManualWorkout(draft: ManualWorkoutDraft, today: string, savedDate?: string):
@@ -62,10 +81,12 @@ export function validateManualWorkout(draft: ManualWorkoutDraft, today: string, 
   else if (draft.workoutDate > today) errors.workoutDate = 'Data nie może być w przyszłości.'
   else if (draft.workoutDate < shiftCalendarDate(today, -7) && draft.workoutDate !== savedDate) errors.workoutDate = 'Data może być najwyżej 7 dni wstecz.'
   if (!disciplines.has(draft.disciplineKey)) errors.disciplineKey = 'Wybierz dyscyplinę.'
-  if (!categories.has(draft.category)) errors.category = 'Wybierz rodzaj treningu.'
+  if (draft.parts.length < 1 || draft.parts.length > 6 || new Set(draft.parts).size !== draft.parts.length
+    || draft.parts.some((part) => !MANUAL_WORKOUT_PARTS.includes(part))) errors.parts = 'Wybierz co najmniej jedną część zajęć (bez powtórzeń).'
+  const category = manualWorkoutCategory(draft.parts)
   if (!draft.durationMinutes.trim() || !isIntegerInRange(Number(draft.durationMinutes), 1, 480)) errors.durationMinutes = 'Podaj czas trwania od 1 do 480 minut.'
   if (!isIntegerInRange(draft.rpe, 0, 10)) errors.rpe = 'Oceń wysiłek (RPE 0–10).'
-  if (draft.hasSparring || draft.category === 'sparring') {
+  if (draft.parts.includes('sparring')) {
     if (!['light', 'technical', 'hard'].includes(draft.intensity)) errors.intensity = 'Wybierz intensywność sparingu.'
     if (draft.rounds.trim() && !isIntegerInRange(Number(draft.rounds), 1, 50)) errors.rounds = 'Podaj liczbę rund od 1 do 50 albo zostaw puste.'
   }
@@ -74,7 +95,7 @@ export function validateManualWorkout(draft: ManualWorkoutDraft, today: string, 
   if (draft.focusRatings.length > 3) errors.focusRatings = 'Oceń najwyżej 3 ćwiczenia celu.'
   for (const rating of draft.focusRatings) {
     const key = `focus-${rating.focusSkillId}` as const
-    const place = manualFocusPlace(draft.category) ?? rating.blockType
+    const place = manualFocusPlace(category) ?? rating.blockType
     if (rating.assessment !== 'unableToRate' && !isIntegerInRange(rating.assessment, 1, 5)) errors[key] = 'Wybierz ocenę albo odznacz ćwiczenie celu.'
     else if (!place) errors[key] = 'Wybierz, gdzie ćwiczyłeś.'
     if (seen.has(rating.focusSkillId)) errors[key] = 'Każde ćwiczenie celu można ocenić tylko raz.'
@@ -86,8 +107,8 @@ export function validateManualWorkout(draft: ManualWorkoutDraft, today: string, 
   }
   const note = draft.note.trim()
   if (note.length > 1000) errors.note = 'Notatka może mieć do 1000 znaków.'
-  if (Object.keys(errors).length || !draft.disciplineKey || !draft.category || draft.rpe === null) return { ok: false, errors }
-  return { ok: true, values: { ...draft, disciplineKey: draft.disciplineKey, category: draft.category, rpe: draft.rpe, focusRatings, note } }
+  if (Object.keys(errors).length || !draft.disciplineKey || draft.rpe === null) return { ok: false, errors }
+  return { ok: true, values: { ...draft, disciplineKey: draft.disciplineKey, category, rpe: draft.rpe, focusRatings, note } }
 }
 
 export function buildManualWorkoutSession(values: ManualWorkoutValues, options: {
@@ -95,12 +116,12 @@ export function buildManualWorkoutSession(values: ManualWorkoutValues, options: 
 }): ManualWorkoutSession {
   const { original, now } = options
   const sparring: ManualWorkoutSession['sparring'] = []
-  if (values.hasSparring || values.category === 'sparring') {
+  if (values.parts.includes('sparring')) {
     if (!values.intensity) throw new Error('Sparring intensity is required')
     sparring.push({ blockId: null, intensity: values.intensity, rounds: values.rounds.trim() ? Number(values.rounds) : null })
   }
   return { id: original?.id ?? options.id, source: 'manual', status: 'completed',
-    workoutDate: values.workoutDate, disciplineKey: values.disciplineKey, category: values.category,
+    workoutDate: values.workoutDate, disciplineKey: values.disciplineKey, category: manualWorkoutCategory(values.parts), parts: [...values.parts],
     durationSeconds: Number(values.durationMinutes) * 60, workSeconds: null, sparringSeconds: null, completion: null,
     rpe: values.rpe, rpeRecordedAt: original?.rpe === values.rpe ? original.rpeRecordedAt : now,
     timezone: original?.timezone ?? options.timezone, createdAt: original?.createdAt ?? now, updatedAt: now,
@@ -108,9 +129,13 @@ export function buildManualWorkoutSession(values: ManualWorkoutValues, options: 
     note: values.note || null, focusRatings: values.focusRatings }
 }
 
-export function findManualWorkoutDuplicate(values: Pick<ManualWorkoutValues, 'workoutDate' | 'category'>,
+export function findManualWorkoutDuplicate(values: Pick<ManualWorkoutValues, 'workoutDate' | 'category'> & { parts?: readonly ManualWorkoutPart[] },
   sessions: readonly WorkoutSession[], original?: ManualWorkoutSession): WorkoutSession | null {
-  if (original && original.workoutDate === values.workoutDate && original.category === values.category) return null
-  return sessions.filter((session) => session.id !== original?.id && session.workoutDate === values.workoutDate && session.category === values.category)
+  const parts = values.parts
+  if (original && original.workoutDate === values.workoutDate && (parts
+    ? JSON.stringify([...manualSessionParts(original)].sort()) === JSON.stringify([...parts].sort()) : original.category === values.category)) return null
+  return sessions.filter((session) => session.id !== original?.id && session.workoutDate === values.workoutDate && (parts
+    ? session.source === 'manual' ? manualSessionParts(session).some((part) => parts.includes(part)) : parts.some((part) => part === session.category)
+    : session.category === values.category))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id))[0] ?? null
 }

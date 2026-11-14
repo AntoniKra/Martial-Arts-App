@@ -19,6 +19,13 @@ const manual = (id: string): ManualWorkoutSession => ({ id, source: 'manual', st
   completion: null, note: null, rpe: 0, rpeRecordedAt: instant, focusRatings: [], sparring: [], createdAt: instant, updatedAt: instant })
 
 describe('week plan matching', () => {
+  it('matches a multi-part club workout to a planned part, at most one goal per session', () => {
+    const entry: ManualWorkoutSession = { ...manual('club'), category: 'mixed', parts: ['technique', 'pads', 'sparring'] }
+    const goal = plan([exact(), category('pads', 'pads'), category('sparring', 'sparring'), category('mixed', 'mixed')])
+    expect(calculateWeekPlanProgress(monday, goal, [entry]).matches.map((match) => match.session?.id ?? null)).toEqual([null, 'club', null, null])
+    expect(calculateWeekPlanProgress(monday, plan([category('sparring', 'sparring')]), [entry]).completed).toBe(1)
+    expect(calculateWeekPlanProgress(monday, plan([category('pads', 'pads')]), [{ ...manual('old'), category: 'mixed' }]).completed).toBe(0)
+  })
   it('matches a completed manual sparring entry to its category but never to an exact plan', () => {
     const entry: ManualWorkoutSession = { ...manual('sparring'), category: 'sparring', sparring: [{ blockId: null, intensity: 'hard', rounds: 6 }] }
     const result = calculateWeekPlanProgress(monday, plan([exact(), category('sparring', 'sparring')]), [entry])

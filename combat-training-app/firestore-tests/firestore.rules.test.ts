@@ -473,6 +473,36 @@ describe.each(['plan', 'quickTimer'] as const)('%s timed session', (source) => {
 
 describe('manual session', () => {
   const path = `users/${ownerId}/workoutSessions/${documentId}`
+  const multi = () => ({ ...workoutSession('manual'), schemaVersion: 2, category: 'mixed', parts: ['technique', 'pads', 'sparring'] })
+  it('accepts v2 lists from one to six parts and keeps v1 entries readable without rewriting', async () => {
+    const ref = ownerDatabase().doc(path)
+    await assertSucceeds(ref.set(multi()))
+    await assertSucceeds(ref.update({ parts: ['technique', 'pads', 'bag', 'sparring', 'conditioning', 'other'] }))
+    await assertSucceeds(ref.set({ ...multi(), category: 'pads', parts: ['pads'], sparring: [] }))
+    await assertSucceeds(ref.set({ ...multi(), parts: ['other'], sparring: [] }))
+    await assertSucceeds(ref.set({ ...workoutSession('manual'), category: 'mixed' }))
+    expect((await ref.get()).data()?.schemaVersion).toBe(1)
+    expect((await ref.get()).data()).not.toHaveProperty('parts')
+  })
+  it.each([[], ['pads', 'pads'], ['unknown'], ['technique', 'pads', 'bag', 'sparring', 'conditioning', 'other', 'pads'], null, 'pads']
+    .map((parts) => ({ parts })))('rejects invalid parts on create and update: %j', async ({ parts }) => {
+    const ref = ownerDatabase().doc(path)
+    await assertFails(ref.set({ ...multi(), parts }))
+    await assertSucceeds(ref.set(multi()))
+    await assertFails(ref.update({ parts }))
+  })
+  it.each([{ parts: undefined }, { category: 'pads' }, { sparring: [] }, { schemaVersion: 1 }, { schemaVersion: 3 }])('rejects missing parts or inconsistent version/category/sparring: %j', async (patch) => {
+    const value: Document = { ...multi(), ...patch }
+    if (value.parts === undefined) delete value.parts
+    await assertFails(ownerDatabase().doc(path).set(value))
+  })
+  it.each(['other', 'signedOut', 'unverified'])('rejects v2 access by %s', async (actor) => {
+    await ownerDatabase().doc(path).set(multi())
+    const context = actor === 'signedOut' ? environment.unauthenticatedContext()
+      : environment.authenticatedContext(actor === 'other' ? 'athlete-two' : ownerId, { email_verified: actor !== 'unverified' })
+    const ref = context.firestore().doc(path)
+    await assertFails(ref.get()); await assertFails(ref.set(multi())); await assertFails(ref.update({ note: 'Forbidden' })); await assertFails(ref.delete())
+  })
   it.each([
     ['startedAt', instant], ['completedAt', instant], ['stepResults', []],
     ['workoutPlanId', 'another-plan'], ['workoutPlanNameSnapshot', 'Not allowed'],

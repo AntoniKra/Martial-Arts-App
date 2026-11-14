@@ -104,7 +104,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await capture(12, 'podsumowanie-stopera', 'Podsumowanie stopera — sparing')
     await open('/workout-sessions/new', 'Trening spoza aplikacji')
     await page.getByRole('radio', { name: 'Kickboxing', exact: true }).check()
-    await page.getByRole('group', { name: 'Rodzaj treningu', exact: true }).getByRole('radio', { name: /^Technika/ }).check()
+    await page.getByRole('group', { name: 'Części zajęć', exact: true }).getByRole('checkbox', { name: /^Technika/ }).check()
     await page.getByRole('radio', { name: '90 min', exact: true }).check()
     await page.getByRole('radio', { name: '7 Bardzo ciężko', exact: true }).check()
     await capture(13, 'reczny-wpis', 'Ręczny wpis — zajęcia w klubie')

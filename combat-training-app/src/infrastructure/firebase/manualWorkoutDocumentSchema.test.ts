@@ -10,6 +10,21 @@ const entry = { schemaVersion: 1, id: 'manual', source: 'manual', status: 'compl
   sparring: [{ blockId: null, intensity: 'hard', rounds: 6 }], focusRatings: [], createdAt: instant, updatedAt: instant }
 
 describe('manual workout document schema', () => {
+  const multi = { ...entry, schemaVersion: 2, category: 'mixed', parts: ['technique', 'pads', 'sparring'] }
+  it('accepts v2 parts and keeps legacy single and mixed entries unchanged', () => {
+    expect(workoutSessionDocumentSchema.parse(multi)).toEqual(multi)
+    expect(workoutSessionDocumentSchema.parse({ ...entry, category: 'mixed' })).toEqual({ ...entry, category: 'mixed' })
+    expect(workoutSessionDocumentSchema.parse({ ...multi, parts: ['other'], sparring: [] })).toMatchObject({ parts: ['other'] })
+  })
+  it.each([[], ['bag', 'bag'], ['unknown'], ['technique', 'pads', 'bag', 'sparring', 'conditioning', 'other', 'bag'], undefined, null, 'pads']
+    .map((parts) => ({ parts })))('rejects invalid v2 parts %j', ({ parts }) => {
+    expect(workoutSessionDocumentSchema.safeParse({ ...multi, parts }).success).toBe(false)
+  })
+  it('rejects a version mismatch, mismatched category and sparring data inconsistent with parts', () => {
+    for (const patch of [{ schemaVersion: 1 }, { schemaVersion: 3 }, { category: 'bag' }, { sparring: [] }, { parts: ['pads'] }]) {
+      expect(workoutSessionDocumentSchema.safeParse({ ...multi, ...patch }).success).toBe(false)
+    }
+  })
   it('accepts required RPE zero, unknown times, and zero or three unique focus ratings', () => {
     expect(workoutSessionDocumentSchema.parse(entry)).toEqual(entry)
     expect(workoutSessionDocumentSchema.safeParse({ ...entry, durationSeconds: 60,

@@ -1,15 +1,23 @@
-import type { WorkoutSessionCategory } from '@/domain/workout-session/workoutSession.types'
+import type { ManualWorkoutPart } from '@/domain/workout-session/workoutSession.types'
+import { categoryLabel } from '@/features/week-plan/weekPlanLabels'
+
+export function manualPartLabel(part: ManualWorkoutPart): string { return part === 'other' ? 'Inne' : categoryLabel(part) }
+export function manualPartsLabel(parts: readonly ManualWorkoutPart[]): string { return parts.map(manualPartLabel).join(', ') }
 
 export const manualWorkoutLabels = {
   add: '+ Dodaj trening spoza aplikacji', edit: 'Popraw', title: 'Trening spoza aplikacji',
   editTitle: 'Popraw trening spoza aplikacji', unavailable: 'Ten wpis można tylko usunąć.',
   missing: 'Nie znaleziono wpisu.', loading: 'Wczytywanie wpisu…', loadError: 'Nie udało się wczytać dziennika.',
   saveError: 'Nie udało się zapisać wpisu. Spróbuj ponownie.',
-  date: 'Data', dateHint: 'Do 7 dni wstecz.', discipline: 'Dyscyplina', category: 'Rodzaj treningu',
+  date: 'Data', dateHint: 'Do 7 dni wstecz.', today: 'Dziś', yesterday: 'Wczoraj', discipline: 'Dyscyplina', category: 'Części zajęć',
+  previous: 'Jak ostatnio:', usePrevious: 'Użyj', copied: 'jak ostatnio', partsHint: 'Zaznacz wszystkie części tych zajęć. Wybierz co najmniej jedną.',
+  legacyPartsHint: 'Dawny wpis nie zawiera pełnej listy części. Zaznacz części tych zajęć.',
   duration: 'Czas trwania', durationHint: 'Cały czas zajęć, razem z rozgrzewką.', customDuration: 'Inny', minutes: 'Czas w minutach',
   rpe: 'Wysiłek (RPE)', rpeHint: 'Oceń cały trening, nie ostatnią rundę.',
   recall: (days: number) => `Ten trening był ${days} dni temu. RPE dostanie znaczek „z pamięci”, bo ocena po kilku dniach jest mniej dokładna.`,
-  sparring: 'Był sparing', intensity: 'Intensywność sparingu', rounds: 'Liczba rund (opcjonalnie)',
+  sparring: 'Szczegóły sparingu', sparringOpened: 'Otwarto szczegóły sparingu. Podaj intensywność.', sparringClosed: 'Usunięto szczegóły sparingu.',
+  intensity: 'Intensywność sparingu', rounds: 'Liczba rund (opcjonalnie)',
+  notePlaceholder: 'Czego się uczyłeś? Co poprawiał trener?', notes: 'Wcześniejsze notatki',
   focus: 'Ćwiczenia celu (opcjonalnie)', focusHint: 'Oceń do 3 ćwiczeń celu, nad którymi pracowałeś na tych zajęciach.',
   noSkills: 'Nie masz ćwiczeń celu. Dodasz je w kreatorze planu.', skillsError: 'Nie udało się wczytać ćwiczeń celu. Możesz zapisać resztę wpisu bez zmian w ocenach.',
   skillsLoading: 'Wczytywanie ćwiczeń celu…', place: 'Gdzie ćwiczyłeś?', choosePlace: 'Wybierz miejsce',
@@ -21,8 +29,8 @@ export const manualWorkoutLabels = {
   confirmDuplicate: 'Tak, zapisz osobno', returnToEntry: 'Wróć do wpisu',
 } as const
 
-export const manualCategoryDescriptions: Record<WorkoutSessionCategory, string> = {
+export const manualCategoryDescriptions: Record<ManualWorkoutPart, string> = {
   technique: 'np. walka z cieniem, technika w parach', pads: 'np. rundy na tarczach z trenerem', bag: 'np. rundy na worku',
   sparring: 'np. sparing w klubie', conditioning: 'np. bieganie, skakanka, interwały',
-  strengthAndConditioning: 'np. siłownia, ćwiczenia z obciążeniem', mixed: 'np. zajęcia w klubie z techniką, tarczami i sparingiem',
+  other: 'np. siłownia, ćwiczenia z obciążeniem',
 }

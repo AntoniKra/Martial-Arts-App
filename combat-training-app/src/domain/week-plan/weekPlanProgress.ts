@@ -24,7 +24,7 @@ export function calculateWeekPlanProgress(weekStart: string, plan: WeekPlan | un
         if (session.status !== status || used.has(session.id)) continue
         const match = matches.find(({ item, session: matched }) => !matched && item.kind === kind && (
           item.kind === 'plan' ? session.source === 'plan' && item.workoutPlanId === session.workoutPlanId
-            : item.category === session.category
+            : session.source === 'manual' && session.parts ? session.parts.some((part) => part === item.category) : item.category === session.category
         ))
         if (match) { match.session = session; used.add(session.id) }
       }

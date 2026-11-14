@@ -1,4 +1,6 @@
 import * as z from 'zod/mini'
+import { MANUAL_WORKOUT_PARTS } from '@/domain/workout-session/workoutSession.types'
+import { manualWorkoutCategory } from '@/domain/workout-session/manualWorkoutParts'
 
 export const instantSchema = z.iso.datetime({ precision: 3 })
 const id = z.string().check(z.minLength(1), z.refine((value) => !value.includes('/')))
@@ -90,6 +92,9 @@ export const workoutSessionDocumentSchema = z.discriminatedUnion('source', [
     completion: z.strictObject({ ...completionFields, unit: z.literal('round') }),
   }),
   z.strictObject({ ...common, source: z.literal('manual'), status: z.literal('completed'),
+    schemaVersion: z.union([z.literal(1), z.literal(2)]),
+    parts: z.optional(z.array(z.enum(MANUAL_WORKOUT_PARTS)).check(z.minLength(1), z.maxLength(6),
+      z.refine((parts) => new Set(parts).size === parts.length))),
     workSeconds: z.null(), sparringSeconds: z.null(), completion: z.null(),
     durationSeconds: z.number().check(z.int(), z.minimum(60), z.maximum(28800)),
     rpe: z.number().check(z.int(), z.minimum(0), z.maximum(10)), rpeRecordedAt: instantSchema,
@@ -100,7 +105,9 @@ export const workoutSessionDocumentSchema = z.discriminatedUnion('source', [
 ]).check(z.refine((session) => {
   if ((session.rpe === null) !== (session.rpeRecordedAt === null)) return false
   if (session.source === 'manual') return new Set(session.focusRatings.map((value) => value.focusSkillId)).size === session.focusRatings.length
-    && (session.category !== 'sparring' || session.sparring.length === 1)
+    && (session.schemaVersion === 1 ? session.parts === undefined && (session.category !== 'sparring' || session.sparring.length === 1)
+      : session.parts !== undefined && session.category === manualWorkoutCategory(session.parts)
+        && session.sparring.length === (session.parts.includes('sparring') ? 1 : 0))
   return session.completedAt >= session.startedAt
     && session.sparringSeconds <= session.workSeconds && session.workSeconds <= session.durationSeconds
     && session.completion.completed <= session.completion.planned

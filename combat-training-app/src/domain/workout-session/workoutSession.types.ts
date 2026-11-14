@@ -25,6 +25,9 @@ export type WorkoutSessionStatus = 'completed' | 'partial'
 
 export type WorkoutSessionCategory = Exclude<WorkoutBlockType, 'warmup' | 'cooldown'> | 'mixed'
 
+export const MANUAL_WORKOUT_PARTS = ['technique', 'pads', 'bag', 'sparring', 'conditioning', 'other'] as const
+export type ManualWorkoutPart = typeof MANUAL_WORKOUT_PARTS[number]
+
 export interface WorkoutSessionCompletion {
   completed: number
   planned: number
@@ -100,6 +103,8 @@ export interface QuickTimerWorkoutSession extends TimedSessionFields {
 }
 
 export interface ManualWorkoutSession extends WorkoutSessionFields {
+  /** Absent only in legacy documents (schemaVersion 1). */
+  parts?: ManualWorkoutPart[]
   source: 'manual'
   status: 'completed'
   workSeconds: null

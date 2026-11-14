@@ -1,6 +1,7 @@
 import { collection, deleteDoc, doc, onSnapshot, setDoc, updateDoc, type Firestore } from 'firebase/firestore'
 import type { RepositorySnapshot, SubscribableRepository } from '@/application/repositorySubscription'
 import { hasPerformanceObserver, reportPerformanceEvent } from '@/application/performance/performanceEvents'
+import { workoutDocumentVersion } from './workoutDocumentVersion'
 
 interface PendingWrite<T> {
   matches: (items: ReadonlyMap<string, T>) => boolean
@@ -87,13 +88,14 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
   }
 
   async save(value: T, action?: () => Promise<void>): Promise<void> {
-    const item = this.parse({ ...value, schemaVersion: 1 })
+    const schemaVersion = workoutDocumentVersion(value)
+    const item = this.parse({ ...value, schemaVersion })
     const expected = JSON.stringify(item)
     if (this.collectionName === 'workoutSessions' && hasPerformanceObserver() && !this.items.has(item.id) && 'source' in item && item.source === 'manual') {
       reportPerformanceEvent({ type: 'save', id: item.id, at: performance.now() })
     }
     try {
-      await this.write(action ?? (() => setDoc(doc(this.path, item.id), { ...item, schemaVersion: 1 })),
+      await this.write(action ?? (() => setDoc(doc(this.path, item.id), { ...item, schemaVersion })),
         (items) => JSON.stringify(items.get(item.id)) === expected)
     } catch (error) {
       if (this.collectionName === 'workoutSessions') reportPerformanceEvent({ type: 'save-error', id: item.id })
@@ -116,7 +118,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
     const current = this.items.get(id)
     if (!current) return false
     // Validate the complete resulting document, but update only the changed fields.
-    const item = this.parse({ ...current, note, updatedAt: new Date().toISOString(), schemaVersion: 1 })
+    const item = this.parse({ ...current, note, updatedAt: new Date().toISOString(), schemaVersion: workoutDocumentVersion(current) })
     await this.write(() => updateDoc(doc(this.path, id), { note, updatedAt: item.updatedAt }),
       (items) => JSON.stringify(items.get(id)) === JSON.stringify(item))
     return true
@@ -125,7 +127,8 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
   validateUpdate(id: string, fields: Partial<T>): T {
     const current = this.items.get(id)
     if (!current) throw new Error('Document is no longer available')
-    return this.parse({ ...current, ...fields, schemaVersion: 1 })
+    const value = { ...current, ...fields }
+    return this.parse({ ...value, schemaVersion: workoutDocumentVersion(value) })
   }
 
   async updateFields(id: string, fields: Partial<T>, action: () => Promise<void>): Promise<boolean> {
