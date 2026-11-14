@@ -2,6 +2,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { routes } from '@/app/routes'
 import { prepareWorkoutFeedback } from '@/domain/workout-session/workoutFeedback'
+import { findPreviousPlanRun } from '@/domain/workout-session/previousPlanRun'
 import { WorkoutFeedbackForm } from '@/features/workout-feedback/WorkoutFeedbackForm'
 import { workoutFeedbackLabels as labels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import { WorkoutDataWarning } from '@/features/workouts/components/WorkoutDataWarning'
@@ -13,7 +14,7 @@ import { WorkoutRpeSummary } from '@/features/workout-feedback/WorkoutRpeSummary
 
 export function Component() {
   const { sessionId = '' } = useParams()
-  const { sessions, focusSkills, sessionRepository, retry } = useWorkoutData()
+  const { sessions, plans, focusSkills, sessionRepository, retry } = useWorkoutData()
   const { state } = useAuth()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -37,7 +38,8 @@ export function Component() {
         const feedback = prepareQuickTimerFeedback(session, draft, new Date().toISOString())
         if (!await sessionRepository.saveQuickTimerFeedback(session.id, feedback)) throw new Error('Session no longer available')
         await navigate(`${routes.workouts}?tab=history`)
-      }} /> : <WorkoutFeedbackForm session={session} skills={focusSkills.items} rpeCard={rpeCard}
+      }} /> : <WorkoutFeedbackForm key={session.id} session={session} skills={focusSkills.items} rpeCard={rpeCard}
+    previousRun={findPreviousPlanRun(session, sessions.items, plans.status === 'ready' ? plans.items.find((plan) => plan.id === session.workoutPlanId) : undefined)}
     pending={sessions.pendingIds.has(session.id)} onSave={async (draft) => {
       const feedback = prepareWorkoutFeedback(session, draft, focusSkills.items, new Date().toISOString())
       if (!await sessionRepository.saveFeedback(session.id, feedback)) throw new Error('Session no longer available')

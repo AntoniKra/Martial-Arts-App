@@ -133,7 +133,7 @@ Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 - wdrożone porównanie liczb w tabeli „Ten tydzień” i „Zwykle”: liczba treningów, czas treningu i obciążenie obok średniej z 3 poprzednich tygodni; bez słownej oceny i arbitralnego progu „więcej niż zwykle”, dopiero gdy historia sięga początku tego okresu;
 - wdrożony wykres ostatnich 12 tygodni: liczba treningów lub minuty czasu treningu (ADR 0011), bez obciążenia.
 
-Przy wpisie z planu pokazujemy też **porównanie z poprzednim wykonaniem tego samego planu**.
+Wdrożone (issue #127): pod liczbami w podsumowaniu treningu z planu pokazujemy blok **„Poprzednio ten plan”** z datą jak w Historii, czasem treningu i pracy, liczbą ukończonych i zaplanowanych ćwiczeń oraz RPE („RPE: brak”, gdy go nie podano). Poprzednie wykonanie to najnowsza inna sesja z tego samego `workoutPlanId`, wcześniejsza według `startedAt`, a przy remisie według `id`; ręczne wpisy i szybki stoper nie biorą udziału. Gdy plan zmieniono po zakończeniu tamtego treningu, pokazujemy „Plan zmieniono po tamtym treningu.”. Po usunięciu planu porównanie działa nadal, bez dopisku. Link „Zobacz” otwiera podsumowanie poprzedniego treningu; przy pierwszym wykonaniu blok jest niewidoczny. Bez poprzednich ocen ćwiczeń, strzałek, kolorów oceniających i procentów.
 
 Nie pokazujemy: ACWR, monotonii i strain Fostera, wyniku 0–100, prognoz.
 
