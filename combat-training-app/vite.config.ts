@@ -5,6 +5,7 @@ import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
 import { VitePWA } from 'vite-plugin-pwa'
 import { readDeployFirebaseConfig } from './src/infrastructure/firebase/firebaseConfig.ts'
+import { previewContentSecurityPolicy } from './config/contentSecurityPolicy.ts'
 
 // Project in .firebaserc under the "prod" alias. `npm run build:deploy` refuses any other target.
 const deployProjectId = 'combat-training-830fb'
@@ -61,6 +62,7 @@ export default defineConfig({
   },
   preview: {
     host: '0.0.0.0',
+    headers: { 'Content-Security-Policy': previewContentSecurityPolicy },
   },
   test: {
     environment: 'node',
