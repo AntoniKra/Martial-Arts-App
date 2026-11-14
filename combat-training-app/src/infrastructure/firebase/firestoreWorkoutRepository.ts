@@ -1,5 +1,6 @@
 import { collection, deleteDoc, doc, onSnapshot, setDoc, updateDoc, type Firestore } from 'firebase/firestore'
 import type { RepositorySnapshot, SubscribableRepository } from '@/application/repositorySubscription'
+import { hasPerformanceObserver, reportPerformanceEvent } from '@/application/performance/performanceEvents'
 
 interface PendingWrite<T> {
   matches: (items: ReadonlyMap<string, T>) => boolean
@@ -15,7 +16,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
   private readable = false
   private readonly path
 
-  constructor(db: Firestore, uid: string, collectionName: 'workoutPlans' | 'workoutSessions' | 'focusSkills', private parse: (value: unknown) => T) {
+  constructor(db: Firestore, uid: string, private collectionName: 'workoutPlans' | 'workoutSessions' | 'focusSkills', private parse: (value: unknown) => T) {
     if (!uid || uid.includes('/')) throw new Error('Invalid user identity')
     this.path = collection(db, 'users', uid, collectionName)
   }
@@ -37,6 +38,8 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
       }
       this.items = items
       this.readable = invalidDocumentIds.length === 0
+      if (this.collectionName === 'workoutSessions' && hasPerformanceObserver()) reportPerformanceEvent({ type: 'snapshot', at: performance.now(),
+        ids: new Set(items.keys()), pendingIds, hasPendingWrites: snapshot.metadata.hasPendingWrites, fromCache: snapshot.metadata.fromCache })
       onChange({ items: [...items.values()], pendingIds, hasPendingWrites: snapshot.metadata.hasPendingWrites,
         fromCache: snapshot.metadata.fromCache, invalidDocumentIds })
       for (const write of this.writes) {
@@ -48,6 +51,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
       onError(error)
     })
     return () => {
+      if (this.collectionName === 'workoutSessions') reportPerformanceEvent({ type: 'unsubscribe' })
       stop()
       this.reportError = null
       this.items.clear()
@@ -85,8 +89,16 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
   async save(value: T, action?: () => Promise<void>): Promise<void> {
     const item = this.parse({ ...value, schemaVersion: 1 })
     const expected = JSON.stringify(item)
-    await this.write(action ?? (() => setDoc(doc(this.path, item.id), { ...item, schemaVersion: 1 })),
-      (items) => JSON.stringify(items.get(item.id)) === expected)
+    if (this.collectionName === 'workoutSessions' && hasPerformanceObserver() && !this.items.has(item.id) && 'source' in item && item.source === 'manual') {
+      reportPerformanceEvent({ type: 'save', id: item.id, at: performance.now() })
+    }
+    try {
+      await this.write(action ?? (() => setDoc(doc(this.path, item.id), { ...item, schemaVersion: 1 })),
+        (items) => JSON.stringify(items.get(item.id)) === expected)
+    } catch (error) {
+      if (this.collectionName === 'workoutSessions') reportPerformanceEvent({ type: 'save-error', id: item.id })
+      throw error
+    }
   }
 
   getItems(): readonly T[] {

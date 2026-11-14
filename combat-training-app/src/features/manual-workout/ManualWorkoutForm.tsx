@@ -18,6 +18,7 @@ import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedba
 import { WEEK_PLAN_CATEGORIES, categoryLabel } from '@/features/week-plan/weekPlanLabels'
 import { workoutSessionName } from '@/features/workouts/utils/workoutSessionPresentation'
 import { manualCategoryDescriptions, manualWorkoutLabels as labels } from './manualWorkoutLabels'
+import { hasPerformanceObserver, reportPerformanceEvent } from '@/application/performance/performanceEvents'
 
 const inputClass = 'mt-2 block min-h-touch w-full border border-bd bg-input p-3 text-base text-ink'
 const groupClass = 'min-w-0 space-y-3'
@@ -81,6 +82,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
 
   async function save(confirmDuplicate = false) {
     if (busy.current) return
+    if (!original && hasPerformanceObserver()) reportPerformanceEvent({ type: 'save-click', at: performance.now() })
     const available = skillsStatus === 'ready'
     const result = validateManualWorkout({ ...draft, focusRatings: available ? draft.focusRatings : original?.focusRatings ?? [] },
       calculateWorkoutDate(new Date().toISOString(), timezone), original?.workoutDate)

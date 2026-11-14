@@ -51,7 +51,7 @@ export function FocusSkillChart({ assessments }: { assessments: readonly FocusSk
     <h2 className="font-display font-semibold">{labels.chart}</h2>
     {chart.limited && <p className="text-xs text-muted">{labels.lastWeeks}</p>}
     {chart.points.length === 0 ? <p className="text-sm text-muted">{labels.noRatings}</p> : <>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0} role="group" aria-label={labels.chart}>
       <svg width={plotWidth} height="230" viewBox={`0 0 ${plotWidth} 230`} className="block max-w-none text-ink" aria-hidden="true">
         <text x="4" y="12" fontSize="11" fill="var(--app-muted)">{labels.assessmentAxis}</text>
         {[1, 2, 3, 4, 5].map((value) => <g key={value}>
