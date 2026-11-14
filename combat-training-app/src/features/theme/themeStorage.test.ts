@@ -16,7 +16,7 @@ import {
 } from '@/features/theme/themeStorage'
 
 const html = readFileSync(new URL('../../../index.html', import.meta.url), 'utf8')
-const bootstrapScript = html.match(/<script>([\s\S]*?)<\/script>/)?.[1]
+const bootstrapScript = readFileSync(new URL('../../../public/theme-bootstrap.js', import.meta.url), 'utf8')
 
 function mockDocument(hasMeta = true) {
   const root = { setAttribute: vi.fn() }
@@ -126,6 +126,12 @@ describe('document theme', () => {
 })
 
 describe('pre-paint bootstrap', () => {
+  it('loads the external script synchronously in the head before the app', () => {
+    const head = html.match(/<head>([\s\S]*?)<\/head>/)?.[1] ?? ''
+    expect(head).toContain('<script src="/theme-bootstrap.js"></script>')
+    expect(html.match(/<script\b[^>]*>[\s\S]*?<\/script>/g)?.every((tag) => /\bsrc=/.test(tag))).toBe(true)
+  })
+
   const cases = [
     { stored: null, system: 'light', expected: 'light' },
     { stored: null, system: 'dark', expected: 'dark' },
