@@ -300,7 +300,7 @@ export function WorkoutBuilderView({
         const personal = exercises.items.find((exercise) => exercise.id === combinationId)
         if (personal) {
           if (personal.archivedAt !== null) throw new Error('Exercise archived')
-          await exerciseRepository.save({ ...personal, lastUsedAt: now, updatedAt: now })
+          await exerciseRepository.markUsed(personal.id, now)
         }
       }
       const exercise = createWorkoutExercise(

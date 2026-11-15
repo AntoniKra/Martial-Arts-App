@@ -35,6 +35,9 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
     exercises: {
       subscribe: (onChange, onError) => deferredSubscription(ready.then((repositories) => repositories.exercises))(onChange, onError),
       save: async (exercise) => (await ready).exercises.save(exercise),
+      markUsed: async (id, at) => (await ready).exercises.markUsed(id, at),
+      setFavorite: async (id, favorite, at) => (await ready).exercises.setFavorite(id, favorite, at),
+      setArchived: async (id, archivedAt, at) => (await ready).exercises.setArchived(id, archivedAt, at),
       deleteUnused: async (id) => (await ready).exercises.deleteUnused(id),
     },
     profile: {

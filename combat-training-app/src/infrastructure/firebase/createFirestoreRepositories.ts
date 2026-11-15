@@ -12,7 +12,7 @@ import { createFirestoreHealthRepositories } from './firestoreHealthRepository'
 import { detachFocusSkill, hasFocusSkillEntries, selectFocusSkillPlans } from '@/domain/focus-skill/focusSkillProgress'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { exerciseDocumentSchema } from './exerciseDocumentSchema'
-import { exerciseIsReferenced } from '@/domain/exercise/exercise'
+import { exerciseIsReferenced, type PersonalExercise } from '@/domain/exercise/exercise'
 
 let database: Firestore | undefined
 const subscriptions = new Set<() => void>()
@@ -92,6 +92,11 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     return exercise
   })
   const weekPlans = new FirestoreWeekPlanRepository(db, uid)
+  async function updateExerciseMetadata(id: string, fields: Partial<Pick<PersonalExercise, 'lastUsedAt' | 'favorite' | 'archivedAt'>> & { updatedAt: string }) {
+    if (!await exercises.updateFields(id, fields, () => updateDoc(doc(collection(db, 'users', uid, 'exercises'), id), fields))) {
+      throw new Error('Exercise no longer available')
+    }
+  }
   const health = createFirestoreHealthRepositories(db, uid)
   async function changeFocusSkill(id: string, updatedAt: string, action: 'archive' | 'delete' | 'restore') {
     if (!focusSkills.getItems().some((skill) => skill.id === id)) throw new Error('Focus skill no longer available')
@@ -124,12 +129,19 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
   return {
     exercises: {
       subscribe: trackedSubscribe(exercises),
+      markUsed: (id, at) => updateExerciseMetadata(id, { lastUsedAt: at, updatedAt: at }),
+      setFavorite: (id, favorite, at) => updateExerciseMetadata(id, { favorite, updatedAt: at }),
+      setArchived: (id, archivedAt, at) => updateExerciseMetadata(id, { archivedAt, updatedAt: at }),
       save: async (exercise) => {
         const current = exercises.getItems().find((item) => item.id === exercise.id)
         if (current && (current.type !== exercise.type || current.createdAt !== exercise.createdAt || current.copiedFromId !== exercise.copiedFromId)) {
           throw new Error('Exercise identity is immutable; create another exercise')
         }
-        await exercises.save(exercise)
+        if (current) {
+          const { namePl, disciplines, blockTypes, defaultConfiguration, updatedAt } = exercise
+          const fields = { namePl, disciplines, blockTypes, defaultConfiguration, updatedAt }
+          await exercises.updateFields(exercise.id, fields, () => updateDoc(doc(collection(db, 'users', uid, 'exercises'), exercise.id), fields))
+        } else await exercises.save(exercise)
       },
       deleteUnused: async (id) => {
         // Never infer absence of references from an incomplete offline cache.

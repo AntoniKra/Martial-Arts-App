@@ -57,7 +57,7 @@ export function ExerciseLibraryView({ blockType, disciplineKey, libraryUiState, 
   async function toggleFavorite(exercise: PersonalExercise) {
     if (inFlight.current) return
     inFlight.current = true; setBusy(true); setError(null)
-    try { await exerciseRepository.save({ ...exercise, favorite: !exercise.favorite, updatedAt: new Date().toISOString() }) }
+    try { await exerciseRepository.setFavorite(exercise.id, !exercise.favorite, new Date().toISOString()) }
     catch { setError(labels.error) } finally { inFlight.current = false; setBusy(false) }
   }
   function personalRow(exercise: PersonalExercise) {

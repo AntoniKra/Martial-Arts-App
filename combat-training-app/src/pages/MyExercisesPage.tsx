@@ -4,7 +4,7 @@ import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { routes } from '@/app/routes'
 import { Button } from '@/components/ui/Button'
-import { archiveExercise, exerciseIsReferenced, normalizeExerciseSearch, restoreExercise, selectExerciseSections, type PersonalExercise } from '@/domain/exercise/exercise'
+import { exerciseIsReferenced, normalizeExerciseSearch, selectExerciseSections, type PersonalExercise } from '@/domain/exercise/exercise'
 import { ExerciseForm } from '@/features/exercises/ExerciseForm'
 import { exerciseLabels as labels } from '@/features/exercises/exerciseLabels'
 import type { ExerciseDefinition } from '@/features/exercises/validateExerciseDefinition'
@@ -45,8 +45,8 @@ export function Component() {
       {exercises.pendingIds.has(exercise.id) && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
       <div className="flex flex-wrap gap-2">
         <Button size="sm" variant="ghost" disabled={busy || !ready} onClick={() => setEditor({ exercise, initial: exercise })}>{labels.edit}</Button>
-        <Button size="sm" variant="ghost" disabled={busy || !ready} onClick={() => void action(() => exerciseRepository.save(
-          exercise.archivedAt === null ? archiveExercise(exercise, new Date().toISOString()) : restoreExercise(exercise, new Date().toISOString())))}>
+        <Button size="sm" variant="ghost" disabled={busy || !ready} onClick={() => void action(() => exerciseRepository.setArchived(
+          exercise.id, exercise.archivedAt === null ? new Date().toISOString() : null, new Date().toISOString()))}>
           {exercise.archivedAt === null ? labels.archive : labels.restore}</Button>
         <Button size="sm" variant="ghost" disabled={busy || !ready} onClick={() => setEditor({ exercise: null, initial: exercise })}>{labels.newFrom}</Button>
         {exercise.archivedAt !== null && !referenced && <Button size="sm" variant="ghost" disabled={busy || !ready || exercises.fromCache} onClick={() => setConfirmId(exercise.id)}>{labels.remove}</Button>}

@@ -120,8 +120,10 @@ test('copies a builtin, favorites it with an accessible name, archives offline a
   await page.getByRole('link', { name: 'Wróć do treningów', exact: true }).click()
   await page.getByRole('button', { name: 'Odrzuć zmiany', exact: true }).click()
   await app.open('/exercises')
+  const readyRow = page.getByRole('list', { name: 'Moje ćwiczenia', exact: true }).getByRole('listitem').filter({ hasText: 'Moja kombinacja' })
+  await expect(readyRow.getByRole('button', { name: 'Archiwizuj', exact: true })).toBeEnabled()
   await context.setOffline(true)
-  await page.getByRole('button', { name: 'Archiwizuj', exact: true }).click()
+  await readyRow.getByRole('button', { name: 'Archiwizuj', exact: true }).click()
   await expect(page.getByRole('status').filter({ hasText: 'Czeka na wysłanie' })).toBeVisible()
   await context.setOffline(false)
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
@@ -130,6 +132,49 @@ test('copies a builtin, favorites it with an accessible name, archives offline a
   await page.getByRole('button', { name: 'Potwierdź trwałe usunięcie', exact: true }).click()
   await expect.poll(() => app.readExercises()).toEqual([])
 })
+
+for (const operation of ['use', 'favorite'] as const) {
+  test(`preserves device A edits and archive when offline device B syncs ${operation}`, async ({ app, page, context, browser }) => {
+    await app.open('/exercises')
+    await page.getByRole('button', { name: 'Nowe ćwiczenie', exact: true }).click()
+    await page.getByRole('textbox', { name: 'Nazwa ćwiczenia', exact: true }).fill('Offline exercise')
+    await page.getByRole('button', { name: 'Zapisz ćwiczenie', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Archiwizuj', exact: true })).toBeEnabled()
+    await expect.poll(() => app.readExercises()).toMatchObject([{ namePl: 'Offline exercise' }])
+    const authState = await context.storageState({ indexedDB: true })
+    // Share only sign-in state: cloning Firestore would duplicate device B's primary lease.
+    for (const origin of authState.origins) {
+      if ('indexedDB' in origin && Array.isArray(origin.indexedDB)) origin.indexedDB = origin.indexedDB.filter((database: unknown) =>
+        typeof database === 'object' && database !== null && 'name' in database && database.name === 'firebaseLocalStorageDb')
+    }
+    const deviceA = await browser.newContext({ storageState: authState, viewport: { width: 360, height: 800 }, serviceWorkers: 'block' })
+    try {
+      const pageA = await deviceA.newPage()
+      await pageA.goto('http://127.0.0.1:4173/exercises')
+      await expect(pageA.getByRole('button', { name: 'Edytuj', exact: true })).toBeEnabled()
+      await app.open('/workouts/new'); await beginPlan(page, 'Offline plan')
+      await page.getByRole('button', { name: 'Moje', exact: true }).click()
+      if (operation === 'use') await page.getByRole('button', { name: 'Offline exercise', exact: true }).click()
+      await context.setOffline(true)
+      await pageA.getByRole('button', { name: 'Edytuj', exact: true }).click()
+      await pageA.getByRole('textbox', { name: 'Nazwa ćwiczenia', exact: true }).fill('Changed by device A')
+      await pageA.getByRole('textbox', { name: 'Czas pracy (s)', exact: true }).fill('420')
+      await pageA.getByRole('button', { name: 'Zapisz ćwiczenie', exact: true }).click()
+      await pageA.getByRole('button', { name: 'Archiwizuj', exact: true }).click()
+      await expect.poll(() => app.readExercises()).toMatchObject([{ namePl: 'Changed by device A', archivedAt: expect.any(String) }])
+      if (operation === 'use') {
+        await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+        await expect(page.getByRole('heading', { name: 'Oś treningu', exact: true })).toBeVisible()
+      } else {
+        await page.getByRole('button', { name: 'Dodaj do ulubionych: Offline exercise', exact: true }).click()
+        await expect(page.getByRole('button', { name: 'Usuń z ulubionych: Offline exercise', exact: true })).toBeEnabled()
+      }
+      await context.setOffline(false)
+      await expect.poll(() => app.readExercises()).toMatchObject([{ namePl: 'Changed by device A', archivedAt: expect.any(String),
+        defaultConfiguration: { roundDurationSeconds: 420 }, ...(operation === 'use' ? { lastUsedAt: expect.any(String), favorite: false } : { favorite: true }) }])
+    } finally { await deviceA.close() }
+  })
+}
 
 test('supports plan-only exercises and creates a new personal exercise from an empty search', async ({ app, page }) => {
   await app.open('/workouts/new'); await beginPlan(page, 'Plan only')

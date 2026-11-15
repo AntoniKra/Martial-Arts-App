@@ -5,6 +5,7 @@ import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
 const sdk = vi.hoisted(() => ({ listeners: new Map<string, (value: unknown) => void>(),
   set: vi.fn<(...args: unknown[]) => Promise<void>>(() => new Promise(() => {})), delete: vi.fn<() => Promise<void>>(() => Promise.resolve()),
   read: vi.fn<(path: string) => Promise<unknown>>(),
+  update: vi.fn<(...args: unknown[]) => Promise<void>>(() => new Promise(() => {})),
 }))
 vi.mock('firebase/app', () => ({ getApp: () => 'app' }))
 vi.mock('./firebaseConfig', () => ({ readFirebaseConfig: () => ({ projectId: 'demo-combat-training', firestoreEmulatorHost: '127.0.0.1:8080' }) }))
@@ -13,7 +14,7 @@ vi.mock('firebase/firestore', () => ({
   terminate: vi.fn(), clearIndexedDbPersistence: vi.fn(), collection: (_db: unknown, ...parts: string[]) => parts.join('/'),
   doc: (path: string, id: string) => `${path}/${id}`, onSnapshot: (path: string, _options: unknown, change: (value: unknown) => void) => {
     sdk.listeners.set(path, change); return () => sdk.listeners.delete(path)
-  }, setDoc: sdk.set, deleteDoc: sdk.delete, getDocsFromServer: sdk.read,
+  }, setDoc: sdk.set, updateDoc: sdk.update, deleteDoc: sdk.delete, getDocsFromServer: sdk.read,
 }))
 import { clearFirestoreCache, createFirestoreRepositories } from './createFirestoreRepositories'
 
@@ -23,6 +24,33 @@ function emit(items = [personalExercise()], pending = false) {
 }
 afterEach(async () => { await clearFirestoreCache(); vi.clearAllMocks(); vi.unstubAllGlobals() })
 describe('Firestore personal exercises', () => {
+  it('edits only definition fields without overwriting concurrent metadata', async () => {
+    const repository = createFirestoreRepositories('athlete').exercises
+    repository.subscribe(vi.fn(), vi.fn()); emit()
+    const edited = personalExercise({ namePl: 'Edited' })
+    const saved = repository.save(edited)
+    expect(sdk.update).toHaveBeenCalledWith('users/athlete/exercises/personal-guard', {
+      namePl: edited.namePl, disciplines: edited.disciplines, blockTypes: edited.blockTypes,
+      defaultConfiguration: edited.defaultConfiguration, updatedAt: edited.updatedAt,
+    })
+    expect(sdk.set).not.toHaveBeenCalled()
+    emit([{ ...edited, favorite: true, archivedAt: edited.updatedAt }], true)
+    await expect(saved).resolves.toBeUndefined()
+  })
+  it.each(['use', 'favorite', 'archive'] as const)('patches only %s metadata and preserves concurrent definition changes before server acknowledgement', async (operation) => {
+    const repository = createFirestoreRepositories('athlete').exercises
+    repository.subscribe(vi.fn(), vi.fn()); emit()
+    const at = '2026-11-15T10:00:00.000Z'
+    const fields = operation === 'use' ? { lastUsedAt: at, updatedAt: at }
+      : operation === 'favorite' ? { favorite: true, updatedAt: at } : { archivedAt: at, updatedAt: at }
+    const saved = operation === 'use' ? repository.markUsed('personal-guard', at)
+      : operation === 'favorite' ? repository.setFavorite('personal-guard', true, at) : repository.setArchived('personal-guard', at, at)
+    expect(sdk.update).toHaveBeenCalledWith('users/athlete/exercises/personal-guard', fields)
+    expect(sdk.set).not.toHaveBeenCalled()
+    const concurrent = personalExercise({ namePl: 'Changed remotely', archivedAt: at, defaultConfiguration: { mode: 'continuous', durationSeconds: 600 }, ...fields })
+    emit([concurrent], true)
+    await expect(saved).resolves.toBeUndefined()
+  })
   it('finishes a valid write after the local snapshot while its server write is unresolved', async () => {
     const repository = createFirestoreRepositories('athlete').exercises
     const changes = vi.fn(), error = vi.fn()
