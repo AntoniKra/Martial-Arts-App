@@ -5,6 +5,8 @@ export const profileSettingsLabels = {
   settings: 'Ustawienia', training: 'Trening', health: 'Zdrowie i zgody', appearance: 'Wygląd', account: 'Konto',
   roundWarning: 'Sygnał przed końcem rundy', restWarning: 'Sygnał przed końcem przerwy', off: 'Wyłączony',
   trainingHint: 'Ustawienia tego urządzenia dotyczą planów i szybkiego stopera. Sygnał to trzy krótkie stuknięcia.',
+  previewSignals: 'Odsłuchaj',
+  previewSignalsHint: 'Trzy stuknięcia, a po chwili gong końca rundy.',
   trainingLink: 'Ustawienia treningu w Profilu',
   theme: 'Motyw', system: 'Systemowy', light: 'Jasny', dark: 'Ciemny',
   enabled: 'Włączone', disabled: 'Wyłączone',

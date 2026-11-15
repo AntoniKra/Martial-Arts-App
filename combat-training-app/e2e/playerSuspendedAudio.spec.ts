@@ -7,7 +7,7 @@ async function audioCounts(page: Page) {
   return page.evaluate(() => {
     const frequencies = Reflect.get(window, '__suspendedAudioFrequencies') as number[]
     return {
-      warnings: frequencies.filter((frequency) => frequency === 1400).length / 3,
+      warnings: frequencies.filter((frequency) => frequency === 2500).length / 3,
       workEnds: frequencies.filter((frequency) => frequency === 520).length,
     }
   })
@@ -62,6 +62,13 @@ for (const audio of ['deferred', 'native'] as const) {
             createOscillator() {
               return { type: 'sine', frequency: { setValueAtTime(value: number) { frequencies.push(value) } },
                 connect() {}, disconnect() {}, start() {}, stop() {} }
+            }
+            createDynamicsCompressor() {
+              const parameter = () => ({ setValueAtTime() {} })
+              return { threshold: parameter(), knee: parameter(), ratio: parameter(), attack: parameter(), release: parameter(), connect() {} }
+            }
+            createBiquadFilter() {
+              return { type: 'bandpass', frequency: { setValueAtTime() {} }, Q: { setValueAtTime() {} }, connect() {}, disconnect() {} }
             }
             createGain() {
               return { gain: { setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} },

@@ -32,7 +32,7 @@ for (const theme of ['dark', 'light'] as const) {
           }
         }))
       screens.push({ name, controls })
-      if (testInfo.project.name === 'phone') {
+      if (process.env.CAPTURE_SCREENSHOTS === '1' && testInfo.project.name === 'phone') {
         const path = testInfo.outputPath(`${name}-${theme}.png`)
         await page.screenshot({ path })
         await testInfo.attach(`${name}-${theme}`, { path, contentType: 'image/png' })
@@ -114,18 +114,15 @@ for (const theme of ['dark', 'light'] as const) {
     await app.openPlayer()
     await app.freezeClock()
     await app.startWorkout()
-    await page.getByRole('button', { name: 'Menu treningu', exact: true }).click()
-    samples.menuFinishExercise = await typography(page.getByRole('menuitem', { name: 'Zakończ ćwiczenie', exact: true }))
-    samples.menuFinishWorkout = await typography(page.getByRole('menuitem', { name: 'Zakończ trening', exact: true }))
-    await capture('player-menu')
-    await page.getByRole('menuitem', { name: 'Zakończ trening', exact: true }).click()
+    await page.getByRole('button', { name: 'Zakończ trening', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Zakończyć trening?', exact: true })
     await expect(dialog).toBeVisible()
-    samples.exitEarly = await typography(dialog.getByRole('button', { name: 'Zakończ wcześniej', exact: true }))
+    samples.exitSkip = await typography(dialog.getByRole('button', { name: /Pomiń resztę ćwiczenia/ }))
+    samples.exitEarly = await typography(dialog.getByRole('button', { name: 'Zakończ i zapisz', exact: true }))
     samples.exitDiscard = await typography(dialog.getByRole('button', { name: /Porzuć/ }))
-    samples.exitReturn = await typography(dialog.getByRole('button', { name: 'Wróć', exact: true }))
+    samples.exitReturn = await typography(dialog.getByRole('button', { name: 'Wróć do treningu', exact: true }))
     await capture('player-exit')
-    await dialog.getByRole('button', { name: 'Wróć', exact: true }).click()
+    await dialog.getByRole('button', { name: 'Wróć do treningu', exact: true }).click()
     await page.clock.fastForward(150_000)
     await app.expectWorkoutSaved()
     samples.summaryDone = await typography(page.getByRole('button', { name: 'Gotowe', exact: true }))
@@ -149,7 +146,7 @@ for (const theme of ['dark', 'light'] as const) {
     await page.getByRole('textbox', { name: 'Notatka', exact: true }).scrollIntoViewIfNeeded()
     await capture('history-note-editor')
 
-    await testInfo.attach('font-cascade-measurements', {
+    if (process.env.CAPTURE_SCREENSHOTS === '1') await testInfo.attach('font-cascade-measurements', {
       body: JSON.stringify({ viewport: page.viewportSize(), theme, samples, screens, focus: { loginFocus, builderFocus } }, null, 2),
       contentType: 'application/json',
     })
@@ -162,11 +159,10 @@ for (const theme of ['dark', 'light'] as const) {
     }
     const display = '"Archivo Variable", system-ui, -apple-system, sans-serif'
     expect(samples.primary).toEqual({ size: '13px', weight: '600', family: display })
-    for (const key of ['menuFinishExercise', 'menuFinishWorkout']) {
-      expect(samples[key], key).toEqual({ size: '13px', weight: '600', family: display })
-    }
-    for (const key of ['exitEarly', 'exitDiscard', 'exitReturn', 'summaryDone']) {
-      expect(samples[key], key).toEqual({ size: '14px', weight: '600', family: display })
+    expect(samples.exitEarly).toEqual({ size: '14px', weight: '800', family: display })
+    expect(samples.summaryDone).toEqual({ size: '14px', weight: '600', family: display })
+    for (const key of ['exitSkip', 'exitDiscard', 'exitReturn']) {
+      expect(samples[key], key).toEqual({ size: '14px', weight: '600', family: '"Inter Variable", system-ui, -apple-system, sans-serif' })
     }
     for (const key of ['plansSelected', 'historySelected', 'plansUnselected', 'historyUnselected', 'roundFormat']) {
       expect(samples[key], key).toEqual({ size: '12px', weight: '600', family: display })
