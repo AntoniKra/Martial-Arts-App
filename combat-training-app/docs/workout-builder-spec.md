@@ -52,6 +52,8 @@ MVP zawiera:
 
 Karta nie pokazuje tagów, liczby technik ani listy dyscyplin.
 
+Issue #161: wbudowana biblioteka zawiera 86 zatwierdzonych pozycji z `exercise-library-draft.csv`, z zachowaniem 38 starych ID. Filtr „Kategoria” zawęża wbudowane pozycje, łączy się z wyszukiwaniem oraz filtrami dyscypliny i bloku. Prywatne definicje nie mają kategorii, więc są widoczne przy „Wszystkie kategorie”; włączenie „Moje” zeruje i wyłącza filtr kategorii. „Kopiuj do moich” zachowuje typ i domyślne parametry źródłowej pozycji. Bez zmian dziedziczenia ustawień przy dodawaniu wbudowanego ćwiczenia do planu.
+
 Issue #156 / ADR 0017: biblioteka łączy pozycje wbudowane z aktywnymi „Moimi ćwiczeniami”. Wyszukiwanie przy pisaniu pomija polskie znaki, wielkość liter i strzałki, dopasowuje też fragment nazwy. Chipy dyscypliny i bloku są domyślnie włączone według planu; można je wyłączyć i włączyć filtr „Moje”. Pusta fraza pokazuje do pięciu ostatnio użytych Moich, potem pozostałe ulubione i resztę alfabetycznie. Gwiazdka ma dostępną nazwę i stan. Pusty wynik oferuje utworzenie wpisanej nazwy w Moich. Wbudowane ćwiczenie można skopiować do prywatnej biblioteki z nowym ID i pochodzeniem; nie edytujemy źródła.
 
 Własne ćwiczenie domyślnie zapisuje się do Moich po zatwierdzeniu parametrów, z dyscypliną i rodzajem bloku z planu; opcja „Tylko w tym planie” zachowuje dotychczasowy wariant bez ID biblioteki. Wybór prywatnej pozycji zaczyna od jej zapisanych parametrów, a wbudowane i jednorazowe nadal dziedziczą ustawienia według zasad poniżej. Ekran „Moje ćwiczenia” w Treningach umożliwia zmianę nazwy, dyscyplin, bloków i parametrów; typ zmieniamy wyłącznie przez utworzenie nowej pozycji. Archiwizacja i przywrócenie nie zmieniają planów i historii.

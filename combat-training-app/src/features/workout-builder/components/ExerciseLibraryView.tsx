@@ -13,6 +13,7 @@ import { ExerciseForm } from '@/features/exercises/ExerciseForm'
 import type { ExerciseDefinition } from '@/features/exercises/validateExerciseDefinition'
 import { exerciseLabels as labels } from '@/features/exercises/exerciseLabels'
 import { EXERCISE_LIBRARY_FIXTURES } from '@/features/workout-builder/data/exerciseLibraryFixtures'
+import { filterExerciseLibrary } from '@/features/workout-builder/utils/exerciseLibraryFilters'
 import type { ExerciseLibraryUiState, ExerciseSelection } from './workoutBuilderUi.types'
 
 interface ExerciseLibraryViewProps {
@@ -37,11 +38,14 @@ export function ExerciseLibraryView({ blockType, disciplineKey, libraryUiState, 
   const [copy, setCopy] = useState<{ id: string; sourceId: string; initial: ExerciseDefinition } | null>(null)
   const [notice, setNotice] = useState('')
   const query = normalizeExerciseSearch(libraryUiState.searchQuery)
+  const category = libraryUiState.category ?? ''
   const ready = exercises.status === 'ready' && exercises.invalidDocumentIds.length === 0
   const matches = (name: string, disciplines: readonly DisciplineKey[], blocks: readonly WorkoutBlockType[]) =>
     (!disciplineFilter || disciplines.includes(disciplineKey)) && (!blockFilter || blocks.includes(blockType)) && normalizeExerciseSearch(name).includes(query)
-  const personal = ready ? exercises.items.filter((exercise) => exercise.archivedAt === null && matches(exercise.namePl, exercise.disciplines, exercise.blockTypes)) : []
-  const builtins = mine ? [] : EXERCISE_LIBRARY_FIXTURES.filter((exercise) => exercise.isActive && matches(exercise.namePl, exercise.disciplineKeys, exercise.blockTypes))
+  const personal = ready && !category ? exercises.items.filter((exercise) => exercise.archivedAt === null && matches(exercise.namePl, exercise.disciplines, exercise.blockTypes)) : []
+  const availableBuiltins = filterExerciseLibrary(EXERCISE_LIBRARY_FIXTURES, disciplineFilter ? disciplineKey : null, blockFilter ? blockType : null, '')
+  const categories = [...new Set(availableBuiltins.map((exercise) => exercise.category))].sort((a, b) => a.localeCompare(b, 'pl'))
+  const builtins = mine ? [] : filterExerciseLibrary(availableBuiltins, null, null, libraryUiState.searchQuery, category)
   const sections = selectExerciseSections(personal)
   const recent = query ? [] : sections.recent
   const favorites = query ? [] : sections.favorites.filter((exercise) => !recent.some((entry) => entry.id === exercise.id))
@@ -96,8 +100,16 @@ export function ExerciseLibraryView({ blockType, disciplineKey, libraryUiState, 
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filtry ćwiczeń">
           <button type="button" className={buttonClass} aria-pressed={disciplineFilter} onClick={() => setDisciplineFilter(!disciplineFilter)}>{disciplineFilter ? '✓ ' : ''}{getDisciplineLabelPl(disciplineKey)}</button>
           <button type="button" className={buttonClass} aria-pressed={blockFilter} onClick={() => setBlockFilter(!blockFilter)}>{blockFilter ? '✓ ' : ''}{getWorkoutBlockLabelPl(blockType)}</button>
-          <button type="button" className={buttonClass} aria-pressed={mine} onClick={() => setMine(!mine)}>{mine ? '✓ ' : ''}{labels.mine}</button>
+          <button type="button" className={buttonClass} aria-pressed={mine} onClick={() => {
+            setMine(!mine); onLibraryUiStateChange({ ...libraryUiState, category: '' })
+          }}>{mine ? '✓ ' : ''}{labels.mine}</button>
         </div>
+        <label className="block space-y-2 text-sm font-semibold">{labels.category}
+          <select className={fieldClass} value={category} disabled={mine} onChange={(event) => onLibraryUiStateChange({ ...libraryUiState, category: event.target.value })}>
+            <option value="">{labels.allCategories}</option>
+            {[...new Set([...categories, ...(category ? [category] : [])])].map((value) => <option key={value} value={value}>{value}</option>)}
+          </select>
+        </label>
         {recent.length > 0 && <section aria-label={labels.recent}><h2 className="mb-2 font-display font-semibold">{labels.recent}</h2><ul className="space-y-2">{recent.map(personalRow)}</ul></section>}
         {favorites.length > 0 && <section aria-label={labels.favorites}><h2 className="mb-2 font-display font-semibold">{labels.favorites}</h2><ul className="space-y-2">{favorites.map(personalRow)}</ul></section>}
         {personal.length + builtins.length > 0 ? (others.length + builtins.length > 0 && <section aria-label={labels.all}>
@@ -109,8 +121,8 @@ export function ExerciseLibraryView({ blockType, disciplineKey, libraryUiState, 
                 onClick={() => onConfigure({ type: 'library', combinationId: exercise.id, exerciseNameSnapshot: exercise.namePl })}>{exercise.namePl}<span aria-hidden="true"> ＋</span></button>
               <button type="button" disabled={!ready} className="min-h-touch px-3 text-sm text-muted underline" onClick={() => setCopy({
                 id: crypto.randomUUID(), sourceId: exercise.id,
-                initial: { namePl: exercise.namePl, type: exercise.namePl.includes('→') ? 'combination' : 'drill', disciplines: [...exercise.disciplineKeys], blockTypes: [...exercise.blockTypes],
-                  defaultConfiguration: { mode: 'rounds', roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 } },
+                initial: { namePl: exercise.namePl, type: exercise.type, disciplines: [...exercise.disciplineKeys], blockTypes: [...exercise.blockTypes],
+                  defaultConfiguration: { ...exercise.defaultConfiguration } },
               })}>{labels.copy}</button>
             </li>)}
           </ul>

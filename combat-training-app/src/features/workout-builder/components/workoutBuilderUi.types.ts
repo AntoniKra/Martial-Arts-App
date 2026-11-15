@@ -49,6 +49,7 @@ export interface ExerciseLibraryUiState {
   tab: ExerciseLibraryTab
   searchQuery: string
   customName: string
+  category?: string
   saveToLibrary?: boolean
   exerciseType?: ExerciseType
 }

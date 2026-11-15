@@ -84,7 +84,7 @@ for (const theme of ['dark', 'light'] as const) {
     await page.getByRole('radio', { name: 'Własne ćwiczenie', exact: true }).click()
     await capture('custom-exercise')
     await page.getByRole('radio', { name: 'Biblioteka', exact: true }).click()
-    await page.getByRole('button', { name: 'Jab → prawy prosty', exact: true }).click()
+    await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()
     samples.roundFormat = await typography(page.getByRole('button', { name: '3 × 3:00 · przerwa 1:00', exact: true }))
     await capture('configuration')
     const roundCount = page.getByRole('group', { name: 'Liczba rund', exact: true })
