@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createWebAudioWorkoutGong } from '@/infrastructure/audio/webAudioWorkoutGong'
+import { createWorkoutGongController } from '@/features/workout-player/utils/createWorkoutGongController'
+import { playbackStep } from '@/test/workoutBuilders'
 
 function audioContext() {
   const oscillators: { frequency: { setValueAtTime: ReturnType<typeof vi.fn> }; start: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn>; onended: (() => void) | null }[] = []
@@ -112,6 +114,46 @@ describe('web audio workout gong', () => {
     await Promise.resolve()
     expect(oscillators).toHaveLength(6)
     expect(oscillators[0].frequency.setValueAtTime).toHaveBeenCalledWith(880, 5)
+  })
+
+  it.each([
+    { transitionFirst: false, resumeDelayMs: 0 },
+    { transitionFirst: true, resumeDelayMs: 0 },
+    { transitionFirst: false, resumeDelayMs: 999 },
+    { transitionFirst: false, resumeDelayMs: 1000 },
+  ])('selects the warning before deferred resume, transition first: $transitionFirst, delay: $resumeDelayMs ms', async ({ transitionFirst, resumeDelayMs }) => {
+    vi.useFakeTimers()
+    const { factory, context, oscillators } = audioContext()
+    const gong = createWebAudioWorkoutGong(factory)
+    const controller = createWorkoutGongController([
+      playbackStep('work', 40), { ...playbackStep('rest', 20), kind: 'roundRest' }, playbackStep('next', 40),
+    ], gong)
+    controller.unlock()
+    context.state = 'suspended'
+    const pendingResumes: (() => void)[] = []
+    context.resume.mockImplementation(() => new Promise<void>((resolve) => pendingResumes.push(resolve)))
+    const transition = () => controller.onPlaybackEvent({
+      type: 'stepFinalized', stepIndex: 0, playbackStepId: 'work', performedDurationSeconds: 40,
+      performedDurationMs: 40_000, outcome: 'completed', reason: 'elapsed',
+    })
+    if (transitionFirst) transition()
+    controller.playEndWarning()
+    if (!transitionFirst) transition()
+    await Promise.resolve()
+    expect(oscillators).toHaveLength(0)
+    vi.advanceTimersByTime(resumeDelayMs)
+    context.state = 'running'
+    pendingResumes.forEach((resolve) => resolve())
+    await Promise.resolve()
+    const expectedPartials = resumeDelayMs < 1000 ? 9 : 0
+    expect(oscillators).toHaveLength(expectedPartials)
+    if (expectedPartials > 0) {
+      expect(oscillators[0].frequency.setValueAtTime).toHaveBeenCalledWith(1400, 5)
+    }
+    expect(context.resume).toHaveBeenCalledTimes(2) // Unlock and one selected cue.
+    await Promise.resolve()
+    expect(oscillators).toHaveLength(expectedPartials)
+    controller.dispose()
   })
 
   it('does not play a cue after disposal while resume is pending', async () => {
