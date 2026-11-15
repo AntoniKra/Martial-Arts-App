@@ -26,6 +26,13 @@ test.beforeEach(async ({ page }) => {
         return { type: 'sine', frequency: { setValueAtTime(value: number) { frequencies.push(value) } },
           connect() {}, disconnect() {}, start() {}, stop() {} }
       }
+      createDynamicsCompressor() {
+        const parameter = () => ({ setValueAtTime() {} })
+        return { threshold: parameter(), knee: parameter(), ratio: parameter(), attack: parameter(), release: parameter(), connect() {} }
+      }
+      createBiquadFilter() {
+        return { type: 'bandpass', frequency: { setValueAtTime() {} }, Q: { setValueAtTime() {} }, connect() {}, disconnect() {} }
+      }
       createGain() {
         return { gain: { setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} },
           connect() {}, disconnect() {} }
@@ -38,7 +45,7 @@ test.beforeEach(async ({ page }) => {
 async function warningCount(page: Page) {
   return page.evaluate(() => {
     const frequencies = Reflect.get(window, '__workoutAudioFrequencies') as number[]
-    return frequencies.filter((frequency) => frequency === 1400).length / 3
+    return frequencies.filter((frequency) => frequency === 2500).length / 3
   })
 }
 

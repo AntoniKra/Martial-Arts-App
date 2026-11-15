@@ -32,6 +32,7 @@ import { getWorkoutStepKindShortLabelPl } from '@/features/workout-player/utils/
 import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
 import { quickTimerLabels } from '@/features/quick-timer/quickTimerLabels'
 import { readStoredWorkoutEndWarnings } from '@/infrastructure/storage/workoutEndWarningStorage'
+import { countRemainingExerciseRounds } from '@/features/workout-player/utils/countRemainingExerciseRounds'
 
 interface WorkoutSummaryOptions {
   source?: 'plan' | 'quickTimer'
@@ -387,6 +388,7 @@ function WorkoutPlayerRuntime({
             <WorkoutPlayerExitControls
               status={playback.status}
               canFinishExercise={currentStep.kind !== 'break'}
+              remainingRounds={countRemainingExerciseRounds(timeline.steps, playback.currentStepIndex)}
               workoutDetailsPath={workoutDetailsPath}
               onPause={pause}
               onResume={() => { enableSound(); resume() }}

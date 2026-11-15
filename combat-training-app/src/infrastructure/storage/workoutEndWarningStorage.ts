@@ -15,7 +15,7 @@ export function readStoredWorkoutEndWarnings(): WorkoutEndWarnings {
     // Preserve an explicit opt-out from the previous single warning switch.
     if (stored === null) {
       const legacy = legacySchema.safeParse(localStorage.getItem(legacyKey))
-      return { round: legacy.success && legacy.data === 'false' ? 'off' : '10', rest: 'off' }
+      return { ...DEFAULT_WORKOUT_END_WARNINGS, round: legacy.success && legacy.data === 'false' ? 'off' : DEFAULT_WORKOUT_END_WARNINGS.round }
     }
     const result = schema.safeParse(JSON.parse(stored))
     return result.success ? result.data : { ...DEFAULT_WORKOUT_END_WARNINGS }

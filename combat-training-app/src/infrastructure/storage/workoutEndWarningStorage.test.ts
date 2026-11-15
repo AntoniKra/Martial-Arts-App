@@ -24,9 +24,16 @@ describe('workout end warning preferences', () => {
       vi.mocked(localStorage.getItem).mockReturnValue(stored)
       expect(readStoredWorkoutEndWarnings()).toEqual(DEFAULT_WORKOUT_END_WARNINGS)
     })
-  it.each([null, 'true', 'false', 'broken'])('migrates the legacy switch %s and keeps rests disabled', (legacy) => {
+  it('defaults both warnings to ten seconds without a saved preference', () => {
+    expect(readStoredWorkoutEndWarnings()).toEqual({ round: '10', rest: '10' })
+  })
+  it('preserves an explicit opt-out for both warnings', () => {
+    vi.mocked(localStorage.getItem).mockReturnValue('{"round":"off","rest":"off"}')
+    expect(readStoredWorkoutEndWarnings()).toEqual({ round: 'off', rest: 'off' })
+  })
+  it.each([null, 'true', 'false', 'broken'])('migrates the legacy switch %s and defaults rests to ten seconds', (legacy) => {
     vi.mocked(localStorage.getItem).mockImplementation((key) => key === 'combat-training.endWarningEnabled' ? legacy : null)
-    expect(readStoredWorkoutEndWarnings()).toEqual({ round: legacy === 'false' ? 'off' : '10', rest: 'off' })
+    expect(readStoredWorkoutEndWarnings()).toEqual({ round: legacy === 'false' ? 'off' : '10', rest: '10' })
   })
   it('prefers new settings to the legacy switch', () => {
     vi.mocked(localStorage.getItem).mockImplementation((key) => key === WORKOUT_END_WARNING_STORAGE_KEY ? '{"round":"30","rest":"5"}' : 'false')

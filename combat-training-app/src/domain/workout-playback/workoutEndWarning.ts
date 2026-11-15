@@ -6,4 +6,4 @@ export interface WorkoutEndWarnings {
   rest: (typeof REST_WARNING_VALUES)[number]
 }
 
-export const DEFAULT_WORKOUT_END_WARNINGS: WorkoutEndWarnings = { round: '10', rest: 'off' }
+export const DEFAULT_WORKOUT_END_WARNINGS: WorkoutEndWarnings = { round: '10', rest: '10' }

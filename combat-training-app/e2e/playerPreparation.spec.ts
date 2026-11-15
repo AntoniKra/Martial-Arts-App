@@ -14,7 +14,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(setting.getByRole('radio', { name: '5 s', exact: true })).toBeChecked()
     await page.evaluate(() => document.fonts.ready)
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
-    if (testInfo.project.name === 'phone') {
+    if (process.env.CAPTURE_SCREENSHOTS === '1' && testInfo.project.name === 'phone') {
       const path = testInfo.outputPath(`preparation-setting-${theme}.png`)
       await page.screenshot({ path })
       await testInfo.attach(`preparation-setting-${theme}`, { path, contentType: 'image/png' })
@@ -29,10 +29,10 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.getByRole('button', { name: 'Zacznij teraz', exact: true })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Poprzedni etap', exact: true })).toBeDisabled()
     await expect(page.getByRole('button', { name: 'Następny etap', exact: true })).toBeDisabled()
-    await expect(page.getByRole('button', { name: 'Menu treningu', exact: true })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Zakończ trening', exact: true })).toBeDisabled()
     expect(await app.readSessions()).toHaveLength(0)
     await page.evaluate(() => document.fonts.ready)
-    if (testInfo.project.name === 'phone') {
+    if (process.env.CAPTURE_SCREENSHOTS === '1' && testInfo.project.name === 'phone') {
       const path = testInfo.outputPath(`preparation-player-${theme}.png`)
       await page.screenshot({ path })
       await testInfo.attach(`preparation-player-${theme}`, { path, contentType: 'image/png' })

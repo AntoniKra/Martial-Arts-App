@@ -4,7 +4,7 @@ import { createVerifiedAccount, signIn, signInWithFakeGoogle, testPassword, uniq
 import { workoutSession } from '../src/test/workoutSessionBuilders'
 
 for (const theme of ['dark', 'light'] as const) {
-  test(`orders profile settings and collapses cards with accessible controls in ${theme}`, async ({ app, page }, info) => {
+  test(`orders profile settings and collapses cards with accessible controls in ${theme}`, async ({ app, page }) => {
     await app.open('/profile')
     await app.setTheme(theme)
     await app.seedSession(workoutSession({ workoutDate: '2026-11-13', durationSeconds: 3600 }))
@@ -23,11 +23,8 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.getByRole('navigation').getByRole('button', { name: /motyw|Wyloguj/i })).toHaveCount(0)
     const training = page.getByRole('region', { name: 'Trening', exact: true })
     await expect(training.getByRole('radiogroup', { name: 'Sygnał przed końcem rundy', exact: true }).getByRole('radio', { name: '10 s', exact: true })).toBeChecked()
-    await expect(training.getByRole('radiogroup', { name: 'Sygnał przed końcem przerwy', exact: true }).getByRole('radio', { name: 'Wyłączony', exact: true })).toBeChecked()
+    await expect(training.getByRole('radiogroup', { name: 'Sygnał przed końcem przerwy', exact: true }).getByRole('radio', { name: '10 s', exact: true })).toBeChecked()
     await page.evaluate(() => { scrollTo(0, 0); return document.fonts.ready })
-    const file = info.outputPath(`profile-settings-${theme}.png`)
-    await page.screenshot({ path: file, fullPage: true })
-    await info.attach(`profile-settings-${theme}`, { path: file, contentType: 'image/png' })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
     for (const name of ['Masa ciała', 'Samopoczucie', 'Statystyki']) await expandProfileSection(page, name)

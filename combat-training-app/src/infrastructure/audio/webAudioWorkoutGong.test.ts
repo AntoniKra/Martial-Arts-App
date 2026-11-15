@@ -5,8 +5,11 @@ import { createWorkoutGongController } from '@/features/workout-player/utils/cre
 import { playbackStep } from '@/test/workoutBuilders'
 
 function audioContext() {
-  const oscillators: { frequency: { setValueAtTime: ReturnType<typeof vi.fn> }; start: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn>; onended: (() => void) | null }[] = []
-  const gains: { gain: { setValueAtTime: ReturnType<typeof vi.fn>; linearRampToValueAtTime: ReturnType<typeof vi.fn>; exponentialRampToValueAtTime: ReturnType<typeof vi.fn> }; disconnect: ReturnType<typeof vi.fn> }[] = []
+  const oscillators: { type: string; frequency: { setValueAtTime: ReturnType<typeof vi.fn> }; start: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn>; onended: (() => void) | null }[] = []
+  const gains: { gain: { setValueAtTime: ReturnType<typeof vi.fn>; linearRampToValueAtTime: ReturnType<typeof vi.fn>; exponentialRampToValueAtTime: ReturnType<typeof vi.fn> }; connect: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn> }[] = []
+  const filters: { type: string; frequency: { setValueAtTime: ReturnType<typeof vi.fn> }; Q: { setValueAtTime: ReturnType<typeof vi.fn> }; connect: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn> }[] = []
+  const parameter = () => ({ setValueAtTime: vi.fn() })
+  const compressor = { threshold: parameter(), knee: parameter(), ratio: parameter(), attack: parameter(), release: parameter(), connect: vi.fn() }
   const source = { connect: vi.fn(), start: vi.fn(), disconnect: vi.fn(), buffer: null, onended: null }
   const context = {
     state: 'running' as AudioContextState,
@@ -17,6 +20,12 @@ function audioContext() {
     close: vi.fn(() => Promise.resolve()),
     createBuffer: vi.fn(() => ({})),
     createBufferSource: vi.fn(() => source),
+    createDynamicsCompressor: vi.fn(() => compressor),
+    createBiquadFilter: vi.fn(() => {
+      const filter = { type: '', frequency: parameter(), Q: parameter(), connect: vi.fn(), disconnect: vi.fn() }
+      filters.push(filter)
+      return filter
+    }),
     createOscillator: vi.fn(() => {
       const oscillator = { type: 'sine', frequency: { setValueAtTime: vi.fn() }, connect: vi.fn(), start: vi.fn(), stop: vi.fn(), disconnect: vi.fn(), onended: null as (() => void) | null }
       oscillators.push(oscillator)
@@ -30,7 +39,7 @@ function audioContext() {
   }
   // The adapter only needs these Web Audio methods; no real audio device exists in Node.
   const factory = vi.fn(() => context as unknown as AudioContext)
-  return { context, factory, source, oscillators, gains }
+  return { context, factory, source, oscillators, gains, filters, compressor }
 }
 
 afterEach(() => {
@@ -61,13 +70,13 @@ describe('web audio workout gong', () => {
     gong.unlock()
     gong.play(signal)
     expect(oscillators).toHaveLength(partialCount)
-    expect(oscillators[0].frequency.setValueAtTime).toHaveBeenCalledWith(frequency, 5)
-    expect(gains[0].gain.setValueAtTime).toHaveBeenCalledWith(0, 5)
-    expect(gains[0].gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.32, 5.008)
-    expect(oscillators.every((oscillator) => oscillator.stop.mock.calls[0][0] <= 6.2)).toBe(true)
+    expect(oscillators[0].frequency.setValueAtTime).toHaveBeenCalledWith(frequency, 5.03)
+    expect(gains[2].gain.setValueAtTime).toHaveBeenCalledWith(0, 5.03)
+    expect(gains[2].gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.32, 5.03 + 0.008)
+    expect(oscillators.every((oscillator) => oscillator.stop.mock.calls[0][0] <= 6.24)).toBe(true)
     oscillators[0].onended?.()
     expect(oscillators[0].disconnect).toHaveBeenCalledOnce()
-    expect(gains[0].disconnect).toHaveBeenCalledOnce()
+    expect(gains[2].disconnect).toHaveBeenCalledOnce()
   })
 
   it('closes the context on exit and can be unlocked for a later mount', () => {
@@ -82,24 +91,50 @@ describe('web audio workout gong', () => {
     expect(factory).toHaveBeenCalledTimes(2)
   })
 
-  it('synthesizes endingSoon as three short percussive knocks with a distinct pitch and bounded envelope', () => {
-    const { factory, oscillators, gains } = audioContext()
+  it('routes every signal through one boosted, compressed output', () => {
+    const { factory, context, gains, compressor } = audioContext()
+    const gong = createWebAudioWorkoutGong(factory)
+    gong.unlock()
+    gong.unlock()
+    for (const signal of ['endingSoon', 'workEnd', 'restEnd', 'workoutEnd'] as const) gong.play(signal)
+    expect(context.createDynamicsCompressor).toHaveBeenCalledOnce()
+    expect(gains[0].gain.setValueAtTime).toHaveBeenCalledWith(3, 5)
+    expect(compressor.threshold.setValueAtTime).toHaveBeenCalledWith(-3, 5)
+    expect(compressor.knee.setValueAtTime).toHaveBeenCalledWith(0, 5)
+    expect(compressor.ratio.setValueAtTime).toHaveBeenCalledWith(20, 5)
+    expect(compressor.attack.setValueAtTime).toHaveBeenCalledWith(0, 5)
+    expect(compressor.release.setValueAtTime).toHaveBeenCalledWith(0.1, 5)
+    expect(gains[1].gain.setValueAtTime).toHaveBeenCalledWith(0.9, 5)
+    expect(compressor.connect).toHaveBeenCalledWith(gains[1])
+  })
+
+  it('synthesizes three harmonic knocks lasting 120 ms with 200 ms gaps and a fast attack', () => {
+    const { factory, oscillators, gains, filters } = audioContext()
     const gong = createWebAudioWorkoutGong(factory)
     gong.unlock()
     gong.play('endingSoon')
-    expect(oscillators).toHaveLength(9)
-    for (const [index, offset] of [0, 0.12, 0.24].entries()) {
-      const oscillator = oscillators[index * 3]
-      const gain = gains[index * 3]
-      expect(oscillator.frequency.setValueAtTime).toHaveBeenCalledWith(1400, 5 + offset)
-      expect(oscillator.start).toHaveBeenCalledWith(5 + offset)
-      expect(oscillator.stop.mock.calls[0][0]).toBeCloseTo(5 + offset + 0.04)
-      expect(gain.gain.setValueAtTime).toHaveBeenCalledWith(0, 5 + offset)
-      expect(gain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.32, 5 + offset + 0.008)
-      expect(gain.gain.exponentialRampToValueAtTime.mock.calls[0][0]).toBe(0.001)
-      oscillator.onended?.()
-      expect(oscillator.disconnect).toHaveBeenCalledOnce()
-      expect(gain.disconnect).toHaveBeenCalledOnce()
+    expect(oscillators).toHaveLength(6)
+    expect(filters).toHaveLength(3)
+    for (const [index, offset] of [0, 0.32, 0.64].entries()) {
+      const filter = filters[index]
+      expect(filter.type).toBe('bandpass')
+      expect(filter.frequency.setValueAtTime).toHaveBeenCalledWith(3000, 5.03 + offset)
+      expect(filter.Q.setValueAtTime).toHaveBeenCalledWith(0.8, 5.03 + offset)
+      for (const [partial, type, frequency, volume] of [[0, 'square', 2500, 0.6], [1, 'triangle', 3500, 0.2]] as const) {
+        const oscillator = oscillators[index * 2 + partial]
+        const gain = gains[2 + index * 2 + partial]
+        expect(oscillator.type).toBe(type)
+        expect(oscillator.frequency.setValueAtTime).toHaveBeenCalledWith(frequency, 5.03 + offset)
+        expect(oscillator.start).toHaveBeenCalledWith(5.03 + offset)
+        expect(oscillator.stop.mock.calls[0][0]).toBeCloseTo(5.03 + offset + 0.12)
+        expect(gain.gain.setValueAtTime).toHaveBeenCalledWith(0, 5.03 + offset)
+        expect(gain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(volume, 5.03 + offset + 0.002)
+        expect(gain.gain.exponentialRampToValueAtTime).toHaveBeenCalledWith(0.001, 5.03 + offset + 0.12)
+        oscillator.onended?.()
+        expect(oscillator.disconnect).toHaveBeenCalledOnce()
+        expect(gain.disconnect).toHaveBeenCalledOnce()
+      }
+      expect(filter.disconnect).toHaveBeenCalledOnce()
     }
   })
 
@@ -113,7 +148,7 @@ describe('web audio workout gong', () => {
     context.state = 'running'
     await Promise.resolve()
     expect(oscillators).toHaveLength(6)
-    expect(oscillators[0].frequency.setValueAtTime).toHaveBeenCalledWith(880, 5)
+    expect(oscillators[0].frequency.setValueAtTime).toHaveBeenCalledWith(880, 5.03)
   })
 
   it.each([
@@ -145,10 +180,10 @@ describe('web audio workout gong', () => {
     context.state = 'running'
     pendingResumes.forEach((resolve) => resolve())
     await Promise.resolve()
-    const expectedPartials = resumeDelayMs < 1000 ? 9 : 0
+    const expectedPartials = resumeDelayMs < 1000 ? 6 : 0
     expect(oscillators).toHaveLength(expectedPartials)
     if (expectedPartials > 0) {
-      expect(oscillators[0].frequency.setValueAtTime).toHaveBeenCalledWith(1400, 5)
+      expect(oscillators[0].frequency.setValueAtTime).toHaveBeenCalledWith(2500, 5.03)
     }
     expect(context.resume).toHaveBeenCalledTimes(2) // Unlock and one selected cue.
     await Promise.resolve()
