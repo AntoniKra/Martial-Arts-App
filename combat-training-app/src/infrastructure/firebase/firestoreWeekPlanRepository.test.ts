@@ -2,26 +2,30 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Firestore } from 'firebase/firestore'
 import { FirestoreWeekPlanRepository } from './firestoreWeekPlanRepository'
 import type { WeekPlan } from '@/domain/week-plan/weekPlan.types'
+import { storedWeekPlanDocuments } from './weekPlanDocumentSchema'
 
 type Snapshot = { docs: unknown[]; metadata: { fromCache: boolean; hasPendingWrites: boolean } }
 const sdk = vi.hoisted(() => ({
   change: null as ((snapshot: Snapshot) => void) | null, error: null as ((error: Error) => void) | null,
   stop: vi.fn(), query: vi.fn((path: string, condition: unknown) => ({ path, condition })),
-  set: vi.fn<() => Promise<void>>(),
+  set: vi.fn<() => Promise<void>>(), batchSet: vi.fn(), batchDelete: vi.fn(),
 }))
 vi.mock('firebase/firestore', () => ({
   collection: (_db: unknown, ...path: string[]) => path.join('/'), doc: (path: string, id: string) => `${path}/${id}`,
   query: sdk.query, where: (...args: unknown[]) => args,
   onSnapshot: (_query: unknown, _options: unknown, change: typeof sdk.change, error: typeof sdk.error) => {
     sdk.change = change; sdk.error = error; return sdk.stop
-  }, setDoc: sdk.set,
+  }, setDoc: sdk.set, writeBatch: () => ({ set: sdk.batchSet, delete: sdk.batchDelete, commit: sdk.set }),
 }))
 const instant = '2026-11-10T10:00:00.000Z'
 const plan: WeekPlan = { weekStart: '2026-11-09', items: [{ id: 'one', kind: 'category', category: 'bag' }],
   createdAt: instant, updatedAt: instant, editedAfterWeekEnd: false }
 function emit(items: unknown[], fromCache = false, pending = false, ids?: string[]) {
-  sdk.change?.({ docs: items.map((item, index) => ({ id: ids?.[index] ?? (item as WeekPlan).weekStart,
-    data: () => ({ ...(item as object), schemaVersion: 1 }), metadata: { hasPendingWrites: pending } })),
+  sdk.change?.({ docs: items.flatMap((item, index) => {
+    let documents: { id: string; data: unknown }[]
+    try { documents = storedWeekPlanDocuments(item as WeekPlan) } catch { documents = [{ id: (item as WeekPlan).weekStart, data: { ...(item as object), schemaVersion: 1 } }] }
+    return documents.map((document) => ({ id: ids?.[index] ?? document.id, data: () => document.data, metadata: { hasPendingWrites: pending } }))
+  }),
   metadata: { fromCache, hasPendingWrites: pending } })
 }
 const create = () => new FirestoreWeekPlanRepository({} as Firestore, 'athlete')
@@ -29,6 +33,40 @@ beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date(instant)); sdk.
 afterEach(() => { vi.useRealTimers(); vi.clearAllMocks() })
 
 describe('date-keyed weekly repository', () => {
+  it('removes all surplus entry documents in the same batch when a fourteen-item plan is shortened or cleared', async () => {
+    const repository = create()
+    repository.subscribe(plan.weekStart, vi.fn(), vi.fn())
+    const scheduled: WeekPlan = { ...plan, items: [], targetCount: 14,
+      schedule: Array.from({ length: 14 }, (_, index) => ({ id: String(index), kind: 'own', day: null, category: 'bag', workoutPlanId: null, planNameSnapshot: null, omitted: false })) }
+    emit([scheduled])
+    const shortened = { ...scheduled, schedule: scheduled.schedule!.slice(0, 1), updatedAt: '2026-11-10T11:00:00.000Z' }
+    const saving = repository.save(shortened)
+    expect(sdk.batchSet).toHaveBeenCalledTimes(2)
+    expect(sdk.batchDelete).toHaveBeenCalledTimes(13)
+    for (let index = 1; index < 14; index++) expect(sdk.batchDelete).toHaveBeenCalledWith(`users/athlete/weekPlans/${plan.weekStart}~${index}`)
+    expect(sdk.set).toHaveBeenCalledOnce()
+    emit([shortened], true, true)
+    await saving
+    const empty = { ...shortened, schedule: [], updatedAt: '2026-11-10T12:00:00.000Z' }
+    const clearing = repository.save(empty)
+    expect(sdk.batchDelete).toHaveBeenCalledTimes(27)
+    for (let index = 0; index < 14; index++) expect(sdk.batchDelete).toHaveBeenNthCalledWith(14 + index, `users/athlete/weekPlans/${plan.weekStart}~${index}`)
+    expect(sdk.set).toHaveBeenCalledTimes(2)
+    emit([empty], true, true)
+    await clearing
+  })
+  it('saves v2 from the local snapshot and reads v1 alongside it without rewriting', async () => {
+    const repository = create(), change = vi.fn()
+    repository.subscribe(plan.weekStart, change, vi.fn())
+    emit([plan])
+    const scheduled: WeekPlan = { ...plan, weekStart: '2026-11-16', items: [], schedule: [{ id: 'one', kind: 'own', day: null, category: 'bag', workoutPlanId: null, planNameSnapshot: null, omitted: false }], targetCount: 3 }
+    const saved = repository.save(scheduled)
+    emit([plan, scheduled], true, true)
+    await saved
+    for (const document of storedWeekPlanDocuments(scheduled)) expect(sdk.batchSet).toHaveBeenCalledWith(`users/athlete/weekPlans/${document.id}`, document.data)
+    expect(change.mock.lastCall?.[0].items).toEqual([plan, scheduled])
+    expect(sdk.set).toHaveBeenCalledOnce()
+  })
   it('queries the owner range including the current and twelve previous weeks and all future weeks', () => {
     const repository = create(), change = vi.fn()
     const stop = repository.subscribe(plan.weekStart, change, vi.fn())

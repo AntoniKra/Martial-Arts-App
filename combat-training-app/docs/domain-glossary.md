@@ -49,6 +49,8 @@
 | intensywność sparingu | `sparringIntensity`: `light`, `technical`, `hard` |
 | twarde rundy | suma `rounds` we wpisach `sparring` z `hard` |
 | plan tygodnia (cele) | `weekPlan`; pozycja `weekPlanItem` |
+| stały tydzień | `recurringWeek`; kolekcja `recurringWeeks` |
+| pozycja konkretnego tygodnia | `scheduledWeekItem`; `club`, `own`, `rest` |
 | gotowość | `readiness`: `sleep`, `fatigue`, `soreness`, `stress` |
 | zgoda na dane o zdrowiu | `healthDataConsent` |
 | waga | `bodyWeight`, `weightKg` |

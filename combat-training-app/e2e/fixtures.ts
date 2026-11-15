@@ -11,6 +11,7 @@ import type { BodyWeight } from '../src/domain/profile/profile.types'
 import type { WellbeingEntry } from '../src/domain/wellbeing/wellbeing'
 import type { PersonalExercise } from '../src/domain/exercise/exercise'
 import { seedRawAccountDocument, readRawAccountCollection } from './firestoreEmulator'
+import { combineRecurringWeekRecords, recurringWeekRecordSchema } from '../src/infrastructure/firebase/recurringWeekDocumentSchema'
 
 class WorkoutApp {
   private authenticated = false
@@ -82,6 +83,7 @@ class WorkoutApp {
   async seedWeekPlan(plan: WeekPlan) { await seedWeekPlan(this.page.request, this.uid, plan) }
   async seedInvalidWeekPlan(weekStart: string) { await seedInvalidWeekPlan(this.page.request, this.uid, weekStart) }
   async readWeekPlans() { return readWeekPlans(this.page.request, this.uid) }
+  async readRecurringWeek() { return combineRecurringWeekRecords((await readRawAccountCollection(this.page.request, this.uid, 'recurringWeeks')).map((value) => recurringWeekRecordSchema.parse(value))) }
   async readProfile() { return readProfile(this.page.request, this.uid) }
   async seedWellbeing(entry: WellbeingEntry) { return seedRawAccountDocument(this.page.request, this.uid, `readiness/${entry.date}`, { ...entry, schemaVersion: 1 }) }
   async readWellbeing() { return readRawAccountCollection(this.page.request, this.uid, 'readiness') }

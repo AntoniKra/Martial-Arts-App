@@ -182,6 +182,18 @@ Ręczny wpis zawiera najwyżej 3 unikalne `focusSkillId`; ocena 1–5 albo `unab
 
 ## `weekPlans` (plan tygodnia i moduł celów)
 
+### Rozszerzenie v2: dni i stały tydzień (issue #164, ADR 0018)
+
+Stary model v1 opisany poniżej pozostaje czytany bez przepisywania. Nowy model aplikacyjny dodaje `schedule` (0–14 pozycji) i `targetCount` (całkowite 0–14); `items` jest wtedy pustą listą. Pozycja ma `id`, `kind` i dzień 0–6 (poniedziałek–niedziela). Wariant `club`: `disciplineKey`, `startTime` i `endTime` w formacie HH:mm, koniec późniejszy od początku, unikalne `parts` jak w ręcznym wpisie (0–6) i `clubName` (null lub 1–100 znaków). Wariant `own`: dzień lub null (dowolny dzień), `category`, nullable `workoutPlanId` i `planNameSnapshot` (oba puste lub oba podane). Wariant `rest`: wymagany dzień. W konkretnym tygodniu każda pozycja ma `omitted: boolean` (odpoczynek zawsze false).
+
+Fizycznie `users/{uid}/recurringWeeks` przechowuje nagłówek v1 `default` (`id`, `itemCount`, `createdAt`, `updatedAt`, `schemaVersion`) i pozycje v1 `item-{position}` (`id`, `position` 0–13, `activity`, czasy, wersja). Jest to jedna logiczna lista stałego tygodnia. `weekPlans/{weekStart}` v2 ma `scheduleSize` zamiast listy `schedule`; pozycje v2 znajdują się w tej samej kolekcji pod ID `{weekStart}~{position}`, z polami `weekStart`, `position`, `activity`, czasy i wersja. Szczegóły atomowego zapisu, walidacji spójności i uzasadnienie rozdzielenia dokumentów: ADR 0018. `recurringWeeks` jest wdrożona i należy do obu rejestrów kolekcji, eksportu JSON, sprawdzania oczekujących zapisów i usuwania konta. Eksport zachowuje fizyczne dokumenty, bez zmiany wersji lub naprawiania danych.
+
+Każdy tydzień powstaje z niezależnej migawki stałych pozycji po potwierdzonym odczycie braku tygodnia. Przeniesienie, dodanie, usunięcie i „Nie byłem” zmieniają tylko tę migawkę. Brak lub błąd odczytu nie oznacza pustego planu. Zapis lokalny potwierdza nasłuch, a `hasPendingWrites` pokazuje „Czeka na wysłanie”. Zakończony tydzień zachowuje trwałą flagę edycji. Data pozostaje utrwalonym `workoutDate`; nie przeliczamy jej z UTC.
+
+Zaliczanie v2 maksymalizuje liczbę dopasowań, każda sesja i pozycja najwyżej raz. Dla klubu wymagana jest dyscyplina i dowolna wspólna część, gdy części podano; dla treningu własnego rodzaj/część. Datowana pozycja wymaga identycznej daty; null dopuszcza cały tydzień. Odpoczynek i świadomie pominięte pozycje nie są dopasowywane. Cel liczy wszystkie zapisane sesje, również częściowe i „Poza planem”; pasek najwyżej 100%. Statusy „Wykonane”, „Zaplanowane”, „Opuszczone”, „Nie byłem” i „Poza planem” są wyliczane, nie utrwalane. Miniony dzień bez wpisu jest opuszczony; dowolny dzień dopiero po niedzieli. Reguły sprawdzają każdą pozycję oraz własność; `zod/mini` sprawdza również daty, unikalność i spójność zestawu.
+
+### Dotychczasowy model v1
+
 | Pole | Typ | Opis |
 | --- | --- | --- |
 | `schemaVersion` | `1` | |

@@ -25,6 +25,8 @@ const inactiveWellbeing: SubscribableRepository<WellbeingEntry> = { subscribe: (
 } }
 
 function SubscribedData({ repositories, retry, children }: PropsWithChildren<{ repositories: WorkoutRepositories; retry: () => void }>) {
+  const [recurringAttempt, setRecurringAttempt] = useState(0)
+  const recurringWeeks = useRepositoryCollection(repositories.recurringWeeks, recurringAttempt)
   const [sessionAttempt, setSessionAttempt] = useState(0)
   const [exerciseAttempt, setExerciseAttempt] = useState(0)
   const exercises = useRepositoryCollection(repositories.exercises, exerciseAttempt)
@@ -41,7 +43,7 @@ function SubscribedData({ repositories, retry, children }: PropsWithChildren<{ r
   const focusSkills = useRepositoryCollection(repositories.focusSkills, focusAttempt)
   const currentWeek = useCurrentWeek()
   const { state: weekPlans, retry: retryWeekPlans } = useWeekPlanCollection(repositories.weekPlans, currentWeek, retry)
-  return <WorkoutDataContext.Provider value={{ exercises, exerciseRepository: repositories.exercises, retryExercises: () => setExerciseAttempt((value) => value + 1), profile, bodyWeights, profileRepository: repositories.profile, bodyWeightRepository: repositories.bodyWeights,
+  return <WorkoutDataContext.Provider value={{ recurringWeeks, recurringWeekRepository: repositories.recurringWeeks, retryRecurringWeeks: () => setRecurringAttempt((value) => value + 1), exercises, exerciseRepository: repositories.exercises, retryExercises: () => setExerciseAttempt((value) => value + 1), profile, bodyWeights, profileRepository: repositories.profile, bodyWeightRepository: repositories.bodyWeights,
     wellbeing, wellbeingRepository: repositories.wellbeing, retryWellbeing: () => setWellbeingAttempt((value) => value + 1),
     retryProfile: () => setProfileAttempt((value) => value + 1), retryBodyWeights: () => setWeightAttempt((value) => value + 1),
     plans, sessions, focusSkills, weekPlans, currentWeek, retryWeekPlans, retrySessions: () => setSessionAttempt((value) => value + 1), retryFocusSkills: () => setFocusAttempt((value) => value + 1), weekPlanRepository: repositories.weekPlans, planRepository: repositories.plans, sessionRepository: repositories.sessions, focusSkillRepository: repositories.focusSkills, retry }}>

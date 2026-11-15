@@ -11,7 +11,7 @@ import { profileSettingsLabels as labels } from './profileSettingsLabels'
 export function ProfileAccountSection({ service, error }: { service?: AccountService; error?: boolean }) {
   const { state } = useAuth(), data = useWorkoutData()
   const [signOutError, setSignOutError] = useState<string | null>(null)
-  const sources = [data.plans, data.sessions, data.focusSkills, data.weekPlans, data.profile, data.bodyWeights, data.wellbeing, data.exercises]
+  const sources = [data.plans, data.sessions, data.focusSkills, data.weekPlans, data.profile, data.bodyWeights, data.wellbeing, data.exercises, data.recurringWeeks]
   return <ProfileSettingsSection title={labels.account}>
     <p className="break-all text-sm text-muted">{state.status === 'ready' ? state.session?.email : ''}</p>
     {service?.providers.includes('password') ? <PasswordChangeForm service={service} />

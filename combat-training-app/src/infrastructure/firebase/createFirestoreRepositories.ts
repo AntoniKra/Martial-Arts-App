@@ -13,6 +13,7 @@ import { detachFocusSkill, hasFocusSkillEntries, selectFocusSkillPlans } from '@
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { exerciseDocumentSchema } from './exerciseDocumentSchema'
 import { exerciseIsReferenced, type PersonalExercise } from '@/domain/exercise/exercise'
+import { createFirestoreRecurringWeekRepository } from './firestoreRecurringWeekRepository'
 
 let database: Firestore | undefined
 const subscriptions = new Set<() => void>()
@@ -92,6 +93,7 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     return exercise
   })
   const weekPlans = new FirestoreWeekPlanRepository(db, uid)
+  const recurringWeeks = createFirestoreRecurringWeekRepository(db, uid)
   async function updateExerciseMetadata(id: string, fields: Partial<Pick<PersonalExercise, 'lastUsedAt' | 'favorite' | 'archivedAt'>> & { updatedAt: string }) {
     if (!await exercises.updateFields(id, fields, () => updateDoc(doc(collection(db, 'users', uid, 'exercises'), id), fields))) {
       throw new Error('Exercise no longer available')
@@ -127,6 +129,7 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     if (!(await Promise.all(localWrites)).every(Boolean)) throw new Error('Focus skill change was not applied')
   }
   return {
+    recurringWeeks: { subscribe: trackedSubscribe(recurringWeeks), save: recurringWeeks.save.bind(recurringWeeks) },
     exercises: {
       subscribe: trackedSubscribe(exercises),
       markUsed: (id, at) => updateExerciseMetadata(id, { lastUsedAt: at, updatedAt: at }),

@@ -11,6 +11,9 @@ import { WeekPlanDataMessage, WeekPlanProgress } from '@/features/week-plan/Week
 import { WeekPlanEditor } from '@/features/week-plan/WeekPlanEditor'
 import { WeeklySummary } from '@/features/weekly-summary/WeeklySummary'
 import { weekPlanLabels as labels, weekItemLabel, weekLabel } from '@/features/week-plan/weekPlanLabels'
+import { ScheduledWeekView } from '@/features/week-plan/ScheduledWeekView'
+import { RecurringWeekEditor } from '@/features/week-plan/RecurringWeekEditor'
+import { recurringSummary } from '@/features/week-plan/scheduleLabels'
 
 function WeekDetails({ weekStart }: { weekStart: string }) {
   const { weekPlans, sessions, plans } = useWorkoutData()
@@ -43,20 +46,24 @@ function WeekDetails({ weekStart }: { weekStart: string }) {
 }
 
 export function Component() {
-  const { currentWeek, weekPlans } = useWorkoutData()
+  const { currentWeek, weekPlans, recurringWeeks } = useWorkoutData()
+  const [recurringEditing, setRecurringEditing] = useState(false)
   const { weekStart = '' } = useParams()
   const navigate = useNavigate()
   const selected = selectWeekPlan(weekPlans, weekStart)
+  if (recurringEditing) return <div className="px-4 pb-6 pt-7 md:px-0"><RecurringWeekEditor onClose={() => setRecurringEditing(false)} /></div>
   if (!isMonday(weekStart) || selected.status === 'outsideRange') return <div className="space-y-4 px-4 py-6 md:px-0">
     <h1 className="font-display text-3xl font-bold">{labels.title}</h1>
     <WeekPlanDataMessage status="outsideRange" />
     <Link to={routes.weekPlan(currentWeek)} className={getButtonClassName()}>{labels.current}</Link>
   </div>
+  if (selected.status === 'ready' && (!selected.plan || selected.plan.schedule !== undefined)) return <ScheduledWeekView key={weekStart} weekStart={weekStart} onRecurring={() => setRecurringEditing(true)} />
   const options = [...new Set([...Array.from({ length: 14 }, (_, index) => shiftCalendarDate(currentWeek, (index - 12) * 7)),
     ...weekPlans.items.map((plan) => plan.weekStart), weekStart])].filter((week) => week >= weekPlans.rangeStart).sort()
   return <div className="space-y-5 px-4 py-6 md:px-0">
     <Link to={routes.progress} className={getButtonClassName({ variant: 'ghost' })}>Wróć do Postępu</Link>
     <h1 className="font-display text-3xl font-bold">{labels.title}</h1>
+    <button type="button" className="min-h-touch w-full border border-bd bg-surface p-3 text-left text-sm" onClick={() => setRecurringEditing(true)}>{recurringSummary(recurringWeeks.items[0])}</button>
     <nav aria-label="Wybór tygodnia" className="space-y-3">
       <label className="block space-y-2 text-sm">Tydzień<select aria-label="Tydzień" value={weekStart} onChange={(event) => void navigate(routes.weekPlan(event.target.value))} className="min-h-touch w-full border border-bd bg-surface px-3 text-base text-ink">
         {options.map((week) => <option key={week} value={week}>{weekLabel(week)}{week === currentWeek ? ' · bieżący' : ''}</option>)}

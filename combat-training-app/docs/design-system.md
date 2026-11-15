@@ -68,4 +68,6 @@ Profil używa spokojnych kart `surface` z ramką i etykietami sekcji wersalikami
 
 ## Migracja Figmy
 
+Plan tygodnia (#164) odwzorowuje HTML z komentarza właściciela: marginesy telefonu 16 px, górny odstęp 28 px, odstępy sekcji 14 px, nagłówek Archivo 28 px/800, strzałki tygodnia 44 px, pasek 6 px, siatka dnia 52 px + treść. Dziś ma pionową ramkę akcentu, podwyższoną powierzchnię i tekst „DZIŚ”. Stały tydzień jest jednym wierszem pod nagłówkiem, jedynym wejściem do jego edycji. Sekcja dowolnego dnia i automatyczne liczniki rodzajów zachowują hierarchię makiety. Formularz stałego tygodnia ma odstępy 22 px, nagłówek 26 px, pola 48 px i przycisk zapisu 56 px; przełączniki dni są dostępne klawiaturą i mają `aria-pressed`. Kolory i fonty wyłącznie z tokenów obu motywów. Status zawsze ma tekst lub symbol; nie jest oparty wyłącznie na kolorze. Układ Startu i istniejące wykresy pozostają bez przebudowy.
+
 Najpierw odtwórz zatwierdzony ekran 1:1. Nie łącz migracji wizualnej z przebudową logiki. Każde ulepszenie UX zgłaszaj osobno.

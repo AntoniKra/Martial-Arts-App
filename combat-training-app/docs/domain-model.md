@@ -2,6 +2,8 @@
 
 ## Trening
 
+Issue #164 / ADR 0018: plan tygodnia v2 ma stały tydzień i niezależne migawki konkretnych tygodni, z dniami lub treningiem własnym bez dnia. Sesja według zapisanej daty i rodzaju/części zalicza najwyżej jedną pozycję, z maksymalną liczbą dopasowań. Każdy zapisany trening, także częściowy i poza planem, liczy się do osobnego celu liczby treningów. Świadome „Nie byłem” wyłącza pozycję z dopasowania; miniony dzień bez wpisu daje „Opuszczone”. Odpoczynek nie liczy się do celu. Stare plany tygodnia v1 i ich zasady pozostają bez automatycznej migracji. Dokładny model i zapis fizyczny opisuje `database-model.md`.
+
 Trening przechodzi przez statusy:
 
 - `draft` — lokalny lub rozpoczęty szkic;

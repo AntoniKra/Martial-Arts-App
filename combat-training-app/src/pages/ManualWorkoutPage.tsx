@@ -7,13 +7,17 @@ import { prepareWorkoutFeedback } from '@/domain/workout-session/workoutFeedback
 import { Button } from '@/components/ui/Button'
 import { ManualWorkoutForm } from '@/features/manual-workout/ManualWorkoutForm'
 import { manualWorkoutLabels as labels } from '@/features/manual-workout/manualWorkoutLabels'
+import { readClubWorkoutPrefill } from '@/infrastructure/browser/readClubWorkoutPrefill'
+import { calculateWorkoutDate } from '@/domain/workout-session/workoutSessionDefinitions'
 
 export function Component() {
   const { sessionId } = useParams()
   const location = useLocation()
   const [newId] = useState(() => crypto.randomUUID())
   const { sessions, focusSkills, sessionRepository, retry, retryFocusSkills } = useWorkoutData()
-  const returnTo = location.state && typeof location.state === 'object' && 'returnTo' in location.state && location.state.returnTo === '/'
+  const prefill = !sessionId && location.state && typeof location.state === 'object' && 'weekEntry' in location.state
+    ? readClubWorkoutPrefill(location.state.weekEntry, calculateWorkoutDate(new Date().toISOString(), Intl.DateTimeFormat().resolvedOptions().timeZone)) : undefined
+  const returnTo = prefill ? routes.weekPlan(prefill.weekStart) : location.state && typeof location.state === 'object' && 'returnTo' in location.state && location.state.returnTo === '/'
     ? routes.home : `${routes.workouts}?tab=history`
   if (sessions.status === 'loading') return <p role="status" className="p-4 text-muted">{labels.loading}</p>
   if (sessions.status === 'error' || sessions.invalidDocumentIds.length) return <div className="space-y-4 p-4">
@@ -24,7 +28,7 @@ export function Component() {
     <h1 className="font-display text-xl">{original ? labels.unavailable : labels.missing}</h1><Link to={returnTo}>{labels.back}</Link>
   </div>
   const manual = original?.source === 'manual' ? original : undefined
-  return <ManualWorkoutForm key={sessionId ?? 'new'} original={manual} sessions={sessions.items} skills={focusSkills.items}
+  return <ManualWorkoutForm key={sessionId ?? 'new'} original={manual} prefill={prefill} sessions={sessions.items} skills={focusSkills.items}
     skillsStatus={focusSkills.invalidDocumentIds.length ? 'error' : focusSkills.status} onRetrySkills={retryFocusSkills} returnTo={returnTo}
     onSave={async (values, available) => {
       const now = new Date().toISOString()

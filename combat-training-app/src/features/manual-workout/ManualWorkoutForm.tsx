@@ -22,6 +22,7 @@ import { workoutSessionName } from '@/features/workouts/utils/workoutSessionPres
 import { manualCategoryDescriptions, manualPartLabel, manualPartsLabel, manualWorkoutLabels as labels } from './manualWorkoutLabels'
 import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWorkoutLine'
 import { hasPerformanceObserver, reportPerformanceEvent } from '@/application/performance/performanceEvents'
+import type { ClubWorkoutPrefill } from '@/domain/week-plan/clubWorkoutPrefill'
 
 const inputClass = 'mt-2 block min-h-touch w-full border border-bd bg-input p-3 text-base text-ink'
 const groupClass = 'min-w-0 space-y-3'
@@ -50,7 +51,8 @@ function DuplicateDialog({ duplicate, onCancel, onConfirm }: {
   </dialog>
 }
 
-export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, onRetrySkills, onSave, returnTo }: {
+export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, onRetrySkills, onSave, returnTo, prefill }: {
+  prefill?: ClubWorkoutPrefill
   original?: ManualWorkoutSession; sessions: readonly WorkoutSession[]; skills: readonly FocusSkill[]
   skillsStatus: 'loading' | 'ready' | 'error'; onRetrySkills: () => void
   onSave: (values: ManualWorkoutValues, skillsAvailable: boolean) => Promise<void>; returnTo: string
@@ -61,7 +63,8 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
   const [initial] = useState(() => {
     const latest = [...sessions].sort((a, b) => b.workoutDate.localeCompare(a.workoutDate)
       || (b.source === 'manual' ? b.createdAt : b.startedAt).localeCompare(a.source === 'manual' ? a.createdAt : a.startedAt))[0]
-    return createManualWorkoutDraft(today, latest?.disciplineKey ?? '', original)
+    const draft = createManualWorkoutDraft(today, latest?.disciplineKey ?? '', original)
+    return !original && prefill ? changeManualParts({ ...draft, workoutDate: prefill.workoutDate, disciplineKey: prefill.disciplineKey, durationMinutes: prefill.durationMinutes }, prefill.parts) : draft
   })
   const [draft, setDraft] = useState(initial)
   const [customDuration, setCustomDuration] = useState(!['', '60', '90', '120'].includes(initial.durationMinutes))

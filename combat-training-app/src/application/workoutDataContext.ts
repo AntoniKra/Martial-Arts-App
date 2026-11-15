@@ -15,8 +15,13 @@ import type { WellbeingEntry } from '@/domain/wellbeing/wellbeing'
 import type { WellbeingRepository } from './profile/wellbeingRepository'
 import type { PersonalExercise } from '@/domain/exercise/exercise'
 import type { ExerciseRepository } from './exercise/exerciseRepository'
+import type { RecurringWeek } from '@/domain/week-plan/weekPlan.types'
+import type { RecurringWeekRepository } from './week-plan/recurringWeekRepository'
 
 export interface WorkoutData {
+  recurringWeeks: CollectionState<RecurringWeek>
+  recurringWeekRepository: RecurringWeekRepository
+  retryRecurringWeeks: () => void
   exercises: CollectionState<PersonalExercise>
   exerciseRepository: ExerciseRepository
   retryExercises: () => void

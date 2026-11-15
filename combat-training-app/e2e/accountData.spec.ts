@@ -11,7 +11,7 @@ import { personalExercise } from '../src/test/exerciseBuilders'
 
 test.use({ screenshot: 'off' })
 const instant = '2026-11-13T09:00:00.000Z'
-const names = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights', 'readiness', 'exercises']
+const names = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights', 'readiness', 'exercises', 'recurringWeeks']
 const jsonButton = (page: Page) => page.getByRole('button', { name: 'Pobierz wszystkie dane (JSON)', exact: true })
 const csvButton = (page: Page) => page.getByRole('button', { name: 'Pobierz dziennik (CSV)', exact: true })
 const profile = { schemaVersion: 1, healthDataConsent: { grantedAt: instant, noticeVersion: '2026-11', adultConfirmed: true },

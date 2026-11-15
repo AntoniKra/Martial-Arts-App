@@ -22,7 +22,7 @@ describe('deferred workout repositories', () => {
     const subscribe = () => { subscriptions += 1; return () => { subscriptions -= 1 } }
     const unsubscribe = repositories.plans.subscribe(() => {}, () => {})
     unsubscribe()
-    connect({ exercises: { subscribe, save: async () => {}, markUsed: async () => {}, setFavorite: async () => {}, setArchived: async () => {}, deleteUnused: async () => {} }, profile: { subscribe, save: async () => {}, withdrawConsent: async () => {} },
+    connect({ recurringWeeks: { subscribe, save: async () => {} }, exercises: { subscribe, save: async () => {}, markUsed: async () => {}, setFavorite: async () => {}, setArchived: async () => {}, deleteUnused: async () => {} }, profile: { subscribe, save: async () => {}, withdrawConsent: async () => {} },
       bodyWeights: { subscribe, save: async () => {}, delete: async () => {} },
       wellbeing: { subscribe, save: async () => {}, withdrawConsent: async () => {} },
       weekPlans: { subscribe, save: async () => {} }, plans: { subscribe, save: async () => {}, delete: async () => {} },

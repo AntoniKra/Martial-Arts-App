@@ -118,7 +118,7 @@ test('summarizes all sources with recorded load, follows live edits and week sel
   await expect(section.getByText(/RPE w|Dane w|Brak danych|Suma obejmuje/)).toHaveCount(0)
   await expect(section.getByText('Szczegóły obciążenia', { exact: true })).toHaveCount(0)
   await checkPhoneLayouts(page, info); await capture(page, info, 'empty-week')
-  await page.getByRole('combobox', { name: 'Tydzień', exact: true }).selectOption(weekStart)
+  await page.getByRole('link', { name: 'Poprzedni tydzień', exact: true }).click()
   await expect(section.getByText('RPE w 2 z 2 treningów', { exact: true })).toBeVisible()
   await expect(totals(page).nth(6)).toHaveText('345 j.u.')
 })
