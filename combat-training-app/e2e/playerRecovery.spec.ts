@@ -169,7 +169,8 @@ test('clears the active snapshot on sign-out', async ({ app, page }) => {
   await app.startWorkout()
   const saved = await page.evaluate(() => Object.entries(localStorage).find(([key]) => key.startsWith('combat-training.activeWorkout.'))!)
   await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Porzuć', exact: false }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Porzuć bez zapisu…', exact: true }).click()
+  await page.getByRole('dialog', { name: 'Porzucić trening?', exact: true }).getByRole('button', { name: 'Porzuć', exact: true }).click()
   await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   // Reintroduce the account's active snapshot while on a screen that permits sign-out.
   await page.evaluate(([key, value]) => localStorage.setItem(key, value), saved)
