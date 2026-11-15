@@ -20,13 +20,28 @@ export function calculateWeekPlanProgress(weekStart: string, plan: WeekPlan | un
   const used = new Set<string>()
   for (const status of ['completed', 'partial'] as const) {
     for (const kind of ['plan', 'category'] as const) {
+      // Earlier phases stay reserved. Within this phase, follow augmenting paths
+      // to maximize matches without assigning a session to more than one goal.
+      const available = matches.filter((match) => match.item.kind === kind && !match.session)
+      function assign(session: WorkoutSession, visited: Set<WeekPlanMatch>): boolean {
+        const candidates = available.filter((match) => {
+          const { item } = match
+          return !visited.has(match) && (item.kind === 'plan'
+            ? session.source === 'plan' && item.workoutPlanId === session.workoutPlanId
+            : session.source === 'manual' && session.parts ? session.parts.some((part) => part === item.category) : item.category === session.category)
+        })
+        // Prefer free goals, preserving chronological order when no reassignment is needed.
+        const free = candidates.find((match) => !match.session)
+        if (free) { free.session = session; return true }
+        for (const match of candidates) {
+          visited.add(match)
+          if (match.session && assign(match.session, visited)) { match.session = session; return true }
+        }
+        return false
+      }
       for (const session of ordered) {
         if (session.status !== status || used.has(session.id)) continue
-        const match = matches.find(({ item, session: matched }) => !matched && item.kind === kind && (
-          item.kind === 'plan' ? session.source === 'plan' && item.workoutPlanId === session.workoutPlanId
-            : item.category === session.category
-        ))
-        if (match) { match.session = session; used.add(session.id) }
+        if (assign(session, new Set())) used.add(session.id)
       }
     }
   }

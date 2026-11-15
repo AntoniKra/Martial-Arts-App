@@ -9,6 +9,7 @@ import { block, continuousExercise, workoutPlan } from '../src/test/workoutBuild
 import { sessionStep, workoutSession } from '../src/test/workoutSessionBuilders'
 import type { WeekPlan, WeekPlanItem } from '../src/domain/week-plan/weekPlan.types'
 import type { ManualWorkoutSession } from '../src/domain/workout-session/workoutSession.types'
+import { manualWorkoutSession } from '../src/test/manualWorkoutBuilder'
 
 const weekStart = '2026-11-09', instant = '2026-11-10T10:00:00.000Z'
 const plan = { ...workoutPlan([block('bag', [continuousExercise('one', 60)], 'bag')]), id: 'bag-plan', nameSnapshot: 'Worek' }
@@ -62,6 +63,25 @@ async function add(page: Page, choice: string) {
 async function save(page: Page) {
   await page.getByRole('button', { name: 'Zapisz plan tygodnia', exact: true }).click()
   await expect(form(page)).toHaveCount(0)
+}
+
+for (const reversed of [false, true]) {
+  test(`maximizes club parts in both goal orders, reversed=${reversed}`, async ({ app, page }, info) => {
+    await app.open('/')
+    const items = [category('technique', 'technique'), category('pads', 'pads')]
+    await app.seedWeekPlan(goal(reversed ? [...items].reverse() : items))
+    const progress = page.getByRole('region', { name: 'Plan tygodnia', exact: true }).getByRole('progressbar')
+    await expect(progress).toHaveAttribute('aria-valuenow', '0')
+    await app.seedSession(manualWorkoutSession({ id: 'multi', category: 'mixed', parts: ['technique', 'pads'], workoutDate: weekStart }))
+    await expect(progress).toHaveAttribute('aria-valuenow', '1')
+    await app.seedSession(manualWorkoutSession({ id: 'single', category: 'technique', parts: ['technique'], workoutDate: '2026-11-10' }))
+    await expect(progress).toHaveAttribute('aria-valuenow', '2')
+    await expect(progress).toHaveAttribute('aria-valuemax', '2')
+    await page.getByRole('link', { name: 'Szczegóły planu tygodnia', exact: true }).click()
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2')
+    await expect(page.getByText('Częściowe: 0 · Niewykonane: 0 · Dodatkowe: 0', { exact: true })).toBeVisible()
+    await accessible(page); await capture(page, info, `week-maximal-parts-${reversed}`)
+  })
 }
 
 test('creates repeated plans, recalculates 2/3, persists and copies selected completed and partial goals', async ({ app, page }, info) => {

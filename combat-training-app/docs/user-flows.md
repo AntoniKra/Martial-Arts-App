@@ -27,9 +27,9 @@ Plan nie ma wymaganej daty wykonania. Data historii wynika z rozpoczęcia.
 ## Trening spoza aplikacji
 
 1. Na stronie głównej (pod ostatnimi sesjami) albo w Treningi › Historia wybierz **+ Dodaj trening spoza aplikacji**.
-2. Wybierz datę do 7 dni wstecz, dyscyplinę i rodzaj. Dyscyplinę podpowiada najnowszy wpis, a bez wpisów trzeba ją wybrać.
+2. Wybierz datę do 7 dni wstecz, dyscyplinę i co najmniej jedną część zajęć. „Jak ostatnio” kopiuje tylko dyscyplinę, czas i części poprzednich zajęć. Dyscyplinę podpowiada najnowszy wpis, a bez wpisów trzeba ją wybrać.
 3. Podaj cały czas zajęć, łącznie z rozgrzewką (60/90/120 min albo 1–480 min) i obowiązkowe RPE 0–10. Przy treningu sprzed co najmniej 3 dni zobaczysz wyjaśnienie „z pamięci”.
-4. Jeżeli był sparing, podaj intensywność i opcjonalnie liczbę rund. Dla rodzaju „Sparing” sekcja jest zawsze otwarta.
+4. Zaznaczenie części „Sparing” otwiera sekcję intensywności i opcjonalnej liczby rund. Odznaczenie czyści te odpowiedzi.
 5. Opcjonalnie zaznacz do 3 ćwiczeń celu, oceń kryteria, odpowiedz o poprzedniej notatce i dodaj problem oraz poprawkę. Przy „Mieszany” i „Kondycja” wybierz miejsce. Błąd odczytu ćwiczeń pozwala ponowić odczyt albo zapisać resztę bez zmiany ocen.
 6. Opcjonalnie dodaj notatkę do treningu. **Zapisz** zgłasza błędy przy polach i ustawia fokus na pierwszym z nich. Przy możliwym dublu **Wróć do wpisu** nic nie zapisuje; **Tak, zapisz osobno** dodaje tylko osobny wpis, bez zmiany treningu z odtwarzacza.
 7. Po lokalnym zapisie wracasz do miejsca otwarcia formularza; offline widzisz „Czeka na wysłanie”. W Historii i na Home wpis ma nazwę „Trening poza aplikacją · rodzaj”, samą datę i czas, bez realizacji. **Popraw** otwiera edycję, **Usuń wpis** działa jak dotąd. Wyjście z niezapisanymi zmianami wymaga decyzji w oknie „Odrzucić zmiany?”.
@@ -37,7 +37,7 @@ Plan nie ma wymaganej daty wykonania. Data historii wynika z rozpoczęcia.
 
 ## Profil: zgoda, pomiary i statystyki
 
-1. Wybierz piątą zakładkę **Profil**. Statystyki są dostępne bez zgody: od początku oraz czas według rodzaju z ostatnich 4 tygodni. Niepełna historia, ładowanie i błąd mają jawne stany zamiast pozornych zer.
+1. Wybierz piątą zakładkę **Profil**. Statystyki są dostępne bez zgody: od początku oraz liczby zajęć z każdą częścią i minuty według rodzaju z ostatnich 4 tygodni. Minuty obejmują tylko jednoczęściowe wpisy i odtwarzacz, z objaśnieniem przy wynikach. Niepełna historia, ładowanie i błąd mają jawne stany zamiast pozornych zer.
 2. **Włącz zapisywanie masy ciała** otwiera osobny ekran informacji. Potwierdź pełnoletność i zgodę; **Włącz** działa dopiero po zaznaczeniu obu pól. **Nie teraz** wraca bez zapisu; pozostałe funkcje nie wymagają zgody.
 3. **+ Dodaj pomiar**: wybierz dziś lub datę wsteczną, wpisz masę w kg przecinkiem lub kropką. Instrukcja przypomina o podobnych warunkach ważenia. Jeśli dzień ma pomiar, ostrzeżenie wyjaśnia zastąpienie. Zapis zachowuje datę utworzenia wcześniejszego pomiaru.
 4. Zobacz średnią z 7 dni, liczbę pomiarów i wykres średnich z 12 tygodni. **Pokaż dane** rozwija tekstową tabelę, również z brakującymi tygodniami. Kategoria jest opcjonalną etykietą; puste pole ją usuwa.

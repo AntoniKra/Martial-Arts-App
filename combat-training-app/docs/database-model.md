@@ -104,6 +104,8 @@ Nowa sesja z planu otrzymuje ID z `crypto.randomUUID()` przy rozpoczęciu pierws
 
 ### Pola zależne od źródła
 
+Issue #149 / ADR 0016: nowy lub świadomie poprawiony ręczny wpis ma `schemaVersion: 2` oraz `parts`: 1–6 unikalnych kluczy `technique`, `pads`, `bag`, `sparring`, `conditioning`, `other`. `category` odpowiada pojedynczej nazwanej części; dla kilku części i `other` jest `mixed`. Wersja 1 bez `parts` pozostaje odczytywana bez migracji. Plan i szybki stoper nadal mają wersję 1. Odczyt i zapis sprawdza `zod/mini`; Firestore sprawdza wersję, obecność listy, dozwolone wartości, brak duplikatów, długość, zgodność rodzaju i obecności sparingu. `createdAt` już istniało: nowy wpis zapisuje chwilę dodania, edycja ją zachowuje.
+
 | Pole | `plan` | `quickTimer` | `manual` |
 | --- | --- | --- | --- |
 | `startedAt`, `completedAt` (chwila) | tak | tak | brak |
@@ -114,7 +116,7 @@ Nowa sesja z planu otrzymuje ID z `crypto.randomUUID()` przy rozpoczęciu pierws
 
 `stepResults` mają kształt i inwarianty z `domain-model.md` (`WorkoutSessionStepResult`).
 
-Ręczny wpis ma `status: 'completed'`, `completion: null`, `workSeconds: null` i `sparringSeconds: null` (nieznane czasy, a nie zera). Data przy tworzeniu: od dziś − 7 dni do dziś w strefie urządzenia. Edycja może pozostawić starszą zapisaną datę; nowa data musi być z tego zakresu. Nowy wpis otrzymuje UUID, strefę urządzenia i `createdAt = updatedAt = rpeRecordedAt = now`. Edycja zachowuje ID, `createdAt` i `timezone`. W produkcji nie było wpisów `manual`; zmiana z 12 listopada 2026 nie podnosi `schemaVersion` i nie wymaga migracji.
+Ręczny wpis ma `status: 'completed'`, `completion: null`, `workSeconds: null` i `sparringSeconds: null` (nieznane czasy, a nie zera). Data przy tworzeniu: od dziś − 7 dni do dziś w strefie urządzenia. Edycja może pozostawić starszą zapisaną datę; nowa data musi być z tego zakresu. Nowy wpis otrzymuje UUID, strefę urządzenia i `createdAt = updatedAt = rpeRecordedAt = now`. Edycja zachowuje ID, `createdAt` i `timezone`. Pierwsza wersja ręcznego wpisu z 12 listopada pozostaje obsługiwana; części zajęć od 14 listopada używają wersji 2.
 
 Po korekcie zegara `−15 s` / `+15 s` (issue #91) `stepResults[].plannedDurationSeconds` oznacza czas docelowy etapu po korektach, minimum 1 s, a nie pierwotny czas z planu. Dla `completed` nadal obowiązuje `performedDurationSeconds === plannedDurationSeconds`; np. runda 180 s wydłużona o 15 s zapisuje obie wartości jako 195 i wnosi 195 s do pracy. Licznik `completion` nie zmienia znaczenia. Korekta nie zmienia planu ani pól dokumentu sesji, więc schemat wersji 1 i reguły Firestore pozostają bez zmian. Lokalny zapis wznowienia ma opcjonalne `stepDurations` z celami etapów; brak pola w starym zapisie oznacza czasy z planu. Wynik wcześniejszej próby zachowuje własny czas docelowy także po restarcie etapu.
 
@@ -128,7 +130,7 @@ Po korekcie zegara `−15 s` / `+15 s` (issue #91) `stepResults[].plannedDuratio
 
 - Plan: jeden wpis na każdy blok `sparring`. `rounds` to liczba dokończonych etapów rundowych w tym bloku. Sparing w trybie ciągłym liczy się do `sparringSeconds`, ale nie do rund.
 - Twarde rundy w tygodniu to suma `rounds` z wpisów z `intensity: 'hard'`.
-- Ręczny wpis: najwyżej jeden element, `blockId: null`, intensywność wymagana, rundy 1–50 albo `null`; przy rodzaju `sparring` dokładnie jeden element. Czas pracy i sparingu pozostaje `null` niezależnie od liczby rund.
+- Ręczny wpis: najwyżej jeden element, `blockId: null`, intensywność wymagana, rundy 1–50 albo `null`; w wersji 2 dokładnie jeden element po wybraniu części `sparring`, poza tym pusta lista. Odznaczenie części czyści intensywność i rundy. W wersji 1 nadal dopuszczamy dawny osobny wybór sparingu. Czas pracy i sparingu pozostaje `null` niezależnie od liczby rund.
 
 ### `FocusRating` (ocena ćwiczenia celu)
 
@@ -144,7 +146,7 @@ Po korekcie zegara `−15 s` / `+15 s` (issue #91) `stepResults[].plannedDuratio
 
 Zapis sesji z planu tworzy po jednym wpisie dla każdego ćwiczenia celu z `assessment: null`. Podsumowanie uzupełnia oceny.
 
-Ręczny wpis zawiera najwyżej 3 unikalne `focusSkillId`; ocena 1–5 albo `unableToRate` jest wymagana dla każdego wybranego ćwiczenia (bez `null`). Miejsce nie może być rozgrzewką ani rozluźnieniem. Wynika z rodzaju treningu; przy „Mieszany” i „Kondycja” wybiera je użytkownik. Sesja i zmiany `focusSkills.openCorrection` trafiają do jednego `writeBatch`, także offline. Oceny ręczne wchodzą do trendu oraz blokują usunięcie ćwiczenia celu.
+Ręczny wpis zawiera najwyżej 3 unikalne `focusSkillId`; ocena 1–5 albo `unableToRate` jest wymagana dla każdego wybranego ćwiczenia (bez `null`). Miejsce nie może być rozgrzewką ani rozluźnieniem. Dla nowej oceny wynika z pojedynczej nazwanej części; przy kilku częściach, „Inne” i „Kondycja” wybiera je użytkownik. Przy edycji zapisane miejsce istniejącej oceny pozostaje niezmienione, dopóki użytkownik sam nie zmieni go w polu miejsca. Edycja dawnego v1 `mixed` startuje bez części, również gdy zapisano szczegóły sparingu, i wymaga świadomego wskazania pełnej listy przed konwersją do v2. Sesja i zmiany `focusSkills.openCorrection` trafiają do jednego `writeBatch`, także offline. Oceny ręczne wchodzą do trendu oraz blokują usunięcie ćwiczenia celu.
 
 ### `ExerciseRating` (ocena pozostałych ćwiczeń, opcjonalna)
 
@@ -191,8 +193,8 @@ Lista zawiera 0–14 pozycji z unikalnymi ID. Ten sam plan można wybrać wielok
 Dopasowanie liczymy czysto w `src/domain`, bez zmieniania sesji ani planu:
 1. Wybieramy wpisy po utrwalonym `workoutDate` (poniedziałek–niedziela). Nie odtwarzamy dnia z UTC ani ze strefy urządzenia.
 2. Ukończone sesje `plan` przypisujemy do wolnych pozycji o identycznym `workoutPlanId`.
-3. Pozostałe ukończone sesje dowolnego źródła przypisujemy do wolnych pozycji rodzaju z identyczną `category`.
-4. Następnie analogicznie przypisujemy częściowe: najpierw dokładny plan, potem rodzaj.
+3. Pozostałe ukończone sesje dowolnego źródła przypisujemy do wolnych pozycji rodzaju. Dla ręcznego v2 rodzaj musi wystąpić w `parts`; pozostałe wpisy wymagają identycznej `category`. Przypisanie maksymalizuje liczbę zaliczonych pozycji niezależnie od kolejności różnych celów: może przesunąć wcześniejsze przypisania wewnątrz tej fazy, bez naruszania dokładnych planów.
+4. Następnie analogicznie przypisujemy częściowe: najpierw dokładny plan, potem rodzaj; zakończonych wcześniejszych faz już nie zmieniamy.
 5. Każda sesja i pozycja uczestniczy najwyżej w jednym dopasowaniu. W każdej fazie kolejność to `workoutDate`, `startedAt` (sesje czasowe) lub `createdAt` (ręczne), następnie `id`; identyczne pozycje zachowują kolejność listy.
 6. Pasek to **wyłącznie ukończone / zaplanowane**, najwyżej 100%. Częściowe, niewykonane i dodatkowe mają osobne liczniki. Pozostałe sesje są dodatkowe tylko przy istniejącym celu. Brak dokumentu lub `items: []` oznacza brak celu: liczba treningów i możliwość ułożenia planu, bez paska i „dodatkowych”. Loading, błąd, niepoprawne lub niepełne dane nie oznaczają braku celu ani zera sesji.
 

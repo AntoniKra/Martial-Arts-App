@@ -164,7 +164,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
     const form = page.getByRole('form', { name: 'Trening spoza aplikacji', exact: true })
     await form.getByRole('radio', { name: 'Boks', exact: true }).check()
-    await form.getByRole('radio', { name: /^Sparing/ }).check()
+    await form.getByRole('checkbox', { name: /^Sparing/ }).check()
     await form.getByRole('checkbox', { name: skill.name, exact: true }).check()
     await expect(form.getByRole('article', { name: skill.name, exact: true })).toBeVisible()
     await audit(page, info, 'manual-entry', theme)

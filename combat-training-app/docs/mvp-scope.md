@@ -31,7 +31,7 @@ Dokument nadrzędny to `thesis-card.md`. Wiąże temat pracy, a technologie i li
 - Krótka instrukcja ważenia, neutralne słowa i kolory. Bez przypomnień, serii, odznak, BMI, „idealnej wagi”, tkanki tłuszczowej i komunikatu o szybkim spadku.
 - Informacja `2026-11` opisuje tylko pomiary i kategorię; nie zawiera gotowości. Obecnie nie obsługujemy starszych wersji informacji (komentarz Claude z 13.11); kolejną zgodę dla Q3 opisuje ADR 0012.
 - Wycofanie wymaga sieci, usuwa wszystkie pomiary i kategorię, a zgodę zeruje dopiero w ostatniej partii. Przerwany proces można ponowić. Reguły sprawdzają zgodę przy zapisie pomiarów.
-- Statystyki od początku: treningi, czas, rundy sparingu i pierwszy dzień; ostatnie 4 tygodnie: czas według rodzaju. Wszystkie źródła i oba statusy, po `workoutDate`; nieznane wartości nie są zerami.
+- Statystyki od początku: treningi, czas, rundy sparingu i pierwszy dzień; ostatnie 4 tygodnie: liczby zajęć z każdą częścią i czas według rodzaju (tylko wpisy jednoczęściowe oraz odtwarzacz, bez podziału minut wieloczęściowych zajęć; issue #149). Wszystkie źródła i oba statusy, po `workoutDate`; nieznane wartości nie są zerami.
 
 ## Ważne (gdy rdzeń jest stabilny)
 

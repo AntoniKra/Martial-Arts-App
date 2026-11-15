@@ -11,6 +11,8 @@ import { ProgressDataState, ProgressDataWarning } from '@/features/progress/Prog
 import { progressLabels as labels } from '@/features/progress/progressLabels'
 import { WeekPlanSummary } from '@/features/week-plan/WeekPlanSummary'
 import { WellbeingProgressCard } from '@/features/wellbeing/WellbeingProgressCard'
+import { ProfileStatistics } from '@/features/profile/ProfileStatistics'
+import { calculateWorkoutDate } from '@/domain/workout-session/workoutSessionDefinitions'
 
 function SkillCard({ skill }: { skill: FocusSkill }) {
   const { sessions, focusSkills } = useWorkoutData()
@@ -34,6 +36,7 @@ export function Component() {
   return <div className="space-y-6 px-4 py-6 md:px-0">
     <h1 className="font-display text-3xl font-bold">{labels.title}</h1>
     <WeekPlanSummary />
+    <ProfileStatistics today={calculateWorkoutDate(new Date().toISOString(), Intl.DateTimeFormat().resolvedOptions().timeZone)} recentOnly />
     <WellbeingProgressCard />
     {plans.hasPendingWrites || focusSkills.hasPendingWrites ? <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p> : null}
     <ProgressDataWarning />

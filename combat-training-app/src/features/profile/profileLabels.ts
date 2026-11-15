@@ -39,6 +39,10 @@ export const profileLabels = {
   duration: 'Czas treningu', rounds: 'Rundy sparingu', total: 'Suma',
   emptyStatistics: 'Statystyki pojawią się po pierwszym treningu.',
   noRecentWorkouts: 'Brak treningów z ostatnich 4 tygodni.',
+  partCounts: 'Zajęcia spoza aplikacji według części', categoryMinutes: 'Minuty według rodzaju',
+  categoryMinutesHint: 'Minuty obejmują wpisy jednoczęściowe i odtwarzacz. Nie dzielimy czasu zajęć z kilkoma częściami ani dawnych wpisów „Mieszany”. Suma to cały czas wszystkich treningów.',
+  partCountsHint: 'Jedne zajęcia mogą wystąpić w kilku częściach. Liczników części nie sumujemy.',
+  classes: (count: number) => count === 1 ? 'jedne zajęcia' : `${count} ${new Intl.PluralRules('pl').select(count) === 'few' ? 'zajęcia' : 'zajęć'}`,
   saving: 'Zapisywanie…', deleting: 'Usuwanie…',
 } as const
 

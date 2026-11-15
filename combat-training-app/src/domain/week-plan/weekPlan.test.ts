@@ -19,6 +19,37 @@ const manual = (id: string): ManualWorkoutSession => ({ id, source: 'manual', st
   completion: null, note: null, rpe: 0, rpeRecordedAt: instant, focusRatings: [], sparring: [], createdAt: instant, updatedAt: instant })
 
 describe('week plan matching', () => {
+  it.each([false, true])('maximizes completed parts regardless of goal order, reversed=%s', (reversed) => {
+    const items = [category('technique', 'technique'), category('pads', 'pads')]
+    const entries: ManualWorkoutSession[] = [{ ...manual('multi'), category: 'mixed', parts: ['technique', 'pads'] },
+      { ...manual('single'), category: 'technique', parts: ['technique'], workoutDate: '2026-11-10' }]
+    const result = calculateWeekPlanProgress(monday, plan(reversed ? [...items].reverse() : items), entries)
+    expect(result).toMatchObject({ completed: 2, partial: 0, unfulfilled: 0, extra: [], percentage: 100 })
+    expect(result.matches.find(({ item }) => item.id === 'pads')?.session?.id).toBe('multi')
+    expect(result.matches.find(({ item }) => item.id === 'technique')?.session?.id).toBe('single')
+    expect(new Set(result.matches.map(({ session }) => session?.id)).size).toBe(2)
+  })
+  it('reassigns a chain of part matches while retaining exact-plan and completed priorities', () => {
+    const items = [category('technique', 'technique'), category('pads', 'pads'), category('bag', 'bag'), exact()]
+    const entries: WorkoutSession[] = [session('exact', { category: 'technique' }),
+      { ...manual('multi-a'), category: 'mixed', parts: ['technique', 'pads'] },
+      { ...manual('multi-b'), category: 'mixed', parts: ['pads', 'bag'], workoutDate: '2026-11-10' },
+      { ...manual('single'), category: 'technique', parts: ['technique'], workoutDate: '2026-11-11' },
+      session('partial', { category: 'technique', status: 'partial', workoutDate: '2026-11-12' })]
+    const before = JSON.stringify({ items, entries })
+    const result = calculateWeekPlanProgress(monday, plan(items), entries)
+    expect(result).toMatchObject({ completed: 4, partial: 0, unfulfilled: 0, percentage: 100 })
+    expect(result.matches.map(({ session }) => session?.id)).toEqual(['single', 'multi-a', 'multi-b', 'exact'])
+    expect(result.extra.map(({ id }) => id)).toEqual(['partial'])
+    expect(JSON.stringify({ items, entries })).toBe(before)
+  })
+  it('matches a multi-part club workout to a planned part, at most one goal per session', () => {
+    const entry: ManualWorkoutSession = { ...manual('club'), category: 'mixed', parts: ['technique', 'pads', 'sparring'] }
+    const goal = plan([exact(), category('pads', 'pads'), category('sparring', 'sparring'), category('mixed', 'mixed')])
+    expect(calculateWeekPlanProgress(monday, goal, [entry]).matches.map((match) => match.session?.id ?? null)).toEqual([null, 'club', null, null])
+    expect(calculateWeekPlanProgress(monday, plan([category('sparring', 'sparring')]), [entry]).completed).toBe(1)
+    expect(calculateWeekPlanProgress(monday, plan([category('pads', 'pads')]), [{ ...manual('old'), category: 'mixed' }]).completed).toBe(0)
+  })
   it('matches a completed manual sparring entry to its category but never to an exact plan', () => {
     const entry: ManualWorkoutSession = { ...manual('sparring'), category: 'sparring', sparring: [{ blockId: null, intensity: 'hard', rounds: 6 }] }
     const result = calculateWeekPlanProgress(monday, plan([exact(), category('sparring', 'sparring')]), [entry])

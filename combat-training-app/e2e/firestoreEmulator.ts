@@ -54,7 +54,7 @@ export async function readSessions(request: APIRequestContext, uid: string): Pro
 
 export async function seedSession(request: APIRequestContext, uid: string, session: WorkoutSession) {
   const response = await request.patch(`${root}/users/${uid}/workoutSessions/${session.id}`, {
-    headers: { Authorization: 'Bearer owner' }, data: encode({ ...session, schemaVersion: 1 }).mapValue,
+    headers: { Authorization: 'Bearer owner' }, data: encode({ ...session, schemaVersion: session.source === 'manual' && session.parts ? 2 : 1 }).mapValue,
   })
   expect(response.ok()).toBe(true)
 }

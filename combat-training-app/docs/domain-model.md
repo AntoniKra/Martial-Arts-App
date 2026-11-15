@@ -86,6 +86,8 @@ Jedno ćwiczenie zawiera jedną kombinację lub jedną instrukcję.
 
 ## Wersja w Firestore
 
+Issue #149 / ADR 0016: ręczne wpisy w wersji 2 mają 1–6 unikalnych części zajęć (`parts`), bez podziału minut i RPE. `category` jest polem zgodnościowym; kilka części lub „Inne” daje `mixed`. Wersję 1, także „Mieszany”, czytamy bez zmiany historii. Szczegóły sparingu występują dokładnie wtedy, gdy lista zawiera `sparring`. Zasady odtwarzacza i stopera pozostają bez zmian.
+
 Po przejściu na Firestore obowiązuje `database-model.md` (ADR 0008). Najważniejsze zmiany wobec opisu poniżej: wpis jest unią według źródła (`plan`, `quickTimer`, `manual`), `completion` ma postać `{ completed, planned, unit }`, a sesja przechowuje RPE, intensywność sparingu i oceny ćwiczeń celu. Sekcje o wersjach v1–v3 opisują dawny `localStorage`.
 
 ## WorkoutPlan i WorkoutSession

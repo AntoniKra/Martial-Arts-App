@@ -5,6 +5,7 @@ import { workoutPlanDocumentSchema } from './workoutDocumentSchemas'
 import { workoutSessionDocumentSchema } from './workoutDocumentSchemas'
 import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
 import { block, continuousExercise, workoutPlan } from '@/test/workoutBuilders'
+import { manualWorkoutSession } from '@/test/manualWorkoutBuilder'
 
 const sdk = vi.hoisted(() => ({
   change: null as null | ((value: { docs: unknown[]; metadata: { hasPendingWrites: boolean; fromCache: boolean } }) => void), stop: vi.fn(),
@@ -31,6 +32,26 @@ beforeEach(() => { sdk.set.mockImplementation(() => new Promise(() => {})); sdk.
 afterEach(() => vi.clearAllMocks())
 
 describe('Firestore collection repository', () => {
+  it('reads legacy entries without writing and serializes v2 parts on save and note edits', async () => {
+    const repository = new FirestoreWorkoutRepository({} as Firestore, 'athlete', 'workoutSessions', (value) => {
+      const { schemaVersion: _version, ...item } = workoutSessionDocumentSchema.parse(value)
+      return item
+    })
+    repository.subscribe(vi.fn(), vi.fn())
+    const legacy = manualWorkoutSession({ category: 'mixed' })
+    const snapshot = (value: object) => ({ id: legacy.id, data: () => value, metadata: { hasPendingWrites: false } })
+    emit([snapshot({ ...legacy, schemaVersion: 1 })])
+    expect(repository.getItems()).toEqual([legacy])
+    expect(sdk.set).not.toHaveBeenCalled()
+    const current = { ...legacy, parts: ['technique', 'pads'] as ('technique' | 'pads')[] }
+    const saved = repository.save(current)
+    expect(sdk.set).toHaveBeenCalledWith('users/athlete/workoutSessions/manual', { ...current, schemaVersion: 2 })
+    emit([snapshot({ ...current, schemaVersion: 2 })]); await saved
+    sdk.update.mockResolvedValueOnce()
+    await expect(repository.updateNote(current.id, 'My note')).resolves.toBe(true)
+    expect(sdk.update).toHaveBeenCalledWith('users/athlete/workoutSessions/manual', expect.objectContaining({ note: 'My note' }))
+    expect(repository.validateUpdate(current.id, { rpe: 5 })).toMatchObject({ parts: ['technique', 'pads'], rpe: 5 })
+  })
   it('distinguishes the cached collection from server-confirmed metadata-only snapshots', () => {
     const repository = new FirestoreWorkoutRepository({} as Firestore, 'athlete', 'focusSkills', parse)
     const onChange = vi.fn()

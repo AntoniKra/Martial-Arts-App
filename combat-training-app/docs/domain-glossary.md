@@ -27,6 +27,7 @@
 | źródło wpisu | `source`: `plan`, `quickTimer`, `manual` |
 | szybki stoper | `quickTimer` |
 | ręczny wpis | `manual` |
+| części zajęć | `parts`: `technique`, `pads`, `bag`, `sparring`, `conditioning`, `other` (ręczny wpis v2) |
 | rodzaj treningu | `category` (typ bloku bez rozgrzewki i rozluźnienia albo `mixed`) |
 | trening ukończony | `completed` |
 | trening częściowy | `partial` |

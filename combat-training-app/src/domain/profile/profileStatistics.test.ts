@@ -15,6 +15,16 @@ const quick: QuickTimerWorkoutSession = { ...timed, id: 'quick', source: 'quickT
   workoutDate: '2026-12-06', category: 'bag', durationSeconds: 60.4, completion: { completed: 1, planned: 2, unit: 'round' } }
 
 describe('profile journal statistics', () => {
+  it('counts each club part once without assigning a multi-part duration to each category', () => {
+    const multi: ManualWorkoutSession = { ...manual, category: 'mixed', parts: ['technique', 'pads', 'sparring'], durationSeconds: 5400 }
+    const single: ManualWorkoutSession = { ...manual, id: 'single', category: 'pads', parts: ['pads'], sparring: [] }
+    const oldMixed: ManualWorkoutSession = { ...manual, id: 'old', category: 'mixed', sparring: [] }
+    const result = calculateProfileStatistics([base, multi, single, oldMixed], today)
+    expect(result.partCounts).toEqual([{ part: 'technique', count: 1 }, { part: 'pads', count: 2 }, { part: 'sparring', count: 1 }])
+    expect(result.categories).toEqual([{ category: 'pads', durationSeconds: 1800 }, { category: 'bag', durationSeconds: 90.4 }])
+    expect(result.recentDurationSeconds).toBe(9090.4)
+    expect(calculateProfileStatistics([{ ...multi, workoutDate: '2026-12-06' }, { ...single, workoutDate: '2027-01-04' }], today).partCounts).toEqual([])
+  })
   it('includes all sources and statuses, uses saved dates, sums known rounds and counts workouts with unknown rounds', () => {
     const summary = calculateProfileStatistics([base, manual, quick, { ...manual, id: 'unknown-two' }], today)
     expect(summary).toMatchObject({ firstDate: '2026-12-06', workoutCount: 4,

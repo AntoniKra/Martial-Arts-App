@@ -20,7 +20,7 @@ test('opt-in panel measures a real offline manual entry and stays absent without
 
   const form = page.getByRole('form', { name: 'Trening spoza aplikacji', exact: true })
   await form.getByRole('radio', { name: 'Boks', exact: true }).check()
-  await form.getByRole('group', { name: 'Rodzaj treningu', exact: true }).getByRole('radio', { name: /^Worek/ }).check()
+  await form.getByRole('group', { name: 'Części zajęć', exact: true }).getByRole('checkbox', { name: /^Worek/ }).check()
   await form.getByRole('radio', { name: '90 min', exact: true }).check()
   await form.getByRole('radio', { name: '7 Bardzo ciężko', exact: true }).check()
   await context.setOffline(true)
