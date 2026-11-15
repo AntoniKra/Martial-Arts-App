@@ -1,0 +1,87 @@
+﻿id;namePl;type;blockTypes;disciplines;category;defaultMode;defaultRounds;defaultWorkSec;defaultRestSec;existingId;note
+combo-jab-cross;Lewy prosty → prawy prosty;combination;technique|pads|bag;boxing|kickboxing|muay_thai|k1|mma_striking;Kombinacje 2-ciosowe;rounds;3;180;60;combo-jab-cross;
+combo-jab-cross-hook;Lewy prosty → prawy prosty → lewy sierp;combination;technique|pads|bag;boxing|kickboxing|muay_thai|k1|mma_striking;Kombinacje 3-ciosowe;rounds;3;180;60;combo-jab-cross-hook;
+combo-jab-slip-cross;Lewy prosty → zejście pod prawy sierp → prawy prosty;combination;technique;boxing|kickboxing|k1|mma_striking;Obrona i kontra;rounds;3;180;60;combo-jab-slip-cross;Zachowano zejście pod prawy sierpowy z obecnej pozycji. Do oceny właściciela: głębokość zejścia w dyscyplinach z kopnięciami.
+combo-double-jab-cross;Lewy prosty → lewy prosty → prawy prosty;combination;technique|pads;boxing|kickboxing|muay_thai|k1|mma_striking;Kombinacje 3-ciosowe;rounds;3;180;60;combo-double-jab-cross;
+combo-jab-body-cross;Lewy prosty → prosty w korpus → prawy prosty;combination;technique;boxing|kickboxing|muay_thai|k1|mma_striking;Kombinacje 3-ciosowe;rounds;3;180;60;combo-jab-body-cross;Obecne „prosty w korpus” nie określa strony. Właściciel powinien wskazać lewą albo prawą rękę przed wdrożeniem.
+combo-cross-hook-cross;Prawy prosty → lewy sierp → prawy prosty;combination;technique;boxing|kickboxing|muay_thai|k1|mma_striking;Kombinacje 3-ciosowe;rounds;3;180;60;combo-cross-hook-cross;
+combo-jab-cross-low-kick;Lewy prosty → prawy prosty → lewy low kick;combination;technique|pads|bag;kickboxing|muay_thai|k1|mma_striking;Ręce i nogi;rounds;3;180;60;combo-jab-cross-low-kick;
+combo-jab-cross-body-kick;Lewy prosty → prawy prosty → lewe kopnięcie na korpus;combination;technique|pads|bag;kickboxing|muay_thai|k1|mma_striking;Ręce i nogi;rounds;3;180;60;combo-jab-cross-body-kick;
+combo-teep-jab-cross;Kopnięcie frontalne → lewy prosty → prawy prosty;combination;technique;kickboxing|muay_thai|k1|mma_striking;Ręce i nogi;rounds;3;180;60;combo-teep-jab-cross;Obecna nazwa nie określa nogi kopiącej. Do doprecyzowania przez właściciela.
+combo-check-hook;Blok piszczelem → lewy sierp;combination;technique;kickboxing|muay_thai|k1|mma_striking;Obrona i kontra;rounds;3;180;60;combo-check-hook;„Check” odczytano jako blok piszczelem przed lewym sierpem. Noga blokująca do wskazania przez właściciela.
+combo-jab-cross-knee;Lewy prosty → prawy prosty → prawe kolano;combination;technique;muay_thai|k1|mma_striking;Kolana;rounds;3;180;60;combo-jab-cross-knee;Zachowano przypisanie do Muay Thai, K-1 i MMA z obecnej biblioteki. Nowe warianty kolan K-1 nie są udostępniane kickboxingowi.
+combo-footwork-angles;Praca nóg — zmiana kąta po kombinacji;drill;technique;boxing|kickboxing|muay_thai|k1|mma_striking;Postawa i poruszanie się;rounds;3;180;60;combo-footwork-angles;
+pads-hook-cross-hook;Lewy sierp → prawy prosty → lewy sierp;combination;pads;boxing|kickboxing|muay_thai|k1|mma_striking;Kombinacje 3-ciosowe;rounds;3;180;60;pads-hook-cross-hook;
+pads-counter-cross;Kontra — prawy prosty po lewym prostym trenera;drill;pads;boxing|kickboxing|muay_thai|k1|mma_striking;Obrona i kontra;rounds;3;180;60;pads-counter-cross;
+pads-burst-6;Seria sześciu uderzeń — dowolna kombinacja;drill;pads;boxing|kickboxing|muay_thai|k1|mma_striking;Tarcze i worek;rounds;3;180;60;pads-burst-6;
+bag-free-combinations;Wolne kombinacje — utrzymanie tempa;drill;bag;boxing|kickboxing|muay_thai|k1|mma_striking;Tarcze i worek;rounds;3;180;60;bag-free-combinations;
+bag-power-crosses;Seria mocnych prostych;drill;bag;boxing|kickboxing|muay_thai|k1|mma_striking;Tarcze i worek;rounds;3;180;60;bag-power-crosses;
+bag-body-work;Praca w korpus — lewy prosty i prosty na tułów;drill;bag;boxing|kickboxing|muay_thai|k1|mma_striking;Tarcze i worek;rounds;3;180;60;bag-body-work;Obecne „prosty na tułów” nie określa ręki. Do doprecyzowania przez właściciela.
+bag-defence-counter;Obrona → kontra na worek;drill;bag;boxing|kickboxing|muay_thai|k1|mma_striking;Obrona i kontra;rounds;3;180;60;bag-defence-counter;
+warmup-shadowboxing;Walka z cieniem — lekka praca rąk i nóg;continuous;warmup;boxing|kickboxing|muay_thai|k1|mma_striking;Rozgrzewka ciągła;continuous;;300;;warmup-shadowboxing;
+warmup-jump-rope;Skakanka — rytm i mobilność stóp;continuous;warmup;boxing|kickboxing|muay_thai|k1|mma_striking;Rozgrzewka ciągła;continuous;;300;;warmup-jump-rope;Ciągła skakanka swobodna. Nowe pozycje skakanki rundowej mają odrębne zadania.
+warmup-dynamic-stretch;Mobilizacja dynamiczna — barki i biodra;continuous;warmup;boxing|kickboxing|muay_thai|k1|mma_striking;Rozgrzewka ciągła;continuous;;300;;warmup-dynamic-stretch;
+warmup-footwork-ladder;Drabinka koordynacyjna;continuous;warmup;boxing|kickboxing|muay_thai|k1|mma_striking;Rozgrzewka ciągła;continuous;;300;;warmup-footwork-ladder;
+sparring-technical;Sparing techniczny — kontrolowane tempo;drill;sparring;boxing|kickboxing|muay_thai|k1|mma_striking;Cień i sparing zadaniowy;rounds;3;180;60;sparring-technical;
+sparring-light;Sparing lekki — praca na dystans;drill;sparring;boxing|kickboxing|muay_thai|k1|mma_striking;Cień i sparing zadaniowy;rounds;3;180;60;sparring-light;
+sparring-position;Sparing pozycyjny — presja na linii;drill;sparring;boxing|kickboxing|muay_thai|k1|mma_striking;Cień i sparing zadaniowy;rounds;3;180;60;sparring-position;
+cond-shuttle-runs;Bieg wahadłowy — interwały;drill;conditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Kondycja;rounds;3;180;60;cond-shuttle-runs;
+cond-burpees;Seria burpees;continuous;conditioning|strengthAndConditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Siła na czas;continuous;;60;;cond-burpees;Propozycja: burpees na czas w kondycji albo sile i motoryce. Nie dodaje trybu strength ani powtórzeń.
+cond-core-circuit;Obwód core — plank i rotacje;drill;conditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Kondycja;rounds;3;180;60;cond-core-circuit;
+cond-assault-bike;Rower air — interwały wysokiej intensywności;drill;conditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Kondycja;rounds;3;180;60;cond-assault-bike;
+snc-kettlebell-swings;Swing kettlebell;continuous;strengthAndConditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Siła na czas;continuous;;60;;snc-kettlebell-swings;
+snc-push-pull-circuit;Obwód pchnięcie — przyciąganie;continuous;strengthAndConditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Siła na czas;continuous;;60;;snc-push-pull-circuit;
+snc-med-ball-throws;Rzuty piłką lekarską — eksplozja;continuous;strengthAndConditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Siła na czas;continuous;;60;;snc-med-ball-throws;
+snc-sled-push;Pchnięcie sanek — moc nóg;continuous;strengthAndConditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Siła na czas;continuous;;60;;snc-sled-push;
+cooldown-hip-leg-stretch;Rozciąganie bioder i nóg;continuous;cooldown;boxing|kickboxing|muay_thai|k1|mma_striking;Rozluźnienie;continuous;;300;;cooldown-hip-leg-stretch;
+cooldown-shoulder-chest-stretch;Rozciąganie barków i klatki piersiowej;continuous;cooldown;boxing|kickboxing|muay_thai|k1|mma_striking;Rozluźnienie;continuous;;300;;cooldown-shoulder-chest-stretch;
+cooldown-diaphragmatic-breathing;Spokojny oddech przeponowy;continuous;cooldown;boxing|kickboxing|muay_thai|k1|mma_striking;Rozluźnienie;continuous;;300;;cooldown-diaphragmatic-breathing;
+cooldown-calf-thigh-roll;Rolowanie łydek i ud;continuous;cooldown;boxing|kickboxing|muay_thai|k1|mma_striking;Rozluźnienie;continuous;;300;;cooldown-calf-thigh-roll;
+warmup_free_movement;Poruszanie się swobodnie — zmiany kierunku;continuous;warmup;boxing|kickboxing|muay_thai|k1|mma_striking;Rozgrzewka ciągła;continuous;;300;;;
+drill_rope_alternate_steps;Skakanka — naprzemienne kroki w rundach;drill;warmup|conditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Skakanka rundowa;rounds;3;180;60;;
+drill_rope_fast_slow;Skakanka — zmiany tempa w rundach;drill;warmup|conditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Skakanka rundowa;rounds;3;180;60;;
+continuous_pushups;Pompki na czas;continuous;strengthAndConditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Siła na czas;continuous;;60;;;Roboczo 60 s, do oceny właściciela. Ćwiczenie na czas, bez trybu strength i bez zadanej liczby powtórzeń.
+continuous_squats;Przysiady na czas;continuous;strengthAndConditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Siła na czas;continuous;;60;;;Roboczo 60 s, do oceny właściciela. Ćwiczenie na czas, bez trybu strength i bez zadanej liczby powtórzeń.
+continuous_plank;Deska na czas;continuous;strengthAndConditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Siła na czas;continuous;;60;;;Roboczo 60 s, do oceny właściciela. Ćwiczenie na czas, bez trybu strength i bez zadanej liczby powtórzeń.
+continuous_abdominal_crunches;Spięcia brzucha na czas;continuous;strengthAndConditioning;boxing|kickboxing|muay_thai|k1|mma_striking;Siła na czas;continuous;;60;;;Roboczo 60 s, do oceny właściciela. Ćwiczenie na czas, bez trybu strength i bez zadanej liczby powtórzeń.
+drill_footwork_forward_backward;Krok w przód → krok w tył;drill;technique;boxing;Postawa i poruszanie się;rounds;3;180;60;;
+drill_footwork_lateral_steps;Krok w lewo → krok w prawo;drill;technique;boxing;Postawa i poruszanie się;rounds;3;180;60;;
+drill_footwork_pivot;Obrót na lewej stopie — wyjście z linii;drill;technique;boxing;Postawa i poruszanie się;rounds;3;180;60;;
+combo_cross_lead_hook;Prawy prosty → lewy sierp;combination;technique|pads|bag;boxing|kickboxing|k1|mma_striking;Kombinacje 2-ciosowe;rounds;3;180;60;;
+combo_lead_hook_cross;Lewy sierp → prawy prosty;combination;technique|pads|bag;boxing|kickboxing|k1|mma_striking;Kombinacje 2-ciosowe;rounds;3;180;60;;
+combo_lead_uppercut_cross;Lewy podbródkowy → prawy prosty;combination;technique|pads|bag;boxing|kickboxing|k1|mma_striking;Kombinacje 2-ciosowe;rounds;3;180;60;;
+combo_jab_cross_lead_uppercut;Lewy prosty → prawy prosty → lewy podbródkowy;combination;technique|pads|bag;boxing;Kombinacje 3-ciosowe;rounds;3;180;60;;
+combo_jab_rear_uppercut_lead_hook;Lewy prosty → prawy podbródkowy → lewy sierp;combination;technique|pads|bag;boxing;Kombinacje 3-ciosowe;rounds;3;180;60;;
+combo_jab_cross_lead_hook_cross;Lewy prosty → prawy prosty → lewy sierp → prawy prosty;combination;technique|pads|bag;boxing;Kombinacje 4-ciosowe;rounds;3;180;60;;
+combo_jab_cross_lead_uppercut_cross;Lewy prosty → prawy prosty → lewy podbródkowy → prawy prosty;combination;technique|pads|bag;boxing;Kombinacje 4-ciosowe;rounds;3;180;60;;
+combo_lead_hook_cross_lead_hook_cross;Lewy sierp → prawy prosty → lewy sierp → prawy prosty;combination;technique|pads|bag;boxing;Kombinacje 4-ciosowe;rounds;3;180;60;;
+combo_parry_jab_cross;Zbicie lewego prostego → prawy prosty;combination;technique;boxing;Obrona i kontra;rounds;3;180;60;;
+combo_block_hook_cross;Blok prawego sierpa → prawy prosty;combination;technique;boxing;Obrona i kontra;rounds;3;180;60;;
+combo_step_back_jab_cross;Krok w tył → lewy prosty → prawy prosty;combination;technique;boxing;Obrona i kontra;rounds;3;180;60;;
+drill_speed_bag_rhythm;Gruszka szybkościowa — rytm uderzeń;drill;bag;boxing;Tarcze i worek;rounds;3;180;60;;
+drill_shadowboxing_jab_only;Walka z cieniem — tylko lewy prosty i ruch;drill;technique;boxing;Cień i sparing zadaniowy;rounds;3;180;60;;
+drill_rear_low_kick;Prawy low kick;drill;technique|pads|bag;kickboxing|k1|mma_striking;Kopnięcia pojedyncze;rounds;3;180;60;;Kickboxing: wariant low kick. Dobór formuły do potwierdzenia przez właściciela.
+drill_lead_body_roundhouse;Lewe kopnięcie okrężne na korpus;drill;technique|pads|bag;kickboxing|muay_thai|k1|mma_striking;Kopnięcie okrężne;rounds;3;180;60;;
+drill_rear_body_roundhouse;Prawe kopnięcie okrężne na korpus;drill;technique|pads|bag;kickboxing|muay_thai|k1|mma_striking;Kopnięcie okrężne;rounds;3;180;60;;
+drill_lead_front_kick;Lewe kopnięcie frontalne;drill;technique|pads|bag;kickboxing|k1|mma_striking;Kopnięcia pojedyncze;rounds;3;180;60;;
+combo_jab_cross_rear_low_kick;Lewy prosty → prawy prosty → prawy low kick;combination;technique|pads|bag;kickboxing|k1|mma_striking;Ręce i nogi;rounds;3;180;60;;
+combo_jab_cross_rear_body_kick;Lewy prosty → prawy prosty → prawe kopnięcie na korpus;combination;technique|pads|bag;kickboxing|k1|mma_striking;Ręce i nogi;rounds;3;180;60;;
+combo_lead_check_cross;Blok lewym piszczelem → prawy prosty;combination;technique;kickboxing|k1;Obrona i kontra;rounds;3;180;60;;
+combo_step_back_rear_body_kick;Krok w tył → prawe kopnięcie na korpus;combination;technique;kickboxing|k1;Obrona i kontra;rounds;3;180;60;;
+combo_k1_lead_straight_knee;Lewe kolano proste;drill;technique|pads|bag;k1;Kolana;rounds;3;180;60;;Wariant K-1: bez długiego klinczu. Zasady chwytu do potwierdzenia według aktualnego regulaminu.
+combo_k1_rear_straight_knee;Prawe kolano proste;drill;technique|pads|bag;k1;Kolana;rounds;3;180;60;;Wariant K-1: bez długiego klinczu. Zasady chwytu do potwierdzenia według aktualnego regulaminu.
+combo_k1_cross_lead_knee;Prawy prosty → lewe kolano;combination;technique|pads|bag;k1;Kolana;rounds;3;180;60;;Wariant K-1: bez długiego klinczu. Zasady chwytu do potwierdzenia według aktualnego regulaminu.
+drill_muay_balanced_stance;Postawa Muay Thai — równowaga i powrót do gardy;drill;technique;muay_thai;Postawa i poruszanie się;rounds;3;180;60;;
+drill_teep_lead;Lewy teep na korpus;drill;technique|pads|bag;muay_thai;Teep;rounds;3;180;60;;
+drill_teep_rear;Prawy teep na korpus;drill;technique|pads|bag;muay_thai;Teep;rounds;3;180;60;;
+drill_teep_lead_feint_rear;Markowanie lewego teepa → prawy teep;drill;technique|pads|bag;muay_thai;Teep;rounds;3;180;60;;
+drill_roundhouse_lead_switch_body;Zmiana nóg → lewe kopnięcie okrężne na korpus;drill;technique|pads|bag;muay_thai;Kopnięcie okrężne;rounds;3;180;60;;
+drill_muay_knee_lead;Lewe kolano proste na korpus;drill;technique|pads;muay_thai;Kolana;rounds;3;180;60;;
+drill_muay_knee_rear;Prawe kolano proste na korpus;drill;technique|pads;muay_thai;Kolana;rounds;3;180;60;;
+drill_elbow_lead_horizontal;Lewy łokieć poziomy;drill;technique|pads;muay_thai;Łokcie;rounds;3;180;60;;
+drill_elbow_rear_horizontal;Prawy łokieć poziomy;drill;technique|pads;muay_thai;Łokcie;rounds;3;180;60;;
+drill_elbow_lead_upward;Lewy łokieć wznoszący;drill;technique|pads;muay_thai;Łokcie;rounds;3;180;60;;
+drill_elbow_rear_downward;Prawy łokieć opadający;drill;technique|pads;muay_thai;Łokcie;rounds;3;180;60;;
+drill_elbow_cross_lead_elbow;Prawy prosty → lewy łokieć poziomy;combination;technique|pads;muay_thai;Łokcie;rounds;3;180;60;;
+combo_muay_lead_check_rear_kick;Blok lewym piszczelem → prawe kopnięcie na korpus;combination;technique;muay_thai;Obrona i kontra;rounds;3;180;60;;
+drill_muay_clinch_hand_position;Klincz — walka o pozycję rąk;drill;technique;muay_thai;Klincz;rounds;3;180;60;;
