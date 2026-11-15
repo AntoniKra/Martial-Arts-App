@@ -839,6 +839,78 @@ describe('default denial', () => {
   })
 })
 
+describe('recurring and dated week plans', () => {
+  const club = { id: 'club', kind: 'club', day: 1, disciplineKey: 'muay_thai', startTime: '19:00', endTime: '20:30', parts: ['technique', 'pads'], clubName: null }
+  const recurring = () => ({ schemaVersion: 1, id: 'default', itemCount: 1, createdAt: instant, updatedAt: instant })
+  const scheduled = () => ({ schemaVersion: 2, weekStart: '2026-11-09', items: [], scheduleSize: 1, targetCount: 3, createdAt: instant, updatedAt: instant, editedAfterWeekEnd: false })
+  const recurringEntry = (position = 0) => ({ schemaVersion: 1, id: `item-${position}`, position, activity: { ...club, id: String(position) }, createdAt: instant, updatedAt: instant })
+  const scheduledEntry = (position = 0) => ({ schemaVersion: 2, weekStart: '2026-11-09', position, activity: { ...club, id: String(position), omitted: false }, createdAt: instant, updatedAt: instant })
+  const cases = [
+    { collection: 'recurringWeeks', id: 'default', create: recurring },
+    { collection: 'weekPlans', id: '2026-11-09', create: scheduled },
+    { collection: 'recurringWeeks', id: 'item-0', create: recurringEntry },
+    { collection: 'weekPlans', id: '2026-11-09~0', create: scheduledEntry },
+  ]
+  for (const { collection, id, create } of cases) {
+    const path = `users/${ownerId}/${collection}/${id}`
+    it(`allows owner CRUD for ${collection} and protects creation time`, async () => {
+      const ref = ownerDatabase().doc(path)
+      await assertSucceeds(ref.set(create())); await assertSucceeds(ref.get())
+      await assertSucceeds(ownerDatabase().collection(`users/${ownerId}/${collection}`).get())
+      await assertSucceeds(ref.update({ updatedAt: '2026-11-10T10:00:00.000Z' }))
+      await assertFails(ref.update({ createdAt: '2026-11-10T10:00:00.000Z' }))
+      await assertSucceeds(ref.delete())
+    })
+    it.each(['other', 'signedOut', 'unverified'])(`denies every ${collection} operation for %s`, async (actor) => {
+      await ownerDatabase().doc(path).set(create())
+      const db = (actor === 'signedOut' ? environment.unauthenticatedContext() : environment.authenticatedContext(actor === 'other' ? 'athlete-two' : ownerId, { email_verified: actor !== 'unverified' })).firestore()
+      await assertFails(db.doc(path).get()); await assertFails(db.collection(`users/${ownerId}/${collection}`).get())
+      await assertFails(db.doc(path).set(create())); await assertFails(db.doc(path).update({ updatedAt: instant })); await assertFails(db.doc(path).delete())
+    })
+    it.each([{ schemaVersion: 99 }, { extra: true }, { createdAt: 'yesterday' }])(`rejects malformed ${collection} documents %j`, async (fields) => {
+      await assertFails(ownerDatabase().doc(path).set({ ...create(), ...fields }))
+    })
+    if (id.includes('~') || id.startsWith('item-')) it.each([{ day: 7 }, { day: null }, { day: 1.5 }, { startTime: '24:00' }, { endTime: '18:00' }, { disciplineKey: 'judo' },
+      { parts: ['technique', 'technique'] }, { parts: ['mixed'] }, { extra: true }])(`rejects invalid ${collection} activity fields %j`, async (fields) => {
+      const item = collection === 'weekPlans' ? { ...club, omitted: false } : club
+      await assertFails(ownerDatabase().doc(path).set({ ...create(), activity: { ...item, ...fields } }))
+    })
+    it(`requires every ${collection}/${id} field`, async () => {
+      for (const key of Object.keys(create())) {
+        const value: Document = create(); delete value[key]
+        await assertFails(ownerDatabase().doc(path).set(value))
+      }
+    })
+  }
+  for (const collection of ['recurringWeeks', 'weekPlans']) it(`accepts all fourteen ${collection} entries atomically and rejects an invalid last entry`, async () => {
+    const db = ownerDatabase(), batch = db.batch()
+    const id = (index: number) => collection === 'recurringWeeks' ? `item-${index}` : `2026-11-09~${index}`
+    const entry = collection === 'recurringWeeks' ? recurringEntry : scheduledEntry
+    const header = db.doc(`users/${ownerId}/${collection}/${collection === 'recurringWeeks' ? 'default' : '2026-11-09'}`)
+    batch.set(header, collection === 'recurringWeeks' ? { ...recurring(), itemCount: 14 } : { ...scheduled(), scheduleSize: 14 })
+    for (let index = 0; index < 14; index++) batch.set(db.doc(`users/${ownerId}/${collection}/${id(index)}`), entry(index))
+    await assertSucceeds(batch.commit())
+    expect((await db.collection(`users/${ownerId}/${collection}`).get()).size).toBe(15)
+    const invalid = db.batch()
+    invalid.update(header, { updatedAt: '2026-11-10T10:00:00.000Z' })
+    invalid.set(db.doc(`users/${ownerId}/${collection}/${id(13)}`), { ...entry(13), activity: { ...entry(13).activity, day: 7 } })
+    await assertFails(invalid.commit())
+    expect((await header.get()).data()?.updatedAt).toBe(instant)
+    await assertFails(db.doc(`users/${ownerId}/${collection}/${id(14)}`).set(entry(14)))
+  })
+  it('rejects another singleton, invalid target, missing fields and a sticky history reset', async () => {
+    await assertFails(ownerDatabase().doc(`users/${ownerId}/recurringWeeks/other`).set({ ...recurring(), id: 'other' }))
+    const ref = ownerDatabase().doc(`users/${ownerId}/weekPlans/2026-11-09`)
+    for (const targetCount of [-1, 1.5, 15, '3']) await assertFails(ref.set({ ...scheduled(), targetCount }))
+    for (const key of Object.keys(scheduled())) {
+      const value: Document = scheduled(); delete value[key]
+      await assertFails(ref.set(value))
+    }
+    await assertSucceeds(ref.set({ ...scheduled(), editedAfterWeekEnd: true }))
+    await assertFails(ref.update({ editedAfterWeekEnd: false }))
+  })
+})
+
 describe('week plan ownership and shallow validation', () => {
   const weekStart = '2026-11-09'
   const path = `users/${ownerId}/weekPlans/${weekStart}`

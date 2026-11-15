@@ -1,5 +1,7 @@
 # Specyfikacja kreatora treningu
 
+Issue #164: trening własny w planie tygodnia może wskazywać zatwierdzony plan kreatora. „Start” uruchamia go w dotychczasowym odtwarzaczu; dostępny jest tylko przy istniejącym wskazanym planie treningu własnego. Zajęcia klubowe nie mają „Start”. Link „Wpisz trening” podpowiada datę, dyscyplinę, części i czas w ręcznym wpisie, bez domyślnego RPE; użytkownik może poprawić podpowiedzi. Nie zmienia to kreatora ani logiki odtwarzacza.
+
 ## Informacje początkowe
 
 - dyscyplina — wymagana;

@@ -1,0 +1,123 @@
+import AxeBuilder from '@axe-core/playwright'
+import type { Page } from '@playwright/test'
+import { test, expect } from './fixtures'
+import { workoutPlan, block, continuousExercise } from '../src/test/workoutBuilders'
+import { manualWorkoutSession } from '../src/test/manualWorkoutBuilder'
+import { createVerifiedAccount, signIn } from './authEmulator'
+
+test.use({ screenshot: 'off', trace: 'off', serviceWorkers: 'allow' })
+const weekStart = '2026-11-09', instant = '2026-11-10T10:00:00.000Z'
+const row = (page: Page, name: string, date: string) => page.getByRole('listitem', { name: `${name} ${date}`, exact: true })
+const form = (page: Page) => page.getByRole('form', { name: 'Dodaj lub edytuj trening', exact: true })
+test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(instant)) })
+
+async function accessible(page: Page) {
+  expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+}
+
+for (const theme of ['dark', 'light'] as const) {
+  test(`recurs Tuesday and Thursday, logs Tuesday and moves only this Thursday with undo in ${theme}`, async ({ app, page }) => {
+    await app.open(`/progress/week/${weekStart}`); await app.setTheme(theme)
+    await page.getByRole('button', { name: /^Stały tydzień:/ }).click()
+    await expect(page.getByRole('heading', { name: 'Stały tydzień', exact: true })).toBeVisible()
+    await form(page).getByRole('radio', { name: 'Muay Thai', exact: true }).check()
+    await form(page).getByRole('button', { name: 'Wt — Wtorek', exact: true }).click()
+    await form(page).getByRole('button', { name: 'Cz — Czwartek', exact: true }).click()
+    await form(page).getByLabel('Od', { exact: true }).fill('19:00')
+    await form(page).getByLabel('Do', { exact: true }).fill('20:30')
+    await form(page).getByRole('button', { name: 'Technika', exact: true }).click()
+    await form(page).getByRole('button', { name: 'Tarcze', exact: true }).click()
+    await form(page).getByPlaceholder('np. nazwa klubu').fill('Klub E2E')
+    await accessible(page)
+    await form(page).getByRole('button', { name: 'ZAPISZ STAŁE ZAJĘCIA', exact: true }).click()
+    await expect.poll(async () => (await app.readRecurringWeek())?.items.length).toBe(2)
+    const recurring = await app.readRecurringWeek()
+    await expect(page.getByRole('list', { name: 'Pozycje stałego tygodnia' }).getByRole('listitem')).toHaveCount(2)
+    await page.getByRole('button', { name: '‹ Plan tygodnia', exact: true }).click()
+    await expect.poll(async () => (await app.readWeekPlans()).find((plan) => plan.weekStart === weekStart)?.schedule?.length).toBe(2)
+    const tuesday = row(page, 'Wtorek', '2026-11-10'), thursday = row(page, 'Czwartek', '2026-11-12'), friday = row(page, 'Piątek', '2026-11-13')
+    await expect(tuesday).toContainText('Muay Thai'); await expect(thursday).toContainText('19:00–20:30')
+    await expect(tuesday.getByRole('link', { name: 'Start', exact: true })).toHaveCount(0)
+    await tuesday.getByRole('link', { name: 'Wpisz trening', exact: true }).click()
+    const entry = page.getByRole('form', { name: 'Trening spoza aplikacji', exact: true })
+    await expect(entry.getByLabel('Data', { exact: true })).toHaveValue('2026-11-10')
+    await expect(entry.getByRole('radio', { name: 'Muay Thai', exact: true })).toBeChecked()
+    await expect(entry.getByRole('checkbox', { name: /^Technika/ })).toBeChecked()
+    await expect(entry.getByRole('radio', { name: '90 min', exact: true })).toBeChecked()
+    await expect(entry.getByRole('radiogroup', { name: 'RPE od 0 do 10' }).getByRole('radio', { checked: true })).toHaveCount(0)
+    await entry.getByRole('radio', { name: '7 Bardzo ciężko', exact: true }).check()
+    await entry.getByRole('button', { name: 'Zapisz', exact: true }).click()
+    await expect(page).toHaveURL(`/progress/week/${weekStart}`)
+    await expect(tuesday).toContainText('✓ Wykonane')
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
+    await expect.poll(async () => (await app.readSessions()).length).toBe(1)
+    await thursday.locator('summary').click()
+    await thursday.getByRole('combobox', { name: 'Przenieś na…', exact: true }).selectOption('4')
+    await expect(friday).toContainText('Muay Thai')
+    await expect(thursday.getByText('Muay Thai', { exact: true })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Cofnij', exact: true }).click()
+    await expect(thursday).toContainText('Muay Thai')
+    await thursday.locator('summary').click()
+    await thursday.getByRole('combobox', { name: 'Przenieś na…', exact: true }).selectOption('4')
+    await expect(friday).toContainText('Muay Thai')
+    await expect.poll(async () => (await app.readWeekPlans()).find((plan) => plan.weekStart === weekStart)?.schedule?.map((item) => item.day)).toEqual([1, 4])
+    expect(await app.readRecurringWeek()).toEqual(recurring)
+    await accessible(page)
+    await page.getByRole('link', { name: 'Następny tydzień', exact: true }).click()
+    await expect(row(page, 'Czwartek', '2026-11-19')).toContainText('Muay Thai')
+    await expect(row(page, 'Piątek', '2026-11-20').getByText('Muay Thai', { exact: true })).toHaveCount(0)
+    await expect.poll(async () => (await app.readWeekPlans()).length).toBe(2)
+    expect((await app.readWeekPlans()).find((plan) => plan.weekStart === weekStart)?.schedule?.map((item) => item.day)).toEqual([1, 4])
+  })
+}
+
+test('starts only a linked own workout, derives missed and omitted statuses and counts outside-plan sessions', async ({ app, page }) => {
+  await app.open('/workouts')
+  const plan = { ...workoutPlan([block('bag', [continuousExercise('bag', 60)], 'bag')]), id: 'weekly-own', nameSnapshot: 'Worek 6 × 3:00' }
+  await app.seedPlan(plan)
+  await app.open(`/progress/week/${weekStart}`)
+  await page.getByRole('region', { name: 'Dowolny dzień w tym tygodniu', exact: true }).getByRole('button', { name: '+ Dodaj trening', exact: true }).click()
+  await form(page).getByRole('combobox', { name: 'Plan z odtwarzacza (opcjonalnie)', exact: true }).selectOption(plan.id)
+  await form(page).getByRole('button', { name: 'Zapisz w tym tygodniu', exact: true }).click()
+  const flexible = page.getByRole('region', { name: 'Dowolny dzień w tym tygodniu', exact: true })
+  await expect(flexible.getByRole('link', { name: 'Start', exact: true })).toHaveAttribute('href', '/workouts/weekly-own/active')
+  await flexible.locator('summary').click()
+  await flexible.getByRole('combobox', { name: 'Przenieś na…' }).selectOption('0')
+  const monday = row(page, 'Poniedziałek', '2026-11-09')
+  await expect(monday).toContainText('Opuszczone')
+  await monday.locator('summary').click()
+  await monday.getByRole('button', { name: 'Nie byłem', exact: true }).click()
+  await expect(monday).toContainText('– Nie byłem')
+  await app.seedSession(manualWorkoutSession({ id: 'outside', workoutDate: '2026-11-10', category: 'technique', parts: ['technique'] }))
+  await expect(page.getByRole('region', { name: 'Poza planem', exact: true })).toContainText('Technika')
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
+  await expect(monday).toContainText('– Nie byłem')
+  await monday.getByRole('link', { name: 'Start', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Rozpocznij trening', exact: true })).toBeVisible()
+})
+
+test('saves a recurring week offline and keeps another account isolated', async ({ app, page, context }) => {
+  await app.open(`/progress/week/${weekStart}`)
+  await page.getByRole('button', { name: /^Stały tydzień:/ }).click()
+  await form(page).getByRole('button', { name: 'Trening własny', exact: true }).click()
+  await form(page).getByRole('checkbox', { name: 'Dowolny dzień w tym tygodniu', exact: true }).check()
+  await context.setOffline(true)
+  await form(page).getByRole('button', { name: 'ZAPISZ TRENING WŁASNY', exact: true }).click()
+  await expect(page.getByRole('list', { name: 'Pozycje stałego tygodnia' }).getByRole('listitem')).toHaveCount(1)
+  await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
+  await context.setOffline(false)
+  await expect.poll(async () => (await app.readRecurringWeek())?.items.length).toBe(1)
+  await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
+  // A separate browser context has no cached data from the first athlete.
+  const other = await context.browser()!.newContext({ viewport: { width: 360, height: 800 }, locale: 'pl-PL', timezoneId: 'Europe/Warsaw', serviceWorkers: 'block' })
+  try {
+    const secondPage = await other.newPage()
+    await secondPage.clock.setFixedTime(new Date(instant))
+    const account = await createVerifiedAccount(secondPage.request)
+    await secondPage.goto(`/progress/week/${weekStart}`); await signIn(secondPage, account)
+    await expect(secondPage.getByRole('button', { name: 'Stały tydzień: dodaj zajęcia i treningi co tydzień ›', exact: true })).toBeVisible()
+    await secondPage.getByRole('button', { name: /^Stały tydzień:/ }).click()
+    await expect(secondPage.getByRole('list', { name: 'Pozycje stałego tygodnia' })).toHaveCount(0)
+  } finally { await other.close() }
+})

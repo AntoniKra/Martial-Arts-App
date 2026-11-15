@@ -1,6 +1,7 @@
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { WeekPlan, WeekPlanItem } from './weekPlan.types'
 import { shiftCalendarDate } from './weekCalendar'
+import { calculateScheduledWeek } from './scheduledWeek'
 
 export interface WeekPlanMatch {
   item: WeekPlanItem
@@ -9,6 +10,12 @@ export interface WeekPlanMatch {
 
 /** Completed exact plans, completed categories, partial exact plans, partial categories. */
 export function calculateWeekPlanProgress(weekStart: string, plan: WeekPlan | undefined, sessions: readonly WorkoutSession[]) {
+  if (plan?.schedule !== undefined) {
+    const progress = calculateScheduledWeek(plan, sessions, weekStart)
+    const unfulfilled = progress.matches.filter((match) => match.item.kind !== 'rest' && !match.session).length
+    return { hasGoal: progress.targetCount > 0, matches: [] as WeekPlanMatch[], completed: Math.min(progress.workoutCount, progress.targetCount),
+      partial: 0, unfulfilled, extra: progress.extra, workoutCount: progress.workoutCount, total: progress.targetCount, percentage: progress.percentage }
+  }
   const end = shiftCalendarDate(weekStart, 7)
   const ordered = sessions.filter((session) => session.workoutDate >= weekStart && session.workoutDate < end)
     .sort((a, b) => {

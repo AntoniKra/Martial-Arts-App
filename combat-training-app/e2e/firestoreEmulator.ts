@@ -5,6 +5,7 @@ import type { FocusSkill } from '../src/domain/focus-skill/focusSkill.types'
 import type { WeekPlan } from '../src/domain/week-plan/weekPlan.types'
 import type { AthleteProfile, BodyWeight } from '../src/domain/profile/profile.types'
 import { workoutDocumentVersion } from '../src/infrastructure/firebase/workoutDocumentVersion'
+import { storedWeekPlanDocuments, combineWeekPlanDocuments } from '../src/infrastructure/firebase/weekPlanDocumentSchema'
 
 // Fixed local demo endpoint. Test inspection/seeding bypasses rules; app writes always use its verified identity.
 const root = 'http://127.0.0.1:8080/v1/projects/demo-combat-training/databases/(default)/documents'
@@ -68,10 +69,12 @@ export async function readPlans(request: APIRequestContext, uid: string): Promis
 }
 
 export async function seedWeekPlan(request: APIRequestContext, uid: string, plan: WeekPlan) {
-  const response = await request.patch(`${root}/users/${uid}/weekPlans/${plan.weekStart}`, {
-    headers: { Authorization: 'Bearer owner' }, data: encode({ ...plan, schemaVersion: 1 }).mapValue,
-  })
-  expect(response.ok()).toBe(true)
+  for (const document of storedWeekPlanDocuments(plan)) {
+    const response = await request.patch(`${root}/users/${uid}/weekPlans/${document.id}`, {
+      headers: { Authorization: 'Bearer owner' }, data: encode(document.data).mapValue,
+    })
+    expect(response.ok()).toBe(true)
+  }
 }
 
 export async function seedInvalidWeekPlan(request: APIRequestContext, uid: string, weekStart: string) {
@@ -84,8 +87,13 @@ export async function seedInvalidWeekPlan(request: APIRequestContext, uid: strin
 export async function readWeekPlans(request: APIRequestContext, uid: string): Promise<WeekPlan[]> {
   const response = await request.get(`${root}/users/${uid}/weekPlans`, { headers: { Authorization: 'Bearer owner' } })
   expect(response.ok()).toBe(true)
-  const body = await response.json() as { documents?: { fields: Record<string, Value> }[] }
-  return (body.documents ?? []).map((document) => decode({ mapValue: { fields: document.fields } }) as WeekPlan)
+  const body = await response.json() as { documents?: { name: string; fields: Record<string, Value> }[] }
+  const groups = new Map<string, { id: string; data: unknown }[]>()
+  for (const document of body.documents ?? []) {
+    const id = document.name.split('/').at(-1)!, key = id.split('~')[0]
+    groups.set(key, [...(groups.get(key) ?? []), { id, data: decode({ mapValue: { fields: document.fields } }) }])
+  }
+  return [...groups.values()].map(combineWeekPlanDocuments)
 }
 
 export async function removeWorkoutDocument(request: APIRequestContext, uid: string, collection: 'workoutPlans' | 'workoutSessions', id: string) {

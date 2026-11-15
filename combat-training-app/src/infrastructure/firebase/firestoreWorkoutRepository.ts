@@ -15,9 +15,10 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
   private writes = new Set<PendingWrite<T>>()
   private reportError: ((error: unknown) => void) | null = null
   private readable = false
+  private writeFailed = false
   private readonly path
 
-  constructor(db: Firestore, uid: string, private collectionName: 'workoutPlans' | 'workoutSessions' | 'focusSkills' | 'exercises', private parse: (value: unknown) => T) {
+  constructor(db: Firestore, uid: string, private collectionName: 'workoutPlans' | 'workoutSessions' | 'focusSkills' | 'exercises' | 'recurringWeeks', private parse: (value: unknown) => T) {
     if (!uid || uid.includes('/')) throw new Error('Invalid user identity')
     this.path = collection(db, 'users', uid, collectionName)
   }
@@ -25,6 +26,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
   subscribe(onChange: (snapshot: RepositorySnapshot<T>) => void, onError: (error: unknown) => void): () => void {
     if (this.reportError) throw new Error('Repository already subscribed')
     this.reportError = onError
+    this.writeFailed = false
     const stop = onSnapshot(this.path, { includeMetadataChanges: true }, (snapshot) => {
       const items = new Map<string, T>()
       const pendingIds = new Set<string>()
@@ -43,6 +45,10 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
         ids: new Set(items.keys()), pendingIds, hasPendingWrites: snapshot.metadata.hasPendingWrites, fromCache: snapshot.metadata.fromCache })
       onChange({ items: [...items.values()], pendingIds, hasPendingWrites: snapshot.metadata.hasPendingWrites,
         fromCache: snapshot.metadata.fromCache, invalidDocumentIds })
+      if (this.collectionName === 'recurringWeeks' && this.writeFailed) {
+        this.readable = false
+        onError(new Error('Recurring week write rejected; retry subscription'))
+      }
       for (const write of this.writes) {
         if (write.matches(items)) { this.writes.delete(write); write.resolve() }
       }
@@ -68,6 +74,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
 
   private write(action: () => Promise<void>, matches: PendingWrite<T>['matches']): Promise<void> {
     if (!this.reportError) return Promise.reject(new Error('Repository is not subscribed'))
+    if (this.collectionName === 'recurringWeeks' && this.writeFailed) return Promise.reject(new Error('Recurring week requires a retry'))
     return new Promise((resolve, reject) => {
       const pending = { matches, resolve, reject }
       this.writes.add(pending)
@@ -79,6 +86,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
         }, (error: unknown) => {
           this.writes.delete(pending)
           reject(error)
+          if (this.collectionName === 'recurringWeeks') { this.writeFailed = true; this.readable = false }
           this.reportError?.(error)
         })
         // An identical document is already durable locally, even if its server write is still queued.
