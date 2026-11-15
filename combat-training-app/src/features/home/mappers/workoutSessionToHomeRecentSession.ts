@@ -27,7 +27,7 @@ export function mapWorkoutSessionToHomeRecentSession(session: WorkoutSession, ha
     completedRounds: summary.plannedRoundCount > 0 ? summary.completedRoundCount : null,
     plannedRounds: summary.plannedRoundCount > 0 ? summary.plannedRoundCount : null,
     exerciseCompletionPercent: summary.exerciseCompletionPercent,
-    rpe: null,
+    rpe: session.rpe,
     averageRatingLabel: null,
   }
 }

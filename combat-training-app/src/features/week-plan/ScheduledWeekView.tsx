@@ -3,11 +3,10 @@ import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
-import { calculateScheduledWeek, changeScheduledWeek, generateScheduledWeek } from '@/domain/week-plan/scheduledWeek'
+import { calculateScheduledWeek, generateScheduledWeek } from '@/domain/week-plan/scheduledWeek'
 import { clubWorkoutPrefill } from '@/domain/week-plan/clubWorkoutPrefill'
 import { shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
 import type { ScheduledWeekItem, WeekActivity, Weekday } from '@/domain/week-plan/weekPlan.types'
-import { WEEK_PLAN_ITEM_LIMIT } from '@/domain/week-plan/weekPlan.types'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { useProfileToday } from '@/features/profile/useProfileToday'
 import { workoutSessionName } from '@/features/workouts/utils/workoutSessionPresentation'
@@ -17,6 +16,7 @@ import { WeekPlanEditor } from './WeekPlanEditor'
 import { WeekPlanProgress } from './WeekPlanSummary'
 import { activityDetail, activityTitle, recurringSummary, scheduleLabels as labels, scheduledWeekLabel, weekdays } from './scheduleLabels'
 import { categoryLabel, weekPlanLabels } from './weekPlanLabels'
+import { useScheduledWeekActions } from './useScheduledWeekActions'
 
 function GoalEditor({ count, onSave }: { count: number; onSave: (count: number) => Promise<void> }) {
   const [value, setValue] = useState(String(count))
@@ -43,14 +43,12 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
   const plan = stored ?? empty
   const [adding, setAdding] = useState<{ day: Weekday | null } | null>(null)
   const [legacyEditing, setLegacyEditing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [undo, setUndo] = useState<{ before: ScheduledWeekItem[]; after: string } | null>(null)
+  const [generationError, setGenerationError] = useState(false)
   const generation = useRef(false)
   const today = useProfileToday()
   const recurringReady = recurringWeeks.status === 'ready' && !recurringWeeks.invalidDocumentIds.length && (!!recurring || recurringWeeks.complete)
   const canEdit = !!stored || recurringReady
+  const { busy, error, saved, undo, save, move, toggleOmitted, undoMove } = useScheduledWeekActions(plan, canEdit)
   const sessionsReady = sessions.status === 'ready' && sessions.complete && !sessions.invalidDocumentIds.length
   const progress = sessionsReady ? calculateScheduledWeek(plan, sessions.items, today) : null
   const availablePlans = plans.status === 'ready' && plans.complete && !plans.invalidDocumentIds.length ? plans.items : []
@@ -58,24 +56,9 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
   useEffect(() => {
     if (stored || !recurring || !recurringReady || generation.current) return
     generation.current = true
-    void weekPlanRepository.save(generateScheduledWeek(weekStart, recurring, openedAt)).catch(() => setError(weekPlanLabels.failed))
+    void weekPlanRepository.save(generateScheduledWeek(weekStart, recurring, openedAt)).catch(() => setGenerationError(true))
   }, [stored, recurring, recurringReady, weekPlanRepository, weekStart, openedAt])
 
-  async function save(schedule: ScheduledWeekItem[], targetCount = plan.targetCount ?? 0) {
-    if (busy || !canEdit) return false
-    if (schedule.length > WEEK_PLAN_ITEM_LIMIT) { setError(weekPlanLabels.limit); return false }
-    setBusy(true); setError(null); setSaved(false)
-    try {
-      await weekPlanRepository.save(changeScheduledWeek(plan, schedule, targetCount, new Date()))
-      setSaved(true)
-      return true
-    } catch { setError(weekPlanLabels.failed); return false } finally { setBusy(false) }
-  }
-  async function move(item: ScheduledWeekItem, day: Weekday) {
-    const before = plan.schedule ?? []
-    const next = before.map((entry) => entry.id === item.id ? { ...entry, day } : entry)
-    if (await save(next)) setUndo({ before, after: JSON.stringify(next) })
-  }
   async function add(items: WeekActivity[]) {
     const schedule = [...(plan.schedule ?? []), ...items.map((item) => ({ ...item, omitted: false }))]
     const target = (plan.targetCount ?? 0) + items.filter((item) => item.kind !== 'rest').length
@@ -100,7 +83,7 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
             const day = weekdays.find(({ day }) => String(day) === event.target.value)?.day
             if (day !== undefined) void move(item, day)
           }}>{item.day === null && <option value="">{labels.anyDay}</option>}{weekdays.map(({ day, name }) => <option key={day} value={day}>{name}</option>)}</select></label>
-          {item.kind !== 'rest' && <button type="button" disabled={busy} className={getButtonClassName({ variant: 'ghost' })} onClick={() => { void save((plan.schedule ?? []).map((entry) => entry.id === item.id ? { ...entry, omitted: !entry.omitted } : entry)) }}>{item.omitted ? labels.restore : labels.omit}</button>}
+          {item.kind !== 'rest' && <button type="button" disabled={busy} className={getButtonClassName({ variant: 'ghost' })} onClick={() => { void toggleOmitted(item) }}>{item.omitted ? labels.restore : labels.omit}</button>}
           <button type="button" disabled={busy} className={getButtonClassName({ variant: 'ghost' })} onClick={() => { void save((plan.schedule ?? []).filter((entry) => entry.id !== item.id)) }}>{labels.remove}</button>
         </div>
       </details>
@@ -120,7 +103,7 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
       <p>{recurringWeeks.status === 'loading' ? weekPlanLabels.loading : recurringWeeks.status === 'error' || recurringWeeks.invalidDocumentIds.length ? labels.failed : labels.incomplete}</p>
       <button type="button" className={getButtonClassName({ variant: 'secondary' })} onClick={retryRecurringWeeks}>{weekPlanLabels.retry}</button>
     </div>}
-    {error && <p role="alert" className="text-sm text-crimson-ink">{error}</p>}
+    {(error || generationError) && <p role="alert" className="text-sm text-crimson-ink">{error ?? weekPlanLabels.failed}</p>}
     {(weekPlans.hasPendingWrites || recurringWeeks.hasPendingWrites) && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
     {saved && <p role="status" className="text-sm text-muted">{labels.saved}</p>}
     {plan.editedAfterWeekEnd && <p className="text-xs text-muted">{weekPlanLabels.historical}</p>}
@@ -129,10 +112,7 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
       <p className="font-display text-lg font-bold">{labels.goalProgress(progress.workoutCount, plan.targetCount)} <span className="font-sans text-[13px] font-medium text-muted">· {labels.remaining(Math.max(0, plan.targetCount - progress.workoutCount))}</span></p>
       <div role="progressbar" aria-label={labels.goal} aria-valuemin={0} aria-valuemax={plan.targetCount} aria-valuenow={Math.min(progress.workoutCount, plan.targetCount)} aria-valuetext={labels.goalProgress(progress.workoutCount, plan.targetCount)} className="h-1.5 bg-elevated"><div className="h-full bg-crimson" style={{ width: `${progress.percentage}%` }} /></div>
     </div> : !stored ? <WeekPlanProgress weekStart={weekStart} /> : progress && <p className="text-sm text-muted">{labels.workoutCount(progress.workoutCount)}</p>}
-    {undo && <div role="status" className="flex flex-wrap items-center gap-2 border border-bd p-3 text-sm"><p>{labels.moved}</p><button type="button" disabled={busy} className={getButtonClassName({ variant: 'secondary' })} onClick={() => {
-      if (JSON.stringify(plan.schedule) !== undo.after) { setError(labels.undoUnavailable); return }
-      void save(undo.before).then((saved) => { if (saved) setUndo(null) })
-    }}>{labels.undo}</button></div>}
+    {undo && <div role="status" className="flex flex-wrap items-center gap-2 border border-bd p-3 text-sm"><p>{labels.moved}</p><button type="button" disabled={busy} className={getButtonClassName({ variant: 'secondary' })} onClick={() => { void undoMove() }}>{labels.undo}</button></div>}
     {legacyEditing ? <WeekPlanEditor weekStart={weekStart} initial={undefined} onClose={() => setLegacyEditing(false)} /> : <>
       <ol aria-label={labels.list} className="divide-y divide-bd border border-bd bg-surface">{weekdays.map(({ day, short, name }) => {
         const date = shiftCalendarDate(weekStart, day)

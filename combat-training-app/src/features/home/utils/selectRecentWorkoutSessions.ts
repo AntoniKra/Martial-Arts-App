@@ -2,6 +2,8 @@ import type { WorkoutSession } from '@/domain/workout-session/workoutSession.typ
 
 export function selectRecentWorkoutSessions(sessions: readonly WorkoutSession[]): WorkoutSession[] {
   return [...sessions]
-    .sort((left, right) => (right.source === 'manual' ? right.workoutDate : right.completedAt).localeCompare(left.source === 'manual' ? left.workoutDate : left.completedAt))
+    .sort((left, right) => right.workoutDate.localeCompare(left.workoutDate)
+      || Date.parse(right.source === 'manual' ? right.createdAt : right.completedAt) - Date.parse(left.source === 'manual' ? left.createdAt : left.completedAt)
+      || left.id.localeCompare(right.id))
     .slice(0, 3)
 }

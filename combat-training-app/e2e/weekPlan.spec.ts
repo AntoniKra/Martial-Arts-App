@@ -54,7 +54,7 @@ async function capture(page: Page, info: TestInfo, name: string) {
   await mkdir(folder, { recursive: true })
   const file = path.join(folder, `${name}-360x800.png`)
   await page.evaluate(() => document.fonts.ready)
-  if (name.startsWith('week-home')) await page.getByRole('region', { name: 'Plan tygodnia', exact: true }).screenshot({ path: file })
+  if (name.startsWith('week-home')) await page.getByRole('region', { name: 'Ten tydzień', exact: true }).screenshot({ path: file })
   else await page.screenshot({ path: file, fullPage: true })
   await info.attach(name, { path: file, contentType: 'image/png' })
 }
@@ -72,14 +72,14 @@ for (const reversed of [false, true]) {
     await app.open('/')
     const items = [category('technique', 'technique'), category('pads', 'pads')]
     await app.seedWeekPlan(goal(reversed ? [...items].reverse() : items))
-    const progress = page.getByRole('region', { name: 'Plan tygodnia', exact: true }).getByRole('progressbar')
+    const progress = page.getByRole('region', { name: 'Ten tydzień', exact: true }).getByRole('progressbar')
     await expect(progress).toHaveAttribute('aria-valuenow', '0')
     await app.seedSession(manualWorkoutSession({ id: 'multi', category: 'mixed', parts: ['technique', 'pads'], workoutDate: weekStart }))
     await expect(progress).toHaveAttribute('aria-valuenow', '1')
     await app.seedSession(manualWorkoutSession({ id: 'single', category: 'technique', parts: ['technique'], workoutDate: '2026-11-10' }))
     await expect(progress).toHaveAttribute('aria-valuenow', '2')
     await expect(progress).toHaveAttribute('aria-valuemax', '2')
-    await page.getByRole('link', { name: 'Szczegóły planu tygodnia', exact: true }).click()
+    await page.getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2')
     await expect(page.getByText('Częściowe: 0 · Niewykonane: 0 · Dodatkowe: 0', { exact: true })).toBeVisible()
     await accessible(page); await capture(page, info, `week-maximal-parts-${reversed}`)
@@ -107,12 +107,12 @@ test('creates repeated plans, recalculates 2/3, persists and copies selected com
   }
   await page.getByRole('button', { name: 'Anuluj edycję', exact: true }).click()
   await nav(page).getByRole('link', { name: 'Start', exact: true }).click()
-  const summary = page.getByRole('region', { name: 'Plan tygodnia', exact: true })
+  const summary = page.getByRole('region', { name: 'Ten tydzień', exact: true })
   await expect(summary.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2')
   for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme); await accessible(page); await capture(page, info, `week-home-${theme}`)
   }
-  await summary.getByRole('link', { name: 'Szczegóły planu tygodnia' }).click()
+  await summary.getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
   const source = (await app.readWeekPlans())[0]
   await page.getByRole('link', { name: 'Następny tydzień', exact: true }).click()
   await page.getByRole('button', { name: 'Ułóż plan tygodnia', exact: true }).click()
@@ -191,9 +191,9 @@ test('marks a historical edit, copies the entire plan without the flag and block
 test('saves locally offline, warns on logout, confirms after reconnect and isolates the next account', async ({ app, page, context }) => {
   await app.open('/'); await app.seedWeekPlan(goal([category('one')]))
   // Observe the seeded snapshot before following the link without restarting Firestore.
-  const summary = page.getByRole('region', { name: 'Plan tygodnia', exact: true })
+  const summary = page.getByRole('region', { name: 'Ten tydzień', exact: true })
   await expect(summary.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '1')
-  await summary.getByRole('link', { name: 'Szczegóły planu tygodnia', exact: true }).click()
+  await summary.getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
   await page.getByRole('button', { name: 'Edytuj plan tygodnia', exact: true }).click()
   await context.setOffline(true)
   await add(page, 'c:bag'); await save(page)
@@ -244,10 +244,10 @@ test('refreshes an open home at Monday and after returning from the background w
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '1')
   await page.clock.setFixedTime(new Date('2026-11-15T23:00:01.000Z'))
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
-  const summary = page.getByRole('region', { name: 'Plan tygodnia', exact: true })
-  await expect(summary).toContainText('16.11.2026')
+  const summary = page.getByRole('region', { name: 'Ten tydzień', exact: true })
+  await expect(summary).toContainText('16–22.11')
   await expect(summary.getByRole('progressbar')).toHaveCount(0)
-  await expect(summary.getByText('Nie ustalono celu na ten tydzień.', { exact: true })).toBeVisible()
+  await expect(summary.getByText('Nie ustalono celu.', { exact: true })).toBeVisible()
   expect((await app.readWeekPlans()).map((entry) => entry.weekStart)).toEqual([weekStart])
 })
 
@@ -423,9 +423,9 @@ test('preserves an unsaved draft through a bad document and listener retry', asy
   const original = goal([category('one')])
   await app.open('/'); await app.seedWeekPlan(original)
   // A hard navigation can discard query completeness before the REST seed reaches the tab.
-  const summary = page.getByRole('region', { name: 'Plan tygodnia', exact: true })
+  const summary = page.getByRole('region', { name: 'Ten tydzień', exact: true })
   await expect(summary.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '1')
-  await summary.getByRole('link', { name: 'Szczegóły planu tygodnia', exact: true }).click()
+  await summary.getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
   await page.getByRole('button', { name: 'Edytuj plan tygodnia', exact: true }).click()
   await add(page, 'c:bag')
   await app.seedSession({ ...completed('invalid-session'), note: 'n'.repeat(1001) })

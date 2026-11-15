@@ -9,7 +9,7 @@ for (const theme of ['dark', 'light'] as const) {
     const plan = { ...workoutPlan([block('block-1', [exercise])]), nameSnapshot: 'Technika bokserska' }
     await app.seedPlan(plan)
     const screenshot = async (name: string) => {
-      if (testInfo.project.name !== 'phone') return
+      if (process.env.CAPTURE_SCREENSHOTS !== '1' || testInfo.project.name !== 'phone') return
       await page.evaluate(() => document.fonts.ready)
       await page.screenshot({ path: testInfo.outputPath(`${name}-${theme}.png`) })
     }
@@ -27,9 +27,9 @@ for (const theme of ['dark', 'light'] as const) {
     }
     await screenshot('plans')
     await app.open('/')
-    const featured = page.getByRole('region', { name: plan.nameSnapshot, exact: true })
-    await expect(featured.getByText('Czas', { exact: true })).toBeVisible()
-    await expect(featured.getByText('2:30', { exact: true })).toBeVisible()
+    const featured = page.getByRole('region', { name: 'Szybki start', exact: true })
+    await expect(featured.getByText('1 blok · 2 rundy · 2:30', { exact: true })).toBeVisible()
+    await expect(featured.getByRole('link', { name: 'Rozpocznij plan', exact: true })).toHaveAttribute('href', `/workouts/${plan.id}/active`)
     await screenshot('featured')
 
     await app.open(`/workouts/${plan.id}`)
@@ -70,9 +70,9 @@ for (const theme of ['dark', 'light'] as const) {
     await card.getByRole('button', { name: 'Anuluj', exact: true }).click()
 
     await app.open('/')
-    const recent = page.getByRole('link').filter({ has: page.getByRole('heading', { name: plan.nameSnapshot, exact: true }) })
-    await expect(recent.getByText('0/1 ćwiczeń', { exact: true })).toBeVisible()
-    await expect(recent.getByText('1/2 rund', { exact: true })).toBeVisible()
+    const recent = page.getByRole('region', { name: 'Ostatnia sesja', exact: true })
+    await expect(recent.getByRole('link', { name: plan.nameSnapshot, exact: true })).toHaveAttribute('href', /\/report$/)
+    await expect(recent.getByRole('link', { name: 'Uzupełnij RPE', exact: true })).toBeVisible()
     await recent.scrollIntoViewIfNeeded()
     await screenshot('recent-session')
 
