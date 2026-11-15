@@ -24,7 +24,7 @@ export function WorkoutsFilters({ filters, onChange, idPrefix, addAction }: Work
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
         <span className="sr-only">{labels.search}</span>
         <input type="search" value={filters.searchQuery} onChange={(event) => onChange({ ...filters, searchQuery: event.target.value })}
-          placeholder={labels.search} className="h-full min-w-0 w-full bg-transparent text-[15px] text-ink placeholder:text-muted" />
+          placeholder={labels.search} className="h-full min-w-0 w-full bg-transparent text-base text-ink placeholder:text-muted" />
       </label>
       <button type="button" aria-expanded={expanded} aria-controls={panelId} onClick={() => setExpanded(!expanded)}
         className={`${buttonClass} ${expanded ? 'border-crimson' : 'border-bd'}`}>
@@ -47,7 +47,7 @@ export function WorkoutsFilters({ filters, onChange, idPrefix, addAction }: Work
       <div>
         <label htmlFor={sortId} className="mb-2 block text-[11px] font-bold uppercase tracking-[0.1em] text-muted">{labels.sort}</label>
         <select id={sortId} value={filters.sortOrder} onChange={(event) => onChange({ ...filters, sortOrder: event.target.value as WorkoutsFilterState['sortOrder'] })}
-          className="min-h-touch w-full border border-bd bg-input px-3 py-2 text-[15px] text-ink">
+          className="min-h-touch w-full border border-bd bg-input px-3 py-2 text-base text-ink">
           {WORKOUTS_SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.labelPl}</option>)}
         </select>
       </div>
