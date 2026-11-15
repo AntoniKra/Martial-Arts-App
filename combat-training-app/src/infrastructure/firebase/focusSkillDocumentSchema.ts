@@ -5,8 +5,9 @@ import { instantSchema } from './workoutDocumentSchemas'
 const id = z.string().check(z.minLength(1), z.refine((value) => !value.includes('/')))
 
 export const focusSkillDocumentSchema = z.strictObject({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.union([z.literal(1), z.literal(2)]),
   id,
+  exerciseId: z.optional(z.nullable(id)),
   name: z.string().check(z.minLength(1), z.maxLength(FOCUS_SKILL_NAME_MAX_LENGTH)),
   criterion: z.string().check(z.minLength(1), z.maxLength(FOCUS_SKILL_CRITERION_MAX_LENGTH)),
   openCorrection: z.nullable(z.strictObject({
@@ -18,4 +19,4 @@ export const focusSkillDocumentSchema = z.strictObject({
   archivedAt: z.nullable(instantSchema),
   createdAt: instantSchema,
   updatedAt: instantSchema,
-})
+}).check(z.refine((skill) => skill.schemaVersion === (skill.exerciseId === undefined ? 1 : 2)))

@@ -9,10 +9,11 @@ import { FocusSkillChart, PlaceMarker } from '@/features/progress/FocusSkillChar
 import { FocusSkillActions } from '@/features/progress/FocusSkillActions'
 import { ProgressDataState, ProgressDataWarning } from '@/features/progress/ProgressDataState'
 import { formatProgressDate, progressLabels as labels } from '@/features/progress/progressLabels'
+import { EXERCISE_LIBRARY_FIXTURES } from '@/features/workout-builder/data/exerciseLibraryFixtures'
 
 export function Component() {
   const { focusSkillId = '' } = useParams()
-  const { focusSkills, sessions } = useWorkoutData()
+  const { focusSkills, sessions, exercises } = useWorkoutData()
   const ready = focusSkills.status === 'ready' && sessions.status === 'ready'
   const skill = focusSkills.items.find((value) => value.id === focusSkillId)
   const assessments = skill ? selectFocusSkillAssessments(skill, sessions.items) : []
@@ -23,6 +24,8 @@ export function Component() {
       <header className="space-y-2">
         <h1 className="break-words font-display text-2xl font-bold">{skill.name}</h1>
         <p className="break-words text-sm leading-relaxed text-muted">{skill.criterion}</p>
+        {skill.exerciseId && <p className="break-words text-sm text-muted">Powiązane ćwiczenie: {exercises.items.find((exercise) => exercise.id === skill.exerciseId)?.namePl
+          ?? EXERCISE_LIBRARY_FIXTURES.find((exercise) => exercise.id === skill.exerciseId)?.namePl ?? 'niedostępne'}</p>}
         {skill.archivedAt !== null && <p className="inline-block border border-bd px-2 py-1 text-xs">{labels.archived}</p>}
         {focusSkills.pendingIds.has(skill.id) && <p role="status" className="text-xs text-muted">{workoutDataLabels.pending}</p>}
       </header>

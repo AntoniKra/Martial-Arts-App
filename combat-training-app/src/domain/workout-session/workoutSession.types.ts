@@ -7,6 +7,8 @@ export type WorkoutSessionStepOutcome = 'completed' | 'partial' | 'skipped'
 
 export interface WorkoutSessionStepResult {
   playbackStepId: string
+  /** Present in new library-backed snapshots; older history stays untouched. */
+  combinationId?: string
   workoutItemId: string
   blockId: string
   blockType: WorkoutBlockType

@@ -31,6 +31,7 @@ export function isNavigationItemActive(pathname: string, item: NavigationItemCon
     case 'exact':
       return normalizedPath === normalizedTarget
     case 'workoutsSection':
+      if (normalizedPath === routes.myExercises) return true
       if (normalizedPath === normalizedWorkouts) return true
       if (
         normalizedPath.startsWith(`${normalizedWorkouts}/`) &&

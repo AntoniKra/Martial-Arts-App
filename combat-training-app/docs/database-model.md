@@ -18,6 +18,14 @@ Model zastępuje lokalny storage. Dane z `localStorage` to dane pokazowe: nie im
 
 ## Kolekcje
 
+### Rozszerzenie: Moje ćwiczenia (issue #156, ADR 0017)
+
+Nowa wdrożona kolekcja `users/{uid}/exercises/{exerciseId}` wchodzi do `USER_COLLECTIONS` i `IMPLEMENTED_USER_COLLECTIONS`. Dokument v1: `id`, `namePl` (1–100 znaków), `type` (`combination` / `drill` / `continuous`), unikalne niepuste `disciplines` (1–5) i `blockTypes` (1–8), `defaultConfiguration` (jak konfiguracja ćwiczenia: 1–99 rund, czasy całkowite 1–86400 s, odpoczynek 0–86400 s), opcjonalne `copiedFromId`, nullable `archivedAt` i `lastUsedAt`, bool `favorite`, `createdAt`, `updatedAt`, `schemaVersion: 1`. Reguły sprawdzają także elementy list i mapę parametrów, dokładne klucze i niezmienność typu, pochodzenia oraz `createdAt`. Nasłuch obejmuje całą prywatną kolekcję. Biblioteka wbudowana nadal pozostaje w kodzie.
+
+Plan zachowuje wersję 1 i istniejące `combinationId`, teraz także dla prywatnych definicji. Nowe sesje planu z ID biblioteki w `stepResults[].combinationId` mają wersję 2; sesje bez tego pola i stare dokumenty pozostają w wersji 1. Migawka etapu ma opcjonalne ID biblioteki, ale oceny sesji nie zmieniają pól. Cel z opcjonalnym `exerciseId` (ID biblioteki lub `null`) ma wersję 2; cel bez pola pozostaje wersją 1. Zmiana nazwy definicji nie aktualizuje migawki planu ani sesji. Trend i poprzednia ocena nadal po `focusSkillId` i niezmienionych zasadach kryteriów.
+
+JSON obejmuje surową kolekcję `exercises`, także dokumenty błędne. Osobny `combat-training-moje-cwiczenia-RRRR-MM-DD.csv` zawiera poprawne definicje, w tym archiwalne, ze wszystkimi metadanymi (BOM, średnik i ochrona komórek). Usuwanie konta obejmuje `exercises` po usunięciu sesji, celów i planów. Indywidualne trwałe usunięcie wymaga braku odwołań w planach i historii sprawdzonych na serwerze; niepełne/błędne lub niewysłane dane blokują operację. Archiwizacja nie wymaga sieci. Szczegóły i ograniczenie równoległych zmian na innych urządzeniach: ADR 0017. Opis pierwotnych wersji poniżej pozostaje punktem odniesienia dla starych dokumentów.
+
 | Ścieżka | Co przechowuje | ID dokumentu | Stan / pierwsze użycie |
 | --- | --- | --- | --- |
 | `users/{uid}` | zgoda na dane o zdrowiu i etykieta kategorii wagowej | `uid` | wdrożone: Profil |

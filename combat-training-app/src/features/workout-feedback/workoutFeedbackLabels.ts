@@ -2,6 +2,7 @@ import type { PlanWorkoutSession } from '@/domain/workout-session/workoutSession
 import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 
 export const workoutFeedbackLabels = {
+  previousAssessment: (date: string, value: string) => `Poprzednia ocena (${date}): ${value}`,
   title: 'Podsumowanie',
   savedEntry: 'Wpis jest już w dzienniku. Oceny dopisują się do niego.',
   status: { completed: 'Trening ukończony', partial: 'Trening częściowy' },

@@ -7,6 +7,8 @@ import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { CorrectionNote } from './CorrectionNote'
 import { isValidCorrectionText } from './validateWorkoutFeedback'
 import { workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
+import type { findPreviousAssessment } from '@/domain/focus-skill/previousAssessment'
+import { formatProgressDate } from '@/features/progress/progressLabels'
 
 export function AssessmentScale({ question, descriptions, value, onChange, unable = false }: {
   question: string; descriptions: readonly string[]; value: number | 'unableToRate' | null
@@ -29,9 +31,10 @@ export function AssessmentScale({ question, descriptions, value, onChange, unabl
   </fieldset>
 }
 
-export function FocusCard<T extends FocusRating | ManualFocusRatingDraft>({ session, rating, skills, first, onChange, error, children, correctionLabel }: {
+export function FocusCard<T extends FocusRating | ManualFocusRatingDraft>({ session, rating, skills, first, onChange, error, children, correctionLabel, previousAssessment }: {
   session: PlanWorkoutSession | Pick<PlanWorkoutSession, 'id' | 'workoutDate'>; rating: T; skills: readonly FocusSkill[]; first: boolean
   onChange: (rating: T) => void; error?: string; children?: ReactNode; correctionLabel?: string
+  previousAssessment?: ReturnType<typeof findPreviousAssessment>
 }) {
   const id = useId()
   const [expanded, setExpanded] = useState(rating.correction !== null)
@@ -48,6 +51,8 @@ export function FocusCard<T extends FocusRating | ManualFocusRatingDraft>({ sess
       <p className="mt-1 break-words text-[13px] leading-relaxed text-ink">{rating.criterionSnapshot}</p>
     </div>
     {children}
+    {previousAssessment && <p className="text-sm text-muted">{labels.previousAssessment(formatProgressDate(previousAssessment.workoutDate),
+      previousAssessment.assessment === 'unableToRate' ? labels.unable : String(previousAssessment.assessment))} · {getWorkoutBlockLabelPl(previousAssessment.blockType)}</p>}
     {previous && <CorrectionNote correction={previous} />}
     {!eligible ? <p className="text-[13px] font-semibold text-muted">{labels.skipped}</p> : <>
       {previous && <fieldset>

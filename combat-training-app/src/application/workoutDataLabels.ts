@@ -1,4 +1,5 @@
 export const workoutDataLabels = {
+  exercisesLoadError: 'Nie udało się wczytać Moich ćwiczeń.',
   pending: 'Czeka na wysłanie',
   plansLoadError: 'Nie udało się wczytać planów.',
   historyLoadError: 'Nie udało się wczytać historii.',

@@ -1,3 +1,6 @@
+import type { ExerciseConfiguration } from '@/domain/workout/workout.types'
+import type { ExerciseType } from '@/domain/exercise/exercise'
+
 export type ActiveInlinePanel =
   | {
       type: 'addBreak'
@@ -46,6 +49,8 @@ export interface ExerciseLibraryUiState {
   tab: ExerciseLibraryTab
   searchQuery: string
   customName: string
+  saveToLibrary?: boolean
+  exerciseType?: ExerciseType
 }
 
 export type ExerciseSelection =
@@ -53,10 +58,14 @@ export type ExerciseSelection =
       type: 'library'
       combinationId: string
       exerciseNameSnapshot: string
+      defaultConfiguration?: ExerciseConfiguration
     }
   | {
       type: 'custom'
       exerciseNameSnapshot: string
+      saveToLibrary?: boolean
+      exerciseType?: ExerciseType
+      personalId?: string
     }
 
 export type WorkoutPlanSaveState =

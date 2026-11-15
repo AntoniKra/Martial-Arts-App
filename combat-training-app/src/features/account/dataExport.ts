@@ -10,10 +10,12 @@ import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedba
 import { sparringIntensityLabels } from '@/features/workout-feedback/sparringIntensityLabels'
 import { accountLabels as labels } from './accountLabels'
 import type { WellbeingEntry } from '@/domain/wellbeing/wellbeing'
+import type { PersonalExercise } from '@/domain/exercise/exercise'
+import { exerciseLabels } from '@/features/exercises/exerciseLabels'
 
-export function exportFileName(kind: 'json' | 'csv' | 'wellbeingCsv', date: Date): string {
+export function exportFileName(kind: 'json' | 'csv' | 'wellbeingCsv' | 'exercisesCsv', date: Date): string {
   const day = [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-')
-  return `combat-training-${kind === 'json' ? 'dane' : kind === 'wellbeingCsv' ? 'samopoczucie' : 'dziennik'}-${day}.${kind === 'json' ? 'json' : 'csv'}`
+  return `combat-training-${kind === 'json' ? 'dane' : kind === 'wellbeingCsv' ? 'samopoczucie' : kind === 'exercisesCsv' ? 'moje-cwiczenia' : 'dziennik'}-${day}.${kind === 'json' ? 'json' : 'csv'}`
 }
 export function buildAccountJson(data: AccountData, account: Pick<AuthSession, 'uid' | 'email'>, exportedAt: Date): string {
   const collections = Object.fromEntries(Object.entries(data.collections).map(([name, documents]) => [
@@ -30,6 +32,18 @@ export function buildWellbeingCsv(entries: readonly WellbeingEntry[]): string {
   const headers = ['Data', 'Sen', 'Wypoczęcie', 'Mięśnie', 'Stres', 'Notatka', 'Wersja pytań', 'Utworzono', 'Zmieniono']
   const rows = [...entries].sort((a, b) => a.date.localeCompare(b.date)).map((entry) => [entry.date, entry.sleep, entry.energy,
     entry.soreness, entry.stress, entry.note, entry.questionsVersion, entry.createdAt, entry.updatedAt].map(csvCell).join(';'))
+  return '\uFEFF' + [headers.map(csvCell).join(';'), ...rows].join('\r\n') + '\r\n'
+}
+export function buildExercisesCsv(exercises: readonly PersonalExercise[]): string {
+  const headers = ['ID', 'Nazwa', 'Typ', 'Dyscypliny', 'Rodzaje bloku', 'Tryb', 'Rundy', 'Praca (s)', 'Przerwa (s)',
+    'Skopiowano z ID', 'Zarchiwizowano', 'Ulubione', 'Ostatnio użyte', 'Utworzono', 'Zmieniono', 'Wersja schematu']
+  const rows = [...exercises].sort((a, b) => a.id.localeCompare(b.id)).map((exercise) => {
+    const config = exercise.defaultConfiguration
+    return [exercise.id, exercise.namePl, exerciseLabels.types[exercise.type], exercise.disciplines.map(getDisciplineLabelPl).join(' | '),
+      exercise.blockTypes.map(getWorkoutBlockLabelPl).join(' | '), config.mode, config.mode === 'rounds' ? config.roundCount : null,
+      config.mode === 'rounds' ? config.roundDurationSeconds : config.durationSeconds, config.mode === 'rounds' ? config.restBetweenRoundsSeconds : null,
+      exercise.copiedFromId ?? null, exercise.archivedAt, exercise.favorite ? 'tak' : 'nie', exercise.lastUsedAt, exercise.createdAt, exercise.updatedAt, 1].map(csvCell).join(';')
+  })
   return '\uFEFF' + [headers.map(csvCell).join(';'), ...rows].join('\r\n') + '\r\n'
 }
 const minutes = (seconds: number | null) => seconds === null ? null : (seconds / 60).toFixed(1).replace('.', ',')

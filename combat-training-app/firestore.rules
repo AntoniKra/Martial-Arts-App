@@ -73,15 +73,54 @@ service cloud.firestore {
     }
 
     function isFocusSkill(data, documentId) {
-      return hasExactKeys(data, [
+      return data.keys().hasAll([
           'schemaVersion', 'id', 'name', 'criterion', 'openCorrection',
           'archivedAt', 'createdAt', 'updatedAt'
         ])
-        && isDocumentIdentity(data, documentId)
+        && data.keys().hasOnly(['schemaVersion', 'id', 'name', 'criterion', 'openCorrection',
+          'archivedAt', 'createdAt', 'updatedAt', 'exerciseId'])
+        && data.id == documentId && isInstant(data.createdAt) && isInstant(data.updatedAt)
+        && ((data.schemaVersion is int && data.schemaVersion == 1 && !('exerciseId' in data))
+          || (data.schemaVersion is int && data.schemaVersion == 2 && 'exerciseId' in data
+            && (data.exerciseId == null || isLibraryId(data.exerciseId))))
         && isBoundedText(data.name, 80)
         && isBoundedText(data.criterion, 200)
         && isOpenCorrection(data.openCorrection)
         && (data.archivedAt == null || isInstant(data.archivedAt));
+    }
+
+    function isLibraryId(value) {
+      return value is string && value.matches('[^/]{1,128}');
+    }
+
+    function isExerciseConfiguration(value) {
+      return value is map && (
+        (value.mode == 'rounds' && hasExactKeys(value, ['mode', 'roundCount', 'roundDurationSeconds', 'restBetweenRoundsSeconds'])
+          && value.roundCount is int && value.roundCount >= 1 && value.roundCount <= 99
+          && value.roundDurationSeconds is int && value.roundDurationSeconds >= 1 && value.roundDurationSeconds <= 86400
+          && value.restBetweenRoundsSeconds is int && value.restBetweenRoundsSeconds >= 0 && value.restBetweenRoundsSeconds <= 86400)
+        || (value.mode == 'continuous' && hasExactKeys(value, ['mode', 'durationSeconds'])
+          && value.durationSeconds is int && value.durationSeconds >= 1 && value.durationSeconds <= 86400));
+    }
+
+    function isPersonalExercise(data, documentId) {
+      return data.keys().hasAll(['schemaVersion', 'id', 'namePl', 'type', 'disciplines', 'blockTypes',
+          'defaultConfiguration', 'archivedAt', 'favorite', 'lastUsedAt', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['schemaVersion', 'id', 'namePl', 'type', 'disciplines', 'blockTypes',
+          'defaultConfiguration', 'copiedFromId', 'archivedAt', 'favorite', 'lastUsedAt', 'createdAt', 'updatedAt'])
+        && isDocumentIdentity(data, documentId) && isLibraryId(data.id)
+        && isBoundedText(data.namePl, 100)
+        && data.type in ['combination', 'drill', 'continuous']
+        && data.disciplines is list && data.disciplines.size() >= 1 && data.disciplines.size() <= 5
+        && data.disciplines.toSet().size() == data.disciplines.size()
+        && data.disciplines.hasOnly(['boxing', 'kickboxing', 'muay_thai', 'k1', 'mma_striking'])
+        && data.blockTypes is list && data.blockTypes.size() >= 1 && data.blockTypes.size() <= 8
+        && data.blockTypes.toSet().size() == data.blockTypes.size()
+        && data.blockTypes.hasOnly(['warmup', 'technique', 'pads', 'bag', 'sparring', 'conditioning', 'strengthAndConditioning', 'cooldown'])
+        && isExerciseConfiguration(data.defaultConfiguration)
+        && (!('copiedFromId' in data) || isLibraryId(data.copiedFromId))
+        && (data.archivedAt == null || isInstant(data.archivedAt))
+        && data.favorite is bool && (data.lastUsedAt == null || isInstant(data.lastUsedAt));
     }
 
     function commonSessionKeys() {
@@ -161,7 +200,7 @@ service cloud.firestore {
 
     function isWorkoutSession(data, documentId) {
       return isSessionSource(data)
-        && (isDocumentIdentity(data, documentId) || (data.source == 'manual' && data.schemaVersion is int && data.schemaVersion == 2
+        && (isDocumentIdentity(data, documentId) || (data.source in ['manual', 'plan'] && data.schemaVersion is int && data.schemaVersion == 2
           && data.id is string && data.id == documentId && isInstant(data.createdAt) && isInstant(data.updatedAt)))
         && data.status in ['completed', 'partial']
         && isDiscipline(data.disciplineKey)
@@ -289,6 +328,15 @@ service cloud.firestore {
       allow read, delete: if isVerifiedOwner(uid);
       allow create, update: if isVerifiedOwner(uid)
         && isWorkoutSession(request.resource.data, documentId);
+    }
+
+    match /users/{uid}/exercises/{documentId} {
+      allow read, delete: if isVerifiedOwner(uid);
+      allow create: if isVerifiedOwner(uid) && isPersonalExercise(request.resource.data, documentId);
+      allow update: if isVerifiedOwner(uid) && isPersonalExercise(request.resource.data, documentId)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.type == resource.data.type
+        && request.resource.data.get('copiedFromId', null) == resource.data.get('copiedFromId', null);
     }
 
     match /users/{uid}/focusSkills/{documentId} {

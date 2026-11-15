@@ -8,6 +8,8 @@
 | rozluźnienie | `cooldown` |
 | element bloku | `workoutItem` |
 | ćwiczenie | `exercise` |
+| Moje ćwiczenia | `PersonalExercise`, kolekcja `exercises` |
+| typ definicji ćwiczenia | `combination`, `drill`, `continuous` (nie tryb timera) |
 | kombinacja | `combination` |
 | runda | `round` |
 | odpoczynek między rundami | `roundRest` |

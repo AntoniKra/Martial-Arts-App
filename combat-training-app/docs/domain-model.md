@@ -76,6 +76,10 @@ Docelowo:
 
 Jedno ćwiczenie zawiera jedną kombinację lub jedną instrukcję.
 
+Issue #156 / ADR 0017: prywatne definicje „Moje ćwiczenia” mają stałe ID, redakcyjny typ `combination` / `drill` / `continuous`, dyscypliny, bloki i domyślne parametry. Plan wskazuje je przez istniejące `combinationId`; `WorkoutExercise.id` nadal identyfikuje osobne wystąpienie. Snapshot nazwy i parametrów pozostaje niezmienny. Nowe etapy sesji zachowują ID biblioteki, dzięki czemu historia chroni definicję przed usunięciem także po skasowaniu planu. Archiwizacja wyłącza nowe wybieranie, przywrócenie zachowuje ID. Typ zmienia się wyłącznie przez nową definicję.
+
+Ćwiczenie celu może mieć opcjonalne `exerciseId` do wyświetlenia powiązania. Oceny, poprzednia ocena i istniejący trend nadal używają `focusSkillId`; nie powstaje drugi trend. Kryteria i stare oceny pozostają bez zmian.
+
 ## Pominięcia i wykonanie
 
 - pominięte ćwiczenie nie otrzymuje oceny 0;

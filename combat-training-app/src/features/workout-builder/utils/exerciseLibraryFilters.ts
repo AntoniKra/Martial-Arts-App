@@ -1,9 +1,10 @@
 import type { Combination } from '@/domain/combination/combination.types'
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import type { WorkoutBlockType } from '@/domain/workout/workout.types'
+import { normalizeExerciseSearch } from '@/domain/exercise/exercise'
 
 export function normalizeSearchText(value: string): string {
-  return value.trim().replace(/\s+/g, ' ').toLowerCase()
+  return normalizeExerciseSearch(value)
 }
 
 export function filterExerciseLibrary(

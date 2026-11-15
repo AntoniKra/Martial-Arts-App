@@ -13,8 +13,13 @@ import type { AthleteProfile, BodyWeight } from '@/domain/profile/profile.types'
 import type { ProfileRepository, BodyWeightRepository } from './profile/profileRepository'
 import type { WellbeingEntry } from '@/domain/wellbeing/wellbeing'
 import type { WellbeingRepository } from './profile/wellbeingRepository'
+import type { PersonalExercise } from '@/domain/exercise/exercise'
+import type { ExerciseRepository } from './exercise/exerciseRepository'
 
 export interface WorkoutData {
+  exercises: CollectionState<PersonalExercise>
+  exerciseRepository: ExerciseRepository
+  retryExercises: () => void
   wellbeing: CollectionState<WellbeingEntry>
   wellbeingRepository: WellbeingRepository
   retryWellbeing: () => void

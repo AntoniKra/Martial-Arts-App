@@ -1,6 +1,7 @@
 export const routes = {
   home: '/',
   workouts: '/workouts',
+  myExercises: '/exercises',
   newWorkout: '/workouts/new',
   quickTimer: '/quick-timer',
   quickTimerActive: '/quick-timer/active',
