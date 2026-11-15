@@ -67,6 +67,7 @@ test('reuses a personal exercise across two rated plans, keeps one focus trend a
   await page.getByRole('switch', { name: 'Ćwiczenie celu · Oceniaj po treningu', exact: true }).click()
   await page.getByRole('radio', { name: new RegExp(`^${skillName}`) }).check()
   await app.savePlan()
+  await expect.poll(async () => (await app.readPlans()).some((plan) => plan.customName === 'Plan B'), { timeout: 10_000 }).toBe(true)
   const secondPlan = (await app.readPlans()).find((plan) => plan.customName === 'Plan B')!
   expect(secondPlan.blocks[0].items[0]).toMatchObject({ combinationId: personal.id, focusSkillId: skill.id })
   await app.open(`/workouts/${secondPlan.id}`)
