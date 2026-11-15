@@ -36,7 +36,8 @@ test('history filters collapse, count active choices, filter results and clear w
   await expect(page.getByRole('searchbox')).toHaveValue('Trening')
   const strip = disciplines.locator('div').first()
   expect(await strip.evaluate((element) => getComputedStyle(element).scrollSnapType)).toBe('x mandatory')
-  expect(await strip.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true)
+  // Only narrow screens need to scroll; on tablet and desktop every discipline fits.
+  if ((page.viewportSize()?.width ?? 0) < 480) expect(await strip.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true)
   for (const theme of ['light', 'dark'] as const) {
     await app.setTheme(theme)
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
