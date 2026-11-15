@@ -4,7 +4,8 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
-  retries: 0,
+  // One CI retry absorbs timing races; a real bug fails twice. Flaky tests stay listed in the report and get fixed.
+  retries: process.env.CI ? 1 : 0,
   workers: 2,
   reporter: [
     ['list'],

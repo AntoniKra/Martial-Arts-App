@@ -42,6 +42,12 @@ A change is done only when all of these hold:
 
 Report failures honestly. Never weaken a test, a type or a lint rule just to make a check pass.
 
+## End-to-end tests
+
+- Locally run only new and changed spec files on the `phone` project; repeat new tests 5× once, after the last code change. The full suite on three viewports runs in CI.
+- After any action that writes data, wait for the result with web-first assertions or `expect.poll` (UI state or emulator data). Never read the emulator immediately after a click, and never use `waitForTimeout`.
+- CI retries a failed test once. A test reported as flaky is a bug in the test: fix it in the same pull request when it is new, otherwise open an issue.
+
 ## How to work
 
 - **One task, one branch, one pull request.** Name branches `feat/…`, `fix/…`, `test/…`, `chore/…`, `docs/…`. Never commit to `main`, never force-push, and never work on a branch another agent is using.
