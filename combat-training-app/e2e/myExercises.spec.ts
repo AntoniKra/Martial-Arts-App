@@ -106,7 +106,7 @@ test('reuses a personal exercise across two rated plans, keeps one focus trend a
 
 test('copies a builtin, favorites it with an accessible name, archives offline and permanently deletes only an unused copy', async ({ app, page, context }, info) => {
   await app.open('/workouts/new'); await beginPlan(page, 'Copy draft')
-  const builtin = page.getByRole('listitem').filter({ has: page.getByRole('button', { name: 'Jab → prawy prosty', exact: true }) })
+  const builtin = page.getByRole('listitem').filter({ has: page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }) })
   await builtin.getByRole('button', { name: 'Kopiuj do moich', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nazwa ćwiczenia', exact: true }).fill('Moja kombinacja')
   await page.getByRole('button', { name: 'Zapisz ćwiczenie', exact: true }).click()
@@ -133,6 +133,77 @@ test('copies a builtin, favorites it with an accessible name, archives offline a
   await page.getByRole('button', { name: 'Potwierdź trwałe usunięcie', exact: true }).click()
   await expect.poll(() => app.readExercises()).toEqual([])
 })
+
+test('combines builtin categories with search and context filters on the phone', async ({ app, page }) => {
+  await app.open('/workouts/new'); await beginPlan(page, 'Category draft')
+  const category = page.getByRole('combobox', { name: 'Kategoria', exact: true })
+  const search = page.getByRole('searchbox', { name: 'Szukaj ćwiczenia', exact: true })
+  const results = page.getByRole('list', { name: 'Wyniki biblioteki ćwiczeń', exact: true })
+  await expect(page.getByRole('button', { name: 'Prawy low kick', exact: true })).toHaveCount(0)
+  await category.selectOption('Kombinacje 4-ciosowe')
+  await expect(results.getByRole('listitem')).toHaveCount(3)
+  await search.fill('LEWY PODBRODKOWY')
+  await expect(results.getByRole('listitem')).toHaveCount(1)
+  await expect(results).toContainText('Lewy prosty → prawy prosty → lewy podbródkowy → prawy prosty')
+  await search.fill('Nieistniejaca pozycja')
+  await expect(page.getByText('Brak wyników. Zmień frazę lub filtry.', { exact: true })).toBeVisible()
+  await search.fill('')
+  await results.getByRole('button', { name: 'Lewy prosty → prawy prosty → lewy sierp → prawy prosty', exact: true }).click()
+  await page.getByRole('button', { name: 'Wróć do biblioteki', exact: true }).click()
+  await expect(category).toHaveValue('Kombinacje 4-ciosowe')
+  await category.selectOption('')
+  await page.getByRole('button', { name: '✓ Boks', exact: true }).click()
+  await search.fill('Prawy low kick')
+  await expect(results.getByRole('button', { name: 'Prawy low kick', exact: true })).toBeVisible()
+  await search.fill('')
+  await page.getByRole('button', { name: '✓ Technika', exact: true }).click()
+  await category.selectOption('Siła na czas')
+  await expect(results.getByRole('listitem')).toHaveCount(9)
+  for (const theme of ['dark', 'light'] as const) { await app.setTheme(theme); await accessible(page) }
+  await page.getByRole('button', { name: 'Moje', exact: true }).click()
+  await expect(category).toHaveValue('')
+  await expect(category).toBeDisabled()
+})
+
+for (const entry of [
+  { id: 'continuous_pushups', name: 'Pompki na czas', type: 'continuous', mode: 'continuous' },
+  { id: 'drill_footwork_forward_backward', name: 'Krok w przód → krok w tył', type: 'drill', mode: 'rounds' },
+  { id: 'combo_jab_cross_lead_uppercut_cross', name: 'Lewy prosty → prawy prosty → lewy podbródkowy → prawy prosty', type: 'combination', mode: 'rounds' },
+] as const) {
+  test(`copies new ${entry.type} with approved defaults and reuses it in a plan`, async ({ app, page }) => {
+    await app.open('/workouts/new'); await beginPlan(page, 'Approved copy')
+    await page.getByRole('button', { name: '✓ Technika', exact: true }).click()
+    await page.getByRole('searchbox', { name: 'Szukaj ćwiczenia', exact: true }).fill(entry.name)
+    const builtin = page.getByRole('listitem').filter({ has: page.getByRole('button', { name: entry.name, exact: true }) })
+    await builtin.getByRole('button', { name: 'Kopiuj do moich', exact: true }).click()
+    await expect(page.getByRole('combobox', { name: 'Typ ćwiczenia', exact: true })).toHaveValue(entry.type)
+    await expect(page.getByRole('combobox', { name: 'Tryb', exact: true })).toHaveValue(entry.mode)
+    if (entry.mode === 'continuous') {
+      await expect(page.getByRole('textbox', { name: 'Czas trwania (s)', exact: true })).toHaveValue('60')
+    } else {
+      await expect(page.getByRole('textbox', { name: 'Liczba rund', exact: true })).toHaveValue('3')
+      await expect(page.getByRole('textbox', { name: 'Czas pracy (s)', exact: true })).toHaveValue('180')
+      await expect(page.getByRole('textbox', { name: 'Przerwa między rundami (s)', exact: true })).toHaveValue('60')
+    }
+    const configuration = entry.mode === 'continuous' ? { mode: 'continuous', durationSeconds: 60 }
+      : { mode: 'rounds', roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 }
+    await page.getByRole('button', { name: 'Zapisz ćwiczenie', exact: true }).click()
+    await expect(page.getByText('Ćwiczenie skopiowane do Moich.', { exact: true })).toBeVisible()
+    await expect.poll(() => app.readExercises()).toMatchObject([{ namePl: entry.name, type: entry.type,
+      copiedFromId: entry.id, defaultConfiguration: configuration,
+      disciplines: entry.type === 'continuous' ? ['boxing', 'kickboxing', 'muay_thai', 'k1', 'mma_striking'] : ['boxing'],
+      blockTypes: entry.type === 'continuous' ? ['strengthAndConditioning'] : entry.type === 'drill' ? ['technique'] : ['technique', 'pads', 'bag'] }])
+    const [personal] = await app.readExercises()
+    expect(personal.id).not.toBe(entry.id)
+    await page.getByRole('button', { name: 'Moje', exact: true }).click()
+    await page.getByRole('button', { name: entry.name, exact: true }).click()
+    await expect(page.getByRole('radio', { name: entry.mode === 'continuous' ? 'Ciągłe' : 'Rundy', exact: true })).toBeChecked()
+    await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+    await app.savePlan()
+    await expect.poll(() => app.readPlans()).toMatchObject([{ blocks: [{ items: [{ combinationId: personal.id,
+      exerciseNameSnapshot: entry.name, configuration }] }] }])
+  })
+}
 
 for (const operation of ['use', 'favorite'] as const) {
   test(`preserves device A edits and archive when offline device B syncs ${operation}`, async ({ app, page, context, browser }) => {

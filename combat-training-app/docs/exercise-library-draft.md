@@ -1,6 +1,10 @@
 # Projekt rozszerzonej biblioteki ćwiczeń
 
-Status: **do przeglądu przez właściciela**, issue [#155](https://github.com/AntoniKra/Martial-Arts-App/issues/155), 15 listopada 2026. CSV nie jest importowany przez aplikację. Wdrożenie zatwierdzonej listy będzie osobnym zadaniem.
+Status: **zatwierdzone bez zmian przez właściciela 15 listopada 2026**, issue [#161](https://github.com/AntoniKra/Martial-Arts-App/issues/161). CSV jest źródłem 86 wbudowanych pozycji aplikacji. Poniższe uwagi przeglądu opisują pochodzenie listy; kolumna `note` nie trafia do aplikacji.
+
+## Dane aplikacji
+
+Po zmianie CSV uruchom z `combat-training-app/`: `node scripts/generate-exercise-library.mjs`. Test jednostkowy uruchamia wariant `--check` i wykrywa rozbieżność danych w kodzie ze źródłem. Generator zachowuje `existingId`, a dla nowych pozycji używa `id`; nie zmienia zapisanych planów ani historii. „Kopiuj do moich” przejmuje zatwierdzony typ, przypisania i domyślne parametry. Dodawanie wbudowanej pozycji do planu nadal dziedziczy konfigurację według specyfikacji kreatora.
 
 ## Zakres i liczby
 

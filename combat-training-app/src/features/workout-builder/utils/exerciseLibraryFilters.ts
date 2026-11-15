@@ -9,9 +9,10 @@ export function normalizeSearchText(value: string): string {
 
 export function filterExerciseLibrary(
   combinations: readonly Combination[],
-  disciplineKey: DisciplineKey,
-  blockType: WorkoutBlockType,
+  disciplineKey: DisciplineKey | null,
+  blockType: WorkoutBlockType | null,
   searchQuery: string,
+  category = '',
 ): Combination[] {
   const normalizedQuery = normalizeSearchText(searchQuery)
 
@@ -20,11 +21,15 @@ export function filterExerciseLibrary(
       return false
     }
 
-    if (!combination.disciplineKeys.includes(disciplineKey)) {
+    if (disciplineKey !== null && !combination.disciplineKeys.includes(disciplineKey)) {
       return false
     }
 
-    if (!combination.blockTypes.includes(blockType)) {
+    if (blockType !== null && !combination.blockTypes.includes(blockType)) {
+      return false
+    }
+
+    if (category && combination.category !== category) {
       return false
     }
 

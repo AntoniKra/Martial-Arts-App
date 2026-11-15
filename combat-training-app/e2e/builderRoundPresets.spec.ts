@@ -33,7 +33,7 @@ test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round 
   await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
   await page.getByRole('button', { name: 'Technika', exact: true }).click()
 
-  await chooseLibraryExercise(page, 'Jab → prawy prosty')
+  await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
   await chooseTile(page, 'Liczba rund', '2')
   await chooseTile(page, 'Czas rundy', '1:00')
   await chooseTile(page, 'Przerwa między rundami', '0:30')
@@ -43,7 +43,7 @@ test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round 
   )
   await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
 
-  await chooseLibraryExercise(page, 'Podwójny jab → prawy prosty')
+  await chooseLibraryExercise(page, 'Lewy prosty → lewy prosty → prawy prosty')
   await expect(page.getByRole('group', { name: 'Liczba rund', exact: true }).getByRole('radio', { name: '2', exact: true })).toBeChecked()
   await expect(page.getByRole('group', { name: 'Czas rundy', exact: true }).getByRole('radio', { name: '1:00', exact: true })).toBeChecked()
   await expect(
