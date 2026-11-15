@@ -170,10 +170,10 @@ test('hides rest for one round and restores the previous value at three rounds',
   await expect(page.getByRole('heading', { name: 'Nowy trening', exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
-  await page.getByRole('button', { name: 'Jab → prawy prosty', exact: true }).click()
+  await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()
   await page.getByRole('button', { name: 'Wróć do biblioteki', exact: true }).click()
   await expect(discardDialog(page)).toHaveCount(0)
-  await page.getByRole('button', { name: 'Jab → prawy prosty', exact: true }).click()
+  await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()
 
   const rest = () => page.getByRole('group', { name: 'Przerwa między rundami', exact: true })
   await expect(rest().getByRole('radio', { name: '1:00', exact: true })).toBeChecked()
@@ -196,7 +196,7 @@ test('hides rest for one round and restores the previous value at three rounds',
   await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
   await expect(page.getByText('1 runda × 3:00 · przerwa 0:30', { exact: true })).toBeVisible()
 
-  await page.getByRole('button', { name: /Edytuj ćwiczenie Jab → prawy prosty/ }).click()
+  await page.getByRole('button', { name: /Edytuj ćwiczenie Lewy prosty → prawy prosty/ }).click()
   await expect(rest()).toHaveCount(0)
   await chooseTile(page, 'Liczba rund', '3')
   await expect(rest().getByRole('radio', { name: '0:30', exact: true })).toBeChecked()

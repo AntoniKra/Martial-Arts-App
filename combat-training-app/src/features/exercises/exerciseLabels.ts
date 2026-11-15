@@ -18,6 +18,7 @@ export const exerciseLabels = {
   invalid: 'Część ćwiczeń ma niepoprawne dane. Ponów odczyt; zarządzanie tym zbiorem jest zablokowane.',
   retry: 'Spróbuj ponownie', search: 'Szukaj ćwiczenia', mine: 'Moje',
   recent: 'Ostatnio używane', favorites: 'Ulubione', all: 'Wszystkie ćwiczenia',
+  category: 'Kategoria', allCategories: 'Wszystkie kategorie',
   favorite: (name: string) => `Dodaj do ulubionych: ${name}`,
   unfavorite: (name: string) => `Usuń z ulubionych: ${name}`,
   saveToMine: 'Zapisz w Moich ćwiczeniach', planOnly: 'Tylko w tym planie',
