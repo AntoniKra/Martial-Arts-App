@@ -52,9 +52,10 @@ export function combineWeekPlanDocuments(documents: readonly { id: string; data:
     return parseWeekPlanDocument(raw)
   }
   const header = scheduledWeekHeaderSchema.parse(raw)
-  const entries = documents.filter((document) => document.id !== rawHeader.id).map((document) => {
-    const entry = scheduledWeekEntrySchema.parse(document.data)
-    if (document.id !== `${header.weekStart}~${entry.position}` || entry.weekStart !== header.weekStart || entry.createdAt !== header.createdAt || entry.updatedAt !== header.updatedAt) throw new Error('Week entry identity mismatch')
+  const entries = documents.filter((document) => document.id !== rawHeader.id)
+    .map((document) => ({ ...document, entry: scheduledWeekEntrySchema.parse(document.data) }))
+    .filter(({ entry }) => entry.position < header.scheduleSize).map(({ id, entry }) => {
+    if (id !== `${header.weekStart}~${entry.position}` || entry.weekStart !== header.weekStart || entry.createdAt !== header.createdAt || entry.updatedAt !== header.updatedAt) throw new Error('Week entry identity mismatch')
     return entry
   }).sort((a, b) => a.position - b.position)
   if (entries.length !== header.scheduleSize || entries.some((entry, index) => entry.position !== index)) throw new Error('Incomplete scheduled week')

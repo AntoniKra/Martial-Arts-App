@@ -54,7 +54,7 @@ export function combineRecurringWeekRecords(records: readonly RecurringWeekRecor
   if (!records.length) return undefined
   const header = records.find((record) => 'itemCount' in record)
   if (!header || !('itemCount' in header)) throw new Error('Missing recurring week header')
-  const entries = records.filter((record) => 'position' in record).sort((a, b) => a.position - b.position)
+  const entries = records.filter((record) => 'position' in record).filter((record) => record.position < header.itemCount).sort((a, b) => a.position - b.position)
   if (entries.length !== header.itemCount || entries.some((entry, index) => entry.position !== index || entry.createdAt !== header.createdAt || entry.updatedAt !== header.updatedAt)) throw new Error('Incomplete recurring week')
   return parseRecurringWeekDocument({ schemaVersion: 1, id: 'default', items: entries.map((entry) => entry.activity), createdAt: header.createdAt, updatedAt: header.updatedAt })
 }

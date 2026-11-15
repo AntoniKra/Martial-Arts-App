@@ -49,7 +49,8 @@ describe('date-keyed weekly repository', () => {
     await saving
     const empty = { ...shortened, schedule: [], updatedAt: '2026-11-10T12:00:00.000Z' }
     const clearing = repository.save(empty)
-    expect(sdk.batchDelete).toHaveBeenLastCalledWith(`users/athlete/weekPlans/${plan.weekStart}~0`)
+    expect(sdk.batchDelete).toHaveBeenCalledTimes(27)
+    for (let index = 0; index < 14; index++) expect(sdk.batchDelete).toHaveBeenNthCalledWith(14 + index, `users/athlete/weekPlans/${plan.weekStart}~${index}`)
     expect(sdk.set).toHaveBeenCalledTimes(2)
     emit([empty], true, true)
     await clearing

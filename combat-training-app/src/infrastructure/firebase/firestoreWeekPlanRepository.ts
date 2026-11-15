@@ -1,7 +1,7 @@
 import { collection, doc, onSnapshot, query, setDoc, where, writeBatch, type Firestore } from 'firebase/firestore'
 import type { WeekPlanRepository, WeekPlanSnapshot } from '@/application/week-plan/weekPlanRepository'
 import type { WeekPlan } from '@/domain/week-plan/weekPlan.types'
-import { WEEK_PLAN_HISTORY_WEEKS } from '@/domain/week-plan/weekPlan.types'
+import { WEEK_PLAN_HISTORY_WEEKS, WEEK_PLAN_ITEM_LIMIT } from '@/domain/week-plan/weekPlan.types'
 import { currentWeekStart, isMonday, shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
 import { combineWeekPlanDocuments, parseWeekPlanDocument, storedWeekPlanDocuments } from './weekPlanDocumentSchema'
 
@@ -11,7 +11,6 @@ interface LocalWrite { expected: string; weekStart: string; resolve: () => void;
 export class FirestoreWeekPlanRepository implements WeekPlanRepository {
   private readonly path
   private items = new Map<string, WeekPlan>()
-  private documentIds = new Map<string, string[]>()
   private invalidIds = new Set<string>()
   private complete = false
   private rangeStart = ''
@@ -44,7 +43,6 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
         group.push(document)
         groups.set(key, group)
       }
-      this.documentIds = new Map([...groups].map(([key, documents]) => [key, documents.map((document) => document.id)]))
       for (const [key, documents] of groups) {
         try {
           const plan = combineWeekPlanDocuments(documents.map((document) => ({ id: document.id, data: document.data() })))
@@ -68,7 +66,6 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
       stop()
       this.reportError = null
       this.items.clear()
-      this.documentIds.clear()
       this.invalidIds.clear()
       this.complete = false
       this.rejectWrites(new Error('Repository subscription closed'))
@@ -107,7 +104,7 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
           const documents = storedWeekPlanDocuments(plan)
           const batch = writeBatch(this.db)
           for (const document of documents) batch.set(doc(this.path, document.id), document.data)
-          for (const id of this.documentIds.get(plan.weekStart) ?? []) if (!documents.some((document) => document.id === id)) batch.delete(doc(this.path, id))
+          for (let position = plan.schedule!.length; position < WEEK_PLAN_ITEM_LIMIT; position++) batch.delete(doc(this.path, `${plan.weekStart}~${position}`))
           server = batch.commit()
         }
         void server.then(() => {

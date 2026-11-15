@@ -898,6 +898,16 @@ describe('recurring and dated week plans', () => {
     expect((await header.get()).data()?.updatedAt).toBe(instant)
     await assertFails(db.doc(`users/${ownerId}/${collection}/${id(14)}`).set(entry(14)))
   })
+  for (const collection of ['recurringWeeks', 'weekPlans']) it.each([0, 1])(`accepts a full ${collection} batch with %i entries and deletion of nonexistent slots`, async (count) => {
+    const db = ownerDatabase(), batch = db.batch(), path = `users/${ownerId}/${collection}`
+    const id = (position: number) => collection === 'recurringWeeks' ? `item-${position}` : `2026-11-09~${position}`
+    batch.set(db.doc(`${path}/${collection === 'recurringWeeks' ? 'default' : '2026-11-09'}`),
+      collection === 'recurringWeeks' ? { ...recurring(), itemCount: count } : { ...scheduled(), scheduleSize: count })
+    for (let position = 0; position < count; position++) batch.set(db.doc(`${path}/${id(position)}`), collection === 'recurringWeeks' ? recurringEntry(position) : scheduledEntry(position))
+    for (let position = count; position < 14; position++) batch.delete(db.doc(`${path}/${id(position)}`))
+    await assertSucceeds(batch.commit())
+    expect((await db.collection(path).get()).size).toBe(count + 1)
+  })
   it('rejects another singleton, invalid target, missing fields and a sticky history reset', async () => {
     await assertFails(ownerDatabase().doc(`users/${ownerId}/recurringWeeks/other`).set({ ...recurring(), id: 'other' }))
     const ref = ownerDatabase().doc(`users/${ownerId}/weekPlans/2026-11-09`)

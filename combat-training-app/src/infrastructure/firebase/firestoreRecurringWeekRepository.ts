@@ -1,5 +1,6 @@
 import { collection, doc, writeBatch, type Firestore } from 'firebase/firestore'
 import type { RecurringWeekRepository } from '@/application/week-plan/recurringWeekRepository'
+import { WEEK_PLAN_ITEM_LIMIT } from '@/domain/week-plan/weekPlan.types'
 import { FirestoreWorkoutRepository } from './firestoreWorkoutRepository'
 import { combineRecurringWeekRecords, recurringWeekRecords, recurringWeekRecordSchema } from './recurringWeekDocumentSchema'
 
@@ -29,9 +30,10 @@ export function createFirestoreRecurringWeekRepository(db: Firestore, uid: strin
         batch.set(doc(path, value.id), value)
         writes.push(records.save(value, () => server))
       }
-      for (const value of previous) if (!next.some((entry) => entry.id === value.id)) {
-        batch.delete(doc(path, value.id))
-        writes.push(records.delete(value.id, () => server))
+      for (let position = week.items.length; position < WEEK_PLAN_ITEM_LIMIT; position++) {
+        const id = `item-${position}`
+        batch.delete(doc(path, id))
+        writes.push(records.delete(id, () => server))
       }
       try { void batch.commit().then(resolveServer, rejectServer) } catch (error) { rejectServer(error) }
       await Promise.all(writes)
