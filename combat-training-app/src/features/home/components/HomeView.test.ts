@@ -10,6 +10,7 @@ import { workoutSession } from '@/test/workoutSessionBuilders'
 
 function renderHome(recentSessionsLoadState: RecentWorkoutSessionsLoadState): string {
   return renderToStaticMarkup(createElement(MemoryRouter, null, createElement(HomeView, {
+    today: '2026-11-17', timerLabel: '3 × 3:00',
     featuredPlanLoadState: { status: 'success', plan: null },
     recentSessionsLoadState,
     onRetryLoadFeaturedPlan: () => {},
@@ -24,9 +25,9 @@ describe('home recent sessions', () => {
     expect(html).toContain('Ładowanie sesji…')
   })
 
-  it('invites the first workout when history is empty without example sessions', () => {
+  it('keeps empty history without an extra session card', () => {
     const html = renderHome({ status: 'success', sessions: [] })
-    expect(html).toContain('Nie masz jeszcze ukończonych treningów.')
+    expect(html).not.toContain('aria-label="Ostatnia sesja"')
     expect(html).not.toContain('/report')
   })
 
@@ -37,17 +38,23 @@ describe('home recent sessions', () => {
     expect(html).toContain('Spróbuj ponownie')
   })
 
-  it('shows saved sessions and zero completion without missing RPE or ratings', () => {
+  it('shows only the last saved session and links to its missing RPE', () => {
     const html = renderHome({
       status: 'success',
-      sessions: [mapWorkoutSessionToHomeRecentSession(workoutSession({ workoutPlanNameSnapshot: 'Saved session' }))],
+      sessions: [mapWorkoutSessionToHomeRecentSession(workoutSession({ workoutPlanNameSnapshot: 'Saved session' })),
+        mapWorkoutSessionToHomeRecentSession(workoutSession({ id: 'older', workoutPlanNameSnapshot: 'Older session' }))],
     })
     expect(html).toContain('Saved session')
     expect(html).toContain('/workouts/session-1/report')
-    expect(html).toContain('0/0')
-    expect(html).toContain('ćwiczeń')
-    expect(html).not.toContain('wykonania')
-    expect(html).not.toContain('RPE')
+    expect(html).not.toContain('Older session')
+    expect(html).toContain('/workout-sessions/session-1/feedback?rpe=1')
+    expect(html).toContain('Uzupełnij RPE')
     expect(html).not.toContain('Śr.')
+  })
+  it('shows a recorded RPE of zero without a completion counter', () => {
+    const html = renderHome({ status: 'success', sessions: [mapWorkoutSessionToHomeRecentSession(workoutSession({ rpe: 0 }))] })
+    expect(html).toContain('RPE 0')
+    expect(html).not.toContain('Uzupełnij RPE')
+    expect(html).not.toContain('0/0')
   })
 })

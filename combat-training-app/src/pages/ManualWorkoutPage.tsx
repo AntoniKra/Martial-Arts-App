@@ -17,8 +17,8 @@ export function Component() {
   const { sessions, focusSkills, sessionRepository, retry, retryFocusSkills } = useWorkoutData()
   const prefill = !sessionId && location.state && typeof location.state === 'object' && 'weekEntry' in location.state
     ? readClubWorkoutPrefill(location.state.weekEntry, calculateWorkoutDate(new Date().toISOString(), Intl.DateTimeFormat().resolvedOptions().timeZone)) : undefined
-  const returnTo = prefill ? routes.weekPlan(prefill.weekStart) : location.state && typeof location.state === 'object' && 'returnTo' in location.state && location.state.returnTo === '/'
-    ? routes.home : `${routes.workouts}?tab=history`
+  const returnTo = location.state && typeof location.state === 'object' && 'returnTo' in location.state && location.state.returnTo === '/'
+    ? routes.home : prefill ? routes.weekPlan(prefill.weekStart) : `${routes.workouts}?tab=history`
   if (sessions.status === 'loading') return <p role="status" className="p-4 text-muted">{labels.loading}</p>
   if (sessions.status === 'error' || sessions.invalidDocumentIds.length) return <div className="space-y-4 p-4">
     <h1 className="font-display text-xl">{labels.loadError}</h1><Button onClick={retry}>{labels.retry}</Button>

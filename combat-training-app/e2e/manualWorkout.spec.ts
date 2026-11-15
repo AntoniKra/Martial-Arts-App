@@ -45,7 +45,7 @@ test('saves three club parts with sparring, custom minutes and one session load'
   await app.seedWeekPlan({ weekStart: '2026-11-09', createdAt: now, updatedAt: now, editedAfterWeekEnd: false,
     items: [{ id: 'pads', kind: 'category', category: 'pads' }] })
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
-  await page.getByRole('link', { name: addLabel, exact: true }).click()
+  await page.getByRole('link', { name: /^Trening w klubie/ }).click()
   await expect(category(page).getByRole('checkbox', { checked: true })).toHaveCount(0)
   await expect(form(page).getByRole('radiogroup', { name: 'RPE od 0 do 10' }).getByRole('radio', { checked: true })).toHaveCount(0)
   await form(page).getByRole('radio', { name: 'Kickboxing', exact: true }).check()
@@ -175,10 +175,10 @@ test('adds sparring from home, shows manual cards, and counts toward summary and
     items: [{ id: 'sparring', kind: 'category', category: 'sparring' }] })
   // The REST seed finishes before the mounted Firestore listener receives it.
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
-  await page.getByRole('link', { name: addLabel, exact: true }).click()
+  await page.getByRole('link', { name: /^Trening w klubie/ }).click()
   await fill(page); await save(page)
   await expect(page).toHaveURL(/\/$/)
-  const recent = page.getByRole('region', { name: 'Ostatnie sesje', exact: true })
+  const recent = page.getByRole('region', { name: 'Ostatnia sesja', exact: true })
   await expect(recent).toContainText('Trening poza aplikacją · Sparing')
   await expect(recent).toContainText('90 min')
   await expect(recent).not.toContainText('0/0')

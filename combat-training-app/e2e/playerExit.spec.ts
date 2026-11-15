@@ -43,7 +43,8 @@ test('ends early after a completed round, records every step and shows partial s
   const history = await app.openHistory()
   await expect(history.getByText('Częściowy', { exact: true })).toBeVisible()
   await app.open('/')
-  await expect(page.getByRole('link').filter({ hasText: 'Trening czesciowy' }).getByText('Częściowy', { exact: true })).toBeVisible()
+  // Start v2 (#154) shows the last session without its status; the status is asserted in history above.
+  await expect(page.getByRole('region', { name: 'Ostatnia sesja', exact: true }).getByRole('link', { name: 'Trening czesciowy' })).toBeVisible()
 })
 
 test('does not save an interrupted first round and allows a fresh completed run', async ({ app, page }) => {
@@ -168,7 +169,8 @@ test('leaves without confirmation before start and after completion and shows co
   const history = await app.openHistory()
   await expect(history.getByText('Ukończony', { exact: true })).toBeVisible()
   await app.open('/')
-  await expect(page.getByRole('link').filter({ hasText: 'Ukonczony trening' }).getByText('Ukończony', { exact: true })).toBeVisible()
+  // Start v2 (#154) shows the last session without its status; the status is asserted in history above.
+  await expect(page.getByRole('region', { name: 'Ostatnia sesja', exact: true }).getByRole('link', { name: 'Ukonczony trening' })).toBeVisible()
 })
 
 test('finishes the whole exercise instead of the next round and preserves earlier completed work', async ({ app, page }) => {
