@@ -1,3 +1,4 @@
+import { selectRpe } from './rpeSlider'
 import AxeBuilder from '@axe-core/playwright'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
@@ -13,7 +14,7 @@ async function checkAccessibility(page: Page) {
 }
 
 async function capture(page: Page, info: TestInfo, name: string) {
-  if (info.project.name !== 'phone') return
+  if (info.project.name !== 'phone' || process.env.CAPTURE_SCREENSHOTS !== '1') return
   const folder = path.resolve('docs/screenshots/issue-70')
   await mkdir(folder, { recursive: true })
   await page.evaluate(() => document.fonts.ready)
@@ -45,7 +46,7 @@ test('opens RPE at ten minutes and persists six with the response timestamp', as
   await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toBeVisible()
   await expect(page.getByText('Minęło 10 minut', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Zapisz RPE', exact: true })).toBeDisabled()
-  await page.getByRole('radiogroup', { name: 'RPE od 0 do 10', exact: true }).getByRole('radio', { name: '6', exact: true }).check()
+  await selectRpe(page, 6)
   const responseTime = await page.evaluate(() => new Date().toISOString())
   await page.getByRole('button', { name: 'Zapisz RPE 6', exact: true }).click()
   await page.clock.resume()
@@ -61,7 +62,7 @@ test('rates early without losing the summary draft and queues RPE offline', asyn
   await note.fill('Zachowaj szkic podczas oceny RPE.')
   await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()
   await expect(page.getByText('Minęło 10 minut', { exact: true })).toHaveCount(0)
-  await page.getByRole('radio', { name: '0 Odpoczynek', exact: true }).check()
+  await selectRpe(page, 0)
   await context.setOffline(true)
   await page.getByRole('button', { name: 'Zapisz RPE 0', exact: true }).click()
   await expect(page.getByText('Zapisano RPE 0', { exact: true })).toBeVisible()
@@ -114,9 +115,9 @@ test('reminds at home, opens RPE directly, and persists a device dismissal witho
   await reminder.click()
   await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toBeVisible()
   await expect(page.getByText('Minęło 10 minut', { exact: true })).toBeVisible()
-  const scale = page.getByRole('radiogroup', { name: 'RPE od 0 do 10', exact: true })
-  await expect(scale.getByRole('radio')).toHaveCount(11)
-  await scale.getByRole('radio', { name: '6', exact: true }).check()
+  const scale = page.getByRole('slider', { name: 'RPE od 0 do 10', exact: true })
+  await expect(scale).toHaveAttribute('aria-valuetext', 'Nie wybrano RPE')
+  await selectRpe(page, 6)
   for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
     await page.evaluate(() => scrollTo(0, 0))

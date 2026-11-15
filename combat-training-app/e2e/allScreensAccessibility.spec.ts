@@ -139,7 +139,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.getByRole('article', { name: 'Praca na nogach', exact: true })).toBeVisible()
     await audit(page, info, 'plan-feedback', theme)
     await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()
-    await expect(page.getByRole('radiogroup', { name: 'RPE od 0 do 10', exact: true })).toBeVisible()
+    await expect(page.getByRole('slider', { name: 'RPE od 0 do 10', exact: true })).toBeVisible()
     await audit(page, info, 'plan-feedback-rpe', theme)
   })
 
@@ -152,7 +152,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })).toHaveValue('Dwie rundy sparingu.')
     await audit(page, info, 'quick-timer-feedback', theme)
     await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()
-    await expect(page.getByRole('radiogroup', { name: 'RPE od 0 do 10', exact: true })).toBeVisible()
+    await expect(page.getByRole('slider', { name: 'RPE od 0 do 10', exact: true })).toBeVisible()
     await audit(page, info, 'quick-timer-feedback-rpe', theme)
   })
 

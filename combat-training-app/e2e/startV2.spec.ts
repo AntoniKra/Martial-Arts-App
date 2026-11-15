@@ -1,3 +1,4 @@
+import { selectRpe } from './rpeSlider'
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
 import { test, expect } from './fixtures'
@@ -56,11 +57,11 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(form(page).getByRole('radio', { name: 'Muay Thai', exact: true })).toBeChecked()
     await expect(form(page).getByRole('radio', { name: '90 min', exact: true })).toBeChecked()
     await expect(form(page).getByRole('checkbox', { checked: true })).toHaveCount(3)
-    await expect(form(page).getByRole('radiogroup', { name: 'RPE od 0 do 10' }).getByRole('radio', { checked: true })).toHaveCount(0)
+    await expect(form(page).getByRole('slider', { name: 'RPE od 0 do 10' })).toHaveAttribute('aria-valuetext', 'Nie wybrano RPE')
     const sparring = form(page).getByRole('region', { name: 'Szczegóły sparingu', exact: true })
     await expect(sparring.getByRole('radio', { checked: true })).toHaveCount(0)
     await expect(sparring.getByRole('spinbutton')).toHaveValue('')
-    await form(page).getByRole('radio', { name: '7 Bardzo ciężko', exact: true }).check()
+    await selectRpe(form(page), 7)
     await sparring.getByRole('radio', { name: /^Techniczny/ }).check()
     await form(page).getByRole('button', { name: 'Zapisz', exact: true }).click()
     await expect(page).toHaveURL('/')
@@ -121,7 +122,7 @@ test('keeps one empty-account card with two working entry points', async ({ app,
   await page.getByRole('link', { name: 'Wpisz trening z klubu', exact: true }).click()
   await expect(form(page)).toBeVisible()
   await expect(form(page).getByRole('checkbox', { checked: true })).toHaveCount(0)
-  await expect(form(page).getByRole('radiogroup', { name: 'RPE od 0 do 10' }).getByRole('radio', { checked: true })).toHaveCount(0)
+  await expect(form(page).getByRole('slider', { name: 'RPE od 0 do 10' })).toHaveAttribute('aria-valuetext', 'Nie wybrano RPE')
 })
 
 test('does not overwrite a corrupt week or invent progress and recovers after a valid snapshot', async ({ app, page }) => {

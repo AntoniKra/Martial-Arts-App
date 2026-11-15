@@ -1,3 +1,4 @@
+import { selectRpe } from './rpeSlider'
 import AxeBuilder from '@axe-core/playwright'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
@@ -9,7 +10,7 @@ import { manualFocusRating } from '../src/test/manualWorkoutBuilder'
 import type { FocusSkill } from '../src/domain/focus-skill/focusSkill.types'
 
 const now = '2026-11-12T12:00:00.000Z'
-const title = 'Trening spoza aplikacji', addLabel = '+ Dodaj trening spoza aplikacji'
+const title = 'Trening spoza aplikacji', addLabel = 'Dodaj trening spoza aplikacji'
 const skill: FocusSkill = { id: 'guard', name: 'Powrót do gardy', criterion: 'Ręka wraca do brody.',
   createdAt: now, updatedAt: now, archivedAt: null,
   openCorrection: { problem: 'Opuszczam rękę.', fix: 'Dotykam brody.', sessionId: 'old', workoutDate: '2026-11-10' } }
@@ -22,7 +23,7 @@ async function fill(page: Page, kind = 'Sparing') {
   await form(page).getByRole('radio', { name: 'Boks', exact: true }).check()
   await category(page).getByRole('checkbox', { name: new RegExp(`^${kind}`) }).check()
   await form(page).getByRole('radio', { name: '90 min', exact: true }).check()
-  await form(page).getByRole('radio', { name: '7 Bardzo ciężko', exact: true }).check()
+  await selectRpe(form(page), 7)
   if (kind === 'Sparing') {
     await form(page).getByRole('radio', { name: /^Twardy/ }).check()
     await form(page).getByRole('spinbutton', { name: 'Liczba rund (opcjonalnie)', exact: true }).fill('6')
@@ -47,22 +48,27 @@ test('saves three club parts with sparring, custom minutes and one session load'
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
   await page.getByRole('link', { name: /^Trening w klubie/ }).click()
   await expect(category(page).getByRole('checkbox', { checked: true })).toHaveCount(0)
-  await expect(form(page).getByRole('radiogroup', { name: 'RPE od 0 do 10' }).getByRole('radio', { checked: true })).toHaveCount(0)
+  await expect(form(page).getByRole('slider', { name: 'RPE od 0 do 10' })).toHaveAttribute('aria-valuetext', 'Nie wybrano RPE')
   await form(page).getByRole('radio', { name: 'Kickboxing', exact: true }).check()
   for (const part of ['Technika', 'Tarcze', 'Sparing']) await category(page).getByRole('checkbox', { name: new RegExp(`^${part}`) }).check()
   await expect(form(page).getByRole('region', { name: 'Szczegóły sparingu' })).toBeFocused()
   await expect(form(page).getByRole('status')).toContainText('Otwarto szczegóły sparingu')
   await form(page).getByRole('radio', { name: /^Techniczny/ }).check()
   await form(page).getByRole('spinbutton', { name: 'Liczba rund (opcjonalnie)', exact: true }).fill('4')
-  await form(page).getByRole('radio', { name: 'Inny', exact: true }).check()
+  const otherBox = await form(page).getByRole('radio', { name: 'Inny', exact: true }).locator('..').boundingBox()
+  const otherDocumentY = (otherBox?.y ?? 0) + await page.evaluate(() => scrollY)
+  await form(page).getByRole('radio', { name: 'Inny', exact: true }).click()
   const minutes = form(page).getByRole('spinbutton', { name: 'Czas w minutach', exact: true })
   await expect(minutes).toBeFocused(); await expect(minutes).toHaveAttribute('inputmode', 'numeric')
-  const customBox = await minutes.boundingBox(), radioBox = await form(page).getByRole('radio', { name: 'Inny', exact: true }).boundingBox()
-  expect(customBox && radioBox && Math.abs(customBox.y + customBox.height / 2 - radioBox.y - radioBox.height / 2) < 2).toBe(true)
+  const customBox = await minutes.boundingBox()
+  expect(customBox?.x).toBe(otherBox?.x)
+  expect(customBox?.width).toBe(otherBox?.width)
+  expect((customBox?.y ?? 0) + await page.evaluate(() => scrollY)).toBe(otherDocumentY)
+  await expect(form(page).getByRole('radio', { name: 'Inny', exact: true })).toHaveCount(0)
   await minutes.fill('75')
   await minutes.scrollIntoViewIfNeeded(); await capture(page, info, 'parts-custom-minutes')
-  await form(page).getByRole('radio', { name: '6 Między ciężko a bardzo ciężko', exact: true }).check()
-  await expect(form(page).getByText('6 · Między ciężko a bardzo ciężko', { exact: true })).toBeVisible()
+  await selectRpe(form(page), 6)
+  await expect(form(page).getByText('Między ciężko a bardzo ciężko', { exact: true })).toBeVisible()
   await form(page).getByRole('button', { name: 'Wczoraj', exact: true }).click()
   await expect(form(page).getByLabel('Data', { exact: true })).toHaveValue('2026-11-11')
   await form(page).getByRole('button', { name: 'Dziś', exact: true }).click()
@@ -94,7 +100,7 @@ test('uses only previous discipline, duration and parts with badges until each f
   await expect(category(page).getByRole('checkbox', { checked: true })).toHaveCount(3)
   await expect(form(page).getByRole('radio', { name: '90 min', exact: true })).toBeChecked()
   await expect(form(page).getByRole('radio', { name: 'Kickboxing', exact: true })).toBeChecked()
-  await expect(form(page).getByRole('radiogroup', { name: 'RPE od 0 do 10' }).getByRole('radio', { checked: true })).toHaveCount(0)
+  await expect(form(page).getByRole('slider', { name: 'RPE od 0 do 10' })).toHaveAttribute('aria-valuetext', 'Nie wybrano RPE')
   const sparring = form(page).getByRole('region', { name: 'Szczegóły sparingu' })
   await expect(sparring.getByRole('radio', { checked: true })).toHaveCount(0)
   await expect(sparring.getByRole('spinbutton')).toHaveValue('')
@@ -265,7 +271,7 @@ test('edits duration and RPE while timed entries remain unavailable for editing'
   await expect(historyCard(page)).toBeVisible()
   await historyCard(page).getByRole('link', { name: 'Popraw', exact: true }).click()
   await form(page).getByRole('radio', { name: '120 min', exact: true }).check()
-  await form(page).getByRole('radio', { name: '5 Ciężko', exact: true }).check()
+  await selectRpe(form(page), 5)
   await save(page)
   await expect(historyCard(page)).toContainText('120 min')
   await expect.poll(async () => (await app.readSessions())[0]?.rpe).toBe(5)

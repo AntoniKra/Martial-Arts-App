@@ -1,3 +1,4 @@
+import { selectRpe } from './rpeSlider'
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
 import { test, expect } from './fixtures'
@@ -45,8 +46,8 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(entry.getByRole('radio', { name: 'Muay Thai', exact: true })).toBeChecked()
     await expect(entry.getByRole('checkbox', { name: /^Technika/ })).toBeChecked()
     await expect(entry.getByRole('radio', { name: '90 min', exact: true })).toBeChecked()
-    await expect(entry.getByRole('radiogroup', { name: 'RPE od 0 do 10' }).getByRole('radio', { checked: true })).toHaveCount(0)
-    await entry.getByRole('radio', { name: '7 Bardzo ciężko', exact: true }).check()
+    await expect(entry.getByRole('slider', { name: 'RPE od 0 do 10' })).toHaveAttribute('aria-valuetext', 'Nie wybrano RPE')
+    await selectRpe(entry, 7)
     await entry.getByRole('button', { name: 'Zapisz', exact: true }).click()
     await expect(page).toHaveURL(`/progress/week/${weekStart}`)
     await expect(tuesday).toContainText('✓ Wykonane')

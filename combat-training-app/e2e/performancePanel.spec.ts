@@ -1,3 +1,4 @@
+import { selectRpe } from './rpeSlider'
 import { test, expect } from './fixtures'
 
 test('opt-in panel measures a real offline manual entry and stays absent without the flag', async ({ app, page, context }, info) => {
@@ -22,14 +23,14 @@ test('opt-in panel measures a real offline manual entry and stays absent without
   await form.getByRole('radio', { name: 'Boks', exact: true }).check()
   await form.getByRole('group', { name: 'Części zajęć', exact: true }).getByRole('checkbox', { name: /^Worek/ }).check()
   await form.getByRole('radio', { name: '90 min', exact: true }).check()
-  await form.getByRole('radio', { name: '7 Bardzo ciężko', exact: true }).check()
+  await selectRpe(form, 7)
   await context.setOffline(true)
   await form.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect(page).toHaveURL(/\/workouts\?tab=history$/)
   await panel.locator('summary').click()
   const results = panel.getByLabel('Wyniki pomiarów', { exact: true })
   await expect(results).toContainText(/T_lokalny: \d+\.\d+ ms/)
-  if (info.repeatEachIndex === 0) await page.screenshot({ path: 'perf-results/performance-panel-phone.png' })
+  if (process.env.CAPTURE_SCREENSHOTS === '1' && info.repeatEachIndex === 0) await page.screenshot({ path: 'perf-results/performance-panel-phone.png' })
   expect(await app.readSessions()).toEqual([])
   await context.setOffline(false)
   await panel.getByRole('button', { name: 'Przywróć sieć Firestore', exact: true }).click()

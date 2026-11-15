@@ -1,3 +1,4 @@
+import { selectRpe } from '../rpeSlider'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { test, expect } from '@playwright/test'
@@ -108,7 +109,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await page.getByRole('radio', { name: 'Kickboxing', exact: true }).check()
     await page.getByRole('group', { name: 'Części zajęć', exact: true }).getByRole('checkbox', { name: /^Technika/ }).check()
     await page.getByRole('radio', { name: '90 min', exact: true }).check()
-    await page.getByRole('radio', { name: '7 Bardzo ciężko', exact: true }).check()
+    await selectRpe(page, 7)
     await capture(13, 'reczny-wpis', 'Ręczny wpis — zajęcia w klubie')
     await page.getByRole('button', { name: 'Anuluj', exact: true }).click()
     await page.getByRole('button', { name: 'Odrzuć zmiany', exact: true }).click()
