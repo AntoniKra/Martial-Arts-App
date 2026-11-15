@@ -5,44 +5,59 @@ import { selectWorkoutGongSignal } from '@/features/workout-player/utils/selectW
 
 export function createWorkoutGongController(steps: readonly WorkoutPlaybackStep[], gong: WorkoutGong) {
   let events: WorkoutPlaybackEvent[] = []
+  let endWarningPending = false
   let scheduled = false
   let generation = 0
 
   function reset(): void {
     events = []
+    endWarningPending = false
     scheduled = false
     generation += 1
   }
 
+  function scheduleFlush(): void {
+    if (scheduled) {
+      return
+    }
+
+    scheduled = true
+    const scheduledGeneration = generation
+    // Select one cue from the entire reconciliation before any asynchronous audio resume.
+    queueMicrotask(() => {
+      if (generation !== scheduledGeneration) {
+        return
+      }
+
+      const transitionSignal = selectWorkoutGongSignal(events, steps)
+      const signal = transitionSignal === 'workoutEnd' ? transitionSignal :
+        endWarningPending ? 'endingSoon' : transitionSignal
+      events = []
+      endWarningPending = false
+      scheduled = false
+      if (signal !== null) {
+        gong.play(signal)
+      }
+    })
+  }
+
   return {
     unlock: () => gong.unlock(),
-    playEndWarning: () => gong.play('endingSoon'),
+    playEndWarning() {
+      endWarningPending = true
+      scheduleFlush()
+    },
     onPlaybackEvent(event: WorkoutPlaybackEvent) {
       if (event.type === 'restarted') {
         reset()
         return
       }
 
-      events.push(event)
-      if (scheduled) {
-        return
+      if (event.type === 'stepFinalized' && event.reason !== 'elapsed') {
+        endWarningPending = false
       }
-
-      scheduled = true
-      const scheduledGeneration = generation
-      // The timer emits all elapsed steps synchronously. Flush once after that batch.
-      queueMicrotask(() => {
-        if (generation !== scheduledGeneration) {
-          return
-        }
-
-        const signal = selectWorkoutGongSignal(events, steps)
-        events = []
-        scheduled = false
-        if (signal !== null) {
-          gong.play(signal)
-        }
-      })
+      events.push(event)
+      scheduleFlush()
     },
     dispose() {
       reset()

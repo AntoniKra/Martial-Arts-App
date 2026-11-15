@@ -1,6 +1,6 @@
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 import { accountsWithEmail, createVerifiedAccount, signIn, signInWithFakeGoogle, uniqueEmail } from './authEmulator'
 
 // A touch-first screen selects the redirect flow, the same one an installed PWA uses.
@@ -40,7 +40,7 @@ test.describe('on a mouse-first screen', () => {
     const popup = await popupOpened
     await signInWithFakeGoogle(popup, email)
     await expect(page).toHaveURL('/')
-    await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
+    await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
     expect(await accountsWithEmail(request, email)).toEqual([{ uid: expect.any(String), providers: ['google.com'] }])
   })
 
@@ -60,7 +60,7 @@ test('registers with Google through a redirect and opens the app without email v
   await page.goto('/register')
   await page.getByRole('button', googleButton).click()
   await signInWithFakeGoogle(page, email)
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   await expect(page).toHaveURL('/')
   expect(await accountsWithEmail(request, email)).toEqual([{ uid: expect.any(String), providers: ['google.com'] }])
 })
@@ -70,14 +70,15 @@ test('Google sign-in with an address registered by password keeps one account an
   await page.goto('/login')
   await page.getByRole('button', googleButton).click()
   await signInWithFakeGoogle(page, account.email)
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   const accounts = await accountsWithEmail(request, account.email)
   expect(accounts).toHaveLength(1)
   expect(accounts[0].uid).toBe(account.uid)
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   await expect(page).toHaveURL('/login')
   await signIn(page, account)
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
 })
 
 test('shows the password message when Firebase refuses Google for an address registered by password', async ({ page, request }) => {

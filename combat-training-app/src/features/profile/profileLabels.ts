@@ -24,6 +24,7 @@ export const profileLabels = {
   invalidCategory: 'Kategoria może mieć najwyżej 20 znaków.', saveCategory: 'Zapisz kategorię',
   noRecent: 'Brak pomiarów z ostatnich 7 dni.', noWeights: 'Nie masz jeszcze pomiarów masy ciała.',
   noChartWeights: 'Brak pomiarów z ostatnich 12 tygodni.',
+  needChartWeights: 'Wykres pojawi się po 2 pomiarach',
   chart: 'Średnie tygodniowe z 12 tygodni', showData: 'Pokaż dane', week: 'Tydzień', average: 'Średnia', measurements: 'Pomiary',
   chartDescription: 'Średnie tygodniowe masy ciała w kilogramach. Oś Y dopasowana do danych, z marginesem. Tydzień bez pomiarów jest przerwą, nie zerem. Bieżący tydzień trwa. Pełne dane w tabeli „Pokaż dane”.',
   chartHint: 'Daty poniedziałków. Przerwa oznacza tydzień bez pomiarów. Bieżący tydzień trwa.',

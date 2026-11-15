@@ -1,4 +1,5 @@
-import type { ThemeMode } from '@/features/theme/theme.types'
+import * as z from 'zod/mini'
+import type { ThemeMode, ThemePreference } from '@/features/theme/theme.types'
 
 export const THEME_STORAGE_KEY = 'combat-training.theme'
 export const SYSTEM_THEME_QUERY = '(prefers-color-scheme: dark)'
@@ -8,11 +9,14 @@ export const THEME_COLOR_BY_MODE: Record<ThemeMode, string> = {
   light: '#F1F1EF',
 }
 
-export function parseThemeMode(value: unknown): ThemeMode | null {
-  return value === 'light' || value === 'dark' ? value : null
+const preferenceSchema = z.enum(['light', 'dark', 'system'])
+
+export function parseThemeMode(value: unknown): ThemePreference | null {
+  const result = preferenceSchema.safeParse(value)
+  return result.success ? result.data : null
 }
 
-export function readStoredThemeMode(): ThemeMode | null {
+export function readStoredThemeMode(): ThemePreference | null {
   try {
     return parseThemeMode(localStorage.getItem(THEME_STORAGE_KEY))
   } catch {
@@ -27,7 +31,8 @@ export function readSystemThemeMode(): ThemeMode {
 }
 
 export function resolveThemeMode(preference: unknown, systemTheme: ThemeMode): ThemeMode {
-  return parseThemeMode(preference) ?? systemTheme
+  const parsed = parseThemeMode(preference)
+  return parsed === 'light' || parsed === 'dark' ? parsed : systemTheme
 }
 
 export function subscribeToSystemTheme(onChange: () => void): () => void {
@@ -41,7 +46,7 @@ export function subscribeToSystemTheme(onChange: () => void): () => void {
   return () => mediaQuery.removeEventListener('change', onChange)
 }
 
-export function persistThemeMode(mode: ThemeMode): void {
+export function persistThemeMode(mode: ThemePreference): void {
   try {
     localStorage.setItem(THEME_STORAGE_KEY, mode)
   } catch {

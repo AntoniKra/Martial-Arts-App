@@ -25,7 +25,7 @@ class WorkoutApp {
       await signIn(this.page, account)
       // Enabled only after the first snapshots. That is also when Firestore has
       // registered the pagehide handler that releases the primary lease.
-      await expect(this.page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
+      await openProfile(this.page)
       this.authenticated = true
     }
     // ready means the precache is installed, not that clients.claim() has taken
@@ -188,13 +188,26 @@ class WorkoutApp {
   }
 
   async setTheme(theme: 'light' | 'dark') {
-    const label = theme === 'light' ? 'Włącz jasny motyw' : 'Włącz ciemny motyw'
-    const toggle = this.page.getByRole('button', { name: label, exact: true })
-    if (await toggle.isVisible()) await toggle.click()
+    await this.page.emulateMedia({ colorScheme: theme })
     await expect(this.page.locator('html')).toHaveAttribute('data-theme', theme)
     // The attribute can change before inherited colors settle in Chromium.
     await expect(this.page.locator('html')).toHaveCSS('color', theme === 'light' ? 'rgb(17, 17, 19)' : 'rgb(244, 244, 241)')
   }
+}
+
+export async function openProfile(page: Page) {
+  if (new URL(page.url()).pathname !== '/profile') {
+    await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).filter({ visible: true })
+      .getByRole('link', { name: 'Profil', exact: true }).click()
+  }
+  await expect(page.getByRole('heading', { name: 'Profil', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
+}
+
+export async function expandProfileSection(page: Page, title: string) {
+  const button = page.getByRole('region', { name: title, exact: true }).getByRole('button').first()
+  if (await button.getAttribute('aria-expanded') === 'false') await button.click()
+  await expect(button).toHaveAttribute('aria-expanded', 'true')
 }
 
 export const test = base.extend<{ app: WorkoutApp }>({

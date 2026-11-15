@@ -9,15 +9,18 @@ import { ProfileConfirmDialog } from '@/features/profile/ProfileConfirmDialog'
 import { WellbeingForm } from './WellbeingForm'
 import { WellbeingDataState } from './WellbeingDataState'
 import { wellbeingLabels as labels } from './wellbeingLabels'
+import { ProfileDisclosure } from '@/features/profile/ProfileDisclosure'
+import { profileSettingsLabels } from '@/features/profile/profileSettingsLabels'
 
-export function WellbeingSettings({ today }: { today: string }) {
+export function WellbeingSettings({ today, open, onToggle }: { today: string; open: boolean; onToggle: () => void }) {
   const { profile, wellbeing, wellbeingRepository, retryProfile, retryWellbeing } = useWorkoutData()
   const [withdrawing, setWithdrawing] = useState(false), [editing, setEditing] = useState(false)
   const active = hasWellbeingConsent(profile.items[0]), entry = wellbeing.items.find((item) => item.date === today)
   const unavailable = profile.status !== 'ready' || profile.invalidDocumentIds.length > 0
   const withdrawalPending = profile.items[0]?.wellbeingWithdrawal?.pending
-  return <section aria-label={labels.title} className="space-y-4 border border-bd bg-surface p-4">
-    <h2 className="font-display text-xl font-semibold">{labels.title}</h2>
+  const summary = unavailable ? labels.loading : !active ? profileSettingsLabels.noWellbeingConsent
+    : withdrawalPending ? labels.withdrawalPending : entry ? profileSettingsLabels.wellbeingToday : profileSettingsLabels.wellbeingMissing
+  return <ProfileDisclosure id="profile-wellbeing" title={labels.title} summary={summary} open={open} onToggle={onToggle}>
     {unavailable ? <WellbeingDataState loading={profile.status === 'loading'} retry={retryProfile} /> : active ? <>
       <label className="flex min-h-touch cursor-pointer items-center gap-3 text-sm font-semibold">
         <input type="checkbox" role="switch" checked aria-label={labels.enabled} onChange={() => setWithdrawing(true)} className="size-5 accent-[var(--app-ink)]" />{labels.enabled}</label>
@@ -33,5 +36,5 @@ export function WellbeingSettings({ today }: { today: string }) {
         if (!navigator.onLine) throw new Error('Offline')
         await wellbeingRepository.withdrawConsent()
       }} failureMessage={() => navigator.onLine ? labels.withdrawalFailed : labels.onlineRequired} />}
-  </section>
+  </ProfileDisclosure>
 }

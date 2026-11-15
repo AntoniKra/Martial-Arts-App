@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useAuth } from '@/features/auth/authContext'
 import { useWorkoutData } from '@/application/workoutDataContext'
@@ -9,11 +9,7 @@ import { DISCIPLINE_LABELS_PL } from '@/domain/discipline/disciplineLabels'
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { createQuickTimerStorage } from '@/infrastructure/storage/quickTimerStorage'
-import { persistWorkoutPreparation, readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
-import { persistWorkoutEndWarning, readStoredWorkoutEndWarning } from '@/infrastructure/storage/workoutEndWarningStorage'
-import { WORKOUT_PREPARATION_OPTIONS } from '@/features/workout-player/workoutPreparation'
-import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
-import { SegmentedControl } from '@/components/ui/SegmentedControl'
+import { profileSettingsLabels } from '@/features/profile/profileSettingsLabels'
 import { Button } from '@/components/ui/Button'
 import { QuickTimerCategoryField } from '@/features/quick-timer/QuickTimerCategoryField'
 import { quickTimerLabels as labels } from '@/features/quick-timer/quickTimerLabels'
@@ -38,8 +34,6 @@ function QuickTimerSettings({ uid }: { uid: string }) {
   const [storage] = useState(() => createQuickTimerStorage(uid))
   const [draft, setDraft] = useState(storage.read)
   const [errors, setErrors] = useState<QuickTimerErrors>({})
-  const [preparation, setPreparation] = useState(readStoredWorkoutPreparation)
-  const [endWarning, setEndWarning] = useState(readStoredWorkoutEndWarning)
   const form = useRef<HTMLFormElement>(null)
   const latest = [...sessions.items].sort((a, b) => b.workoutDate.localeCompare(a.workoutDate) || b.createdAt.localeCompare(a.createdAt))[0]
   const disciplineKey = draft.disciplineKey ?? latest?.disciplineKey ?? null
@@ -84,11 +78,7 @@ function QuickTimerSettings({ uid }: { uid: string }) {
         <Counter label={labels.rest} value={draft.restBetweenRoundsSeconds} display={formatSecondsAsClock(draft.restBetweenRoundsSeconds)} minimum={0} maximum={300} error={errors.restBetweenRoundsSeconds} onChange={(direction) => update({ restBetweenRoundsSeconds: adjustQuickTimerSeconds(draft.restBetweenRoundsSeconds, direction, 0, 300) })} />
       </div>}
       <p className="flex items-center justify-between border-y border-bd py-4 text-sm text-muted">{labels.total}<span className="font-display text-2xl font-bold tabular-nums text-ink">{formatSecondsAsClock(quickTimerDuration(draft))}</span></p>
-      <SegmentedControl label={workoutPlayerLabels.preparationSetting} options={WORKOUT_PREPARATION_OPTIONS} value={preparation} onChange={(value) => setPreparation(persistWorkoutPreparation(value))} />
-      <label className="flex min-h-touch cursor-pointer items-center gap-3 text-[13px] leading-relaxed text-ink">
-        <input type="checkbox" role="switch" checked={endWarning} onChange={(event) => setEndWarning(persistWorkoutEndWarning(event.target.checked))} className="size-5 shrink-0 accent-crimson" />
-        {workoutPlayerLabels.endWarningSetting}
-      </label>
+      <Link to={`${routes.profile}#profile-training`} className="inline-flex min-h-touch items-center text-sm text-muted underline">{profileSettingsLabels.trainingLink}</Link>
       <p className="text-xs leading-relaxed text-muted">{labels.iphone}</p>
       <Button type="submit" size="lg" className="w-full uppercase tracking-[0.1em]">{labels.start}</Button>
     </form>

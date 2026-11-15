@@ -1,11 +1,12 @@
 import AxeBuilder from '@axe-core/playwright'
 
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 
 for (const theme of ['dark', 'light'] as const) {
   test(`remembers five seconds, counts down and excludes preparation from the saved workout in ${theme} theme`, async ({ app, page }, testInfo) => {
     await app.createPlan('Przygotowanie do treningu')
     await app.setTheme(theme)
+    await openProfile(page)
     const setting = page.getByRole('radiogroup', { name: 'Przygotowanie przed startem', exact: true })
     await expect(setting.getByRole('radio', { name: '10 s', exact: true })).toBeChecked()
     await setting.getByRole('radio', { name: '5 s', exact: true }).click()
@@ -19,6 +20,8 @@ for (const theme of ['dark', 'light'] as const) {
       await testInfo.attach(`preparation-setting-${theme}`, { path, contentType: 'image/png' })
     }
 
+    await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+    await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     await app.openPlayer()
     await app.freezeClock()
     await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
@@ -145,6 +148,7 @@ test('leaves preparation without saving or creating an exit confirmation', async
 
 test('uses ten seconds in both the setting and player after a failed preference write', async ({ app, page }) => {
   await app.createPlan('Niedostepna pamiec ustawien')
+  await openProfile(page)
   const setting = page.getByRole('radiogroup', { name: 'Przygotowanie przed startem', exact: true })
   await setting.getByRole('radio', { name: '30 s', exact: true }).click()
   await page.evaluate(() => {
@@ -156,6 +160,8 @@ test('uses ten seconds in both the setting and player after a failed preference 
   })
   await setting.getByRole('radio', { name: '5 s', exact: true }).click()
   await expect(setting.getByRole('radio', { name: '10 s', exact: true })).toBeChecked()
+  await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+  await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
   await app.openPlayer()
   await app.freezeClock()
   await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()

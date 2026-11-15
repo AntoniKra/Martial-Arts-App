@@ -1,6 +1,6 @@
 export const accountLabels = {
   title: 'Twoje dane',
-  intro: 'Możesz pobrać wszystko, co aplikacja zapisała na Twoim koncie, albo usunąć konto.',
+  intro: 'Możesz pobrać wszystko, co aplikacja zapisała na Twoim koncie.',
   json: 'Pobierz wszystkie dane (JSON)', csv: 'Pobierz dziennik (CSV)', delete: 'Usuń konto',
   wellbeingCsv: 'Pobierz samopoczucie (CSV)',
   health: 'Eksport może zawierać dane o zdrowiu (masa ciała, samopoczucie). Przechowuj go bezpiecznie.',

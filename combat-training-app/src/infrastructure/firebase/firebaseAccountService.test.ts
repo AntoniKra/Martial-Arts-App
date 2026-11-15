@@ -12,7 +12,7 @@ vi.mock('firebase/auth', () => ({
   getAuth: () => ({ currentUser: fake.user }), EmailAuthProvider: { credential: vi.fn(() => 'credential') },
   GoogleAuthProvider: class { setCustomParameters = vi.fn() },
   reauthenticateWithCredential: vi.fn(), reauthenticateWithPopup: vi.fn(), reauthenticateWithRedirect: vi.fn(),
-  getIdTokenResult: vi.fn(), deleteUser: vi.fn(),
+  getIdTokenResult: vi.fn(), deleteUser: vi.fn(), updatePassword: vi.fn(),
 }))
 vi.mock('./firebaseAuthService', () => ({ readSignInEnvironment: () => fake.environment }))
 vi.mock('./createFirestoreRepositories', () => ({ getAccountDatabase: () => 'db', clearFirestoreCache: fake.cache }))
@@ -33,6 +33,26 @@ beforeEach(() => {
   fake.environment = { standalone: false, touchPrimary: false }
 })
 describe('Firebase account operations', () => {
+  it('changes the password only after successful credential reauthentication', async () => {
+    await createFirebaseAccountService('athlete').changePassword('current-test-only', 'new-test-only')
+    expect(authSdk.EmailAuthProvider.credential).toHaveBeenCalledWith(fake.user.email, 'current-test-only')
+    expect(authSdk.reauthenticateWithCredential).toHaveBeenCalledWith(fake.user, 'credential')
+    expect(authSdk.updatePassword).toHaveBeenCalledWith(fake.user, 'new-test-only')
+    expect(vi.mocked(authSdk.reauthenticateWithCredential).mock.invocationCallOrder[0])
+      .toBeLessThan(vi.mocked(authSdk.updatePassword).mock.invocationCallOrder[0])
+  })
+  it('never updates the password after failed reauthentication', async () => {
+    vi.mocked(authSdk.reauthenticateWithCredential).mockRejectedValueOnce({ code: 'auth/wrong-password' })
+    await expect(createFirebaseAccountService('athlete').changePassword('wrong-test-only', 'new-test-only')).rejects.toEqual({ code: 'auth/wrong-password' })
+    expect(authSdk.updatePassword).not.toHaveBeenCalled()
+  })
+  it('rejects a password change for Google-only accounts', async () => {
+    const providers = fake.user.providerData
+    fake.user.providerData = [{ providerId: 'google.com' }]
+    try { await expect(createFirebaseAccountService('athlete').changePassword('test-only', 'new-test-only')).rejects.toThrow('Password provider required') }
+    finally { fake.user.providerData = providers }
+    expect(authSdk.updatePassword).not.toHaveBeenCalled()
+  })
   it('reads raw invalid documents from the server and only implemented collections', async () => {
     vi.mocked(firestoreSdk.getDocFromServer).mockResolvedValue({ exists: () => false, metadata: { hasPendingWrites: false } } as never)
     vi.mocked(firestoreSdk.getDocsFromServer).mockResolvedValue({ metadata: { hasPendingWrites: false },
