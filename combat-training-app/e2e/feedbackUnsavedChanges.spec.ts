@@ -1,3 +1,4 @@
+import { selectRpe } from './rpeSlider'
 import type { Page } from '@playwright/test'
 import { block, continuousExercise, roundsExercise, workoutPlan } from '../src/test/workoutBuilders'
 import { sessionStep, workoutSession } from '../src/test/workoutSessionBuilders'
@@ -178,7 +179,7 @@ test('saves RPE independently without making a clean feedback form dirty', async
   await app.seedSession({ ...current, completedAt: new Date().toISOString(), rpe: null, rpeRecordedAt: null })
   await app.open('/workout-sessions/current/feedback')
   await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()
-  await page.getByRole('radiogroup', { name: 'RPE od 0 do 10', exact: true }).getByRole('radio', { name: '6', exact: true }).check()
+  await selectRpe(page, 6)
   await page.getByRole('button', { name: 'Zapisz RPE 6', exact: true }).click()
   await expect(page.getByRole('status').filter({ hasText: 'Zapisano RPE 6' })).toBeVisible()
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)

@@ -12,7 +12,7 @@ import { DISCIPLINE_LABELS_PL } from '@/domain/discipline/disciplineLabels'
 import { Button } from '@/components/ui/Button'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
-import { ManualRpeScale } from './ManualRpeScale'
+import { RpeScale } from '@/features/workout-feedback/RpeScale'
 import { FocusCard } from '@/features/workout-feedback/FocusCard'
 import { findPreviousAssessment } from '@/domain/focus-skill/previousAssessment'
 import { sparringIntensityLabels } from '@/features/workout-feedback/sparringIntensityLabels'
@@ -68,6 +68,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
   })
   const [draft, setDraft] = useState(initial)
   const [customDuration, setCustomDuration] = useState(!['', '60', '90', '120'].includes(initial.durationMinutes))
+  const [previousCustomMinutes, setPreviousCustomMinutes] = useState(!['', '60', '90', '120'].includes(initial.durationMinutes) ? initial.durationMinutes : '')
   const [errors, setErrors] = useState<ManualWorkoutErrors>({})
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(false)
@@ -104,7 +105,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
       setErrors(result.errors)
       requestAnimationFrame(() => {
         const invalid = form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')
-        ;(invalid?.querySelector<HTMLElement>('input, select, textarea') ?? invalid)?.focus()
+        ;(invalid?.querySelector<HTMLElement>('input, select, textarea, [role="slider"]') ?? invalid)?.focus()
       })
       return
     }
@@ -122,12 +123,13 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
     <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
       <h1 className="font-display text-2xl font-bold text-ink">{original ? labels.editTitle : labels.title}</h1>
       <form ref={form} onSubmit={submit} noValidate aria-label={labels.title} className="space-y-6">
-        <fieldset disabled={saving} className="min-w-0 space-y-6">
+        <fieldset disabled={saving} className="min-w-0 space-y-8">
           {!original && previous && <div className="space-y-2 border border-bd bg-surface p-3 text-sm">
             <div className="flex items-center gap-3"><p className="min-w-0 flex-1">{labels.previous} {DISCIPLINE_LABELS_PL[previous.disciplineKey]} · {previous.durationSeconds / 60} min · {previous.parts ? manualPartsLabel(previous.parts).toLocaleLowerCase('pl') : categoryLabel(previous.category)}</p>
             <Button variant="secondary" onClick={() => {
               setDraft((current) => applyPreviousManualWorkout(current, previous))
               setCustomDuration(!['60', '90', '120'].includes(String(previous.durationSeconds / 60)))
+              if (!['60', '90', '120'].includes(String(previous.durationSeconds / 60))) setPreviousCustomMinutes(String(previous.durationSeconds / 60))
               setCopied({ disciplineKey: true, durationMinutes: true, parts: manualDraftParts(previous).length > 0 }); setErrors({})
               const hasSparring = manualDraftParts(previous).includes('sparring')
               setSparringAnnouncement(hasSparring ? labels.sparringOpened : '')
@@ -137,11 +139,11 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
           </div>}
           <div>
             <label className="block font-semibold text-ink" htmlFor={`${id}-date`}>{labels.date}</label>
-            <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
+            <div className="mt-2 flex min-w-0 items-center gap-2">
               <input id={`${id}-date`} type="date" min={original && original.workoutDate < shiftCalendarDate(today, -7) ? original.workoutDate : shiftCalendarDate(today, -7)} max={today} value={draft.workoutDate}
-                {...invalidProps('workoutDate')} onChange={(event) => set('workoutDate', event.target.value)} className="min-h-touch min-w-0 flex-1 border border-bd bg-input p-2 text-base text-ink" />
-              <Button variant="secondary" onClick={() => set('workoutDate', today)}>{labels.today}</Button>
-              <Button variant="secondary" onClick={() => set('workoutDate', shiftCalendarDate(today, -1))}>{labels.yesterday}</Button>
+                {...invalidProps('workoutDate')} onChange={(event) => set('workoutDate', event.target.value)} className="h-11 min-w-0 flex-1 border border-bd bg-input p-2 text-base text-ink" />
+              <Button variant="secondary" size="sm" onClick={() => set('workoutDate', today)}>{labels.today}</Button>
+              <Button variant="secondary" size="sm" onClick={() => set('workoutDate', shiftCalendarDate(today, -1))}>{labels.yesterday}</Button>
             </div>
             <p className="mt-2 text-xs text-muted">{labels.dateHint}</p><FieldError message={errors.workoutDate} id={errorId('workoutDate')} />
           </div>
@@ -174,22 +176,27 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
           </fieldset>
           <fieldset className={groupClass} {...invalidProps('durationMinutes')} tabIndex={errors.durationMinutes ? -1 : undefined}>
             <legend className={legendClass}>{labels.duration}{copiedLabel('durationMinutes')}</legend><p className="text-sm text-muted">{labels.durationHint}</p>
-            <div className="flex items-center gap-1">{['60', '90', '120', 'other'].map((value) => <label key={value}
+            <div className="grid grid-cols-4 items-center gap-1">{['60', '90', '120', 'other'].map((value) => value === 'other' && customDuration
+              ? <div key={value} className="relative min-w-0">
+                <input ref={minutesInput} type="number" min={1} max={480} step={1} inputMode="numeric" aria-label={labels.minutes}
+                  placeholder={previousCustomMinutes || labels.minutesPlaceholder} value={draft.durationMinutes}
+                  onChange={(event) => { set('durationMinutes', event.target.value); if (event.target.value) setPreviousCustomMinutes(event.target.value) }} {...invalidProps('durationMinutes')}
+                  className="min-h-touch w-full min-w-0 appearance-textfield border border-crimson bg-input py-2 pl-2 pr-7 text-base text-ink [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-1 flex items-center text-xs text-muted">min</span>
+              </div>
+              : <label key={value}
               className={`flex min-h-touch min-w-0 flex-1 items-center justify-center gap-1 border text-xs ${value === 'other' ? customDuration ? 'border-crimson' : 'border-bd' : !customDuration && draft.durationMinutes === value ? 'border-crimson' : 'border-bd'}`}>
               <input type="radio" name={`${id}-duration`} checked={value === 'other' ? customDuration : !customDuration && draft.durationMinutes === value}
                 onChange={() => { setCustomDuration(value === 'other'); set('durationMinutes', value === 'other' ? '' : value)
                   if (value === 'other') requestAnimationFrame(() => minutesInput.current?.focus()) }} className="accent-crimson" />
               {value === 'other' ? labels.customDuration : `${value} min`}
             </label>)}
-              {customDuration && <input ref={minutesInput} type="number" min={1} max={480} step={1} inputMode="numeric" aria-label={labels.minutes}
-                value={draft.durationMinutes} onChange={(event) => set('durationMinutes', event.target.value)} {...invalidProps('durationMinutes')}
-                className="min-h-touch w-20 min-w-0 border border-bd bg-input p-2 text-base text-ink" />}
             </div>
             <FieldError message={errors.durationMinutes} id={errorId('durationMinutes')} />
           </fieldset>
           <fieldset className={groupClass} {...invalidProps('rpe')} tabIndex={errors.rpe ? -1 : undefined}>
             <legend className={legendClass}>{labels.rpe}</legend><p className="text-sm text-muted">{labels.rpeHint}</p>
-            <ManualRpeScale value={draft.rpe} onChange={(value) => set('rpe', value)} />
+            <RpeScale compact value={draft.rpe} onChange={(value) => set('rpe', value)} disabled={saving} />
             <LazyWellbeingWorkoutLine date={draft.workoutDate} />
             {daysAgo >= 3 && <p className="text-sm leading-relaxed text-muted">{labels.recall(daysAgo)}</p>}
             <FieldError message={errors.rpe} id={errorId('rpe')} />

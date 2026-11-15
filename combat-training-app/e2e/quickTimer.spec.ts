@@ -1,3 +1,4 @@
+import { selectRpe } from './rpeSlider'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import type { Page, TestInfo } from '@playwright/test'
@@ -71,7 +72,7 @@ test('opens New, configures three two-minute bag rounds and saves RPE and a note
   const note = page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })
   await note.fill('Trzy rundy na worku.')
   await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()
-  await page.getByRole('radiogroup', { name: 'RPE od 0 do 10', exact: true }).getByRole('radio', { name: '6', exact: true }).check()
+  await selectRpe(page, 6)
   await page.getByRole('button', { name: 'Zapisz RPE 6', exact: true }).click()
   // A value assertion also matches the hidden textarea while RPE is saving.
   // Wait for the visible result and server acknowledgement: removing the

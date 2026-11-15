@@ -1,84 +1,57 @@
+import { useState, type ReactNode } from 'react'
 import type { WorkoutsFilterState } from '@/features/workouts/types/workoutsView.types'
-import {
-  WORKOUTS_DISCIPLINE_FILTER_OPTIONS,
-  WORKOUTS_SORT_OPTIONS,
-} from '@/features/workouts/utils/workoutsFilters'
+import { countActiveWorkoutsFilters, WORKOUTS_DISCIPLINE_FILTER_OPTIONS, WORKOUTS_SORT_OPTIONS } from '@/features/workouts/utils/workoutsFilters'
+import { workoutsFilterLabels as labels } from '../workoutsFilterLabels'
 
 interface WorkoutsFiltersProps {
   filters: WorkoutsFilterState
   onChange: (next: WorkoutsFilterState) => void
   idPrefix: string
+  addAction: ReactNode
 }
 
-const fieldClassName =
-  'min-h-touch w-full border border-bd bg-input px-3 py-2 font-display text-[16px] text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]'
+const buttonClass = 'flex min-h-touch shrink-0 items-center justify-center gap-1.5 rounded-[2px] border bg-surface px-3 text-sm font-semibold text-ink'
 
-export function WorkoutsFilters({ filters, onChange, idPrefix }: WorkoutsFiltersProps) {
-  const searchId = `${idPrefix}-search`
-  const disciplineId = `${idPrefix}-discipline`
+export function WorkoutsFilters({ filters, onChange, idPrefix, addAction }: WorkoutsFiltersProps) {
+  const [expanded, setExpanded] = useState(false)
+  const panelId = `${idPrefix}-filters`
   const sortId = `${idPrefix}-sort`
+  const activeCount = countActiveWorkoutsFilters(filters)
 
-  return (
-    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-      <div className="md:col-span-2 lg:col-span-1">
-        <label htmlFor={searchId} className="mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
-          Szukaj po nazwie
-        </label>
-        <input
-          id={searchId}
-          type="search"
-          value={filters.searchQuery}
-          onChange={(event) => onChange({ ...filters, searchQuery: event.target.value })}
-          placeholder="Nazwa planu lub treningu"
-          className={fieldClassName}
-        />
-      </div>
-
-      <div>
-        <label htmlFor={disciplineId} className="mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
-          Dyscyplina
-        </label>
-        <select
-          id={disciplineId}
-          value={filters.discipline}
-          onChange={(event) =>
-            onChange({
-              ...filters,
-              discipline: event.target.value as WorkoutsFilterState['discipline'],
-            })
-          }
-          className={fieldClassName}
-        >
-          {WORKOUTS_DISCIPLINE_FILTER_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.labelPl}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor={sortId} className="mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
-          Sortowanie
-        </label>
-        <select
-          id={sortId}
-          value={filters.sortOrder}
-          onChange={(event) =>
-            onChange({
-              ...filters,
-              sortOrder: event.target.value as WorkoutsFilterState['sortOrder'],
-            })
-          }
-          className={fieldClassName}
-        >
-          {WORKOUTS_SORT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.labelPl}
-            </option>
-          ))}
-        </select>
-      </div>
+  return <div className="space-y-3">
+    <div className="flex items-center gap-2">
+      <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-[2px] border border-bd bg-input px-3 text-muted">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+        <span className="sr-only">{labels.search}</span>
+        <input type="search" value={filters.searchQuery} onChange={(event) => onChange({ ...filters, searchQuery: event.target.value })}
+          placeholder={labels.search} className="h-full min-w-0 w-full bg-transparent text-base text-ink placeholder:text-muted" />
+      </label>
+      <button type="button" aria-expanded={expanded} aria-controls={panelId} onClick={() => setExpanded(!expanded)}
+        className={`${buttonClass} ${expanded ? 'border-crimson' : 'border-bd'}`}>
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+        {labels.filters}{activeCount > 0 && <span className="inline-flex size-[18px] items-center justify-center rounded-[4px] bg-crimson text-[11px] font-bold text-on-accent">{activeCount}</span>}
+      </button>
+      {addAction}
     </div>
-  )
+    <div id={panelId} hidden={!expanded} className="min-w-0 space-y-3 border border-bd bg-surface p-3">
+      <div role="group" aria-label={labels.discipline} className="min-w-0 space-y-2">
+        <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">{labels.discipline}</p>
+        <div className="-mr-3 flex snap-x snap-mandatory gap-2 overflow-x-auto pr-3 pb-1">
+          {WORKOUTS_DISCIPLINE_FILTER_OPTIONS.map((option) => <button key={option.value} type="button"
+            aria-pressed={filters.discipline === option.value} onClick={() => onChange({ ...filters, discipline: option.value })}
+            className={`min-h-touch shrink-0 snap-start scroll-ms-0 whitespace-nowrap rounded-[2px] border px-3 text-[13px] ${filters.discipline === option.value ? 'border-crimson bg-elevated font-semibold text-ink' : 'border-bd bg-surface text-muted'}`}>
+            {filters.discipline === option.value && <span aria-hidden="true">✓ </span>}{option.labelPl}
+          </button>)}
+        </div>
+      </div>
+      <div>
+        <label htmlFor={sortId} className="mb-2 block text-[11px] font-bold uppercase tracking-[0.1em] text-muted">{labels.sort}</label>
+        <select id={sortId} value={filters.sortOrder} onChange={(event) => onChange({ ...filters, sortOrder: event.target.value as WorkoutsFilterState['sortOrder'] })}
+          className="min-h-touch w-full border border-bd bg-input px-3 py-2 text-base text-ink">
+          {WORKOUTS_SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.labelPl}</option>)}
+        </select>
+      </div>
+      <button type="button" className={`${buttonClass} border-bd`} onClick={() => onChange({ ...filters, discipline: 'all', sortOrder: 'newest' })}>{labels.clear}</button>
+    </div>
+  </div>
 }

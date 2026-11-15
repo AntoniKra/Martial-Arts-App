@@ -27,7 +27,7 @@ export function RpePanel({ due, initialValue, onBack, onSave, onSkip }: {
     </header>
     <fieldset disabled={saving} className="min-w-0">
       <legend className="sr-only">{labels.scale}</legend>
-      <RpeScale value={value} onChange={setValue} />
+      <RpeScale value={value} onChange={setValue} disabled={saving} />
     </fieldset>
     {error && <p role="alert" className="text-[13px] text-crimson-ink">{error}</p>}
     <div className="space-y-2">

@@ -5,6 +5,7 @@ import path from 'node:path'
 import type { Page, TestInfo } from '@playwright/test'
 import { test, expect, openProfile } from './fixtures'
 import { createVerifiedAccount, signIn } from './authEmulator'
+import { selectRpe } from './rpeSlider'
 import { block, continuousExercise, workoutPlan } from '../src/test/workoutBuilders'
 import { sessionStep, workoutSession } from '../src/test/workoutSessionBuilders'
 import type { ManualWorkoutSession, QuickTimerWorkoutSession } from '../src/domain/workout-session/workoutSession.types'
@@ -161,7 +162,7 @@ test('updates RPE and load locally offline, confirms after reconnect, and clears
   await expect(totals(page).nth(4)).toHaveText('Brak danych')
   await page.goBack(); await page.goBack()
   await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()
-  await page.getByRole('radio', { name: '0 Odpoczynek', exact: true }).check()
+  await selectRpe(page, 0)
   await context.setOffline(true)
   await page.getByRole('button', { name: 'Zapisz RPE 0', exact: true }).click()
   await expect(page.getByText('Zapisano RPE 0', { exact: true })).toBeVisible()

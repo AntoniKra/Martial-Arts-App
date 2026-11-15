@@ -3,12 +3,10 @@ import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
-import { RedAccent } from '@/components/ui/RedAccent'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
-import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 import { WorkoutHistoryCard } from '@/features/workouts/components/WorkoutHistoryCard'
-import { ManualWorkoutLink } from '@/features/manual-workout/ManualWorkoutLink'
+import { workoutsFilterLabels } from '../workoutsFilterLabels'
 import { WorkoutPlanCard } from '@/features/workouts/components/WorkoutPlanCard'
 import { WorkoutsEmptyState } from '@/features/workouts/components/WorkoutsEmptyState'
 import { WorkoutsFilters } from '@/features/workouts/components/WorkoutsFilters'
@@ -140,13 +138,12 @@ export function WorkoutsView({
 
   const createWorkoutLink = (
     <Link
-      to={routes.newWorkout}
-      className="flex min-h-touch w-full items-center justify-between border border-bd bg-elevated px-4 py-3 transition-colors hover:border-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+      to={tab === 'history' ? routes.newManualWorkout : routes.newWorkout}
+      state={tab === 'history' ? { returnTo: '/workouts?tab=history' } : undefined}
+      aria-label={tab === 'history' ? workoutsFilterLabels.addManual : workoutsFilterLabels.create}
+      className="flex size-11 shrink-0 items-center justify-center rounded-[2px] border border-bd bg-surface text-ink hover:border-muted"
     >
-      <span className="font-display text-[13px] font-semibold tracking-[0.04em] text-muted">
-        Utwórz nowy trening
-      </span>
-      <ChevronRightIcon className="text-muted" />
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
     </Link>
   )
 
@@ -180,7 +177,6 @@ export function WorkoutsView({
     if (filteredPlans.length === 0) {
       return (
         <>
-          {createWorkoutLink}
           <WorkoutsEmptyState variant="no-results" />
         </>
       )
@@ -188,7 +184,6 @@ export function WorkoutsView({
 
     return (
       <>
-        {createWorkoutLink}
         <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
           {filteredPlans.map((plan) => (
             <WorkoutPlanCard key={plan.id} plan={plan} />
@@ -234,7 +229,7 @@ export function WorkoutsView({
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="mx-auto w-full max-w-lg shrink-0 px-4 pt-6 md:max-w-4xl md:pt-2">
-        <h1 className="font-display text-[24px] font-bold text-ink md:text-[28px]">Treningi</h1>
+        <h1 className="font-display text-[28px] font-extrabold text-ink">Treningi</h1>
         {planDeleted ? (
           <p role="status" className="mt-3 border border-bd bg-surface px-3 py-3 text-[13px] text-ink">
             {workoutPlanLabels.deleted}
@@ -248,9 +243,8 @@ export function WorkoutsView({
             onChange={handleTabChange}
           />
         </div>
-        <RedAccent className="mt-4" />
-        <div className="mt-4 pb-4">
-          <WorkoutsFilters filters={filters} onChange={setFilters} idPrefix="workouts" />
+        <div className="mt-3 pb-3">
+          <WorkoutsFilters filters={filters} onChange={setFilters} idPrefix="workouts" addAction={createWorkoutLink} />
         </div>
       </div>
 
@@ -268,7 +262,6 @@ export function WorkoutsView({
               <h2 id="workouts-history-heading" className="sr-only">
                 Historia treningów
               </h2>
-              <ManualWorkoutLink from="/workouts?tab=history" />
               {renderHistoryContent()}
             </section>
           )}

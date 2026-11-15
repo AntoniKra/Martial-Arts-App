@@ -12,6 +12,10 @@ export const DEFAULT_WORKOUTS_FILTERS: WorkoutsFilterState = {
   sortOrder: 'newest',
 }
 
+export function countActiveWorkoutsFilters(filters: WorkoutsFilterState): number {
+  return Number(filters.discipline !== 'all') + Number(filters.sortOrder !== 'newest')
+}
+
 export const WORKOUTS_DISCIPLINE_FILTER_OPTIONS = [
   { value: 'all', labelPl: 'Wszystkie' },
   { value: 'boxing', labelPl: 'Boks' },
