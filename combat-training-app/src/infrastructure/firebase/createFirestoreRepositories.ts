@@ -1,5 +1,5 @@
 import { getApp } from 'firebase/app'
-import { clearIndexedDbPersistence, collection, doc, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, updateDoc, waitForPendingWrites, writeBatch, type Firestore } from 'firebase/firestore'
+import { clearIndexedDbPersistence, collection, doc, getDocsFromServer, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, updateDoc, waitForPendingWrites, writeBatch, type Firestore } from 'firebase/firestore'
 import type { SubscribableRepository } from '@/application/repositorySubscription'
 import type { WorkoutRepositories } from '@/application/deferredWorkoutRepositories'
 import { readFirebaseConfig } from './firebaseConfig'
@@ -11,6 +11,8 @@ import { FirestoreWeekPlanRepository } from './firestoreWeekPlanRepository'
 import { createFirestoreHealthRepositories } from './firestoreHealthRepository'
 import { detachFocusSkill, hasFocusSkillEntries, selectFocusSkillPlans } from '@/domain/focus-skill/focusSkillProgress'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
+import { exerciseDocumentSchema } from './exerciseDocumentSchema'
+import { exerciseIsReferenced } from '@/domain/exercise/exercise'
 
 let database: Firestore | undefined
 const subscriptions = new Set<() => void>()
@@ -85,6 +87,10 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     return skill
   })
   const db = database
+  const exercises = new FirestoreWorkoutRepository(db, uid, 'exercises', (value) => {
+    const { schemaVersion: _version, ...exercise } = exerciseDocumentSchema.parse(value)
+    return exercise
+  })
   const weekPlans = new FirestoreWeekPlanRepository(db, uid)
   const health = createFirestoreHealthRepositories(db, uid)
   async function changeFocusSkill(id: string, updatedAt: string, action: 'archive' | 'delete' | 'restore') {
@@ -116,6 +122,30 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     if (!(await Promise.all(localWrites)).every(Boolean)) throw new Error('Focus skill change was not applied')
   }
   return {
+    exercises: {
+      subscribe: trackedSubscribe(exercises),
+      save: async (exercise) => {
+        const current = exercises.getItems().find((item) => item.id === exercise.id)
+        if (current && (current.type !== exercise.type || current.createdAt !== exercise.createdAt || current.copiedFromId !== exercise.copiedFromId)) {
+          throw new Error('Exercise identity is immutable; create another exercise')
+        }
+        await exercises.save(exercise)
+      },
+      deleteUnused: async (id) => {
+        // Never infer absence of references from an incomplete offline cache.
+        if (!navigator.onLine) throw new Error('Deleting an exercise requires a connection')
+        const snapshots = await Promise.all(['workoutPlans', 'workoutSessions', 'focusSkills'].map((name) =>
+          getDocsFromServer(collection(db, 'users', uid, name))))
+        if (snapshots.some((snapshot) => snapshot.metadata.hasPendingWrites)) throw new Error('Pending references')
+        const [planSnapshot, sessionSnapshot, skillSnapshot] = snapshots
+        const referenced = exerciseIsReferenced(id,
+          planSnapshot.docs.map((item) => workoutPlanDocumentSchema.parse(item.data())),
+          sessionSnapshot.docs.map((item) => workoutSessionDocumentSchema.parse(item.data())),
+          skillSnapshot.docs.map((item) => focusSkillDocumentSchema.parse(item.data())))
+        if (referenced) throw new Error('Exercise is referenced')
+        await exercises.delete(id)
+      },
+    },
     profile: { ...health.profile, subscribe: trackedSubscribe(health.profile) },
     bodyWeights: { ...health.bodyWeights, subscribe: trackedSubscribe(health.bodyWeights) },
     wellbeing: { ...health.wellbeing, subscribe: trackedSubscribe(health.wellbeing) },

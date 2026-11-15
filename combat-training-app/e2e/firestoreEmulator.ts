@@ -4,6 +4,7 @@ import type { WorkoutSession } from '../src/domain/workout-session/workoutSessio
 import type { FocusSkill } from '../src/domain/focus-skill/focusSkill.types'
 import type { WeekPlan } from '../src/domain/week-plan/weekPlan.types'
 import type { AthleteProfile, BodyWeight } from '../src/domain/profile/profile.types'
+import { workoutDocumentVersion } from '../src/infrastructure/firebase/workoutDocumentVersion'
 
 // Fixed local demo endpoint. Test inspection/seeding bypasses rules; app writes always use its verified identity.
 const root = 'http://127.0.0.1:8080/v1/projects/demo-combat-training/databases/(default)/documents'
@@ -35,7 +36,7 @@ export async function seedPlan(request: APIRequestContext, uid: string, plan: Wo
 }
 export async function seedFocusSkill(request: APIRequestContext, uid: string, skill: FocusSkill) {
   const response = await request.patch(`${root}/users/${uid}/focusSkills/${skill.id}`, {
-    headers: { Authorization: 'Bearer owner' }, data: encode({ ...skill, schemaVersion: 1 }).mapValue,
+    headers: { Authorization: 'Bearer owner' }, data: encode({ ...skill, schemaVersion: workoutDocumentVersion(skill) }).mapValue,
   })
   expect(response.ok()).toBe(true)
 }
@@ -54,7 +55,7 @@ export async function readSessions(request: APIRequestContext, uid: string): Pro
 
 export async function seedSession(request: APIRequestContext, uid: string, session: WorkoutSession) {
   const response = await request.patch(`${root}/users/${uid}/workoutSessions/${session.id}`, {
-    headers: { Authorization: 'Bearer owner' }, data: encode({ ...session, schemaVersion: session.source === 'manual' && session.parts ? 2 : 1 }).mapValue,
+    headers: { Authorization: 'Bearer owner' }, data: encode({ ...session, schemaVersion: workoutDocumentVersion(session) }).mapValue,
   })
   expect(response.ok()).toBe(true)
 }

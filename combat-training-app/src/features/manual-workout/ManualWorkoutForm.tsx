@@ -14,6 +14,7 @@ import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
 import { ManualRpeScale } from './ManualRpeScale'
 import { FocusCard } from '@/features/workout-feedback/FocusCard'
+import { findPreviousAssessment } from '@/domain/focus-skill/previousAssessment'
 import { sparringIntensityLabels } from '@/features/workout-feedback/sparringIntensityLabels'
 import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import { WEEK_PLAN_CATEGORIES, categoryLabel } from '@/features/week-plan/weekPlanLabels'
@@ -225,6 +226,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
                     const error = errors[`focus-${rating.focusSkillId}`]
                     return <div key={rating.focusSkillId} aria-invalid={!!error} aria-describedby={error ? errorId(rating.focusSkillId) : undefined} tabIndex={error ? -1 : undefined}>
                       <FocusCard session={{ id: original?.id ?? 'new-manual-entry', workoutDate: draft.workoutDate }} rating={rating} skills={skills} first
+                        previousAssessment={findPreviousAssessment({ id: original?.id ?? 'new-manual-entry', workoutDate: draft.workoutDate, createdAt: original?.createdAt }, rating.focusSkillId, rating.criterionSnapshot, sessions)}
                         correctionLabel={labels.newCorrection} error={error?.startsWith('Problem') ? error : undefined}
                         onChange={(value) => { set('focusRatings', draft.focusRatings.map((current) => current.focusSkillId === value.focusSkillId ? value : current)); setErrors({}) }}>
                         {(original?.focusRatings.some((saved) => saved.focusSkillId === rating.focusSkillId) || draft.category === 'mixed' || draft.category === 'conditioning') && <label className="block text-sm font-semibold">

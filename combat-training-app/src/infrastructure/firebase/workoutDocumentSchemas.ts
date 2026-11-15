@@ -38,6 +38,7 @@ export const workoutPlanDocumentSchema = z.strictObject({
 }))
 
 export const sessionStepSchema = z.strictObject({
+  combinationId: z.optional(id),
   playbackStepId: id, workoutItemId: id, blockId: id, blockType,
   kind: z.enum(['exercise', 'roundRest', 'break']), nameSnapshot: text,
   roundNumber: z.nullable(positiveInteger), roundCount: z.nullable(positiveInteger),
@@ -84,6 +85,7 @@ const manualFocusRating = z.strictObject({
 })
 export const workoutSessionDocumentSchema = z.discriminatedUnion('source', [
   z.strictObject({ ...common, ...timed, source: z.literal('plan'), workoutPlanId: id,
+    schemaVersion: z.union([z.literal(1), z.literal(2)]),
     workoutPlanNameSnapshot: text, completion: z.strictObject({ ...completionFields, unit: z.literal('exercise') }),
     focusRatings: z.array(focusRating).check(z.maxLength(3)),
     exerciseRatings: z.array(z.strictObject({ workoutItemId: id, nameSnapshot: text, blockType, rating })),
@@ -103,6 +105,7 @@ export const workoutSessionDocumentSchema = z.discriminatedUnion('source', [
       rounds: z.nullable(z.number().check(z.int(), z.minimum(1), z.maximum(50))) })).check(z.maxLength(1)),
   }),
 ]).check(z.refine((session) => {
+  if (session.source === 'plan' && session.schemaVersion !== (session.stepResults.some((step) => step.combinationId !== undefined) ? 2 : 1)) return false
   if ((session.rpe === null) !== (session.rpeRecordedAt === null)) return false
   if (session.source === 'manual') return new Set(session.focusRatings.map((value) => value.focusSkillId)).size === session.focusRatings.length
     && (session.schemaVersion === 1 ? session.parts === undefined && (session.category !== 'sparring' || session.sparring.length === 1)

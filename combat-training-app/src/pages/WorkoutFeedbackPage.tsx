@@ -39,7 +39,7 @@ export function Component() {
         const feedback = prepareQuickTimerFeedback(session, draft, new Date().toISOString())
         if (!await sessionRepository.saveQuickTimerFeedback(session.id, feedback)) throw new Error('Session no longer available')
         await navigate(`${routes.workouts}?tab=history`)
-      }} /> : <WorkoutFeedbackForm key={session.id} session={session} skills={focusSkills.items} rpeCard={<>{rpeCard}<LazyWellbeingWorkoutLine date={session.workoutDate} /></>}
+      }} /> : <WorkoutFeedbackForm key={session.id} session={session} sessions={sessions.items} skills={focusSkills.items} rpeCard={<>{rpeCard}<LazyWellbeingWorkoutLine date={session.workoutDate} /></>}
     previousRun={findPreviousPlanRun(session, sessions.items, plans.status === 'ready' ? plans.items.find((plan) => plan.id === session.workoutPlanId) : undefined)}
     pending={sessions.pendingIds.has(session.id)} onSave={async (draft) => {
       const feedback = prepareWorkoutFeedback(session, draft, focusSkills.items, new Date().toISOString())

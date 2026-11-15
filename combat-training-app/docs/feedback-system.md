@@ -16,6 +16,8 @@ Wyjście z podsumowania treningu z planu lub szybkiego stopera z niezapisanymi z
 
 Ćwiczenie celu to umiejętność, nad którą pracujesz, np. „Lewy prosty, powrót do gardy”. Ma nazwę i kryterium oceny. Działa we wszystkich planach: jeden wykres zbiera oceny z każdego planu.
 
+Issue #156 / decyzja właściciela 15.11 / ADR 0017: tożsamością nadal jest `focusSkillId`. Nowy cel utworzony przy pozycji biblioteki może dodatkowo zachować `exerciseId`; jego aktualna nazwa jest wyświetlana przy trendzie, ale nie zmienia grupowania ocen. Bez drugiego wykresu i bez przepisywania istniejących ocen. Przy ocenianiu w podsumowaniu i ręcznym wpisie pokazujemy datę, wartość i miejsce wcześniejszej oceny tego samego celu według tego samego kryterium; pomijamy brak oceny i niewykonane ćwiczenia. „Nie umiem ocenić” pozostaje odpowiedzią tekstową.
+
 ### W kreatorze
 
 - Oznaczasz do 3 ćwiczeń w planie jako ćwiczenia celu.

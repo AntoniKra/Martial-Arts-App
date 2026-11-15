@@ -7,8 +7,9 @@ import { FocusSkillForm } from './FocusSkillForm'
 import { focusSkillLabels as labels } from './focusSkillLabels'
 import type { FocusSkillFormValues } from './validateFocusSkillForm'
 
-export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange }: {
+export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange, exerciseId }: {
   focusSkillId: string | null
+  exerciseId?: string | null
   focusExerciseCount: number
   onChange: (id: string | null) => void
 }) {
@@ -34,7 +35,7 @@ export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange }:
     const now = new Date().toISOString()
     const skill: FocusSkill = editor.skill
       ? { ...editor.skill, ...values, updatedAt: now }
-      : { ...values, id: crypto.randomUUID(), openCorrection: null, archivedAt: null, createdAt: now, updatedAt: now }
+      : { ...values, ...(exerciseId ? { exerciseId } : {}), id: crypto.randomUUID(), openCorrection: null, archivedAt: null, createdAt: now, updatedAt: now }
     setSaving(true)
     try {
       await focusSkillRepository.save(skill)

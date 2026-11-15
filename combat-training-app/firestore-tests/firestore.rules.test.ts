@@ -7,11 +7,79 @@ import {
 } from '@firebase/rules-unit-testing'
 import { setLogLevel } from 'firebase/firestore'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { personalExercise } from '../src/test/exerciseBuilders'
 
 const ownerId = 'athlete-one'
 const documentId = '21a507bc-7f90-4b9f-a890-2ba3a53ee67a'
 const instant = '2026-11-08T09:00:00.000Z'
 type Document = Record<string, unknown>
+
+describe('personal exercise library', () => {
+  const path = `users/${ownerId}/exercises/${documentId}`
+  const create = (): Document => ({ ...personalExercise({ id: documentId }), schemaVersion: 1 })
+  it('allows verified owner CRUD, copying, favorite, archive and restore with exact defaults', async () => {
+    const ref = ownerDatabase().doc(path)
+    await assertSucceeds(ref.set({ ...create(), copiedFromId: 'combo-jab-cross' }))
+    await assertSucceeds(ref.get())
+    await assertSucceeds(ownerDatabase().collection(`users/${ownerId}/exercises`).get())
+    await assertSucceeds(ref.update({ namePl: 'Updated', favorite: true, lastUsedAt: instant, archivedAt: instant }))
+    await assertSucceeds(ref.update({ archivedAt: null, defaultConfiguration: { mode: 'continuous', durationSeconds: 86400 } }))
+    await assertSucceeds(ref.delete())
+  })
+  it.each(['other', 'signedOut', 'unverified', 'missingVerification'])('denies all library operations for %s', async (actor) => {
+    await ownerDatabase().doc(path).set(create())
+    const context = actor === 'signedOut' ? environment.unauthenticatedContext()
+      : environment.authenticatedContext(actor === 'other' ? 'athlete-two' : ownerId,
+        actor === 'missingVerification' ? {} : { email_verified: actor !== 'unverified' })
+    const db = context.firestore(), ref = db.doc(path)
+    await assertFails(ref.get()); await assertFails(ref.update({ namePl: 'Forbidden' })); await assertFails(ref.delete())
+    await assertFails(db.collection(`users/${ownerId}/exercises`).get())
+    await assertFails(db.doc(`users/${ownerId}/exercises/new`).set({ ...create(), id: 'new' }))
+  })
+  it.each([
+    { schemaVersion: 2 }, { id: 'different' }, { namePl: '' }, { namePl: 'x'.repeat(101) }, { type: 'strength' },
+    { disciplines: [] }, { disciplines: ['boxing', 'boxing'] }, { disciplines: ['wrestling'] }, { disciplines: 'boxing' },
+    { blockTypes: [] }, { blockTypes: ['bag', 'bag'] }, { blockTypes: ['unknown'] }, { blockTypes: 'bag' },
+    { favorite: 1 }, { lastUsedAt: 'yesterday' }, { archivedAt: false }, { copiedFromId: 'bad/id' }, { createdAt: 'invalid' }, { extra: true },
+    ...[0, -1, 1.5, 86401, '60'].map((durationSeconds) => ({ defaultConfiguration: { mode: 'continuous', durationSeconds } })),
+    ...[0, 100, 1.5].map((roundCount) => ({ defaultConfiguration: { mode: 'rounds', roundCount, roundDurationSeconds: 60, restBetweenRoundsSeconds: 0 } })),
+    { defaultConfiguration: { mode: 'rounds', roundCount: 3, roundDurationSeconds: 0, restBetweenRoundsSeconds: 0 } },
+    { defaultConfiguration: { mode: 'rounds', roundCount: 3, roundDurationSeconds: 60, restBetweenRoundsSeconds: -1 } },
+    { defaultConfiguration: { mode: 'rounds', roundCount: 3, roundDurationSeconds: 60, restBetweenRoundsSeconds: 86401 } },
+    { defaultConfiguration: { mode: 'continuous', durationSeconds: 60, extra: true } },
+  ])('rejects invalid library fields on create and update: %j', async (patch) => {
+    const ref = ownerDatabase().doc(path)
+    await assertFails(ref.set({ ...create(), ...patch }))
+    await assertSucceeds(ref.set(create()))
+    await assertFails(ref.update(patch))
+  })
+  it.each(Object.keys(personalExercise()).concat('schemaVersion'))('rejects missing required %s', async (key) => {
+    const value = create(); delete value[key]
+    await assertFails(ownerDatabase().doc(path).set(value))
+  })
+  it('protects immutable type, provenance and creation time; a type change requires a new ID', async () => {
+    const ref = ownerDatabase().doc(path)
+    await ref.set({ ...create(), copiedFromId: 'builtin' })
+    await assertFails(ref.update({ type: 'combination' }))
+    await assertFails(ref.update({ copiedFromId: 'other' }))
+    await assertFails(ref.update({ createdAt: '2026-11-02T10:00:00.000Z' }))
+    await assertSucceeds(ownerDatabase().doc(`users/${ownerId}/exercises/new`).set({ ...create(), id: 'new', type: 'combination' }))
+  })
+  it('accepts optional focus-skill links in v2 while leaving existing v1 data unchanged', async () => {
+    const ref = ownerDatabase().doc(`users/${ownerId}/focusSkills/${documentId}`)
+    await assertSucceeds(ref.set(focusSkill()))
+    await assertSucceeds(ref.update({ exerciseId: 'personal-guard', schemaVersion: 2 }))
+    await assertFails(ref.update({ exerciseId: 'bad/id' }))
+    await assertFails(ref.update({ exerciseId: 1 }))
+    await assertFails(ref.update({ schemaVersion: 1 }))
+    await assertSucceeds(ref.update({ exerciseId: null }))
+  })
+  it('accepts v2 plan sessions with new snapshot links', async () => {
+    const value = workoutSession('plan')
+    await assertSucceeds(ownerDatabase().doc(`users/${ownerId}/workoutSessions/${documentId}`).set({ ...value, schemaVersion: 2,
+      stepResults: (value.stepResults as Document[]).map((step) => ({ ...step, combinationId: 'personal-guard' })) }))
+  })
+})
 
 function workoutPlan(): Document {
   return {
@@ -294,7 +362,7 @@ describe.each(scenarios)('$name', ({ collection, create }) => {
   )
 
   const invalidCommonFields: [string, unknown][] = [
-    ['schemaVersion', 2], ['schemaVersion', '1'],
+    ['schemaVersion', collection === 'workoutSessions' && create().source === 'plan' ? 3 : 2], ['schemaVersion', '1'],
     ['id', 'another-document'], ['id', 42],
     ['createdAt', new Date(instant)], ['createdAt', '2026-11-08'],
     ['updatedAt', null], ['updatedAt', 42],

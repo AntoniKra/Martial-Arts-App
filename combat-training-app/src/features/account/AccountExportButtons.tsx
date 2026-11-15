@@ -10,13 +10,13 @@ export function AccountExportButtons({ jsonOnly = false, health = false, disable
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null)
   const inFlight = useRef(false)
   const blocked = disabled || busy || availability.blocked || !account.service
-  async function download(kind: 'json' | 'csv' | 'wellbeingCsv') {
+  async function download(kind: 'json' | 'csv' | 'wellbeingCsv' | 'exercisesCsv') {
     if (blocked || inFlight.current || auth.state.status !== 'ready' || !auth.state.session || !account.service) return
     inFlight.current = true
     setBusy(true); setError(null)
     try {
-      const [{ buildAccountJson, buildJournalCsv, buildWellbeingCsv, exportFileName }, { downloadAccountFile }, { workoutSessionDocumentSchema }, { wellbeingDocumentSchema }] = await Promise.all([
-        import('./dataExport'), import('@/infrastructure/browser/downloadAccountFile'), import('@/infrastructure/firebase/workoutDocumentSchemas'), import('@/infrastructure/firebase/wellbeingDocumentSchema'),
+      const [{ buildAccountJson, buildJournalCsv, buildWellbeingCsv, buildExercisesCsv, exportFileName }, { downloadAccountFile }, { workoutSessionDocumentSchema }, { wellbeingDocumentSchema }, { exerciseDocumentSchema }] = await Promise.all([
+        import('./dataExport'), import('@/infrastructure/browser/downloadAccountFile'), import('@/infrastructure/firebase/workoutDocumentSchemas'), import('@/infrastructure/firebase/wellbeingDocumentSchema'), import('@/infrastructure/firebase/exerciseDocumentSchema'),
       ])
       const data = await account.service.readData(), now = new Date()
       const sessions = data.collections.workoutSessions.flatMap((document) => {
@@ -27,7 +27,11 @@ export function AccountExportButtons({ jsonOnly = false, health = false, disable
         const parsed = wellbeingDocumentSchema.safeParse(document.data)
         return parsed.success && parsed.data.date === document.id ? [parsed.data] : []
       })
-      const content = kind === 'json' ? buildAccountJson(data, auth.state.session, now) : kind === 'wellbeingCsv' ? buildWellbeingCsv(entries) : buildJournalCsv(sessions)
+      const exercises = (data.collections.exercises ?? []).flatMap((document) => {
+        const parsed = exerciseDocumentSchema.safeParse(document.data)
+        return parsed.success && parsed.data.id === document.id ? [parsed.data] : []
+      })
+      const content = kind === 'json' ? buildAccountJson(data, auth.state.session, now) : kind === 'wellbeingCsv' ? buildWellbeingCsv(entries) : kind === 'exercisesCsv' ? buildExercisesCsv(exercises) : buildJournalCsv(sessions)
       await downloadAccountFile(content, exportFileName(kind, now), kind === 'json' ? 'application/json;charset=utf-8' : 'text/csv;charset=utf-8')
     } catch { setError(labels.exportError) } finally { setBusy(false); inFlight.current = false }
   }
@@ -39,6 +43,8 @@ export function AccountExportButtons({ jsonOnly = false, health = false, disable
       onClick={() => void download('csv')}>{labels.csv}</button>}
     {!jsonOnly && <button type="button" className={getButtonClassName({ variant: 'secondary', disabled: blocked })} disabled={blocked}
       onClick={() => void download('wellbeingCsv')}>{labels.wellbeingCsv}</button>}
+    {!jsonOnly && <button type="button" className={getButtonClassName({ variant: 'secondary', disabled: blocked })} disabled={blocked}
+      onClick={() => void download('exercisesCsv')}>{labels.exercisesCsv}</button>}
     {availability.reason && <p role="status" className="text-sm text-muted">{availability.reason}</p>}
     {busy && <p role="status" className="text-sm">{labels.loading}</p>}
     {(error || account.error) && <p role="alert" className="text-sm text-crimson-ink">{error ?? labels.unavailable}</p>}

@@ -2,7 +2,8 @@ import { useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
-import type { PlanWorkoutSession } from '@/domain/workout-session/workoutSession.types'
+import type { PlanWorkoutSession, WorkoutSession } from '@/domain/workout-session/workoutSession.types'
+import { findPreviousAssessment } from '@/domain/focus-skill/previousAssessment'
 import { canEditSparringIntensity, hasCompletedExercise, selectOtherExercises, type WorkoutFeedbackDraft } from '@/domain/workout-session/workoutFeedback'
 import type { PreviousPlanRun } from '@/domain/workout-session/previousPlanRun'
 import { Button } from '@/components/ui/Button'
@@ -16,7 +17,8 @@ import { rpeLabels } from './rpeLabels'
 import { sparringIntensityLabels } from './sparringIntensityLabels'
 import { hasUnsavedWorkoutFeedback } from './unsavedWorkoutFeedback'
 
-export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, previousRun }: {
+export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, previousRun, sessions = [] }: {
+  sessions?: readonly WorkoutSession[]
   session: PlanWorkoutSession; skills: readonly FocusSkill[]; pending: boolean
   previousRun?: PreviousPlanRun | null
   rpeCard: ReactNode
@@ -87,6 +89,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
             <p className="text-[11px] tabular-nums text-muted">{labels.assessed(assessed, draft.focusRatings.length)}</p>
           </div>
           {draft.focusRatings.map((rating, index) => <FocusCard key={rating.workoutItemId} rating={rating} session={session} skills={skills}
+            previousAssessment={findPreviousAssessment(session, rating.focusSkillId, rating.criterionSnapshot, sessions)}
             first={draft.focusRatings.findIndex((value) => value.focusSkillId === rating.focusSkillId) === index}
             error={errors.corrections[rating.workoutItemId]} onChange={(edited) => {
               setDraft((current) => ({ ...current, focusRatings: current.focusRatings.map((value) => value.workoutItemId === edited.workoutItemId ? edited : value) }))

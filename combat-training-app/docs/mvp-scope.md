@@ -17,6 +17,7 @@ Dokument nadrzędny to `thesis-card.md`. Wiąże temat pracy, a technologie i li
 - **Testy kontrolne:** test własny, burpees 3 min, KAST dla kickboxingu i K-1, z paszportem warunków (R4).
 - **Profil zawodnika:** pomiary masy ciała za osobną zgodą 18+, opcjonalna etykieta kategorii i statystyki z dziennika bez zgody (szczegóły niżej).
 - **Moje dane:** eksport JSON i CSV oraz usunięcie konta ze wszystkimi danymi (Q7).
+- **Moje ćwiczenia (issue #156):** prywatna biblioteka z edycją, kopiowaniem wbudowanych, ulubionymi, ostatnio używanymi, wyszukiwaniem, archiwizacją i przywracaniem (ADR 0017). Trend i poprzednia ocena nadal po `focusSkillId`, bez drugiego trendu.
 - **Wygląd:** ciemny i jasny motyw zapamiętany na urządzeniu (D4), responsywność na telefonie i komputerze.
 - **PWA:** instalacja na telefonie, otwieranie przy słabym zasięgu, stoper działający bez sieci, zapis treningu bez sieci z wysłaniem po powrocie połączenia, ostrzeżenie przy wylogowaniu z niewysłanymi treningami (D3).
 - **Wdrożenie** pod publicznym adresem, automatyczne przez GitHub Actions z podglądem każdego PR (Q11).
@@ -50,7 +51,7 @@ Dokument nadrzędny to `thesis-card.md`. Wiąże temat pracy, a technologie i li
 - Panel trenera i udostępnianie danych zawodnikom.
 - Pełna praca offline z synchronizacją.
 - Pełny feedback po treningu: koncentracja, dyskomfort, odczuwany postęp 1–7, realizacja celu.
-- Kreator kombinacji z pojedynczych technik, prywatna biblioteka ćwiczeń, „blaknięcie” technik.
+- Kreator kombinacji z pojedynczych technik i „blaknięcie” technik. Prywatna biblioteka weszła do zakresu decyzją z issue #156.
 - Tryb siłowy: serie, ciężar, powtórzenia.
 - Szablon obozu wstecz od daty walki i podgląd taperingu.
 - Notatki wideo (plan Spark nie ma Cloud Storage).

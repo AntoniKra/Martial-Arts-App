@@ -5,8 +5,10 @@ import type { FocusSkillRepository } from './focus-skill/focusSkillRepository'
 import type { WeekPlanRepository } from './week-plan/weekPlanRepository'
 import type { BodyWeightRepository, ProfileRepository } from './profile/profileRepository'
 import type { WellbeingRepository } from './profile/wellbeingRepository'
+import type { ExerciseRepository } from './exercise/exerciseRepository'
 
 export interface WorkoutRepositories {
+  exercises: ExerciseRepository
   plans: WorkoutPlanRepository; sessions: WorkoutSessionRepository; focusSkills: FocusSkillRepository; weekPlans: WeekPlanRepository
   profile: ProfileRepository; bodyWeights: BodyWeightRepository; wellbeing: WellbeingRepository
 }
@@ -30,6 +32,11 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
   const weekPlans = ready.then((repositories) => repositories.weekPlans)
   const profile = ready.then((repositories) => repositories.profile)
   return {
+    exercises: {
+      subscribe: (onChange, onError) => deferredSubscription(ready.then((repositories) => repositories.exercises))(onChange, onError),
+      save: async (exercise) => (await ready).exercises.save(exercise),
+      deleteUnused: async (id) => (await ready).exercises.deleteUnused(id),
+    },
     profile: {
       subscribe: deferredSubscription(profile),
       save: async (value) => (await profile).save(value),

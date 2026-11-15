@@ -41,9 +41,9 @@ describe('Firebase account operations', () => {
     try {
       const result = await createFirebaseAccountService('athlete').readData()
       expect(result.profile).toBeNull()
-      expect(Object.keys(result.collections)).toEqual(['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights', 'readiness'])
+      expect(Object.keys(result.collections)).toEqual(['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights', 'readiness', 'exercises'])
       expect(result.collections.workoutSessions).toEqual([{ id: 'invalid', data: { schemaVersion: 99, raw: true } }])
-      expect(firestoreSdk.getDocsFromServer).toHaveBeenCalledTimes(6)
+      expect(firestoreSdk.getDocsFromServer).toHaveBeenCalledTimes(7)
     } finally { vi.unstubAllGlobals() }
   })
   it('rejects a server snapshot that still includes pending local data', async () => {

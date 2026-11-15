@@ -135,7 +135,7 @@ export function WorkoutExerciseCard({
           </MoveIconButton>
         </div>
       </div>
-      <FocusSkillPicker focusSkillId={exercise.focusSkillId} focusExerciseCount={focusExerciseCount}
+      <FocusSkillPicker focusSkillId={exercise.focusSkillId} focusExerciseCount={focusExerciseCount} exerciseId={exercise.combinationId}
         onChange={(focusSkillId) => dispatch({ type: 'setExerciseFocusSkill', blockId, exerciseId: exercise.id, focusSkillId })} />
     </li>
   )

@@ -40,6 +40,7 @@ import { copyExerciseConfiguration } from '@/features/workout-builder/utils/exer
 import { mapWorkoutPlanSaveError } from '@/features/workout-builder/utils/workoutPlanSaveErrorMessages'
 import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderLabels'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
+import { exerciseLabels } from '@/features/exercises/exerciseLabels'
 import { useWorkoutData } from '@/application/workoutDataContext'
 
 interface WorkoutBuilderViewProps {
@@ -63,7 +64,10 @@ export function WorkoutBuilderView({
   onPlanSaved,
   editingPlanId,
 }: WorkoutBuilderViewProps) {
-  const { focusSkills } = useWorkoutData()
+  const { focusSkills, exercises, exerciseRepository } = useWorkoutData()
+  const [addingExercise, setAddingExercise] = useState(false)
+  const [exerciseSaveError, setExerciseSaveError] = useState<string | null>(null)
+  const addingExerciseRef = useRef(false)
   const [screen, setScreen] = useState<WorkoutBuilderScreen>({ type: 'edit' })
   const [libraryUiState, setLibraryUiState] = useState<ExerciseLibraryUiState>(initialLibraryUiState)
   const [pendingAddedExerciseId, setPendingAddedExerciseId] = useState<string | null>(null)
@@ -100,6 +104,7 @@ export function WorkoutBuilderView({
       return
     }
 
+    setExerciseSaveError(null)
     setScreen({
       type: 'configureNew',
       blockId: screen.blockId,
@@ -273,21 +278,43 @@ export function WorkoutBuilderView({
     await handleSavePlan()
   }
 
-  function handleAddExercise(configuration: ExerciseConfiguration, instruction: string | null) {
-    if (screen.type !== 'configureNew') {
+  async function handleAddExercise(configuration: ExerciseConfiguration, instruction: string | null) {
+    if (screen.type !== 'configureNew' || addingExerciseRef.current) {
       return
     }
+    addingExerciseRef.current = true
+    setAddingExercise(true)
+    setExerciseSaveError(null)
+    try {
+      const selection = screen.selection
+      let combinationId = selection.type === 'library' ? selection.combinationId : null
+      const now = new Date().toISOString()
+      if (selection.type === 'custom' && selection.saveToLibrary) {
+        const block = selectBlockById(state.draft.blocks, screen.blockId)
+        if (!block || !state.draft.disciplineKey || !selection.personalId) throw new Error('Exercise context missing')
+        combinationId = selection.personalId
+        await exerciseRepository.save({ id: combinationId, namePl: selection.exerciseNameSnapshot, type: selection.exerciseType ?? 'drill',
+          disciplines: [state.draft.disciplineKey], blockTypes: [block.blockType], defaultConfiguration: { ...configuration },
+          archivedAt: null, favorite: false, lastUsedAt: now, createdAt: now, updatedAt: now })
+      } else if (combinationId) {
+        const personal = exercises.items.find((exercise) => exercise.id === combinationId)
+        if (personal) {
+          if (personal.archivedAt !== null) throw new Error('Exercise archived')
+          await exerciseRepository.save({ ...personal, lastUsedAt: now, updatedAt: now })
+        }
+      }
+      const exercise = createWorkoutExercise(
+        combinationId,
+        screen.selection.exerciseNameSnapshot,
+        instruction,
+        configuration,
+      )
 
-    const exercise = createWorkoutExercise(
-      screen.selection.type === 'library' ? screen.selection.combinationId : null,
-      screen.selection.exerciseNameSnapshot,
-      instruction,
-      configuration,
-    )
-
-    dispatch({ type: 'addExercise', blockId: screen.blockId, exercise })
-    setPendingAddedExerciseId(exercise.id)
-    setScreen({ type: 'edit' })
+      dispatch({ type: 'addExercise', blockId: screen.blockId, exercise })
+      setPendingAddedExerciseId(exercise.id)
+      setScreen({ type: 'edit' })
+    } catch { setExerciseSaveError(exerciseLabels.error) }
+    finally { addingExerciseRef.current = false; setAddingExercise(false) }
   }
 
   function handleUpdateExercise(configuration: ExerciseConfiguration, instruction: string | null) {
@@ -349,7 +376,7 @@ export function WorkoutBuilderView({
               blockLabel={getWorkoutBlockLabelPl(targetBlock.blockType)}
               exerciseName={screen.selection.exerciseNameSnapshot}
               initialConfiguration={
-                starting.mode === 'continuous'
+                screen.selection.type === 'library' && screen.selection.defaultConfiguration ? { ...screen.selection.defaultConfiguration } : starting.mode === 'continuous'
                   ? { mode: 'continuous', durationSeconds: starting.continuousDurationSeconds }
                   : {
                       mode: 'rounds',
@@ -361,8 +388,10 @@ export function WorkoutBuilderView({
               initialRoundSettings={starting}
               initialInstruction={null}
               variant="new"
+              submitPending={addingExercise}
+              submitError={exerciseSaveError}
               onBack={backToLibraryFromConfigureNew}
-              onSubmit={handleAddExercise}
+              onSubmit={(configuration, instruction) => void handleAddExercise(configuration, instruction)}
             />
           </div>,
         )

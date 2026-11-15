@@ -1,6 +1,7 @@
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { WorkoutsView } from '@/features/workouts/components/WorkoutsView'
 import { WorkoutDataWarning } from '@/features/workouts/components/WorkoutDataWarning'
@@ -23,6 +24,7 @@ export function WorkoutsPage() {
   }, [location.pathname, location.search, location.state, navigate])
   const { plans, sessions, sessionRepository, retry } = useWorkoutData()
   return <>
+    <Link to={routes.myExercises} className="mx-4 mt-4 inline-flex min-h-touch items-center self-start text-sm font-semibold text-crimson-ink">Moje ćwiczenia</Link>
     <WorkoutDataWarning />
     <WorkoutsView planDeleted={planDeleted} initialTab={new URLSearchParams(location.search).get('tab') === 'history' ? 'history' : 'plans'}
       plansLoadState={plans.status === 'ready' ? { status: 'success', plans: mapWorkoutPlansToListItems(plans.items) }

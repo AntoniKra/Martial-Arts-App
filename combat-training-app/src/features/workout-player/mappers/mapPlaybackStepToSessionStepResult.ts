@@ -8,6 +8,7 @@ export function mapPlaybackStepToSessionStepResult(
 ): WorkoutSessionStepResult {
   return {
     playbackStepId: step.id,
+    ...(step.combinationId ? { combinationId: step.combinationId } : {}),
     workoutItemId: step.itemId,
     blockId: step.blockId,
     blockType: step.blockType,

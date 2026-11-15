@@ -60,6 +60,12 @@ Profil ma osobne leniwe trasy `/profile` (`ProfilePage`) i `/profile/consent` (`
 - aktywny timer: osobny moduł stanów, nie ogólny globalny store;
 - szkic lokalny: storage adapter.
 
+## Moje ćwiczenia (issue #156)
+
+`domain/exercise` zawiera prywatną definicję, normalizację wyszukiwania, wybór sekcji i kontrolę odwołań; `application/exercise` udostępnia interfejs repozytorium. Schemat `zod/mini`, reguły i adapter Firestore obsługują kolekcję `exercises`, włączoną do wspólnego cyklu subskrypcji, ponawiania, oczekujących zapisów, wylogowania, eksportu i usunięcia konta. Ekran zarządzania `/exercises` jest leniwy, a formularz współdzieli z kreatorem moduł `features/exercises`. Definicja nie zastępuje wystąpienia w planie ani celu z kryterium. Trend pozostaje po `focusSkillId`; ADR 0017 opisuje opcjonalne `exerciseId`, wersje dokumentów i zachowanie migawek bez migracji historii.
+
+Pomiar porównawczy (`git show HEAD` dla bazowych źródeł `ac0618a`, bez nowych zależności, te same narzędzia budowania i `node:zlib.gzipSync`, suma unikalnych skryptów oraz modulepreload wskazanych w `index.html`): **171 551 B przed → 172 148 B po**, wzrost **597 B**; budżet około 200 kB zachowany. Wyniki budowania i zrzuty QA pozostają poza repozytorium.
+
 ## Istniejące moduły
 
 - `features/focus-skills`: tworzenie, edycja i wybór ćwiczeń celu z kryterium w kreatorze planu;

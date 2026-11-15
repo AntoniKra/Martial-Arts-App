@@ -9,6 +9,7 @@ import { seedWeekPlan, seedInvalidWeekPlan, readWeekPlans, removeWorkoutDocument
 import { readProfile, readBodyWeights, seedBodyWeight } from './firestoreEmulator'
 import type { BodyWeight } from '../src/domain/profile/profile.types'
 import type { WellbeingEntry } from '../src/domain/wellbeing/wellbeing'
+import type { PersonalExercise } from '../src/domain/exercise/exercise'
 import { seedRawAccountDocument, readRawAccountCollection } from './firestoreEmulator'
 
 class WorkoutApp {
@@ -84,6 +85,7 @@ class WorkoutApp {
   async readProfile() { return readProfile(this.page.request, this.uid) }
   async seedWellbeing(entry: WellbeingEntry) { return seedRawAccountDocument(this.page.request, this.uid, `readiness/${entry.date}`, { ...entry, schemaVersion: 1 }) }
   async readWellbeing() { return readRawAccountCollection(this.page.request, this.uid, 'readiness') }
+  async readExercises() { return await readRawAccountCollection(this.page.request, this.uid, 'exercises') as PersonalExercise[] }
   async readBodyWeights() { return readBodyWeights(this.page.request, this.uid) }
   async seedBodyWeight(weight: BodyWeight) { return seedBodyWeight(this.page.request, this.uid, weight) }
   async removeWorkoutDocument(collection: 'workoutPlans' | 'workoutSessions', id: string) { await removeWorkoutDocument(this.page.request, this.uid, collection, id) }

@@ -7,6 +7,8 @@ export interface FocusSkillCorrection {
 
 export interface FocusSkill {
   id: string
+  /** Optional library link; ratings and trends retain focusSkillId as their identity. */
+  exerciseId?: string | null
   name: string
   criterion: string
   openCorrection: FocusSkillCorrection | null

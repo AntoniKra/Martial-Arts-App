@@ -49,6 +49,8 @@ interface ExerciseConfigurationViewProps {
     restBetweenRoundsSeconds: number
   } | null
   variant: 'new' | 'existing'
+  submitPending?: boolean
+  submitError?: string | null
   onBack: () => void
   onSubmit: (configuration: ExerciseConfiguration, instruction: string | null) => void
 }
@@ -239,6 +241,8 @@ export function ExerciseConfigurationView({
   initialInstruction,
   initialRoundSettings = null,
   variant,
+  submitPending = false,
+  submitError = null,
   onBack,
   onSubmit,
 }: ExerciseConfigurationViewProps) {
@@ -303,6 +307,7 @@ export function ExerciseConfigurationView({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (submitPending) return
     const clearedErrors = emptyExerciseConfigurationFieldErrors()
 
     if (form.mode === 'continuous') {
@@ -393,6 +398,7 @@ export function ExerciseConfigurationView({
           <button
             type="button"
             onClick={onBack}
+            disabled={submitPending}
             className="mb-4 inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             <ChevronRightIcon className="rotate-180" />
@@ -583,7 +589,8 @@ export function ExerciseConfigurationView({
 
         <div className="border-t border-bd bg-surface">
           <div className={`${contentContainerClass} py-4`}>
-            <Button type="submit" variant="secondary" className="w-full">
+            {submitError && <p role="alert" className="mb-3 text-sm text-crimson-ink">{submitError}</p>}
+            <Button type="submit" variant="secondary" className="w-full" loading={submitPending} disabled={submitPending}>
               {submitLabel}
             </Button>
           </div>

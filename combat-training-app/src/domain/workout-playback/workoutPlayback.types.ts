@@ -7,6 +7,7 @@ export type WorkoutPlaybackStatus = 'idle' | 'preparing' | 'running' | 'paused' 
 
 export interface WorkoutPlaybackStep {
   id: string
+  combinationId?: string
   kind: WorkoutPlaybackStepKind
   durationSeconds: number
   blockIndex: number

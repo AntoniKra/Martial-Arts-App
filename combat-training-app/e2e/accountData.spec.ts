@@ -7,10 +7,11 @@ import { accountsWithEmail, createVerifiedAccount, signIn } from './authEmulator
 import { seedRawAccountDocument, readRawAccountCollection, readProfile, seedSession } from './firestoreEmulator'
 import { workoutSession } from '../src/test/workoutSessionBuilders'
 import type { ManualWorkoutSession } from '../src/domain/workout-session/workoutSession.types'
+import { personalExercise } from '../src/test/exerciseBuilders'
 
 test.use({ screenshot: 'off' })
 const instant = '2026-11-13T09:00:00.000Z'
-const names = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights', 'readiness']
+const names = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'bodyWeights', 'readiness', 'exercises']
 const jsonButton = (page: Page) => page.getByRole('button', { name: 'Pobierz wszystkie dane (JSON)', exact: true })
 const csvButton = (page: Page) => page.getByRole('button', { name: 'Pobierz dziennik (CSV)', exact: true })
 const profile = { schemaVersion: 1, healthDataConsent: { grantedAt: instant, noticeVersion: '2026-11', adultConfirmed: true },
@@ -83,6 +84,17 @@ test('disables exports offline with an explanation', async ({ page, context }) =
   await expect(page.getByRole('button', { name: 'Pobierz samopoczucie (CSV)', exact: true })).toBeDisabled()
   await expect(page.getByText('Pobranie danych wymaga połączenia z internetem.', { exact: true })).toBeVisible()
   await context.setOffline(false)
+})
+
+test('exports personal exercise definitions including archived copies as a separate safe CSV', async ({ page }) => {
+  const account = await openAccount(page)
+  const exercise = personalExercise({ namePl: '=1+1', copiedFromId: 'combo-jab-cross', favorite: true, archivedAt: instant })
+  await seedRawAccountDocument(page.request, account.uid, `exercises/${exercise.id}`, { ...exercise, schemaVersion: 1 })
+  const download = await downloaded(page, page.getByRole('button', { name: 'Pobierz Moje ćwiczenia (CSV)', exact: true }))
+  expect(download.suggestedFilename()).toMatch(/^combat-training-moje-cwiczenia-\d{4}-\d{2}-\d{2}\.csv$/)
+  const content = await bytes(download)
+  expect([...content.subarray(0, 3)]).toEqual([239, 187, 191])
+  expect(content.toString('utf8')).toContain("personal-guard;'=1+1;Zadanie;Boks;Technika | Worek;rounds;3;180;60;combo-jab-cross;")
 })
 
 test('rejects a wrong password without deletion, then deletes all data, Auth and account storage and returns the next user home', async ({ page }) => {
