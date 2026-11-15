@@ -6,7 +6,7 @@ Po jednym kliknięciu „Start” aplikacja automatycznie przeprowadza użytkown
 
 ## Przygotowanie przed startem
 
-- Na ekranie planu, nad „Rozpocznij trening”, ustawienie „Przygotowanie przed startem” ma opcje 5, 10, 15 i 30 s. Domyślnie 10 s (decyzja właściciela z 8 listopada 2026).
+- W Profilu, w sekcji „Ustawienia → Trening”, ustawienie „Przygotowanie przed startem” ma opcje 5, 10, 15 i 30 s. Domyślnie 10 s (decyzja właściciela z 8 listopada 2026).
 - Wybór jest zapamiętany na urządzeniu w `localStorage`, z walidacją `zod/mini`. Brak, błędna wartość lub niedostępna pamięć oznacza 10 s.
 - Pierwszy „Start” uruchamia przygotowanie. „Uruchom ponownie” od razu rozpoczyna nowe przygotowanie. Nie ma go po pauzie ani między etapami czy blokami.
 - Pierścień pokazuje pozostałe sekundy dużymi cyframi i napis „PRZYGOTUJ SIĘ”. Przycisk z ikoną startu „Zacznij teraz” pozwala od razu rozpocząć pierwszy etap.
@@ -56,17 +56,21 @@ Podsumowanie pokazuje ćwiczenia celu z kryterium i skalą 1–5 lub opcją „N
 - po utracie widoczności aplikacja ponawia żądanie Wake Lock;
 - brak obsługi API nie może przerwać treningu.
 
-### Sygnał 10 s przed końcem
+### Sygnały przed końcem rundy i przerwy
 
-Decyzje właściciela i techniczne z 13 listopada 2026, issue #103:
+Decyzje właściciela i techniczne z 13–14 listopada 2026, issue #103 i #153:
 
-- Trzy krótkie, perkusyjne stuknięcia „stuk-stuk-stuk”, wyraźnie inne od gongu, zapowiadają koniec każdego etapu ćwiczenia (rundy i trybu ciągłego), odpoczynku między rundami (`roundRest`) i samodzielnej przerwy (`break`). Czas docelowy etapu musi być dłuższy niż 30 s. Dotyczy to również ostatniego etapu treningu. Przygotowanie przed startem nie ma tego sygnału.
-- Na ekranie planu, obok przygotowania, przełącznik „Sygnał 10 s przed końcem rundy i przerwy” jest domyślnie włączony. Wybór zapisuje się wyłącznie na urządzeniu w `localStorage`, z walidacją `zod/mini`. Brak wartości, błędny odczyt lub niedostępna pamięć oznaczają włączenie. Błąd zapisu przywraca ten sam stan domyślny w ustawieniu i odtwarzaczu. Odtwarzacz odczytuje wybór przy rozpoczęciu treningu; gongi przejść zachowują swoje działanie.
-- Sygnał gra raz, gdy podczas biegu zegara dokładny pozostały czas przechodzi z ponad 10 000 ms na 10 000 ms lub mniej. Obie próbki wynikają z terminu końcowego i bieżącego zegara, bez odliczania tyknięć ani zaokrąglania do sekund wyświetlacza.
-- Jeżeli przy wykryciu przejścia zostało mniej niż 7 000 ms (np. po powrocie karty z tła lub uśpieniu ekranu), sygnał jest pomijany. Dokładnie 7 000 ms nadal pozwala go odtworzyć.
-- W pauzie sygnał nie gra. Wznowienie z czasem pozostałym do 10 s włącznie nie odtwarza zaległego ostrzeżenia.
-- Korekta `+15 s`, która podnosi pozostały czas ponad 10 s, ponownie uzbraja sygnał na następne przejście progu. Korekta `−15 s` przeskakująca poniżej 10 s odtwarza go tylko przy pozostałym czasie co najmniej 7 000 ms i podczas biegu zegara. „Poprzedni” i restart etapu również uzbrajają sygnał ponownie.
-- Stan odtworzenia sygnału nie musi przetrwać przeładowania. Odzyskanie treningu z czasem pozostałym do 10 s włącznie nie odtwarza ostrzeżenia.
+- Trzy krótkie, perkusyjne stuknięcia „stuk-stuk-stuk”, wyraźnie inne od gongu, zapowiadają koniec etapu. Przygotowanie nie ma ostrzeżenia; gongi przejść zachowują swoje działanie.
+- Jedynym miejscem wyboru jest Profil → Ustawienia → Trening. Ekran planu i ustawienia szybkiego stopera mają odnośnik do tej sekcji. Wybory dotyczą obu odtwarzaczy na tym urządzeniu.
+- „Sygnał przed końcem rundy”: Wyłączony / 5 / 10 / 15 / 30 s, domyślnie 10 s. Dotyczy rund i pracy ciągłej, także ostatniego etapu. Zachowujemy dotychczasowy warunek: docelowy czas ćwiczenia musi być dłuższy niż 30 s.
+- „Sygnał przed końcem przerwy”: Wyłączony / 5 / 10 s, domyślnie wyłączony. Dotyczy odpoczynku między rundami (`roundRest`) i samodzielnej przerwy (`break`). Ostrzeżenie gra tylko, gdy etap jest dłuższy niż wybrany próg. Przerwa krótsza lub dokładnie równa progowi (np. 10 s przy sygnale 10 s) milczy, również po powrocie z tła. Decyzja koordynatora do PR #157: przy wejściu w taką przerwę gra już gong końca rundy; drugie brzmienie w tej samej chwili byłoby mylące.
+- Ustawienia zapisują się w `localStorage` pod `combat-training.endWarnings` jako `{ round, rest }`, gdzie wartości to tekstowe liczby sekund albo `off`. Odczyt i zapis mają walidację `zod/mini`; brak, uszkodzenie lub niedostępna pamięć oznaczają wartości domyślne. Błąd zapisu przywraca te same wartości w formularzu i odtwarzaczu. Gdy nowego klucza jeszcze nie ma, dawny wybór `combat-training.endWarningEnabled = false` zachowuje wyłączony sygnał rundy. Przerwy otrzymują nową wartość domyślną (wyłączone).
+- Odtwarzacz odczytuje ustawienia przy otwarciu, razem z przygotowaniem. Nie zmienia ich w aktywnym treningu.
+- Sygnał gra raz, gdy podczas biegu zegara dokładny pozostały czas przechodzi z ponad wybrany próg na próg lub mniej. Obie próbki wynikają z terminu końcowego i bieżącego zegara, bez odliczania tyknięć ani zaokrąglania do sekund wyświetlacza.
+- Po powrocie z tła obowiązuje ten sam próg, bez podwójnego ostrzeżenia. Jeśli w czasie nieobecności zmienił się etap, sprawdzenie dotyczy aktualnego, wyliczonego etapu, z jego terminem końcowym i czasem poprzedniej dokładnej próbki. Zakończone etapy nie odtwarzają zaległych ostrzeżeń. Opóźnienie większe niż 3 000 ms pomija sygnał (dla 10 s: mniej niż 7 000 ms pozostałego czasu); dokładnie 3 000 ms opóźnienia nadal pozwala go odtworzyć. Przykład: 2 × 40 s z przerwą 20 s, ostrzeżenie przerwy 10 s, ukrycie w 35. sekundzie i powrót po 16 s oznaczają 9 s przerwy oraz jedno ostrzeżenie. Reguła jest wspólna dla planu i szybkiego stopera.
+- W pauzie sygnał nie gra. Wznowienie lub odzyskanie treningu z czasem pozostałym do progu włącznie nie odtwarza zaległego ostrzeżenia.
+- Sygnały z jednego przeliczenia czasu są rozstrzygane razem, przed wznowieniem dźwięku. Należne ostrzeżenie bieżącego etapu ma pierwszeństwo przed gongiem nadrobionego przejścia, także gdy `AudioContext.resume()` kończy się asynchronicznie. Gra tylko wybrany sygnał; zakończenie całego treningu ma pierwszeństwo przed ostrzeżeniem. Pozostają limit spóźnienia 3 000 ms oraz odrzucenie sygnału, jeśli samo wznowienie dźwięku trwa co najmniej 1 000 ms.
+- Korekta `+15 s` podnosząca czas ponad próg uzbraja sygnał ponownie. Korekta `−15 s` przeskakująca próg odtwarza go tylko podczas biegu i w granicy opóźnienia 3 000 ms. „Poprzedni” i restart etapu również uzbrajają sygnał ponownie.
 
 ## Odzyskiwanie aktywnego treningu
 
@@ -91,8 +95,8 @@ Decyzje właściciela i techniczne z 8 listopada 2026, issue #65 (Q8):
 
 - `/quick-timer` to leniwy ekran ustawień we wspólnym układzie; `/quick-timer/active` to leniwy odtwarzacz poza tym układem. Bez konfiguracji przekazanej z ustawień ani aktywnego stopera druga trasa wraca do pierwszej.
 - `createQuickTimerPlan` tworzy jednorazowy `WorkoutPlan` „Szybki stoper”: jeden blok wybranego rodzaju, jedno ćwiczenie rundowe nazwane etykietą rodzaju, bez biblioteki i ćwiczenia celu. Plan przechodzi schemat dokumentu, ale nie jest zapisywany w Firestore. Sparing zaczyna z `sparringIntensity: null`.
-- **Start** w ustawieniach jedynie otwiera odtwarzacz w stanie początkowym. **Rozpocznij trening** w odtwarzaczu uruchamia istniejące przygotowanie i odblokowanie dźwięku. Zegar, gongi, sygnał 10 s, Wake Lock, pauza, ±15 s i „Poprzedni” są wspólne z planem.
+- **Start** w ustawieniach jedynie otwiera odtwarzacz w stanie początkowym. **Rozpocznij trening** w odtwarzaczu uruchamia istniejące przygotowanie i odblokowanie dźwięku. Zegar, gongi, oba sygnały końca etapu, Wake Lock, pauza, ±15 s i „Poprzedni” są wspólne z planem.
 - Opcjonalne `ActiveWorkout.source` ma wartości `plan` i `quickTimer`; brak pola nadal oznacza plan, bez zmiany `schemaVersion: 1`, klucza pamięci lub jej czyszczenia. Bramka odzyskiwania kieruje stoper na `/quick-timer/active`, także po utracie sesji uwierzytelnienia dopuszczonego odtwarzacza.
 - Zapis następuje w tym samym momencie co dla planu. Rejestrator, odtworzenie zakończonego niezapisanego treningu i okno przerwanego treningu używają tej samej funkcji budującej wpis według źródła. Przerwanie po czasie dłuższym niż stoper albo po 12 h liczy tylko pracę do ostatniej aktywności. Stoper zachowuje nazwę „Szybki stoper”.
 - Wpis `quickTimer` ma czas i status zgodne z ADR 0005, realizację w ukończonych rundach wobec zaplanowanych oraz rodzaj pojedynczego bloku. Sparing zapisuje `{ blockId: null, intensity: null, rounds }`; brak ukończonej pracy nie tworzy wpisu.
-- Konfiguracja stopera jest walidowana i przechowywana pod `combat-training.quickTimer.{uid}`. Rodzaj i dyscyplina należą do konta na urządzeniu; przygotowanie i sygnał 10 s pozostają ustawieniami całego urządzenia. Błąd pamięci nie blokuje startu.
+- Konfiguracja stopera jest walidowana i przechowywana pod `combat-training.quickTimer.{uid}`. Rodzaj i dyscyplina należą do konta na urządzeniu; przygotowanie i oba sygnały końca etapu pozostają ustawieniami całego urządzenia. Błąd pamięci nie blokuje startu.

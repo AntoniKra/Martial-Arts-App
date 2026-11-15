@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import type { Page, TestInfo } from '@playwright/test'
-import { test, expect } from './fixtures'
+import { test, expect, openProfile, expandProfileSection } from './fixtures'
 import { workoutSession } from '../src/test/workoutSessionBuilders'
 import type { ManualWorkoutSession, QuickTimerWorkoutSession } from '../src/domain/workout-session/workoutSession.types'
 
@@ -43,15 +43,18 @@ async function capture(page: Page, info: TestInfo, name: string, theme: string) 
 }
 
 async function grant(page: Page) {
+  await expandProfileSection(page, 'Masa ciała')
   await page.getByRole('link', { name: 'Włącz zapisywanie masy ciała', exact: true }).click()
   await page.getByRole('checkbox', { name: 'Mam ukończone 18 lat.', exact: true }).check()
   await page.getByRole('checkbox', { name: 'Zgadzam się na zapisywanie mojej masy ciała i kategorii wagowej na moim koncie.', exact: true }).check()
   await page.getByRole('button', { name: 'Włącz', exact: true }).click()
   await expect(page).toHaveURL('/profile')
+  await expandProfileSection(page, 'Masa ciała')
   await expect(page.getByRole('button', { name: '+ Dodaj pomiar', exact: true })).toBeVisible()
 }
 
 async function addWeight(page: Page, date: string, input: string) {
+  await expandProfileSection(page, 'Masa ciała')
   await page.getByRole('button', { name: '+ Dodaj pomiar', exact: true }).click()
   await page.getByLabel('Data pomiaru', { exact: true }).fill(date)
   await page.getByRole('textbox', { name: 'Masa ciała (kg)', exact: true }).fill(input)
@@ -76,6 +79,8 @@ for (const theme of ['dark', 'light'] as const) {
     }
     await nav.getByRole('link', { name: 'Profil', exact: true }).click()
     await expect(nav.getByRole('link', { name: 'Profil', exact: true })).toHaveAttribute('aria-current', 'page')
+    await expandProfileSection(page, 'Statystyki')
+    await expandProfileSection(page, 'Masa ciała')
     await expect(statistics(page)).toContainText('Statystyki pojawią się po pierwszym treningu.')
     await expect(page.getByRole('textbox', { name: 'Masa ciała (kg)', exact: true })).toHaveCount(0)
     await expect(page.getByRole('button', { name: '+ Dodaj pomiar', exact: true })).toHaveCount(0)
@@ -141,6 +146,7 @@ for (const theme of ['dark', 'light'] as const) {
     // The local profile snapshot updates before the atomic batch receives server acknowledgement.
     await expect.poll(() => app.readBodyWeights()).toEqual([])
     await expect.poll(() => app.readProfile()).toMatchObject({ healthDataConsent: null, weightClassLabel: null })
+    await expandProfileSection(page, 'Statystyki')
     await expect(statistics(page)).toContainText('co najmniej 9')
   })
 }
@@ -159,6 +165,7 @@ test('keeps offline withdrawal intact and warns about pending weights and profil
   await withdrawal(page).getByRole('button', { name: 'Anuluj', exact: true }).click()
   await addWeight(page, '2026-11-12', '76,3')
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   const signOut = page.getByRole('dialog', { name: 'Wylogować się?', exact: true })
   await expect(signOut).toHaveAccessibleDescription('Masz dane, które nie zostały jeszcze wysłane. Po wylogowaniu przepadną.')
@@ -171,6 +178,7 @@ test('keeps offline withdrawal intact and warns about pending weights and profil
   await context.setOffline(true)
   await page.getByRole('button', { name: 'Zapisz kategorię', exact: true }).click()
   await expect(page.getByText('Kategoria: −77 kg', { exact: true })).toBeVisible()
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   await expect(signOut).toBeVisible()
   await signOut.getByRole('button', { name: 'Anuluj', exact: true }).click()

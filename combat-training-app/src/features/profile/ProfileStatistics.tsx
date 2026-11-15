@@ -1,4 +1,7 @@
 import { useWorkoutData } from '@/application/workoutDataContext'
+import { useState } from 'react'
+import { ProfileDisclosure } from './ProfileDisclosure'
+import { polishPlural } from '@/domain/language/polishPlural'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { calculateProfileStatistics } from '@/domain/profile/profileStatistics'
 import { categoryLabel } from '@/features/week-plan/weekPlanLabels'
@@ -12,8 +15,10 @@ export function ProfileStatistics({ today, recentOnly = false }: { today: string
   const { sessions, retrySessions } = useWorkoutData()
   const unavailable = profileDataUnavailable(sessions)
   const summary = unavailable ? null : calculateProfileStatistics(sessions.items, today)
-  return <section aria-label={labels.statistics} className="space-y-4 border border-bd bg-surface p-4">
-    <h2 className="font-display text-xl font-semibold">{labels.statistics}</h2>
+  const [open, setOpen] = useState(false)
+  const headline = !summary ? weeklySummaryLabels[unavailable!] : summary.firstDate === null ? labels.emptyStatistics
+    : `${summary.workoutCount} ${polishPlural(summary.workoutCount, 'trening', 'treningi', 'treningów')} · ${formatProfileDurationSecondsPl(summary.durationSeconds)}`
+  return <ProfileDisclosure title={labels.statistics} summary={headline} open={open} onToggle={() => setOpen(!open)}>
     {unavailable ? <ProfileDataState state={unavailable} retry={retrySessions} message={weeklySummaryLabels[unavailable]} />
       : summary && (summary.firstDate === null ? <p className="text-sm text-muted">{labels.emptyStatistics}</p> : <>
       {!recentOnly && <div className="space-y-3">
@@ -47,5 +52,5 @@ export function ProfileStatistics({ today, recentOnly = false }: { today: string
       </div>
       {sessions.hasPendingWrites && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
     </>)}
-  </section>
+  </ProfileDisclosure>
 }

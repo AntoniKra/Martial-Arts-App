@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 import { createVerifiedAccount, signIn } from './authEmulator'
 
 const logout = (page: Page) => page.getByRole('button', { name: 'Wyloguj', exact: true })
@@ -8,6 +8,8 @@ const dialog = (page: Page) => page.getByRole('dialog', { name: 'Wylogować się
 const pending = (page: Page) => page.getByText('Czeka na wysłanie', { exact: true })
 const firestoreDatabases = (page: Page) => page.evaluate(async () =>
   (await indexedDB.databases()).map(({ name }) => name).filter((name) => name?.startsWith('firestore/')))
+
+test.use({ serviceWorkers: 'allow' })
 
 // Set the playback date before subscribing. Changing weeks during a frozen clock
 // would resubscribe the week query and temporarily disable the sign-out button.
@@ -36,6 +38,7 @@ test.describe('offline with the PWA cache', () => {
     await expect(pending(page)).toHaveCount(0)
     expect(await app.readSessions()).toHaveLength(1)
     // Observe the short write check in the browser, without a runner round trip.
+    await openProfile(page)
     expect(await logout(page).evaluate(async (button: HTMLButtonElement) => {
       button.click()
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
@@ -51,7 +54,7 @@ test.describe('offline with the PWA cache', () => {
 
     await context.setOffline(false)
     await expect.poll(async () => (await app.readSessions()).length).toBe(0)
-    await logout(page).click()
+    await openProfile(page); await logout(page).click()
     await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
     expect(await firestoreDatabases(page)).toEqual([])
   })
@@ -71,7 +74,7 @@ test.describe('offline with the PWA cache', () => {
       await expect(pending(page)).toBeVisible()
       expect(await firestoreDatabases(page)).not.toEqual([])
 
-      await logout(page).click()
+      await openProfile(page); await logout(page).click()
       await expect(dialog(page)).toBeVisible()
       await expect(dialog(page)).toHaveAccessibleDescription('Masz dane, które nie zostały jeszcze wysłane. Po wylogowaniu przepadną.')
       const cancel = dialog(page).getByRole('button', { name: 'Anuluj', exact: true })
@@ -93,14 +96,18 @@ test.describe('offline with the PWA cache', () => {
       await cancel.click()
       await expect(dialog(page)).not.toBeVisible()
       await expect(logout(page)).toBeFocused()
+      await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+      await page.getByRole('radio', { name: 'Historia', exact: true }).check()
       await expect(pending(page)).toBeVisible()
-      await logout(page).click()
+      await openProfile(page); await logout(page).click()
       await page.keyboard.press('Escape')
       await expect(dialog(page)).not.toBeVisible()
       await expect(logout(page)).toBeFocused()
+      await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+      await page.getByRole('radio', { name: 'Historia', exact: true }).check()
       await expect(pending(page)).toBeVisible()
 
-      await logout(page).click()
+      await openProfile(page); await logout(page).click()
       await confirm.click()
       await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
       expect(await firestoreDatabases(page)).toEqual([])
@@ -119,21 +126,21 @@ test('signs out without a warning after sync and keeps the next account isolated
   await page.getByRole('radio', { name: 'Historia', exact: true }).check()
   await expect(pending(page)).toHaveCount(0)
   expect(await firestoreDatabases(page)).not.toEqual([])
-  await logout(page).click()
+  await openProfile(page); await logout(page).click()
   await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
   expect(await firestoreDatabases(page)).toEqual([])
   expect(await app.readSessions()).toHaveLength(1)
 
   const second = await createVerifiedAccount(page.request)
   await signIn(page, second)
-  await expect(logout(page)).toBeVisible()
+  await openProfile(page)
   await context.setOffline(true)
   await page.getByRole('link', { name: 'Treningi', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Brak zapisanych planów', exact: true })).toBeVisible()
   await page.getByRole('radio', { name: 'Historia', exact: true }).check()
   await expect(page.getByRole('heading', { name: 'Brak ukończonych treningów', exact: true })).toBeVisible()
   await expect(page.getByText('Dane poprzedniego konta', { exact: true })).toHaveCount(0)
-  await logout(page).click()
+  await openProfile(page); await logout(page).click()
   await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
   expect(await firestoreDatabases(page)).toEqual([])
 })
@@ -144,9 +151,10 @@ test('also warns about a plan edited offline without a pending workout session',
   await page.getByRole('textbox', { name: 'Nazwa planu' }).fill('Plan po zmianie offline')
   await context.setOffline(true)
   await app.savePlan()
-  await logout(page).click()
+  await openProfile(page); await logout(page).click()
   await expect(dialog(page)).toBeVisible()
   await dialog(page).getByRole('button', { name: 'Anuluj', exact: true }).click()
+  await page.getByRole('link', { name: 'Treningi', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Plan po zmianie offline', exact: true })).toBeVisible()
   expect(await app.readSessions()).toHaveLength(0)
 })
@@ -165,16 +173,17 @@ test.describe('persisted pending workouts', () => {
     await page.getByRole('radio', { name: 'Historia', exact: true }).check()
     await expect(pending(page)).toBeVisible()
     await page.reload()
-    await logout(page).click()
+    await openProfile(page); await logout(page).click()
     await expect(dialog(page)).toBeVisible()
     await dialog(page).getByRole('button', { name: 'Anuluj', exact: true }).click()
+    await page.getByRole('link', { name: 'Treningi', exact: true }).click()
     await page.getByRole('radio', { name: 'Historia', exact: true }).check()
     await expect(pending(page)).toBeVisible()
     expect(await app.readSessions()).toHaveLength(0)
     await context.setOffline(false)
     await expect.poll(async () => (await app.readSessions()).length).toBe(1)
     await expect(pending(page)).toHaveCount(0)
-    await logout(page).click()
+    await openProfile(page); await logout(page).click()
     await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
     expect(await firestoreDatabases(page)).toEqual([])
   })

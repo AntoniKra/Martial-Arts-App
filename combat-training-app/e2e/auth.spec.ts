@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 import { createVerifiedAccount, signIn, testPassword, uniqueEmail, verificationLink } from './authEmulator'
 
 test('opens Start after the first email verification and includes a local continue URL', async ({ page, request, baseURL }) => {
@@ -70,6 +70,7 @@ test('returns to the protected destination after sign in and signs out', async (
   await expect(page).toHaveURL('/login')
   await signIn(page, account)
   await expect(page).toHaveURL('/workouts?source=auth#plans')
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   await expect(page).toHaveURL('/login')
   await page.reload()
@@ -115,7 +116,7 @@ test('allows resending verification only after sixty seconds', async ({ page }) 
 test('session loss in another tab does not interrupt an admitted workout', async ({ app, page, context }) => {
   await app.createPlan('Plan utraty sesji')
   const otherPage = await context.newPage()
-  await otherPage.goto('/')
+  await otherPage.goto('/profile')
   // Load both subscriptions before freezing the clock of Firestore's primary tab.
   await expect(otherPage.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
   await app.openPlayer()

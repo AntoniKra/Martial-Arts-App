@@ -115,18 +115,43 @@ describe('workout gong event batching', () => {
     expect(gong.play).not.toHaveBeenCalled()
   })
 
-  it('plays the end warning through the existing gong without changing transition cues', async () => {
+  it('plays a standalone end warning once after the batch', async () => {
     const { controller, gong } = setup()
     controller.playEndWarning()
-    expect(gong.play).toHaveBeenCalledExactlyOnceWith('endingSoon')
-    controller.onPlaybackEvent(finalized(0))
+    expect(gong.play).not.toHaveBeenCalled()
     await Promise.resolve()
-    expect(gong.play).toHaveBeenLastCalledWith('workEnd')
+    expect(gong.play).toHaveBeenCalledExactlyOnceWith('endingSoon')
+  })
+
+  it.each([false, true])('prioritizes the current warning over caught-up transitions, transition first: %s', async (transitionFirst) => {
+    const { controller, gong } = setup()
+    if (transitionFirst) controller.onPlaybackEvent(finalized(0))
+    controller.playEndWarning()
+    if (!transitionFirst) controller.onPlaybackEvent(finalized(0))
+    await Promise.resolve()
+    expect(gong.play).toHaveBeenCalledExactlyOnceWith('endingSoon')
+  })
+
+  it('prioritizes completion over a pending warning', async () => {
+    const { controller, gong } = setup()
+    controller.playEndWarning()
+    controller.onPlaybackEvent({ type: 'completed', timestampMs: 50_000 })
+    await Promise.resolve()
+    expect(gong.play).toHaveBeenCalledExactlyOnceWith('workoutEnd')
+  })
+
+  it('cancels a pending warning on manual navigation', async () => {
+    const { controller, gong } = setup()
+    controller.playEndWarning()
+    controller.onPlaybackEvent(finalized(0, 'next'))
+    await Promise.resolve()
+    expect(gong.play).not.toHaveBeenCalled()
   })
 
   it('cancels pending cues on restart without cancelling the next run', async () => {
     const { controller, gong } = setup()
     controller.onPlaybackEvent(finalized(0))
+    controller.playEndWarning()
     controller.onPlaybackEvent({ type: 'restarted' })
     controller.onPlaybackEvent(finalized(1))
     await Promise.resolve()
@@ -136,6 +161,7 @@ describe('workout gong event batching', () => {
   it('cancels pending cues and closes audio on leaving the player', async () => {
     const { controller, gong } = setup()
     controller.onPlaybackEvent(finalized(0))
+    controller.playEndWarning()
     controller.dispose()
     await Promise.resolve()
     expect(gong.play).not.toHaveBeenCalled()

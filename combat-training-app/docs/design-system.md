@@ -37,6 +37,10 @@ Aktualne wartości obu motywów są w `src/styles/index.css`. `src/features/them
 
 Light mode używa przewagi jasnej szarości i bieli, grafitowego tekstu oraz tej samej czerwieni. Komponenty nie mogą zakładać na stałe ciemnego tła.
 
+Motyw wybierasz w Profilu → Ustawienia → Wygląd: Systemowy / Jasny / Ciemny. Domyślny jest Systemowy, reagujący na bieżące zmiany `prefers-color-scheme`. Dotychczasowe jawne wybory jasnego lub ciemnego motywu pozostają zapisane na urządzeniu. Nagłówek aplikacji i boczna nawigacja nie zawierają przełącznika motywu ani wylogowania; wylogowanie znajduje się w Profilu → Konto.
+
+Profil używa spokojnych kart `surface` z ramką i etykietami sekcji wersalikami 11 px. Masa ciała, Samopoczucie i Statystyki są domyślnie zwinięte: przycisk z `aria-expanded` pokazuje najważniejsze podsumowanie, a po rozwinięciu szczegóły. Wykres masy ciała pojawia się od dwóch pomiarów.
+
 ## Geometria
 
 - kanciaste rogi lub radius 0–4 px;

@@ -36,7 +36,7 @@ afterEach(() => {
 })
 
 describe('theme preferences', () => {
-  it.each(['light', 'dark'] as const)('reads and persists the explicit %s preference', (mode) => {
+  it.each(['light', 'dark', 'system'] as const)('reads and persists the explicit %s preference', (mode) => {
     vi.mocked(localStorage.getItem).mockReturnValue(mode)
     expect(readStoredThemeMode()).toBe(mode)
     expect(localStorage.getItem).toHaveBeenCalledWith(THEME_STORAGE_KEY)
@@ -45,7 +45,7 @@ describe('theme preferences', () => {
     expect(localStorage.setItem).toHaveBeenCalledWith(THEME_STORAGE_KEY, mode)
   })
 
-  it.each([null, undefined, '', 'LIGHT', 'system', '{}', 0])('rejects invalid preference %s', (value) => {
+  it.each([null, undefined, '', 'LIGHT', '{}', 0])('rejects invalid preference %s', (value) => {
     expect(parseThemeMode(value)).toBeNull()
     expect(resolveThemeMode(value, 'light')).toBe('light')
     expect(resolveThemeMode(value, 'dark')).toBe('dark')
@@ -55,6 +55,10 @@ describe('theme preferences', () => {
     expect(readStoredThemeMode()).toBeNull()
     vi.mocked(localStorage.getItem).mockReturnValue('broken')
     expect(readStoredThemeMode()).toBeNull()
+  })
+
+  it.each(['dark', 'light'] as const)('resolves an explicit system choice to %s', (mode) => {
+    expect(resolveThemeMode('system', mode)).toBe(mode)
   })
 
   it('handles storage read and write failures', () => {
@@ -139,6 +143,8 @@ describe('pre-paint bootstrap', () => {
     { stored: 'invalid', system: 'dark', expected: 'dark' },
     { stored: 'dark', system: 'light', expected: 'dark' },
     { stored: 'light', system: 'dark', expected: 'light' },
+    { stored: 'system', system: 'light', expected: 'light' },
+    { stored: 'system', system: 'dark', expected: 'dark' },
   ] as const
 
   it.each(cases)('uses $expected for stored=$stored and system=$system', ({ stored, system, expected }) => {

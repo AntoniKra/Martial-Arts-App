@@ -4,6 +4,7 @@ import { profileLabels as labels, measurementCountLabel, profileDateLabel, profi
 
 export function BodyWeightChart({ weeks }: { weeks: readonly WeeklyWeightPoint[] }) {
   const values = weeks.flatMap((week) => week.averageKg === null ? [] : [week.averageKg])
+  const measurementCount = weeks.reduce((sum, week) => sum + week.count, 0)
   const minimum = values.length ? Math.min(...values) : 0
   const maximum = values.length ? Math.max(...values) : 0
   const margin = Math.max(0.5, (maximum - minimum) * 0.1)
@@ -11,7 +12,7 @@ export function BodyWeightChart({ weeks }: { weeks: readonly WeeklyWeightPoint[]
   const point = (index: number, value: number) => ({ x: 54 + index * 26, y: 155 - (value - low) / (high - low) * 130 })
   return <section aria-label={labels.chart} className="space-y-3 border-t border-bd pt-4">
     <h3 className="font-display text-lg font-semibold">{labels.chart}</h3>
-    {values.length ? <>
+    {measurementCount >= 2 ? <>
       <svg width="100%" viewBox="0 0 360 210" role="img" aria-label={labels.chartDescription} className="block text-ink tabular-nums">
         <line x1="48" x2="350" y1="155" y2="155" stroke="var(--app-muted)" />
         <line x1="48" x2="48" y1="25" y2="155" stroke="var(--app-muted)" />
@@ -30,7 +31,7 @@ export function BodyWeightChart({ weeks }: { weeks: readonly WeeklyWeightPoint[]
         })}
       </svg>
       <p className="text-xs text-muted">{labels.chartHint}</p>
-    </> : <p className="text-sm text-muted">{labels.noChartWeights}</p>}
+    </> : <p className="text-sm text-muted">{measurementCount ? labels.needChartWeights : labels.noChartWeights}</p>}
     <details>
       <summary className="min-h-touch cursor-pointer py-3 font-display font-semibold">{labels.showData}</summary>
       <table className="w-full text-left text-xs tabular-nums">

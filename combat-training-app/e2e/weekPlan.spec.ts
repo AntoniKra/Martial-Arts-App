@@ -3,7 +3,9 @@ import { mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import type { Page, TestInfo } from '@playwright/test'
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
+
+test.use({ serviceWorkers: 'allow' })
 import { createVerifiedAccount, signIn } from './authEmulator'
 import { block, continuousExercise, workoutPlan } from '../src/test/workoutBuilders'
 import { sessionStep, workoutSession } from '../src/test/workoutSessionBuilders'
@@ -196,6 +198,7 @@ test('saves locally offline, warns on logout, confirms after reconnect and isola
   await context.setOffline(true)
   await add(page, 'c:bag'); await save(page)
   await expect(page.getByRole('status').filter({ hasText: 'Czeka na wysłanie' })).toBeVisible()
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   await expect(page.getByRole('dialog')).toBeVisible()
   await page.keyboard.press('Escape')
@@ -204,11 +207,12 @@ test('saves locally offline, warns on logout, confirms after reconnect and isola
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
   await app.open('/progress/week/2026-11-09')
   await expect(page.getByRole('list', { name: 'Pozycje planu tygodnia' }).getByRole('listitem')).toHaveCount(2)
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
   const second = await createVerifiedAccount(page.request)
   await signIn(page, second)
-  await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
+  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
   await page.goto('/progress/week/2026-11-09')
   await expect(page.getByRole('progressbar')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Ułóż plan tygodnia', exact: true })).toBeVisible()

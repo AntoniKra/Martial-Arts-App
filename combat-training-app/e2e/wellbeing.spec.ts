@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import { readFile } from 'node:fs/promises'
 import type { Page } from '@playwright/test'
-import { test, expect } from './fixtures'
+import { test, expect, openProfile, expandProfileSection } from './fixtures'
 import { shiftCalendarDate } from '../src/domain/week-plan/weekCalendar'
 import type { WellbeingEntry } from '../src/domain/wellbeing/wellbeing'
 import { wellbeingQuestions } from '../src/features/wellbeing/wellbeingLabels'
@@ -19,12 +19,14 @@ function entry(offset: number, patch: Partial<WellbeingEntry> = {}): WellbeingEn
     note: null, createdAt: instant, updatedAt: instant, ...patch }
 }
 async function grant(page: Page) {
+  await expandProfileSection(page, 'Samopoczucie')
   await page.getByRole('link', { name: 'Włącz Samopoczucie', exact: true }).click()
   const adult = page.getByRole('checkbox', { name: 'Mam ukończone 18 lat.', exact: true })
   const agreed = page.getByRole('checkbox', { name: 'Wyrażam wyraźną zgodę na przetwarzanie moich danych o samopoczuciu w opisanym celu.', exact: true })
   const enable = page.getByRole('button', { name: 'Włącz Samopoczucie', exact: true })
   await expect(adult).not.toBeChecked(); await expect(agreed).not.toBeChecked(); await expect(enable).toBeDisabled()
   await adult.check(); await expect(enable).toBeDisabled(); await agreed.check(); await enable.click()
+  await expandProfileSection(page, 'Samopoczucie')
   await expect(page.getByRole('switch', { name: 'Samopoczucie włączone', exact: true })).toBeChecked()
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
 }
@@ -82,6 +84,7 @@ test('separate consent, offline daily entry, progress, same-day edit and deletio
   await card(page).getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect(card(page)).toHaveCount(0)
   await expect(page.getByRole('status').filter({ hasText: 'Samopoczucie: Czeka na wysłanie' })).toBeVisible()
+  await openProfile(page)
   await page.getByRole('button', { name: 'Wyloguj', exact: true }).click()
   const signOut = page.getByRole('dialog', { name: 'Wylogować się?', exact: true })
   await expect(signOut).toBeVisible()
@@ -95,6 +98,7 @@ test('separate consent, offline daily entry, progress, same-day edit and deletio
   await expect(progress(page)).toContainText('To nie jest ocena medyczna.')
   await accessible(page)
   await nav(page, 'Profil').click()
+  await expandProfileSection(page, 'Samopoczucie')
   await page.getByRole('button', { name: 'Popraw dzisiejszy wpis', exact: true }).click()
   await answer(page, 4); await page.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect.poll(() => app.readWellbeing()).toMatchObject([{ sleep: 4 }])
@@ -110,10 +114,13 @@ test('separate consent, offline daily entry, progress, same-day edit and deletio
   const json = JSON.parse(await readFile((await (await jsonDownload).path())!, 'utf8'))
   expect(json.collections.readiness).toHaveLength(1)
   // Enabling body weight after wellbeing must preserve both independent consents.
+  await expandProfileSection(page, 'Masa ciała')
   await page.getByRole('link', { name: 'Włącz zapisywanie masy ciała', exact: true }).click()
   await page.getByRole('checkbox', { name: 'Mam ukończone 18 lat.', exact: true }).check()
   await page.getByRole('checkbox', { name: 'Zgadzam się na zapisywanie mojej masy ciała i kategorii wagowej na moim koncie.', exact: true }).check()
   await page.getByRole('button', { name: 'Włącz', exact: true }).click()
+  await expandProfileSection(page, 'Masa ciała')
+  await expandProfileSection(page, 'Samopoczucie')
   await expect(page.getByRole('button', { name: '+ Dodaj pomiar', exact: true })).toBeVisible()
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
   const weightConsent = (await app.readProfile())?.healthDataConsent

@@ -3,14 +3,16 @@ interface EndWarningOptions {
   remainingMs: number
   stepDurationMs: number
   running: boolean
-  enabled: boolean
+  warningSeconds: number | null
 }
 
 /** Compare exact deadline-based samples, never the rounded display or a tick count. */
 export function shouldPlayEndWarning({
-  previousRemainingMs, remainingMs, stepDurationMs, running, enabled,
+  previousRemainingMs, remainingMs, stepDurationMs, running, warningSeconds,
 }: EndWarningOptions): boolean {
-  return enabled && running && stepDurationMs > 30_000 &&
-    previousRemainingMs !== null && previousRemainingMs > 10_000 &&
-    remainingMs <= 10_000 && remainingMs >= 7_000
+  if (warningSeconds === null) return false
+  const thresholdMs = warningSeconds * 1000
+  return running && stepDurationMs > thresholdMs &&
+    previousRemainingMs !== null && previousRemainingMs > thresholdMs &&
+    remainingMs <= thresholdMs && remainingMs >= thresholdMs - 3000
 }

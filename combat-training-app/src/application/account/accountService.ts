@@ -8,6 +8,7 @@ export interface AccountService {
   providers: readonly string[]
   readData(): Promise<AccountData>
   reauthenticatePassword(password: string): Promise<void>
+  changePassword(currentPassword: string, newPassword: string): Promise<void>
   reauthenticateGoogle(): Promise<'redirect' | 'popup'>
   /** Age of the last sign-in confirmation, from the server times in one fresh ID token (immune to device clock skew). */
   confirmationAgeMs(): Promise<number>

@@ -6,7 +6,7 @@ const names = ['workoutPlans', 'workoutSessions', 'focusSkills', 'weekPlans', 'b
 function fixture() {
   const calls: string[] = []
   const service: AccountService = {
-    collections: names, providers: ['password'], readData: vi.fn(), reauthenticatePassword: vi.fn(), reauthenticateGoogle: vi.fn(),
+    collections: names, providers: ['password'], readData: vi.fn(), reauthenticatePassword: vi.fn(), reauthenticateGoogle: vi.fn(), changePassword: vi.fn(),
     confirmationAgeMs: vi.fn(async () => 10_000),
     deleteCollection: vi.fn(async (name) => { calls.push(name) }),
     deleteProfile: vi.fn(async () => { calls.push('profile') }),

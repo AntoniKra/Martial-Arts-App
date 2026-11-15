@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { mkdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { Download, Page, TestInfo } from '@playwright/test'
-import { test, expect } from './fixtures'
+import { test, expect, expandProfileSection } from './fixtures'
 import { accountsWithEmail, createVerifiedAccount, signIn } from './authEmulator'
 import { seedRawAccountDocument, readRawAccountCollection, readProfile, seedSession } from './firestoreEmulator'
 import { workoutSession } from '../src/test/workoutSessionBuilders'
@@ -134,10 +134,12 @@ test('rejects a wrong password without deletion, then deletes all data, Auth and
 test('blocks account deletion and export with an unsent profile write', async ({ page, context }) => {
   const account = await openAccount(page)
   await seedRawAccountDocument(page.request, account.uid, '', profile)
+  await expandProfileSection(page, 'Masa ciała')
   await expect(page.getByRole('button', { name: 'Ustaw kategorię wagową (opcjonalnie)', exact: true })).toBeVisible()
   // Load the lazy route before disconnecting, then make a local profile write.
   await page.getByRole('link', { name: 'Usuń konto', exact: true }).click()
   await page.getByRole('link', { name: 'Anuluj', exact: true }).click()
+  await expandProfileSection(page, 'Masa ciała')
   await page.getByRole('button', { name: 'Ustaw kategorię wagową (opcjonalnie)', exact: true }).click()
   await page.getByRole('textbox', { name: 'Kategoria wagowa (opcjonalnie)', exact: true }).fill('77 kg')
   await context.setOffline(true)
