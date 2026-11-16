@@ -21,6 +21,7 @@ async function openAccount(page: Page) {
   const account = await createVerifiedAccount(page.request)
   await page.goto('/profile')
   await signIn(page, account)
+  await page.getByRole('button', { name: 'Pobierz swoje dane', exact: true }).click()
   await expect(jsonButton(page)).toBeEnabled()
   return account
 }
@@ -139,6 +140,7 @@ test('blocks account deletion and export with an unsent profile write', async ({
   // Load the lazy route before disconnecting, then make a local profile write.
   await page.getByRole('link', { name: 'Usuń konto', exact: true }).click()
   await page.getByRole('link', { name: 'Anuluj', exact: true }).click()
+  await page.getByRole('button', { name: 'Pobierz swoje dane', exact: true }).click()
   await expandProfileSection(page, 'Masa ciała')
   await page.getByRole('button', { name: 'Ustaw kategorię wagową (opcjonalnie)', exact: true }).click()
   await page.getByRole('textbox', { name: 'Kategoria wagowa (opcjonalnie)', exact: true }).fill('77 kg')

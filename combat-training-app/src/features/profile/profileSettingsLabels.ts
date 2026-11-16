@@ -16,6 +16,7 @@ export const profileSettingsLabels = {
   manageWellbeing: `Zgoda: ${wellbeingLabels.title.toLowerCase()}`,
   passwordProvider: 'Hasło', googleProvider: 'Google', googleSignIn: 'Logujesz się przez Google',
   currentPassword: 'Obecne hasło', newPassword: 'Nowe hasło', changePassword: 'Zmień hasło',
+  savePassword: 'Zapisz hasło',
   currentRequired: 'Wpisz obecne hasło.', wrongPassword: 'Obecne hasło jest nieprawidłowe.',
   passwordChanged: 'Hasło zostało zmienione.', changingPassword: 'Zmiana hasła…',
   noWeightConsent: 'Zapis wyłączony', noWellbeingConsent: 'Zapis wyłączony',

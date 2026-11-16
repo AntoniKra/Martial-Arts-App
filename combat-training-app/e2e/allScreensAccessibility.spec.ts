@@ -88,7 +88,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2')
     await audit(page, info, 'progress', theme)
 
-    await page.getByRole('link', { name: 'Szczegóły planu tygodnia', exact: true }).click()
+    await page.getByRole('link', { name: 'Otwórz plan tygodnia', exact: true }).click()
     await expect(page.getByRole('region', { name: 'Podsumowanie treningów', exact: true })).toContainText('Treningi: 3')
     const chart = page.getByRole('region', { name: 'Ostatnie 12 tygodni', exact: true })
     await expect(chart.getByRole('img')).toBeVisible()

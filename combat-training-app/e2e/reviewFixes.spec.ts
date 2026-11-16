@@ -111,7 +111,7 @@ test('RPE step buttons start at five and the keyboard reaches both endpoints', a
   await expect(slider).toHaveAttribute('aria-valuenow', '5')
 })
 
-test('custom minutes replace Other, remember its placeholder and save with aligned date shortcuts', async ({ app, page }) => {
+test('custom minutes replace Other without a placeholder and save with aligned date shortcuts', async ({ app, page }) => {
   await app.open('/workout-sessions/new')
   const form = page.getByRole('form', { name: 'Trening spoza aplikacji', exact: true })
   const dateBox = await form.getByLabel('Data', { exact: true }).boundingBox()
@@ -128,7 +128,7 @@ test('custom minutes replace Other, remember its placeholder and save with align
   await other.click()
   const minutes = form.getByRole('spinbutton', { name: 'Czas w minutach', exact: true })
   await expect(minutes).toBeFocused()
-  await expect(minutes).toHaveAttribute('placeholder', 'np. 75')
+  await expect(minutes).not.toHaveAttribute('placeholder')
   const inputBounds = await minutes.boundingBox()
   expect(inputBounds?.x).toBe(bounds?.x)
   expect(inputBounds?.width).toBe(bounds?.width)
@@ -139,7 +139,7 @@ test('custom minutes replace Other, remember its placeholder and save with align
   await other.click()
   await expect(minutes).toBeFocused()
   await expect(minutes).toHaveValue('')
-  await expect(minutes).toHaveAttribute('placeholder', '75')
+  await expect(minutes).not.toHaveAttribute('placeholder')
   await minutes.fill('75')
   await form.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect(form.getByRole('slider', { name: sliderName })).toBeFocused()

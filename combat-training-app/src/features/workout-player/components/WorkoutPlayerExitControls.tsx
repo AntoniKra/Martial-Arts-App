@@ -156,10 +156,9 @@ export function WorkoutPlayerExitControls({
             <button type="button" className="min-h-[52px] rounded-[2px] bg-crimson px-3 font-display text-sm font-extrabold uppercase tracking-[0.06em] text-on-accent hover:bg-crimson-hi"
               onClick={() => { closeExit(); onEndEarly() }}
             >{labels.endEarly}</button>
-            <button type="button" className="min-h-touch px-3 text-sm font-semibold text-crimson-ink underline"
+            <button type="button" className="min-h-touch px-3 text-sm font-semibold text-crimson-ink"
               onClick={() => setConfirmDiscard(true)}
             >{labels.discardWithoutSaving}</button>
-            <p className="text-center text-xs leading-relaxed text-faint">{labels.discardHint}</p>
           </div>
         )}
       </dialog>

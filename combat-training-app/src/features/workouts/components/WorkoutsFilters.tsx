@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { WorkoutsFilterState } from '@/features/workouts/types/workoutsView.types'
 import { countActiveWorkoutsFilters, WORKOUTS_DISCIPLINE_FILTER_OPTIONS, WORKOUTS_SORT_OPTIONS } from '@/features/workouts/utils/workoutsFilters'
 import { workoutsFilterLabels as labels } from '../workoutsFilterLabels'
@@ -17,6 +17,12 @@ export function WorkoutsFilters({ filters, onChange, idPrefix, addAction }: Work
   const panelId = `${idPrefix}-filters`
   const sortId = `${idPrefix}-sort`
   const activeCount = countActiveWorkoutsFilters(filters)
+  const strip = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!expanded || !strip.current) return
+    const selected = strip.current.querySelector<HTMLElement>('[aria-pressed="true"]')
+    if (selected) strip.current.scrollTo({ left: selected.offsetLeft - 4, behavior: 'instant' })
+  }, [expanded, filters.discipline])
 
   return <div className="space-y-3">
     <div className="flex items-center gap-2">
@@ -36,10 +42,10 @@ export function WorkoutsFilters({ filters, onChange, idPrefix, addAction }: Work
     <div id={panelId} hidden={!expanded} className="min-w-0 space-y-3 border border-bd bg-surface p-3">
       <div role="group" aria-label={labels.discipline} className="min-w-0 space-y-2">
         <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">{labels.discipline}</p>
-        <div className="-mr-3 flex snap-x snap-mandatory gap-2 overflow-x-auto pr-3 pb-1">
+        <div ref={strip} className="relative flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-px-1 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {WORKOUTS_DISCIPLINE_FILTER_OPTIONS.map((option) => <button key={option.value} type="button"
             aria-pressed={filters.discipline === option.value} onClick={() => onChange({ ...filters, discipline: option.value })}
-            className={`min-h-touch shrink-0 snap-start scroll-ms-0 whitespace-nowrap rounded-[2px] border px-3 text-[13px] ${filters.discipline === option.value ? 'border-crimson bg-elevated font-semibold text-ink' : 'border-bd bg-surface text-muted'}`}>
+            className={`min-h-touch shrink-0 snap-start whitespace-nowrap rounded-[2px] border px-3 text-[13px] ${filters.discipline === option.value ? 'border-crimson bg-elevated font-semibold text-ink' : 'border-bd bg-surface text-muted'}`}>
             {filters.discipline === option.value && <span aria-hidden="true">✓ </span>}{option.labelPl}
           </button>)}
         </div>

@@ -28,7 +28,7 @@ export function RpeScale({ value, onChange, compact = false, disabled = false }:
       // the form value stays null and no segment is filled.
       aria-label={labels.scale} aria-valuemin={0} aria-valuemax={10} aria-valuenow={value ?? 0}
       aria-valuetext={value === null ? labels.noSelection : `${value} · ${description}`}
-      aria-describedby={`${id}-hint`} aria-orientation="horizontal"
+      aria-describedby={`${id}-description`} aria-orientation="horizontal"
       className="flex h-16 touch-none select-none gap-[3px] rounded-[2px]"
       onKeyDown={(event) => {
         if (disabled) return
@@ -66,6 +66,5 @@ export function RpeScale({ value, onChange, compact = false, disabled = false }:
       <button type="button" disabled={disabled} aria-label={labels.more} onClick={() => onChange(stepRpeValue(value, 1))}
         className="min-h-touch w-16 rounded-[2px] border border-bd bg-surface text-[22px] text-ink">+</button>
     </div>
-    <p id={`${id}-hint`} className="text-xs leading-relaxed text-muted">{labels.interactionHint}</p>
   </div>
 }
