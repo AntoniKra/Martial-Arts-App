@@ -1,15 +1,17 @@
 import { collection, doc, onSnapshot, query, setDoc, where, writeBatch, type Firestore } from 'firebase/firestore'
 import type { WeekPlanRepository, WeekPlanSnapshot } from '@/application/week-plan/weekPlanRepository'
-import type { WeekPlan } from '@/domain/week-plan/weekPlan.types'
+import type { RecurringWeek, WeekPlan } from '@/domain/week-plan/weekPlan.types'
 import { WEEK_PLAN_HISTORY_WEEKS, WEEK_PLAN_ITEM_LIMIT } from '@/domain/week-plan/weekPlan.types'
 import { currentWeekStart, isMonday, shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
 import { combineWeekPlanDocuments, parseWeekPlanDocument, storedWeekPlanDocuments } from './weekPlanDocumentSchema'
+import { recurringWeekRecords } from './recurringWeekDocumentSchema'
 
-interface LocalWrite { expected: string; weekStart: string; resolve: () => void; reject: (error: unknown) => void }
+interface LocalWrite { expected: string; weekStart: string; additional?: { expected: string; weekStart: string }; resolve: () => void; reject: (error: unknown) => void }
 
 /** Date-keyed documents have their own repository, with explicit query coverage. */
 export class FirestoreWeekPlanRepository implements WeekPlanRepository {
   private readonly path
+  private readonly recurringPath
   private items = new Map<string, WeekPlan>()
   private invalidIds = new Set<string>()
   private complete = false
@@ -21,6 +23,7 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
   constructor(private db: Firestore, uid: string) {
     if (!uid || uid.includes('/')) throw new Error('Invalid user identity')
     this.path = collection(db, 'users', uid, 'weekPlans')
+    this.recurringPath = collection(db, 'users', uid, 'recurringWeeks')
   }
 
   subscribe(currentWeek: string, onChange: (snapshot: WeekPlanSnapshot) => void, onError: (error: unknown) => void): () => void {
@@ -58,7 +61,8 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
         hasPendingWrites: snapshot.metadata.hasPendingWrites, fromCache: snapshot.metadata.fromCache })
       if (this.failed) onError(new Error('Week plan write rejected; retry subscription'))
       for (const write of this.writes) {
-        if (JSON.stringify(items.get(write.weekStart)) === write.expected) { this.writes.delete(write); write.resolve() }
+        if (JSON.stringify(items.get(write.weekStart)) === write.expected
+          && (!write.additional || JSON.stringify(items.get(write.additional.weekStart)) === write.additional.expected)) { this.writes.delete(write); write.resolve() }
       }
     }, (error) => { if (active) this.fail(error) })
     return () => {
@@ -83,7 +87,7 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
     this.reportError?.(error)
   }
 
-  async save(value: WeekPlan): Promise<void> {
+  private validateSave(value: WeekPlan) {
     const schemaVersion = value.schedule === undefined ? 1 : 2
     const plan = parseWeekPlanDocument({ ...value, schemaVersion })
     const previous = this.items.get(plan.weekStart)
@@ -93,25 +97,40 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
       throw new Error('Week plan history must be preserved')
     }
     if (plan.weekStart < currentWeekStart() && !plan.editedAfterWeekEnd) throw new Error('Historical edit must be marked')
+    return plan
+  }
+
+  async save(value: WeekPlan, recurring?: RecurringWeek, additionalWeek?: WeekPlan): Promise<void> {
+    const plan = this.validateSave(value)
+    const additional = additionalWeek ? this.validateSave(additionalWeek) : undefined
+    if (additional?.weekStart === plan.weekStart) throw new Error('Duplicate week in batch')
+    const recurringRecords = recurring ? recurringWeekRecords(recurring) : undefined
+    const previous = this.items.get(plan.weekStart)
     const expected = JSON.stringify(plan)
     return new Promise<void>((resolve, reject) => {
-      const write = { expected, weekStart: plan.weekStart, resolve, reject }
+      const write: LocalWrite = { expected, weekStart: plan.weekStart, resolve, reject,
+        additional: additional ? { expected: JSON.stringify(additional), weekStart: additional.weekStart } : undefined }
       this.writes.add(write)
       try {
         let server: Promise<void>
-        if (schemaVersion === 1) server = setDoc(doc(this.path, plan.weekStart), { ...plan, schemaVersion })
+        if (plan.schedule === undefined && !recurring && !additional) server = setDoc(doc(this.path, plan.weekStart), { ...plan, schemaVersion: 1 })
         else {
-          const documents = storedWeekPlanDocuments(plan)
           const batch = writeBatch(this.db)
-          for (const document of documents) batch.set(doc(this.path, document.id), document.data)
-          for (let position = plan.schedule!.length; position < WEEK_PLAN_ITEM_LIMIT; position++) batch.delete(doc(this.path, `${plan.weekStart}~${position}`))
+          for (const week of [plan, ...(additional ? [additional] : [])]) {
+            for (const document of storedWeekPlanDocuments(week)) batch.set(doc(this.path, document.id), document.data)
+            for (let position = week.schedule?.length ?? 0; position < WEEK_PLAN_ITEM_LIMIT; position++) batch.delete(doc(this.path, `${week.weekStart}~${position}`))
+          }
+          if (recurringRecords && recurring) {
+            for (const record of recurringRecords) batch.set(doc(this.recurringPath, record.id), record)
+            for (let position = recurring.items.length; position < WEEK_PLAN_ITEM_LIMIT; position++) batch.delete(doc(this.recurringPath, `item-${position}`))
+          }
           server = batch.commit()
         }
         void server.then(() => {
           this.writes.delete(write)
           resolve()
         }, (error: unknown) => { this.writes.delete(write); reject(error); this.fail(error) })
-        if (JSON.stringify(previous) === expected) { this.writes.delete(write); resolve() }
+        if (!recurring && !additional && JSON.stringify(previous) === expected) { this.writes.delete(write); resolve() }
       } catch (error) { this.writes.delete(write); reject(error); this.fail(error) }
     })
   }

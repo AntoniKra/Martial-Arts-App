@@ -4,11 +4,13 @@ import type { RecurringWeek, ScheduledWeekItem, WeekPlan, Weekday } from './week
 
 export function generateScheduledWeek(weekStart: string, recurring: RecurringWeek | undefined, now: Date): WeekPlan {
   return {
-    weekStart, items: [], schedule: (recurring?.items ?? []).map((item, index) => ({ ...structuredClone(item), id: `${weekStart}:${index}`, omitted: false })),
+    weekStart, items: [], schedule: (recurring?.items ?? []).map((item) => ({ ...structuredClone(item), id: recurringOccurrenceId(weekStart, item.id), omitted: false })),
     targetCount: recurring?.items.filter((item) => item.kind !== 'rest').length ?? 0,
     createdAt: now.toISOString(), updatedAt: now.toISOString(), editedAfterWeekEnd: weekStart < currentWeekStart(now),
   }
 }
+
+export function recurringOccurrenceId(weekStart: string, id: string) { return `${weekStart}:${id}` }
 
 export function changeScheduledWeek(plan: WeekPlan, schedule: ScheduledWeekItem[], targetCount: number, now: Date): WeekPlan {
   return { ...plan, schedule: structuredClone(schedule), targetCount, updatedAt: now.toISOString(),

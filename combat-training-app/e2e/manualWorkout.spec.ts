@@ -84,6 +84,7 @@ test('saves three club parts with sparring, custom minutes and one session load'
   await expect(stats).toContainText('Nie dzielimy czasu zajęć z kilkoma częściami')
   await expect(stats).toContainText('1 h 15 min')
   await page.getByRole('link', { name: 'Otwórz plan tygodnia', exact: true }).click()
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   await expect(summary(page)).toContainText('450 j.u.')
 })
 
@@ -202,6 +203,7 @@ test('adds sparring from home, shows manual cards, and counts toward summary and
   await expect(history).not.toContainText('0/0')
   await page.getByRole('link', { name: 'Postęp', exact: true }).click()
   await page.getByRole('link', { name: 'Otwórz plan tygodnia', exact: true }).click()
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
   await expect(summary(page)).toContainText('Treningi: 1')
   await expect(summary(page)).toContainText('630 j.u.')
@@ -221,6 +223,7 @@ test('marks a four-day-old RPE in history and load details and returns to histor
   await expect.poll(async () => (await app.readSessions()).length).toBe(1)
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
   await app.open('/progress/week/2026-11-02')
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   await summary(page).getByText('Szczegóły obciążenia', { exact: true }).click()
   await expect(summary(page).getByText('z pamięci', { exact: true })).toBeVisible()
 })

@@ -55,3 +55,14 @@ describe('deferred workout repositories', () => {
     expect(subscriptions).toBe(0)
   })
 })
+
+
+it('forwards both weekly snapshots and the recurring week to the atomic repository save', async () => {
+  const save = vi.fn().mockResolvedValue(undefined)
+  const repositories = createDeferredWorkoutRepositories(Promise.resolve({ weekPlans: { save } } as unknown as WorkoutRepositories))
+  const plan = { weekStart: '2026-11-16', items: [], schedule: [], targetCount: 0, createdAt: '2026-11-16T10:00:00Z', updatedAt: '2026-11-16T10:00:00Z', editedAfterWeekEnd: false }
+  const recurring = { id: 'default' as const, items: [], createdAt: plan.createdAt, updatedAt: plan.updatedAt }
+  const current = { ...plan, weekStart: '2026-11-09' }
+  await repositories.weekPlans.save(plan, recurring, current)
+  expect(save).toHaveBeenCalledWith(plan, recurring, current)
+})

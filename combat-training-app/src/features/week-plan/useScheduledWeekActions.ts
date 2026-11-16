@@ -25,11 +25,11 @@ export function useScheduledWeekActions(plan: WeekPlan, canEdit: boolean) {
   }
   async function move(item: ScheduledWeekItem, day: Weekday) {
     const before = plan.schedule ?? []
-    const next = before.map((entry) => entry.id === item.id ? { ...entry, day } : entry)
+    const next = before.map((entry) => entry.id === item.id ? { ...entry, id: crypto.randomUUID(), day } : entry)
     if (await save(next)) setUndo({ before, after: JSON.stringify(next) })
   }
   function toggleOmitted(item: ScheduledWeekItem) {
-    return save((plan.schedule ?? []).map((entry) => entry.id === item.id ? { ...entry, omitted: !entry.omitted } : entry))
+    return save((plan.schedule ?? []).map((entry) => entry.id === item.id ? { ...entry, id: crypto.randomUUID(), omitted: !entry.omitted } : entry))
   }
   async function undoMove() {
     if (!undo) return

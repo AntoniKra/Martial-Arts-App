@@ -98,7 +98,8 @@ test('uses centered keyboard-accessible tiles, empty custom minutes and distinct
 
 test('uses the same discipline tiles in the weekly activity form', async ({ app, page }) => {
   await app.open('/progress/week/2026-11-09')
-  await page.getByRole('button', { name: /^Stały tydzień:/ }).click()
+  await page.getByRole('button', { name: /^Stały tydzień/ }).click()
+  await page.getByRole('button', { name: 'Dodaj trening: wtorek', exact: true }).click()
   const form = page.getByRole('form', { name: 'Dodaj lub edytuj trening', exact: true })
   const boxing = form.getByRole('radio', { name: 'Boks', exact: true })
   await boxing.check()

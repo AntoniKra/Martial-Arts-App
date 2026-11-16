@@ -33,6 +33,24 @@ beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date(instant)); sdk.
 afterEach(() => { vi.useRealTimers(); vi.clearAllMocks() })
 
 describe('date-keyed weekly repository', () => {
+  it('writes recurring records and two complete weeks atomically, resolving after both local weeks arrive', async () => {
+    const repository = create()
+    repository.subscribe(plan.weekStart, vi.fn(), vi.fn())
+    emit([plan])
+    const current = { ...plan, items: [], schedule: [], targetCount: 0 }
+    const future = { ...current, weekStart: '2026-11-16' }
+    const recurring = { id: 'default' as const, items: [], createdAt: instant, updatedAt: instant }
+    let resolved = false
+    const saving = repository.save(future, recurring, current).then(() => { resolved = true })
+    expect(sdk.set).toHaveBeenCalledOnce()
+    expect(sdk.batchSet).toHaveBeenCalledWith('users/athlete/recurringWeeks/default', expect.objectContaining({ itemCount: 0 }))
+    expect(sdk.batchSet).toHaveBeenCalledTimes(3)
+    expect(sdk.batchDelete).toHaveBeenCalledTimes(42)
+    emit([future], true, true)
+    await Promise.resolve(); expect(resolved).toBe(false)
+    emit([future, current], true, true)
+    await saving; expect(resolved).toBe(true)
+  })
   it('removes all surplus entry documents in the same batch when a fourteen-item plan is shortened or cleared', async () => {
     const repository = create()
     repository.subscribe(plan.weekStart, vi.fn(), vi.fn())

@@ -89,6 +89,7 @@ for (const theme of ['dark', 'light'] as const) {
     await audit(page, info, 'progress', theme)
 
     await page.getByRole('link', { name: 'Otwórz plan tygodnia', exact: true }).click()
+    await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
     await expect(page.getByRole('region', { name: 'Podsumowanie treningów', exact: true })).toContainText('Treningi: 3')
     const chart = page.getByRole('region', { name: 'Ostatnie 12 tygodni', exact: true })
     await expect(chart.getByRole('img')).toBeVisible()
@@ -96,13 +97,14 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(chart.getByRole('row')).toHaveCount(13)
     await expect(page.getByRole('table', { name: 'Na tle 3 poprzednich tygodni', exact: true })).toBeVisible()
     await page.getByText('Szczegóły obciążenia', { exact: true }).click()
-    await expect(page.getByRole('list', { name: 'Pozycje planu tygodnia', exact: true }).getByRole('listitem')).toHaveCount(2)
+    await expect(page.getByRole('region', { name: 'Dowolny dzień · kiedy pasuje', exact: true }).getByRole('button', { name: /^Opcje:/ })).toHaveCount(2)
     await audit(page, info, 'week-plan', theme)
     await chart.getByRole('button', { name: 'Minuty', exact: true }).click()
     await expect(chart.getByRole('img')).toHaveAccessibleName(/12 tygodni. Minuty/)
-    await page.getByRole('button', { name: 'Edytuj plan tygodnia', exact: true }).click()
-    await expect(page.getByRole('form', { name: 'Edytuj plan tygodnia', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Dodaj trening: wtorek', exact: true }).click()
+    await expect(page.getByRole('form', { name: 'Dodaj lub edytuj trening', exact: true })).toBeVisible()
     await audit(page, info, 'week-plan-editor', theme)
+    await page.keyboard.press('Escape')
 
     // Coincident ratings must keep their spacing, producing real horizontal overflow.
     // This makes the keyboard-accessibility regression deterministic after resizing settles.

@@ -4,6 +4,8 @@ import { collection, disableNetwork, doc, enableNetwork, getDocFromServer, getDo
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest'
 import type { RepositorySnapshot } from '../src/application/repositorySubscription'
 import type { RecurringWeek, WeekPlan } from '../src/domain/week-plan/weekPlan.types'
+import { generateScheduledWeek } from '../src/domain/week-plan/scheduledWeek'
+import { updateCurrentWeekFromRecurring } from '../src/domain/week-plan/updateRecurringWeek'
 import { currentWeekStart } from '../src/domain/week-plan/weekCalendar'
 import { createFirestoreRecurringWeekRepository } from '../src/infrastructure/firebase/firestoreRecurringWeekRepository'
 import { FirestoreWeekPlanRepository } from '../src/infrastructure/firebase/firestoreWeekPlanRepository'
@@ -78,4 +80,41 @@ for (const kind of ['recurringWeeks', 'weekPlans'] as const) it.each([1, 0])(`${
   const fresh = subscribed(database(), kind, weekStart)
   await vi.waitFor(() => expect(fresh.snapshot()).toMatchObject({ items: [fresh.value(count, aTime)], invalidDocumentIds: [], fromCache: false }))
   for (const client of [a, b, fresh]) expect(client.error).not.toHaveBeenCalled()
+})
+
+
+it('propagates recurring add, edit and delete in one offline batch and preserves manual entries on reconnect', async () => {
+  const db = database(), now = new Date('2026-11-22T10:00:00Z'), weekStart = '2026-11-16'
+  const repository = new FirestoreWeekPlanRepository(db, uid)
+  const recurringRepository = createFirestoreRecurringWeekRepository(db, uid)
+  let weeks: RepositorySnapshot<WeekPlan> | undefined
+  let recurringSnapshot: RepositorySnapshot<RecurringWeek> | undefined
+  const errors = vi.fn()
+  stops.push(repository.subscribe(weekStart, (snapshot) => { weeks = snapshot }, errors))
+  stops.push(recurringRepository.subscribe((snapshot) => { recurringSnapshot = snapshot }, errors))
+  await vi.waitFor(() => { expect(weeks?.fromCache).toBe(false); expect(recurringSnapshot?.fromCache).toBe(false) })
+  const initial = generateScheduledWeek(weekStart, undefined, now)
+  initial.schedule!.push({ id: 'manual', kind: 'own', day: null, category: 'bag', workoutPlanId: null, planNameSnapshot: null, omitted: false })
+  initial.targetCount = 1
+  await repository.save(initial); await waitForPendingWrites(db)
+  const source: RecurringWeek = { id: 'default', createdAt: now.toISOString(), updatedAt: now.toISOString(),
+    items: [{ id: 'sunday', kind: 'club', day: 6, disciplineKey: 'muay_thai', startTime: '10:00', endTime: '12:00', parts: ['technique'], clubName: null }] }
+  await disableNetwork(db)
+  let next = updateCurrentWeekFromRecurring(undefined, source, initial, now)
+  await repository.save(next, source)
+  await vi.waitFor(() => {
+    expect(weeks).toMatchObject({ hasPendingWrites: true, invalidDocumentIds: [], items: [next] })
+    expect(recurringSnapshot).toMatchObject({ hasPendingWrites: true, invalidDocumentIds: [], items: [source] })
+  })
+  await enableNetwork(db); await waitForPendingWrites(db)
+  const edit = { ...source, updatedAt: '2026-11-22T11:00:00.000Z', items: source.items.map((item) => item.kind === 'club' ? { ...item, startTime: '09:00' } : item) }
+  next = updateCurrentWeekFromRecurring(source, edit, next, new Date(edit.updatedAt))
+  await repository.save(next, edit); await waitForPendingWrites(db)
+  expect(weeks?.items[0].schedule?.[1]).toMatchObject({ id: `${weekStart}:sunday`, startTime: '09:00' })
+  const empty = { ...edit, items: [], updatedAt: '2026-11-22T12:00:00.000Z' }
+  next = updateCurrentWeekFromRecurring(edit, empty, next, new Date(empty.updatedAt))
+  await repository.save(next, empty); await waitForPendingWrites(db)
+  expect(weeks?.items[0].schedule).toEqual(initial.schedule)
+  expect((await getDocsFromServer(collection(db, 'users', uid, 'recurringWeeks'))).docs.map((document) => document.id)).toEqual(['default'])
+  expect(errors).not.toHaveBeenCalled()
 })
