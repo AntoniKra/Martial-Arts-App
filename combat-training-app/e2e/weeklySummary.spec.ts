@@ -152,7 +152,7 @@ test('updates RPE and load locally offline, confirms after reconnect, and clears
   const nav = page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true })
   // Service workers are blocked in E2E; load lazy routes online in this document first.
   await nav.getByRole('link', { name: 'Postęp', exact: true }).click()
-  await page.getByRole('link', { name: 'Otwórz plan tygodnia', exact: true }).click()
+  await page.getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
   await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   await expect(summary(page).getByText('RPE w 0 z 1 treningów', { exact: true })).toBeVisible()
   await expect(totals(page).nth(4)).toHaveText('Brak danych')
@@ -163,7 +163,7 @@ test('updates RPE and load locally offline, confirms after reconnect, and clears
   await page.getByRole('button', { name: 'Zapisz RPE 0', exact: true }).click()
   await expect(page.getByText('Zapisano RPE 0', { exact: true })).toBeVisible()
   await nav.getByRole('link', { name: 'Postęp', exact: true }).click()
-  await page.getByRole('link', { name: 'Otwórz plan tygodnia', exact: true }).click()
+  await page.getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
   await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   const section = summary(page)
   await expect(section.getByText('RPE w 1 z 1 treningów', { exact: true })).toBeVisible()

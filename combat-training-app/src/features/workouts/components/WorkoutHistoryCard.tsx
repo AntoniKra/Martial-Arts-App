@@ -179,6 +179,17 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
 
   return (
     <article className="@container w-full overflow-hidden border border-bd bg-surface">
+      <details>
+        <summary className="flex min-h-touch cursor-pointer list-none items-center gap-2 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
+          <time dateTime={session.workoutDate ?? session.completedAt} className="w-11 shrink-0 text-xs text-muted">{new Intl.DateTimeFormat('pl-PL', { weekday: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${session.workoutDate ?? session.completedAt.slice(0, 10)}T12:00:00Z`))}</time>
+          <span className="min-w-0 flex-1"><span className="block font-display text-[15px] font-bold" role="heading" aria-level={4}>
+            {session.name}
+          </span><span className="block text-[13px] text-muted">{session.descriptionPl ?? session.durationLabelPl}{session.sparringRounds ? ` · ${session.sparringRounds} rund` : ''}</span>
+          {session.hasPendingWrites && <span className="block text-xs text-muted">{workoutDataLabels.pending}</span>}</span>
+          {session.note && <span role="img" aria-label="Ma notatkę" className="border border-bd px-1.5 py-1 text-xs text-muted">✎</span>}
+          {!!session.sparringRounds && <span className="shrink-0 border border-bd px-1.5 py-1 text-xs tabular-nums text-muted">{session.sparringRounds} r.</span>}
+          <span className="sr-only">Szczegóły wpisu</span>
+        </summary>
       <div className="px-4 py-4">
         <div className="mb-1 flex items-start justify-between gap-3">
           <DisciplineBadge disciplineKey={session.disciplineKey} />
@@ -191,14 +202,14 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
             </time>}
           </div>
         </div>
-        <h3 className="mt-1 font-display text-[14px] font-semibold text-ink">
+        <p className="mt-1 font-display text-[14px] font-semibold text-ink">
           <Link
             to={session.editPath ?? routes.workoutReport(session.id)}
             className="transition-colors hover:text-crimson-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             {session.name}
           </Link>
-        </h3>
+        </p>
         <p className="mt-2 font-display text-xs font-semibold text-muted">{workoutPlayerLabels.sessionStatus[session.status]}</p>
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 font-display text-[11px] text-muted @min-[400px]:grid-cols-3 @min-[560px]:items-baseline @min-[560px]:gap-x-2">
           <span className="whitespace-nowrap">
@@ -206,7 +217,6 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
           </span>
           {!session.isManual && <WorkoutCompletionCounts counts={session} />}
           {session.rpe != null && <span className="flex flex-wrap items-baseline gap-1">RPE <span className="font-semibold text-ink">{session.rpe}</span>{session.rpeFromMemory && <RpeRecallBadge />}</span>}
-          {session.hasPendingWrites ? <span className="whitespace-nowrap font-semibold">{workoutDataLabels.pending}</span> : null}
         </div>
         {session.workoutDate && <LazyWellbeingWorkoutLine date={session.workoutDate} />}
       </div>
@@ -309,6 +319,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
           </button>
         )}
       </div>
+      </details>
     </article>
   )
 }

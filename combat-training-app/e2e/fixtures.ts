@@ -188,7 +188,12 @@ class WorkoutApp {
   async openHistory() {
     await this.open('/workouts')
     await this.page.getByRole('radio', { name: 'Historia', exact: true }).click()
-    return this.page.getByRole('region', { name: 'Historia treningów', exact: true })
+    const history = this.page.getByRole('region', { name: 'Historia treningów', exact: true })
+    await expect(history.getByText('Ładowanie historii…', { exact: true })).toHaveCount(0)
+    // Existing detail/edit scenarios explicitly disclose the compact journal rows.
+    await expect(history.locator('article > details > summary').first()).toBeVisible()
+    for (const summary of await history.locator('article > details > summary').all()) await summary.click()
+    return history
   }
 
   async setTheme(theme: 'light' | 'dark') {

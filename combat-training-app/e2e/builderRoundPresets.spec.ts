@@ -14,7 +14,7 @@ async function chooseTile(page: Page, groupName: string, optionName: string) {
 }
 
 async function captureConfiguration(page: Page, testInfo: TestInfo, theme: 'dark' | 'light') {
-  if (testInfo.project.name !== 'phone') {
+  if (process.env.CAPTURE_SCREENSHOTS !== '1' || testInfo.project.name !== 'phone') {
     return
   }
 

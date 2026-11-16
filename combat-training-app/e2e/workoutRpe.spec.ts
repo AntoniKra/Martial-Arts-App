@@ -87,7 +87,7 @@ test('keeps a next-day history summary open until RPE is requested and omits the
   await expect(page.getByRole('timer')).toHaveCount(0)
   await expect(page.getByText(/Gong da znać\.$/)).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toHaveCount(0)
-  await expect(page.getByRole('region', { name: 'Ćwiczenia celu', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Elementy do poprawy', exact: true })).toHaveCount(0)
   await expect(page.getByText('oceniono 0 z 0', { exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toBeVisible()

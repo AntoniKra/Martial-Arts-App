@@ -80,7 +80,7 @@ export function filterWorkoutHistory(
 
   const filtered = history.filter(
     (session) =>
-      matchesDiscipline(session, filters.discipline) && matchesSearch(session.name, normalizedQuery),
+      matchesDiscipline(session, filters.discipline) && (matchesSearch(session.name, normalizedQuery) || matchesSearch(session.note ?? '', normalizedQuery)),
   )
 
   return sortByCompletedAt(filtered, filters.sortOrder)

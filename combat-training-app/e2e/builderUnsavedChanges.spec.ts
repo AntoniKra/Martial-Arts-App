@@ -21,7 +21,7 @@ async function openEdit(page: Page) {
 }
 
 async function captureReview(page: Page, testInfo: TestInfo, name: string) {
-  if (testInfo.project.name !== 'phone') {
+  if (process.env.CAPTURE_SCREENSHOTS !== '1' || testInfo.project.name !== 'phone') {
     return
   }
 

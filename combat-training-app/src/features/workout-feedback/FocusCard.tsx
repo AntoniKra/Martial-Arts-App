@@ -51,8 +51,8 @@ export function FocusCard<T extends FocusRating | ManualFocusRatingDraft>({ sess
       <p className="mt-1 break-words text-[13px] leading-relaxed text-ink">{rating.criterionSnapshot}</p>
     </div>
     {children}
-    {previousAssessment && <p className="text-sm text-muted">{labels.previousAssessment(formatProgressDate(previousAssessment.workoutDate),
-      previousAssessment.assessment === 'unableToRate' ? labels.unable : String(previousAssessment.assessment))} · {getWorkoutBlockLabelPl(previousAssessment.blockType)}</p>}
+    {previousAssessment && rating.assessment === null && <p className="text-sm text-muted">{labels.previousAssessment(formatProgressDate(previousAssessment.workoutDate),
+      typeof previousAssessment.assessment === 'number' ? `${previousAssessment.assessment} · ${labels.focusScale[previousAssessment.assessment - 1]}` : labels.unable)} · {getWorkoutBlockLabelPl(previousAssessment.blockType)}</p>}
     {previous && <CorrectionNote correction={previous} />}
     {!eligible ? <p className="text-[13px] font-semibold text-muted">{labels.skipped}</p> : <>
       {previous && <fieldset>

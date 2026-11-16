@@ -213,7 +213,7 @@ export function validateWorkoutPlanDraft(
   const focusExercises = draft.blocks.flatMap((block) => block.items)
     .filter((item) => item.type === 'exercise' && item.focusSkillId !== null)
   if (focusExercises.length > MAX_PLAN_FOCUS_EXERCISES) {
-    issues.push({ code: 'too_many_focus_exercises', messagePl: 'W planie mogą być najwyżej 3 ćwiczenia celu.' })
+    issues.push({ code: 'too_many_focus_exercises', messagePl: 'W planie mogą być najwyżej 3 elementy do poprawy.' })
   }
   const knownIds = new Set(focusSkills.map((skill) => skill.id))
   for (const block of draft.blocks) {
@@ -221,7 +221,7 @@ export function validateWorkoutPlanDraft(
       if (item.type === 'exercise' && item.focusSkillId !== null && !knownIds.has(item.focusSkillId)) {
         issues.push({
           code: 'unknown_focus_skill',
-          messagePl: 'Wybierz istniejące ćwiczenie celu albo wyłącz oznaczenie.',
+          messagePl: 'Wybierz istniejący element do poprawy albo wyłącz oznaczenie.',
           blockId: block.id,
           itemId: item.id,
         })

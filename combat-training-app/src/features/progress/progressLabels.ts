@@ -1,13 +1,13 @@
 import { focusSkillLabels } from '@/features/focus-skills/focusSkillLabels'
 
 export const progressLabels = {
-  title: 'Postęp', skills: 'Ćwiczenia celu', archived: focusSkillLabels.archived, noRatings: 'Brak ocen',
-  empty: 'Ćwiczenie celu oznaczysz w kreatorze przy ćwiczeniu. Po treningu możesz je ocenić, a tutaj zobaczysz swoje oceny.',
+  title: 'Postęp', skills: 'Elementy do poprawy', archived: focusSkillLabels.archived, noRatings: 'Brak ocen',
+  empty: 'Dodaj jedną rzecz, nad którą pracujesz, np. ręka wraca do brody po jabie. Po treningu ocenisz, jak wyszła.',
   newPlan: 'Nowy plan', loading: 'Ładowanie…', retry: 'Spróbuj ponownie', back: 'Wróć do listy',
-  notFound: 'Nie znaleziono ćwiczenia celu', allRatings: 'Wszystkie oceny', summary: 'Podsumowanie ocen',
+  notFound: 'Nie znaleziono elementu do poprawy', allRatings: 'Wszystkie oceny', summary: 'Podsumowanie ocen',
   chart: 'Oceny według daty treningu', lastWeeks: 'Ostatnie 12 tygodni',
   assessmentAxis: 'Ocena', dateAxis: 'Data treningu', placesLegend: 'Legenda miejsc',
-  noActiveSkills: 'Brak aktywnych ćwiczeń celu',
+  noActiveSkills: 'Brak aktywnych elementów do poprawy',
   latest: (value: number | 'unableToRate', date: string, place: string) => `Ostatnia ocena: ${value} · ${formatProgressDate(date)} · ${place}`,
   previous: 'według poprzedniego kryterium', unable: 'Nie umiem ocenić', change: 'Zmiana kryterium',
   currentCount: (count: number) => `Oceny według obecnego kryterium: ${count}`,
@@ -28,15 +28,15 @@ export function formatProgressDate(date: string, year = true): string {
 }
 
 export const progressActionLabels = {
-  archive: 'Schowaj ćwiczenie celu', delete: 'Usuń ćwiczenie celu', restore: 'Przywróć',
+  archive: 'Schowaj element do poprawy', delete: 'Usuń element do poprawy', restore: 'Przywróć',
   archiveShort: 'Schowaj', archiveAndDetach: 'Schowaj i zdejmij CEL', deleteShort: 'Usuń', cancel: 'Anuluj',
-  deleteQuestion: 'Usunąć ćwiczenie celu? Nie ma jeszcze ocen.',
-  inPlans: 'To ćwiczenie celu jest w planach:',
+  deleteQuestion: 'Usunąć element do poprawy? Nie ma jeszcze ocen.',
+  inPlans: 'Ten element do poprawy jest w planach:',
   archivePlans: 'Po schowaniu zdejmiemy w nich oznaczenie CEL. Ćwiczenia zostaną w planach, a oceny i wykres zostaną w „Postępie”.',
   deletePlans: 'Po usunięciu zdejmiemy w nich oznaczenie CEL. Ćwiczenia zostaną w planach.',
-  archiveUnused: 'Schowane ćwiczenie celu nie pojawi się w kreatorze. Oceny i wykres zostaną.',
-  restoreHint: 'Ćwiczenie celu wróci do listy w kreatorze. Oznaczenie CEL w planach ustawisz ponownie w kreatorze.',
+  archiveUnused: 'Schowany element do poprawy nie pojawi się w kreatorze. Oceny i wykres zostaną.',
+  restoreHint: 'Element do poprawy wróci do listy w kreatorze. Oznaczenie CEL w planach ustawisz ponownie w kreatorze.',
   error: 'Nie udało się zapisać zmiany. Spróbuj ponownie.',
-  unavailable: 'Do tej operacji potrzebne są poprawnie wczytane plany, historia i ćwiczenia celu.',
+  unavailable: 'Do tej operacji potrzebne są poprawnie wczytane plany, historia i elementy do poprawy.',
   retry: progressLabels.retry,
 } as const
