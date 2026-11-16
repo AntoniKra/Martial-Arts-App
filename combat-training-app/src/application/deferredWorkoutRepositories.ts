@@ -71,7 +71,8 @@ export function createDeferredWorkoutRepositories(ready: Promise<WorkoutReposito
         }).catch((error: unknown) => { if (!cancelled) onError(error) })
         return () => { cancelled = true; unsubscribe?.() }
       },
-      save: async (plan) => (await weekPlans).save(plan),
+      save: async (plan, recurring, additionalWeek, intent) => (await weekPlans).save(plan, recurring, additionalWeek, intent),
+      reconcile: async (recurring, now) => (await weekPlans).reconcile(recurring, now),
     },
     plans: {
       subscribe: deferredSubscription(plans),

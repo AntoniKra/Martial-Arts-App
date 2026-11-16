@@ -5,6 +5,8 @@ import { test, expect } from './fixtures'
 import { generateScheduledWeek } from '../src/domain/week-plan/scheduledWeek'
 import type { WeekActivity } from '../src/domain/week-plan/weekPlan.types'
 import { block, continuousExercise, workoutPlan } from '../src/test/workoutBuilders'
+import { manualWorkoutSession } from '../src/test/manualWorkoutBuilder'
+import { workoutSession } from '../src/test/workoutSessionBuilders'
 
 test.use({ screenshot: 'off', trace: 'off', serviceWorkers: 'allow' })
 const instant = '2026-11-17T10:00:00Z', weekStart = '2026-11-16'
@@ -19,6 +21,34 @@ const weekCard = (page: Page) => page.getByRole('region', { name: 'Ten tydzień'
 const form = (page: Page) => page.getByRole('form', { name: 'Trening spoza aplikacji', exact: true })
 
 test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(instant)) })
+
+test('review regression: legacy exact-plan credits agree on Start, Progress and the migrated week', async ({ app, page }) => {
+  await app.open('/')
+  await app.seedWeekPlan({ weekStart, items: [{ id: 'legacy', kind: 'plan', workoutPlanId: 'deleted-plan', planNameSnapshot: 'Plan historyczny' }],
+    createdAt: new Date(instant).toISOString(), updatedAt: new Date(instant).toISOString(), editedAfterWeekEnd: false })
+  await app.seedSession(manualWorkoutSession({ workoutDate: '2026-11-17', category: 'bag', parts: ['bag'] }))
+  await expect(weekCard(page)).toContainText('0 z 1 treningów')
+  await weekCard(page).getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
+  await expect(page.getByText('0 z 1 treningów', { exact: true })).toBeVisible()
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
+  await expect(page.getByText('○ Plan', { exact: true })).toBeVisible()
+  expect((await app.readWeekPlans())[0].schedule).toBeUndefined()
+  await page.getByRole('region', { name: 'Dowolny dzień · kiedy pasuje', exact: true }).getByRole('button', { name: 'Dodaj', exact: true }).click()
+  const sheet = page.getByRole('form', { name: 'Dodaj lub edytuj trening', exact: true })
+  await sheet.getByRole('combobox', { name: 'Rodzaj treningu', exact: true }).selectOption('pads')
+  await sheet.getByRole('button', { name: 'Zapisz', exact: true }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect.poll(async () => (await app.readWeekPlans())[0].schedule?.[0]?.legacyGoal?.kind).toBe('plan')
+  await expect(page.getByText('0 z 2 treningów', { exact: true })).toBeVisible()
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
+  await app.seedSession(workoutSession({ id: 'exact-completed', workoutPlanId: 'deleted-plan', workoutDate: '2026-11-17', category: 'bag', durationSeconds: 60 }))
+  await expect(page.getByText('✓ Zaliczone', { exact: true })).toHaveCount(1)
+  await expect(page.getByText('1 z 2 treningów', { exact: true })).toBeVisible()
+  await app.open('/')
+  await expect(weekCard(page)).toContainText('1 z 2 treningów')
+  await app.open('/progress')
+  await expect(page.getByText('Ukończone: 1 z 2', { exact: true })).toBeVisible()
+})
 async function accessible(page: Page) {
   expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
@@ -65,7 +95,7 @@ for (const theme of ['dark', 'light'] as const) {
     await sparring.getByRole('radio', { name: /^Techniczny/ }).check()
     await form(page).getByRole('button', { name: 'Zapisz', exact: true }).click()
     await expect(page).toHaveURL('/')
-    await expect(todayCard(page)).toContainText('✓ Wykonane')
+    await expect(todayCard(page)).toContainText('✓ Zaliczone')
     await expect(todayCard(page).getByRole('link', { name: 'Wpisz trening po zajęciach', exact: true })).toHaveCount(0)
     await expect(weekCard(page)).toContainText('1 z 2 treningów · 90 min')
     await expect(page.getByRole('region', { name: 'Ostatnia sesja', exact: true })).toContainText('90 min · RPE 7')
@@ -139,14 +169,14 @@ test('does not overwrite a corrupt week or invent progress and recovers after a 
 
 test('creates the current snapshot from existing recurring classes when home is first opened', async ({ app, page }) => {
   await app.open(`/progress/week/${weekStart}`)
-  await page.getByRole('button', { name: /^Stały tydzień:/ }).click()
+  await page.getByRole('button', { name: /^Stały tydzień/ }).click()
+  await page.getByRole('button', { name: 'Dodaj trening: wtorek', exact: true }).click()
   const editor = page.getByRole('form', { name: 'Dodaj lub edytuj trening', exact: true })
   await editor.getByRole('radio', { name: 'Muay Thai', exact: true }).check()
-  await editor.getByRole('button', { name: 'Wt — Wtorek', exact: true }).click()
   await editor.getByLabel('Od', { exact: true }).fill('19:00')
   await editor.getByLabel('Do', { exact: true }).fill('20:30')
   await editor.getByRole('button', { name: 'Technika', exact: true }).click()
-  await editor.getByRole('button', { name: 'ZAPISZ STAŁE ZAJĘCIA', exact: true }).click()
+  await editor.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect.poll(async () => (await app.readRecurringWeek())?.items.length).toBe(1)
   await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Start', exact: true }).click()
   await expect(todayCard(page)).toBeVisible()

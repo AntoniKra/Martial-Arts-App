@@ -17,6 +17,9 @@ export interface WeekPlan {
   editedAfterWeekEnd: boolean
   schedule?: ScheduledWeekItem[]
   targetCount?: number
+  revision?: number
+  appliedRecurringRevision?: number
+  appliedRecurringIds?: string[]
 }
 
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
@@ -25,11 +28,12 @@ export type WeekActivity =
   | { id: string; kind: 'own'; day: Weekday | null; category: WorkoutSessionCategory; workoutPlanId: string | null; planNameSnapshot: string | null }
   | { id: string; kind: 'rest'; day: Weekday }
 
-export type ScheduledWeekItem = WeekActivity & { omitted: boolean }
+export type ScheduledWeekItem = WeekActivity & { omitted: boolean; legacyGoal?: WeekPlanItem }
 
 export interface RecurringWeek {
   id: 'default'
   items: WeekActivity[]
   createdAt: string
   updatedAt: string
+  revision?: number
 }

@@ -49,6 +49,7 @@ test('changes planned sparring intensity offline and includes saved hard rounds 
   expect(saved).toEqual({ ...original, sparring: [{ ...original.sparring[0], intensity: 'hard' }, original.sparring[1]],
     note: 'Twardy sparing zamiast technicznego.', updatedAt: saved.updatedAt })
   await app.open('/progress/week/2026-11-02')
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   const summary = page.getByRole('region', { name: 'Podsumowanie treningów', exact: true })
   const rounds = summary.locator('dl > div').filter({ has: page.locator('dt', { hasText: /^Twarde rundy sparingu$/ }) })
   await expect(rounds.getByRole('definition').first()).toHaveText('3')

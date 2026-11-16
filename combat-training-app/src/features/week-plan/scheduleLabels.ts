@@ -17,7 +17,11 @@ export const weekdays = [
 ] as const
 
 export const scheduleLabels = {
-  recurring: 'Stały tydzień', recurringEmpty: 'Stały tydzień: dodaj zajęcia i treningi co tydzień ›',
+  recurring: 'Stały tydzień', recurringEmpty: 'Ustaw stały tydzień — zajęcia, które powtarzają się co tydzień',
+  anySection: 'Dowolny dzień · kiedy pasuje', addShort: 'Dodaj', close: 'Zamknij', save: 'Zapisz',
+  activityKind: 'Rodzaj pozycji', repeat: 'Powtarzaj co tydzień', repeatHint: 'Dodaje też do stałego tygodnia',
+  summary: 'Podsumowanie tygodnia', removeFromWeek: 'Usuń z tego tygodnia',
+  savedName: 'Zapisana nazwa',
   recurringHint: 'Pojawią się w każdym tygodniu. Po zajęciach jednym przyciskiem wpiszesz trening.',
   oneWeekHint: 'Zmiana dotyczy tylko tego tygodnia.', recurringFooter: 'Zmiana jednego tygodnia (np. święto) nie zmienia stałego planu.',
   club: 'Zajęcia w klubie', own: 'Trening własny', rest: 'Odpoczynek',
@@ -36,12 +40,12 @@ export const scheduleLabels = {
   week: 'Tydzień',
   move: 'Przenieś na…', moved: 'Przeniesiono trening w tym tygodniu.', undo: 'Cofnij', undoUnavailable: 'Plan zmienił się po przeniesieniu. Cofnięcie jest niedostępne.',
   omit: 'Nie byłem', restore: 'Przywróć', options: 'Opcje treningu',
-  statuses: { done: '✓ Wykonane', planned: '○ Zaplanowane', missed: '– Opuszczone', omitted: '– Nie byłem', rest: 'Odpoczynek' },
+  statuses: { done: '✓ Zaliczone', partial: '◐ Częściowo', planned: '○ Plan', missed: '– Opuszczone', omitted: '✗ Nie byłem', rest: 'Odpoczynek' },
   partial: '(częściowo)', extra: 'Poza planem', goal: 'Cel liczby treningów', goalSave: 'Zapisz cel',
   goalProgress: (count: number, goal: number) => `${count} z ${goal} treningów`,
-  remaining: (count: number) => `zostało ${count}`, workoutCount: (count: number) => `Treningi w tygodniu: ${count}`,
+  remaining: (count: number) => `${count === 1 ? 'został' : count >= 2 && count <= 4 ? 'zostały' : 'zostało'} ${count}`, workoutCount: (count: number) => `Treningi w tygodniu: ${count}`,
   plan: (name: string) => `plan „${name}” · własny`,
-  emptyRecurring: 'Nie ma jeszcze stałych zajęć. Dodaj zajęcia w klubie, trening własny lub odpoczynek.',
+  emptyRecurring: 'Nie ma jeszcze stałych zajęć. Dodaj zajęcia w klubie lub trening własny.',
   emptyAny: 'Nie ma treningów bez stałego dnia.',
   saved: 'Zapisano na urządzeniu.', failed: 'Nie udało się odczytać lub zapisać stałego tygodnia. Spróbuj ponownie.',
   incomplete: 'Połącz się z siecią, aby potwierdzić brak stałego tygodnia.',
@@ -52,6 +56,7 @@ export const scheduleLabels = {
 } as const
 
 export function activityTitle(item: WeekActivity) {
+  if ('legacyGoal' in item && item.legacyGoal && typeof item.legacyGoal === 'object' && 'planNameSnapshot' in item.legacyGoal) return String(item.legacyGoal.planNameSnapshot)
   return item.kind === 'club' ? getDisciplineLabelPl(item.disciplineKey) : item.kind === 'own' ? categoryLabel(item.category) : scheduleLabels.rest
 }
 export function activityDetail(item: WeekActivity) {
@@ -60,11 +65,7 @@ export function activityDetail(item: WeekActivity) {
 }
 export function recurringSummary(week: RecurringWeek | undefined) {
   if (!week?.items.length) return scheduleLabels.recurringEmpty
-  const counts = new Map<string, number>()
-  for (const item of week.items) {
-    if (item.kind === 'rest') continue
-    const name = `${activityTitle(item)}${item.kind === 'club' ? ' w klubie' : ''}`
-    counts.set(name, (counts.get(name) ?? 0) + 1)
-  }
-  return `${scheduleLabels.recurring}: ${[...counts].map(([name, count]) => `${count}× ${name}`).join(', ') || scheduleLabels.rest} ›`
+  const club = week.items.filter((item) => item.kind === 'club').length
+  const own = week.items.filter((item) => item.kind === 'own').length
+  return [...(club ? [`${club}× klub`] : []), ...(own ? [`${own}× trening własny`] : []), 'co tydzień'].join(' · ')
 }

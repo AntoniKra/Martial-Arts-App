@@ -24,6 +24,7 @@ test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(ins
 
 test('shows twelve weeks across sources, switches units and themes, and moves with the selected week', async ({ app, page }, info) => {
   await app.open(`/progress/week/${weekStart}`)
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   for (const session of [
     manual, quick, workoutSession({ id: 'plan', workoutDate: weekStart, durationSeconds: 1800.25 }),
     workoutSession({ id: 'second', workoutDate: weekStart, durationSeconds: 30.25 }),
@@ -72,6 +73,7 @@ test('shows twelve weeks across sources, switches units and themes, and moves wi
     }
   }
   await page.getByRole('link', { name: 'Poprzedni tydzień', exact: true }).click()
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   await chart.getByText('Pokaż dane', { exact: true }).click()
   await expect(rows.nth(1).getByRole('rowheader')).toHaveText('17.08.2026 – 23.08.2026')
   await expect(rows.nth(1).getByRole('cell')).toHaveText(['1', '15'])
@@ -83,6 +85,7 @@ test('shows twelve weeks across sources, switches units and themes, and moves wi
 
 test('keeps empty weeks as zeros and hides the chart when the session history is incomplete', async ({ app, page }) => {
   await app.open(`/progress/week/${weekStart}`)
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   const chart = page.getByRole('region', { name: chartName, exact: true })
   await chart.getByText('Pokaż dane', { exact: true }).click()
   await expect(chart.getByRole('cell')).toHaveText(Array.from({ length: 24 }, () => '0'))

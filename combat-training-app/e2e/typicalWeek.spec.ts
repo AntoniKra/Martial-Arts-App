@@ -26,6 +26,7 @@ test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(ins
 
 test('compares three previous weeks across sources, preserves missing load and follows week selection', async ({ app, page }) => {
   await app.open(`/progress/week/${weekStart}`)
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   for (const session of [
     workoutSession({ id: 'older', workoutDate: '2026-10-12', durationSeconds: 3600, rpe: 2, rpeRecordedAt: instant }),
     first, manual, quick,
@@ -51,12 +52,14 @@ test('compares three previous weeks across sources, preserves missing load and f
   await app.seedSession(first)
   await expect(table.getByRole('cell').last()).toHaveText('170 j.u.')
   await page.getByRole('link', { name: 'Poprzedni tydzień', exact: true }).click()
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   await expect(table.getByRole('columnheader').nth(1)).toHaveText('Ten tydzień')
   await expect(table.getByRole('cell')).toHaveText(['2', '1,0', '90 min', '50 min', '90 j.u.', '180 j.u.'])
 })
 
 test('explains the three-week requirement for a new account and hides comparison for incomplete history', async ({ app, page }) => {
   await app.open(`/progress/week/${weekStart}`)
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   const table = page.getByRole('table', { name: caption, exact: true })
   const hint = page.getByText('Porównanie pojawi się po 3 pełnych tygodniach treningów.', { exact: true })
   await expect(hint).toBeVisible()

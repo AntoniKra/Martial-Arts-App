@@ -43,6 +43,12 @@ function SubscribedData({ repositories, retry, children }: PropsWithChildren<{ r
   const focusSkills = useRepositoryCollection(repositories.focusSkills, focusAttempt)
   const currentWeek = useCurrentWeek()
   const { state: weekPlans, retry: retryWeekPlans } = useWeekPlanCollection(repositories.weekPlans, currentWeek, retry)
+  const recurring = recurringWeeks.items[0]
+  useEffect(() => {
+    if (!recurring || recurringWeeks.status !== 'ready' || weekPlans.status !== 'ready' || recurringWeeks.hasPendingWrites || weekPlans.hasPendingWrites
+      || recurringWeeks.invalidDocumentIds.length || weekPlans.invalidDocumentIds.length) return
+    void repositories.weekPlans.reconcile(recurring, new Date()).catch(() => { /* Repository reports only a failed recovery. */ })
+  }, [repositories, recurring, recurringWeeks.status, recurringWeeks.hasPendingWrites, recurringWeeks.invalidDocumentIds, weekPlans])
   return <WorkoutDataContext.Provider value={{ recurringWeeks, recurringWeekRepository: repositories.recurringWeeks, retryRecurringWeeks: () => setRecurringAttempt((value) => value + 1), exercises, exerciseRepository: repositories.exercises, retryExercises: () => setExerciseAttempt((value) => value + 1), profile, bodyWeights, profileRepository: repositories.profile, bodyWeightRepository: repositories.bodyWeights,
     wellbeing, wellbeingRepository: repositories.wellbeing, retryWellbeing: () => setWellbeingAttempt((value) => value + 1),
     retryProfile: () => setProfileAttempt((value) => value + 1), retryBodyWeights: () => setWeightAttempt((value) => value + 1),
