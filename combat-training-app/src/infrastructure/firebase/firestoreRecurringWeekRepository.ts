@@ -18,8 +18,8 @@ export function createFirestoreRecurringWeekRepository(db: Firestore, uid: strin
     }, onError),
     save: async (week) => {
       const previous = records.getItems()
-      const next = recurringWeekRecords(week)
       const previousHeader = previous.find((record) => record.id === 'default')
+      const next = recurringWeekRecords({ ...week, revision: (week.revision ?? (previousHeader && 'revision' in previousHeader ? previousHeader.revision : undefined) ?? 0) + 1 })
       if (previousHeader && previousHeader.createdAt !== week.createdAt) throw new Error('Creation time must be preserved')
       const batch = writeBatch(db)
       let resolveServer!: () => void

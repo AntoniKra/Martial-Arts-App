@@ -1,10 +1,13 @@
-import { collection, doc, onSnapshot, query, setDoc, where, writeBatch, type Firestore } from 'firebase/firestore'
-import type { WeekPlanRepository, WeekPlanSnapshot } from '@/application/week-plan/weekPlanRepository'
+import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, where, writeBatch, type Firestore } from 'firebase/firestore'
+import type { WeekPlanRepository, WeekPlanSnapshot, WeekPlanSaveIntent } from '@/application/week-plan/weekPlanRepository'
 import type { RecurringWeek, WeekPlan } from '@/domain/week-plan/weekPlan.types'
 import { WEEK_PLAN_HISTORY_WEEKS, WEEK_PLAN_ITEM_LIMIT } from '@/domain/week-plan/weekPlan.types'
 import { currentWeekStart, isMonday, shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
 import { combineWeekPlanDocuments, parseWeekPlanDocument, storedWeekPlanDocuments } from './weekPlanDocumentSchema'
-import { recurringWeekRecords } from './recurringWeekDocumentSchema'
+import { combineRecurringWeekRecords, recurringWeekRecords, recurringWeekRecordSchema } from './recurringWeekDocumentSchema'
+import { updateCurrentWeekFromRecurring } from '@/domain/week-plan/updateRecurringWeek'
+import { mergeChangedItems, rebaseWeekChange } from '@/domain/week-plan/reconcileWeekChange'
+import { generateScheduledWeek } from '@/domain/week-plan/scheduledWeek'
 
 interface LocalWrite { expected: string; weekStart: string; additional?: { expected: string; weekStart: string }; resolve: () => void; reject: (error: unknown) => void }
 
@@ -19,6 +22,9 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
   private failed = false
   private writes = new Set<LocalWrite>()
   private reportError: ((error: unknown) => void) | null = null
+  private recovering = false
+  private generation = 0
+  private pendingCommits = 0
 
   constructor(private db: Firestore, uid: string) {
     if (!uid || uid.includes('/')) throw new Error('Invalid user identity')
@@ -30,6 +36,7 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
     if (!isMonday(currentWeek)) throw new Error('Invalid current week')
     if (this.reportError) throw new Error('Repository already subscribed')
     this.reportError = onError
+    this.generation++
     this.failed = false
     this.complete = false
     this.rangeStart = shiftCalendarDate(currentWeek, -7 * WEEK_PLAN_HISTORY_WEEKS)
@@ -66,6 +73,7 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
       }
     }, (error) => { if (active) this.fail(error) })
     return () => {
+      this.generation++
       active = false
       stop()
       this.reportError = null
@@ -100,13 +108,81 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
     return plan
   }
 
-  async save(value: WeekPlan, recurring?: RecurringWeek, additionalWeek?: WeekPlan): Promise<void> {
-    const plan = this.validateSave(value)
-    const additional = additionalWeek ? this.validateSave(additionalWeek) : undefined
+  async reconcile(recurring: RecurringWeek, now: Date): Promise<void> {
+    const start = currentWeekStart(now, 'Europe/Warsaw')
+    const current = this.items.get(start)
+    if (this.recovering || this.pendingCommits || !current || (recurring.revision ?? 0) <= (current.appliedRecurringRevision ?? 0)) return
+    const next = updateCurrentWeekFromRecurring(undefined, recurring, current, now)
+    await this.save(next, undefined, undefined, { reconcileOnly: true })
+  }
+
+  private async freshState() {
+    const [weeks, source] = await Promise.all([
+      getDocsFromServer(query(this.path, where('weekStart', '>=', this.rangeStart))), getDocsFromServer(this.recurringPath),
+    ])
+    if (weeks.metadata.hasPendingWrites || source.metadata.hasPendingWrites) throw new Error('Unsettled weekly writes')
+    const groups = new Map<string, { id: string; data: unknown }[]>()
+    for (const document of weeks.docs) {
+      const key = document.id.split('~')[0]
+      groups.set(key, [...(groups.get(key) ?? []), { id: document.id, data: document.data() }])
+    }
+    const items = new Map([...groups].map(([id, records]) => [id, combineWeekPlanDocuments(records)]))
+    const recurring = combineRecurringWeekRecords(source.docs.map((document) => recurringWeekRecordSchema.parse(document.data())))
+    return { items, recurring }
+  }
+
+  private async recover(before: WeekPlan | undefined, desired: WeekPlan, recurring: RecurringWeek | undefined, intent: WeekPlanSaveIntent | undefined, generation: number) {
+    if (generation !== this.generation || !this.reportError) return
+    this.recovering = true
+    try {
+      const fresh = await this.freshState()
+      if (generation !== this.generation || !this.reportError) throw new Error('Account subscription changed')
+      this.items = fresh.items
+      this.invalidIds.clear()
+      this.complete = true
+      const now = new Date()
+      const start = currentWeekStart(now, 'Europe/Warsaw')
+      if (recurring) {
+        const next: RecurringWeek = { ...recurring, createdAt: fresh.recurring?.createdAt ?? recurring.createdAt,
+          updatedAt: now.toISOString(), revision: (fresh.recurring?.revision ?? 0) + 1,
+          items: mergeChangedItems(intent?.previousRecurring?.items ?? [], recurring.items, fresh.recurring?.items ?? []) }
+        let current = updateCurrentWeekFromRecurring(fresh.recurring, next, fresh.items.get(start), now)
+        const change = intent?.displayedChange
+        let displayed: WeekPlan | undefined
+        if (change?.after.weekStart === start) current = rebaseWeekChange(change.before, change.after, current, now)
+        else if (change) displayed = rebaseWeekChange(change.before, change.after, fresh.items.get(change.after.weekStart) ?? generateScheduledWeek(change.after.weekStart, fresh.recurring, now), now)
+        await this.write(displayed ?? current, next, displayed ? current : undefined, undefined, true)
+      } else if (intent?.reconcileOnly && fresh.recurring) {
+        const current = fresh.items.get(start)
+        if (current && (fresh.recurring.revision ?? 0) > (current.appliedRecurringRevision ?? 0)) {
+          await this.write(updateCurrentWeekFromRecurring(undefined, fresh.recurring, current, now), undefined, undefined, undefined, true)
+        }
+      } else {
+        if (!before) throw new Error('Concurrent creation requires a fresh edit')
+        const current = fresh.items.get(desired.weekStart)
+        if (!current) throw new Error('Week removed on another device')
+        await this.write(rebaseWeekChange(before, desired, current, now), undefined, undefined, undefined, true)
+      }
+    } catch (error) { if (generation === this.generation && !this.failed) this.fail(error) }
+    finally { this.recovering = false }
+  }
+
+  save(value: WeekPlan, recurring?: RecurringWeek, additionalWeek?: WeekPlan, intent?: WeekPlanSaveIntent): Promise<void> {
+    return this.write(value, recurring, additionalWeek, intent, false)
+  }
+
+  private async write(value: WeekPlan, recurring: RecurringWeek | undefined, additionalWeek: WeekPlan | undefined, intent: WeekPlanSaveIntent | undefined, retrying: boolean): Promise<void> {
+    const before = this.items.get(value.weekStart)
+    const normalize = (week: WeekPlan) => ({ ...week, revision: (week.revision ?? 0) + 1,
+      ...(week.schedule === undefined ? {} : { appliedRecurringRevision: week.appliedRecurringRevision ?? 0, appliedRecurringIds: week.appliedRecurringIds ?? [] }) })
+    const plan = this.validateSave(normalize(value))
+    const additional = additionalWeek ? this.validateSave(normalize(additionalWeek)) : undefined
+    if (recurring) recurring = { ...recurring, revision: recurring.revision ?? 1 }
     if (additional?.weekStart === plan.weekStart) throw new Error('Duplicate week in batch')
     const recurringRecords = recurring ? recurringWeekRecords(recurring) : undefined
     const previous = this.items.get(plan.weekStart)
     const expected = JSON.stringify(plan)
+    const generation = this.generation
     return new Promise<void>((resolve, reject) => {
       const write: LocalWrite = { expected, weekStart: plan.weekStart, resolve, reject,
         additional: additional ? { expected: JSON.stringify(additional), weekStart: additional.weekStart } : undefined }
@@ -126,10 +202,17 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
           }
           server = batch.commit()
         }
+        this.pendingCommits++
         void server.then(() => {
+          this.pendingCommits--
           this.writes.delete(write)
           resolve()
-        }, (error: unknown) => { this.writes.delete(write); reject(error); this.fail(error) })
+        }, (error: unknown) => {
+          this.pendingCommits--
+          this.writes.delete(write)
+          if (retrying) { reject(error); this.fail(error) }
+          else { resolve(); void this.recover(before, value, recurring, intent, generation) }
+        })
         if (!recurring && !additional && JSON.stringify(previous) === expected) { this.writes.delete(write); resolve() }
       } catch (error) { this.writes.delete(write); reject(error); this.fail(error) }
     })

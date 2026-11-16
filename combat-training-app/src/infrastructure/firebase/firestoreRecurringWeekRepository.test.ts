@@ -13,6 +13,10 @@ vi.mock('firebase/firestore', () => ({
 const instant = '2026-11-10T10:00:00.000Z'
 const week: RecurringWeek = { id: 'default', items: [{ id: 'club', kind: 'club', day: 1, disciplineKey: 'muay_thai', startTime: '19:00', endTime: '20:30', parts: ['technique'], clubName: null }], createdAt: instant, updatedAt: instant }
 function emit(records = recurringWeekRecords(week), pending = false) {
+  records = records.map((record) => {
+    const value = sdk.set.mock.calls.filter((args) => args[0] === `users/athlete/recurringWeeks/${record.id}`).at(-1)?.[1]
+    return pending && record.id === 'default' && value ? { ...record, revision: value.revision } : record
+  })
   sdk.change?.({ docs: records.map((record) => ({ id: record.id, data: () => record, metadata: { hasPendingWrites: pending } })), metadata: { hasPendingWrites: pending, fromCache: pending } })
 }
 beforeEach(() => { vi.clearAllMocks(); sdk.commit.mockImplementation(() => new Promise(() => {})) })

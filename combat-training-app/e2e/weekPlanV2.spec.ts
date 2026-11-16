@@ -144,3 +144,43 @@ test('repeats from a future displayed week in one offline save including the cur
   await page.getByRole('link', { name: 'Poprzedni tydzień', exact: true }).click()
   await expect(row(page, 'Niedziela', '2026-11-22')).toContainText('Boks')
 })
+
+test('review regression: repeating an edited occurrence updates the same recurring ID without duplicates', async ({ app, page }) => {
+  await app.open(`/progress/week/${weekStart}`)
+  await page.getByRole('button', { name: 'Dodaj trening: wtorek', exact: true }).click()
+  await hours(page); await form(page).getByRole('switch').check(); await save(page)
+  await expect.poll(async () => (await app.readRecurringWeek())?.items.length).toBe(1)
+  const id = (await app.readRecurringWeek())!.items[0].id
+  for (const start of ['17:00', '16:00']) {
+    await page.getByRole('button', { name: 'Opcje: Boks', exact: true }).click()
+    await page.getByRole('button', { name: 'Edytuj', exact: true }).click()
+    await hours(page, start); await form(page).getByRole('switch').check(); await save(page)
+    await expect.poll(async () => (await app.readRecurringWeek())?.items).toEqual([
+      expect.objectContaining({ id, startTime: start }),
+    ])
+    await expect.poll(async () => (await app.readWeekPlans()).find((week) => week.weekStart === weekStart)?.schedule).toEqual([
+      expect.objectContaining({ id: `${weekStart}:${id}`, startTime: start }),
+    ])
+  }
+})
+
+test('review regression: a future repeating occurrence receives edits and deletion when its week becomes current', async ({ app, page }) => {
+  const future = '2026-11-23'
+  await app.open(`/progress/week/${future}`)
+  await page.getByRole('button', { name: 'Dodaj trening: piątek', exact: true }).click()
+  await hours(page); await form(page).getByRole('switch').check(); await save(page)
+  await expect.poll(async () => (await app.readRecurringWeek())?.items.length).toBe(1)
+  const id = (await app.readRecurringWeek())!.items[0].id
+  await expect.poll(async () => (await app.readWeekPlans()).find((week) => week.weekStart === future)?.schedule?.[0]?.id).toBe(`${future}:${id}`)
+  await page.clock.setFixedTime(new Date('2026-11-24T10:00:00Z'))
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+  await expect(page.getByText('ten tydzień', { exact: false })).toBeVisible()
+  await page.getByRole('button', { name: /^Stały tydzień/ }).click()
+  await page.getByRole('button', { name: 'Opcje: Boks', exact: true }).click()
+  await page.getByRole('button', { name: 'Edytuj', exact: true }).click()
+  await hours(page, '17:00'); await save(page)
+  await expect.poll(async () => (await app.readWeekPlans()).find((week) => week.weekStart === future)?.schedule?.[0]).toMatchObject({ startTime: '17:00' })
+  await page.getByRole('button', { name: 'Usuń', exact: true }).click()
+  await expect.poll(async () => (await app.readRecurringWeek())?.items.length).toBe(0)
+  await expect.poll(async () => (await app.readWeekPlans()).find((week) => week.weekStart === future)?.schedule).toEqual([])
+})

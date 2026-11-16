@@ -40,7 +40,7 @@ export const scheduleLabels = {
   week: 'Tydzień',
   move: 'Przenieś na…', moved: 'Przeniesiono trening w tym tygodniu.', undo: 'Cofnij', undoUnavailable: 'Plan zmienił się po przeniesieniu. Cofnięcie jest niedostępne.',
   omit: 'Nie byłem', restore: 'Przywróć', options: 'Opcje treningu',
-  statuses: { done: '✓ Zaliczone', planned: '○ Plan', missed: '– Opuszczone', omitted: '✗ Nie byłem', rest: 'Odpoczynek' },
+  statuses: { done: '✓ Zaliczone', partial: '◐ Częściowo', planned: '○ Plan', missed: '– Opuszczone', omitted: '✗ Nie byłem', rest: 'Odpoczynek' },
   partial: '(częściowo)', extra: 'Poza planem', goal: 'Cel liczby treningów', goalSave: 'Zapisz cel',
   goalProgress: (count: number, goal: number) => `${count} z ${goal} treningów`,
   remaining: (count: number) => `${count === 1 ? 'został' : count >= 2 && count <= 4 ? 'zostały' : 'zostało'} ${count}`, workoutCount: (count: number) => `Treningi w tygodniu: ${count}`,
@@ -56,6 +56,7 @@ export const scheduleLabels = {
 } as const
 
 export function activityTitle(item: WeekActivity) {
+  if ('legacyGoal' in item && item.legacyGoal && typeof item.legacyGoal === 'object' && 'planNameSnapshot' in item.legacyGoal) return String(item.legacyGoal.planNameSnapshot)
   return item.kind === 'club' ? getDisciplineLabelPl(item.disciplineKey) : item.kind === 'own' ? categoryLabel(item.category) : scheduleLabels.rest
 }
 export function activityDetail(item: WeekActivity) {

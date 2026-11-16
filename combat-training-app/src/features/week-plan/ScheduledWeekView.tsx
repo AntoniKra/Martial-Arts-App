@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
-import { calculateScheduledWeek, changeScheduledWeek, generateScheduledWeek, recurringOccurrenceId } from '@/domain/week-plan/scheduledWeek'
+import { changeScheduledWeek, generateScheduledWeek, recurringOccurrenceId } from '@/domain/week-plan/scheduledWeek'
 import { scheduledWeekFromLegacy } from '@/domain/week-plan/updateRecurringWeek'
 import { clubWorkoutPrefill } from '@/domain/week-plan/clubWorkoutPrefill'
 import { shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
@@ -20,13 +20,14 @@ import { useScheduledWeekActions } from './useScheduledWeekActions'
 import { useRecurringWeekActions } from './useRecurringWeekActions'
 import { selectWeekPlan } from '@/application/week-plan/selectWeekPlan'
 import { WeekPlanDataMessage } from './WeekPlanSummary'
+import { calculateWeekPlanProgress } from '@/domain/week-plan/weekPlanProgress'
 
 export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: string; onRecurring: () => void }) {
   const { weekPlans, recurringWeeks, weekPlanRepository, retryRecurringWeeks, plans, sessions, currentWeek, retrySessions } = useWorkoutData()
   const stored = weekPlans.items.find((plan) => plan.weekStart === weekStart)
   const recurring = recurringWeeks.items[0]
   const [openedAt] = useState(() => new Date())
-  const plan = stored ? scheduledWeekFromLegacy(stored, plans.items) : generateScheduledWeek(weekStart, recurring, openedAt)
+  const plan = stored ? scheduledWeekFromLegacy(stored) : generateScheduledWeek(weekStart, recurring, openedAt)
   const [editing, setEditing] = useState<{ day: Weekday | null; initial?: WeekActivity } | null>(null)
   const [options, setOptions] = useState<string | null>(null)
   const [generationError, setGenerationError] = useState(false)
@@ -38,7 +39,7 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
   const { busy, error, undo, save, move, toggleOmitted, undoMove } = useScheduledWeekActions(plan, canEdit)
   const recurringActions = useRecurringWeekActions()
   const sessionsReady = sessions.status === 'ready' && sessions.complete && !sessions.invalidDocumentIds.length
-  const progress = sessionsReady ? calculateScheduledWeek(plan, sessions.items, today) : null
+  const progress = sessionsReady ? calculateWeekPlanProgress(weekStart, plan, sessions.items, today).scheduleProgress : null
   const availablePlans = plans.status === 'ready' && plans.complete && !plans.invalidDocumentIds.length ? plans.items : []
 
   useEffect(() => {
@@ -54,16 +55,18 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
     const target = Math.min(14, (plan.targetCount ?? 0) + additions.filter((item) => item.kind !== 'rest').length - (old && old.kind !== 'rest' ? 1 : 0))
     const schedule = [...before.filter((item) => item.id !== old?.id), ...additions]
     if (repeat) {
-      const repeated = items.map((item) => ({ ...item, id: crypto.randomUUID() }))
-      await recurringActions.save([...(recurring?.items ?? []), ...repeated], (current) => {
-        if (current.weekStart !== weekStart) return changeScheduledWeek(plan, schedule, target, new Date())
+      const linked = old && recurring?.items.find((item, index) => old.id === recurringOccurrenceId(weekStart, item.id) || old.id === `${weekStart}:${index}`)
+      const repeated = items.map((item) => ({ ...item, id: linked?.id ?? crypto.randomUUID() }))
+      const repeatedSchedule = [...before.filter((item) => item.id !== old?.id), ...repeated.map((item) => ({ ...item, id: recurringOccurrenceId(weekStart, item.id), omitted: old?.omitted ?? false }))]
+      await recurringActions.save([...(recurring?.items ?? []).filter((item) => item.id !== linked?.id), ...repeated], (current) => {
+        if (current.weekStart !== weekStart) return changeScheduledWeek(plan, repeatedSchedule, target, new Date())
         const currentItems = current.schedule!.filter((item) => item.id !== old?.id)
         repeated.forEach((item) => {
           const id = recurringOccurrenceId(weekStart, item.id)
           if (!currentItems.some((entry) => entry.id === id)) currentItems.push({ ...item, id, omitted: false })
         })
         return changeScheduledWeek(current, currentItems, target, new Date())
-      })
+      }, plan)
     } else if (!await save(schedule, target)) throw new Error('Week save failed')
     setOptions(null)
   }
@@ -120,8 +123,8 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
     {plan.editedAfterWeekEnd && <p className="text-xs text-muted">{weekPlanLabels.historical}</p>}
     {!sessionsReady && <div role="status" className="space-y-2 text-sm text-muted"><p>{weekPlanLabels.sessionsUnavailable}</p><button type="button" className={getButtonClassName({ variant: 'secondary' })} onClick={retrySessions}>{weekPlanLabels.retrySessions}</button></div>}
     {progress && selected.status === 'ready' && <div className="space-y-2">
-      <div className="flex items-center justify-between gap-2 text-[15px]"><span className="font-bold">{labels.goalProgress(progress.workoutCount, plan.targetCount ?? 0)}</span><span className="text-[13px] text-muted">{labels.remaining(Math.max(0, (plan.targetCount ?? 0) - progress.workoutCount))}</span></div>
-      {!!plan.targetCount && <div role="progressbar" aria-label={labels.goal} aria-valuemin={0} aria-valuemax={plan.targetCount} aria-valuenow={Math.min(progress.workoutCount, plan.targetCount)} aria-valuetext={labels.goalProgress(progress.workoutCount, plan.targetCount)} className="h-1 bg-bd"><div className="h-full bg-crimson" style={{ width: `${progress.percentage}%` }} /></div>}
+      <div className="flex items-center justify-between gap-2 text-[15px]"><span className="font-bold">{labels.goalProgress(progress.goalCount, plan.targetCount ?? 0)}</span><span className="text-[13px] text-muted">{labels.remaining(Math.max(0, (plan.targetCount ?? 0) - progress.goalCount))}</span></div>
+      {!!plan.targetCount && <div role="progressbar" aria-label={labels.goal} aria-valuemin={0} aria-valuemax={plan.targetCount} aria-valuenow={Math.min(progress.goalCount, plan.targetCount)} aria-valuetext={labels.goalProgress(progress.goalCount, plan.targetCount)} className="h-1 bg-bd"><div className="h-full bg-crimson" style={{ width: `${progress.percentage}%` }} /></div>}
     </div>}
     {undo && <div role="status" className="flex flex-wrap items-center gap-2 border border-bd p-3 text-sm"><p>{labels.moved}</p><button type="button" disabled={busy} className={getButtonClassName({ variant: 'secondary' })} onClick={() => { void undoMove() }}>{labels.undo}</button></div>}
     {selected.status === 'ready' && <WeekScheduleList items={plan.schedule!} weekStart={weekStart} today={today} disabled={!canEdit || busy} onAdd={(day) => setEditing({ day })} renderEntry={entry} />}

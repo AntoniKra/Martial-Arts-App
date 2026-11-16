@@ -61,8 +61,8 @@ test('migrates v1 on its first mutation, preserving saved plans, timestamps, cat
   const migrated = (await app.readWeekPlans())[0]
   expect(migrated).toMatchObject({ items: [], createdAt: source.createdAt, editedAfterWeekEnd: true, targetCount: 3 })
   expect(migrated.schedule?.slice(0, 2)).toEqual([
-    { id: 'saved', kind: 'own', day: null, category: 'bag', workoutPlanId: plan.id, planNameSnapshot: 'Saved snapshot', omitted: false },
-    { id: 'category', kind: 'own', day: null, category: 'pads', workoutPlanId: null, planNameSnapshot: null, omitted: false },
+    { id: 'saved', kind: 'own', day: null, category: 'mixed', workoutPlanId: plan.id, planNameSnapshot: 'Saved snapshot', omitted: false, legacyGoal: source.items[0] },
+    { id: 'category', kind: 'own', day: null, category: 'pads', workoutPlanId: null, planNameSnapshot: null, omitted: false, legacyGoal: source.items[1] },
   ])
   expect(await app.readSessions()).toHaveLength(1)
   await expect(page.getByText('Plan zmieniony po zakończeniu tygodnia', { exact: true })).toBeVisible()
@@ -75,17 +75,19 @@ test('counts partial and outside-plan sessions and reacts to journal deletion wi
   await app.seedWeekPlan(goal([{ id: 'saved', kind: 'plan', workoutPlanId: plan.id, planNameSnapshot: 'Historical plan' }]))
   await app.open(`/progress/week/${weekStart}`)
   for (const [id, status] of [['complete', 'completed'], ['partial', 'partial']] as const) {
-    await app.seedSession(status === 'completed' ? manualWorkoutSession({ id, workoutDate: '2026-11-10', category: 'bag', parts: ['bag'] }) : workoutSession({ id, status, durationSeconds: 60, workoutDate: '2026-11-10', category: 'bag' }))
+    await app.seedSession(workoutSession({ id, status, workoutPlanId: plan.id, durationSeconds: 60, workoutDate: '2026-11-10', category: 'bag' }))
   }
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
-  await expect(page.getByText('2 z 1 treningów', { exact: true })).toBeVisible()
+  await app.seedSession(manualWorkoutSession({ id: 'outside', workoutDate: '2026-11-10', category: 'bag', parts: ['bag'] }))
+  await expect(page.getByText('1 z 1 treningów', { exact: true })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Poza planem', exact: true })).toBeVisible()
   await app.removeWorkoutDocument('workoutPlans', plan.id)
-  await flexible(page).getByRole('button', { name: 'Opcje: Worek', exact: true }).click()
+  await flexible(page).getByRole('button', { name: 'Opcje: Historical plan', exact: true }).click()
   await expect(flexible(page)).toContainText('Historical plan')
   await expect(flexible(page)).toContainText('Plan niedostępny')
   await app.removeWorkoutDocument('workoutSessions', 'complete')
-  await expect(page.getByText('1 z 1 treningów', { exact: true })).toBeVisible()
+  await expect(page.getByText('0 z 1 treningów', { exact: true })).toBeVisible()
+  await expect(page.getByText('◐ Częściowo', { exact: true })).toBeVisible()
   expect((await app.readWeekPlans())[0].items[0]).toMatchObject({ planNameSnapshot: 'Historical plan' })
 })
 
@@ -161,7 +163,7 @@ test('keeps long saved names readable and preserves snapshots when the live libr
   await app.open('/workouts'); await app.seedPlan({ ...plan, nameSnapshot: renamed })
   await app.seedWeekPlan(goal([{ id: 'saved', kind: 'plan', workoutPlanId: plan.id, planNameSnapshot: saved }]))
   await app.open(`/progress/week/${weekStart}`)
-  await flexible(page).getByRole('button', { name: 'Opcje: Worek', exact: true }).click()
+  await flexible(page).getByRole('button', { name: `Opcje: ${saved}`, exact: true }).click()
   await flexible(page).getByRole('button', { name: 'Edytuj', exact: true }).click()
   const linked = form(page).getByRole('combobox', { name: 'Plan z odtwarzacza (opcjonalnie)', exact: true })
   await expect(linked.locator('option:checked')).toHaveText(renamed)

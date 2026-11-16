@@ -4,22 +4,22 @@ import { isMonday } from '@/domain/week-plan/weekCalendar'
 import { WEEK_PLAN_ITEM_LIMIT } from '@/domain/week-plan/weekPlan.types'
 import { scheduledWeekItemSchema } from './recurringWeekDocumentSchema'
 import type { WeekPlan } from '@/domain/week-plan/weekPlan.types'
+import { weekPlanItemSchema as item, revisionSchema } from './weekPlanItemSchema'
 
 const id = z.string().check(z.minLength(1), z.refine((value) => !value.includes('/')))
-const item = z.discriminatedUnion('kind', [
-  z.strictObject({ id, kind: z.literal('plan'), workoutPlanId: id, planNameSnapshot: z.string().check(z.minLength(1)) }),
-  z.strictObject({ id, kind: z.literal('category'), category: z.enum([
-    'technique', 'pads', 'bag', 'sparring', 'conditioning', 'strengthAndConditioning', 'mixed',
-  ]) }),
-])
+const revisionFields = { revision: z.optional(revisionSchema) }
+const recurringFields = { ...revisionFields, appliedRecurringRevision: z.optional(revisionSchema),
+  appliedRecurringIds: z.optional(z.array(id).check(z.maxLength(14), z.refine((ids) => new Set(ids).size === ids.length))) }
 
 const legacyWeekPlanDocumentSchema = z.strictObject({
+  ...revisionFields,
   schemaVersion: z.literal(1), weekStart: z.iso.date().check(z.refine(isMonday)),
   items: z.array(item).check(z.maxLength(WEEK_PLAN_ITEM_LIMIT)),
   createdAt: instantSchema, updatedAt: instantSchema, editedAfterWeekEnd: z.boolean(),
 }).check(z.refine((plan) => new Set(plan.items.map((entry) => entry.id)).size === plan.items.length))
 
 const scheduledWeekPlanDocumentSchema = z.strictObject({
+  ...recurringFields,
   schemaVersion: z.literal(2), weekStart: z.iso.date().check(z.refine(isMonday)),
   items: z.array(item).check(z.maxLength(0)),
   schedule: z.array(scheduledWeekItemSchema).check(z.maxLength(WEEK_PLAN_ITEM_LIMIT), z.refine((items) => new Set(items.map((entry) => entry.id)).size === items.length)),
@@ -28,6 +28,7 @@ const scheduledWeekPlanDocumentSchema = z.strictObject({
 })
 
 export const scheduledWeekHeaderSchema = z.strictObject({
+  ...recurringFields,
   schemaVersion: z.literal(2), weekStart: z.iso.date().check(z.refine(isMonday)),
   items: z.array(item).check(z.maxLength(0)), scheduleSize: z.number().check(z.int(), z.minimum(0), z.maximum(14)),
   targetCount: z.number().check(z.int(), z.minimum(0), z.maximum(14)), createdAt: instantSchema, updatedAt: instantSchema, editedAfterWeekEnd: z.boolean(),

@@ -172,6 +172,7 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
         return stop
       },
       save: weekPlans.save.bind(weekPlans),
+      reconcile: weekPlans.reconcile.bind(weekPlans),
     },
     plans: {
       subscribe: trackedSubscribe(plans), save: plans.save.bind(plans),

@@ -15,11 +15,11 @@ export function HomeWeekCard({ weekStart, schedule, progress, minutes }: {
       <Link to={routes.weekPlan(weekStart)} className={homeInlineLink}>{labels.weekPlan} ›</Link>
     </div>
     <p className="font-display text-[22px] font-bold leading-tight tabular-nums">
-      {progress.hasGoal ? labels.goal(progress.workoutCount, progress.total) : labels.workouts(progress.workoutCount)}{' '}
+      {progress.hasGoal ? labels.goal(progress.goalCount, progress.total) : labels.workouts(progress.workoutCount)}{' '}
       <span className="font-sans text-sm font-medium text-muted">{progress.hasGoal ? 'treningów · ' : '· '}{minutes} min</span>
     </p>
     {progress.hasGoal && <div role="progressbar" aria-label={labels.week} aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.completed}
-      aria-valuetext={labels.goal(progress.workoutCount, progress.total)} className="sr-only" />}
+      aria-valuetext={labels.goal(progress.goalCount, progress.total)} className="sr-only" />}
     <ol aria-label={labels.days} className="grid list-none grid-cols-7 gap-1.5 text-center">
       {schedule.days.map((day, index) => {
         const statuses = [day.done && labels.dayStatuses.done, day.planned && labels.dayStatuses.planned,

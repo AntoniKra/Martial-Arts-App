@@ -8,19 +8,25 @@ type Snapshot = { docs: unknown[]; metadata: { fromCache: boolean; hasPendingWri
 const sdk = vi.hoisted(() => ({
   change: null as ((snapshot: Snapshot) => void) | null, error: null as ((error: Error) => void) | null,
   stop: vi.fn(), query: vi.fn((path: string, condition: unknown) => ({ path, condition })),
-  set: vi.fn<() => Promise<void>>(), batchSet: vi.fn(), batchDelete: vi.fn(),
+  set: vi.fn<() => Promise<void>>(), batchSet: vi.fn(), batchDelete: vi.fn(), read: vi.fn(),
 }))
 vi.mock('firebase/firestore', () => ({
   collection: (_db: unknown, ...path: string[]) => path.join('/'), doc: (path: string, id: string) => `${path}/${id}`,
   query: sdk.query, where: (...args: unknown[]) => args,
   onSnapshot: (_query: unknown, _options: unknown, change: typeof sdk.change, error: typeof sdk.error) => {
     sdk.change = change; sdk.error = error; return sdk.stop
-  }, setDoc: sdk.set, writeBatch: () => ({ set: sdk.batchSet, delete: sdk.batchDelete, commit: sdk.set }),
+  }, getDocsFromServer: sdk.read, setDoc: sdk.set, writeBatch: () => ({ set: sdk.batchSet, delete: sdk.batchDelete, commit: sdk.set }),
 }))
 const instant = '2026-11-10T10:00:00.000Z'
 const plan: WeekPlan = { weekStart: '2026-11-09', items: [{ id: 'one', kind: 'category', category: 'bag' }],
   createdAt: instant, updatedAt: instant, editedAfterWeekEnd: false }
 function emit(items: unknown[], fromCache = false, pending = false, ids?: string[]) {
+  items = items.map((item) => {
+    const week = item as WeekPlan
+    const path = `users/athlete/weekPlans/${week.weekStart}`
+    const header = [...sdk.batchSet.mock.calls, ...sdk.set.mock.calls].filter((args) => args[0] === path).sort((a, b) => (a[1]?.revision ?? 0) - (b[1]?.revision ?? 0)).at(-1)?.[1] as WeekPlan | undefined
+    return pending && header ? { ...week, revision: header.revision, ...(week.schedule ? { appliedRecurringRevision: header.appliedRecurringRevision, appliedRecurringIds: header.appliedRecurringIds } : {}) } : week
+  })
   sdk.change?.({ docs: items.flatMap((item, index) => {
     let documents: { id: string; data: unknown }[]
     try { documents = storedWeekPlanDocuments(item as WeekPlan) } catch { documents = [{ id: (item as WeekPlan).weekStart, data: { ...(item as object), schemaVersion: 1 } }] }
@@ -81,8 +87,8 @@ describe('date-keyed weekly repository', () => {
     const saved = repository.save(scheduled)
     emit([plan, scheduled], true, true)
     await saved
-    for (const document of storedWeekPlanDocuments(scheduled)) expect(sdk.batchSet).toHaveBeenCalledWith(`users/athlete/weekPlans/${document.id}`, document.data)
-    expect(change.mock.lastCall?.[0].items).toEqual([plan, scheduled])
+    for (const document of storedWeekPlanDocuments(scheduled)) expect(sdk.batchSet).toHaveBeenCalledWith(`users/athlete/weekPlans/${document.id}`, expect.objectContaining(document.data))
+    expect(change.mock.lastCall?.[0].items).toEqual([plan, expect.objectContaining({ ...scheduled, revision: 1 })])
     expect(sdk.set).toHaveBeenCalledOnce()
   })
   it('queries the owner range including the current and twelve previous weeks and all future weeks', () => {
@@ -113,7 +119,7 @@ describe('date-keyed weekly repository', () => {
     const saved = repository.save(changed)
     emit([changed], true, true)
     await expect(saved).resolves.toBeUndefined()
-    expect(sdk.set).toHaveBeenCalledWith('users/athlete/weekPlans/2026-11-09', { ...changed, schemaVersion: 1 })
+    expect(sdk.set).toHaveBeenCalledWith('users/athlete/weekPlans/2026-11-09', { ...changed, schemaVersion: 1, revision: 1 })
     expect(change.mock.lastCall?.[0]).toMatchObject({ hasPendingWrites: true, pendingIds: new Set([plan.weekStart]), complete: false })
     emit([changed])
     expect(change.mock.lastCall?.[0].pendingIds).toEqual(new Set())
@@ -148,18 +154,25 @@ describe('date-keyed weekly repository', () => {
     await expect(repository.save({ ...old, editedAfterWeekEnd: false })).rejects.toThrow('Historical')
     expect(sdk.set).not.toHaveBeenCalled()
   })
-  it('reports late rejection after local success and never reverts to apparent success on rollback', async () => {
-    let rejectServer!: (error: Error) => void
-    sdk.set.mockImplementation(() => new Promise((_resolve, reject) => { rejectServer = reject }))
+  it('recovers the first rejection silently and reports a second server rejection after local success', async () => {
+    const rejectServer: ((error: Error) => void)[] = []
+    sdk.set.mockImplementation(() => new Promise((_resolve, reject) => { rejectServer.push(reject) }))
+    sdk.read.mockImplementation(async (path: unknown) => ({ metadata: { hasPendingWrites: false }, docs: typeof path === 'string' ? [] : [
+      { id: plan.weekStart, data: () => ({ ...plan, schemaVersion: 1, revision: 1 }) },
+    ] }))
     const repository = create(), error = vi.fn()
     repository.subscribe(plan.weekStart, vi.fn(), error)
-    emit([])
-    const saved = repository.save(plan)
-    emit([plan], true, true)
+    emit([plan])
+    const changed = { ...plan, items: [] }
+    const saved = repository.save(changed)
+    emit([changed], true, true)
     await saved
-    rejectServer(new Error('permission-denied'))
-    await Promise.resolve()
-    expect(error).toHaveBeenCalledOnce()
+    rejectServer[0](new Error('permission-denied'))
+    await vi.waitFor(() => expect(sdk.set).toHaveBeenCalledTimes(2))
+    expect(error).not.toHaveBeenCalled()
+    emit([{ ...changed, schedule: [], targetCount: 0, revision: 2 }], true, true)
+    rejectServer[1](new Error('permission-denied'))
+    await vi.waitFor(() => expect(error).toHaveBeenCalledOnce())
     emit([])
     expect(error).toHaveBeenCalledTimes(2)
     await expect(repository.save(plan)).rejects.toThrow('safely available')

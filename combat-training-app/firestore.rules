@@ -133,17 +133,19 @@ service cloud.firestore {
 
     function isWeekPlan(data, documentId) {
       let legacy = data.schemaVersion == 1 && hasExactKeys(data, [
-          'schemaVersion', 'weekStart', 'items', 'createdAt', 'updatedAt', 'editedAfterWeekEnd'
+          'schemaVersion', 'weekStart', 'items', 'createdAt', 'updatedAt', 'editedAfterWeekEnd', 'revision'
         ]);
       let scheduled = data.schemaVersion == 2 && hasExactKeys(data, [
-          'schemaVersion', 'weekStart', 'items', 'createdAt', 'updatedAt', 'editedAfterWeekEnd', 'scheduleSize', 'targetCount'
+          'schemaVersion', 'weekStart', 'items', 'createdAt', 'updatedAt', 'editedAfterWeekEnd', 'scheduleSize', 'targetCount', 'revision', 'appliedRecurringRevision', 'appliedRecurringIds'
         ]) && data.items.size() == 0 && isNonNegativeInteger(data.scheduleSize) && data.scheduleSize <= 14
-        && isNonNegativeInteger(data.targetCount) && data.targetCount <= 14;
+        && isNonNegativeInteger(data.targetCount) && data.targetCount <= 14
+        && isNonNegativeInteger(data.appliedRecurringRevision) && data.appliedRecurringIds is list && data.appliedRecurringIds.size() <= 14;
       return (legacy || scheduled) && data.schemaVersion is int
         && data.weekStart is string && data.weekStart == documentId
         && data.weekStart.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
         && isInstant(data.createdAt) && isInstant(data.updatedAt)
         && data.editedAfterWeekEnd is bool
+        && isNonNegativeInteger(data.revision) && data.revision > 0
         // Actual Monday, unique item IDs and item variants are checked by zod/mini.
         && data.items is list && data.items.size() <= 14;
     }
@@ -163,7 +165,7 @@ service cloud.firestore {
         'disciplines': ['boxing', 'kickboxing', 'muay_thai', 'k1', 'mma_striking'],
         'parts': ['technique', 'pads', 'bag', 'sparring', 'conditioning', 'other'],
         'clubKeys': ['id', 'kind', 'day', 'omitted', 'disciplineKey', 'startTime', 'endTime', 'parts', 'clubName'],
-        'ownKeys': ['id', 'kind', 'day', 'omitted', 'category', 'workoutPlanId', 'planNameSnapshot'],
+        'ownKeys': ['id', 'kind', 'day', 'omitted', 'category', 'workoutPlanId', 'planNameSnapshot', 'legacyGoal'],
         'restKeys': ['id', 'kind', 'day', 'omitted']
       };
       // Method calls reject absent or wrongly typed fields as well.
@@ -173,17 +175,25 @@ service cloud.firestore {
         && (kind == 'club' ? (keys.hasOnly(options.clubKeys)
             && isClubFields(item.day, item.disciplineKey, item.startTime, item.endTime, item.parts, item.clubName, options))
           : kind == 'own' ? (keys.hasOnly(options.ownKeys)
+            && (!('legacyGoal' in item) || (scheduled && isLegacyGoal(item.legacyGoal)))
             && (item.day == null || item.day in options.days) && isCategory(item.category)
             && ((item.workoutPlanId == null && item.planNameSnapshot == null)
               || (item.workoutPlanId.matches('[^/]{1,128}') && item.planNameSnapshot.matches('[\\s\\S]{1,200}'))))
           : kind == 'rest' && keys.hasOnly(options.restKeys) && item.day in options.days && (!scheduled || !item.omitted));
     }
 
+    function isLegacyGoal(goal) {
+      return goal.id is string && goal.id.matches('[^/]+')
+        && (goal.kind == 'plan'
+          ? hasExactKeys(goal, ['id', 'kind', 'workoutPlanId', 'planNameSnapshot']) && goal.workoutPlanId.matches('[^/]+') && goal.planNameSnapshot.size() > 0
+          : goal.kind == 'category' && hasExactKeys(goal, ['id', 'kind', 'category']) && isCategory(goal.category));
+    }
+
     function isRecurringWeek(data, documentId) {
       return data.schemaVersion is int && data.schemaVersion == 1 && data.id == documentId
         && isInstant(data.createdAt) && isInstant(data.updatedAt)
         && (documentId == 'default'
-          ? hasExactKeys(data, ['schemaVersion', 'id', 'itemCount', 'createdAt', 'updatedAt']) && isNonNegativeInteger(data.itemCount) && data.itemCount <= 14
+          ? hasExactKeys(data, ['schemaVersion', 'id', 'itemCount', 'createdAt', 'updatedAt', 'revision']) && isNonNegativeInteger(data.itemCount) && data.itemCount <= 14 && isNonNegativeInteger(data.revision) && data.revision > 0
           : hasExactKeys(data, ['schemaVersion', 'id', 'position', 'activity', 'createdAt', 'updatedAt'])
             && isNonNegativeInteger(data.position) && data.position < 14 && documentId == 'item-' + string(data.position) && isActivity(data.activity, false));
     }
@@ -399,17 +409,19 @@ service cloud.firestore {
 
     match /users/{uid}/weekPlans/{documentId} {
       allow read, delete: if isVerifiedOwner(uid);
-      allow create: if isVerifiedOwner(uid) && (('position' in request.resource.data && isWeekPlanEntry(request.resource.data, documentId)) || isWeekPlan(request.resource.data, documentId));
+      allow create: if isVerifiedOwner(uid) && (('position' in request.resource.data && isWeekPlanEntry(request.resource.data, documentId)) || (isWeekPlan(request.resource.data, documentId) && request.resource.data.revision == 1));
       allow update: if isVerifiedOwner(uid) && (('position' in request.resource.data && isWeekPlanEntry(request.resource.data, documentId)) || isWeekPlan(request.resource.data, documentId))
         && request.resource.data.createdAt == resource.data.createdAt
+        && ('position' in request.resource.data || request.resource.data.revision == resource.data.get('revision', 0) + 1)
         && (!('editedAfterWeekEnd' in resource.data) || resource.data.editedAfterWeekEnd != true || request.resource.data.editedAfterWeekEnd == true);
     }
 
     match /users/{uid}/recurringWeeks/{documentId} {
       allow read, delete: if isVerifiedOwner(uid);
-      allow create: if isVerifiedOwner(uid) && isRecurringWeek(request.resource.data, documentId);
+      allow create: if isVerifiedOwner(uid) && isRecurringWeek(request.resource.data, documentId) && (documentId != 'default' || request.resource.data.revision == 1);
       allow update: if isVerifiedOwner(uid) && isRecurringWeek(request.resource.data, documentId)
-        && request.resource.data.createdAt == resource.data.createdAt;
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (documentId != 'default' || request.resource.data.revision == resource.data.get('revision', 0) + 1);
     }
 
     // All other documents and subcollections are denied by default.

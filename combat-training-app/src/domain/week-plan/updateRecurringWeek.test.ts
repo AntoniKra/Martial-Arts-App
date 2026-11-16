@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { generateScheduledWeek } from './scheduledWeek'
 import { scheduledWeekFromLegacy, updateCurrentWeekFromRecurring } from './updateRecurringWeek'
 import type { RecurringWeek, WeekActivity, WeekPlan } from './weekPlan.types'
-import { block, continuousExercise, workoutPlan } from '@/test/workoutBuilders'
 
 const now = new Date('2026-11-17T10:00:00Z'), weekStart = '2026-11-16'
 const club: WeekActivity = { id: 'club', kind: 'club', day: 1, disciplineKey: 'boxing', startTime: '18:00', endTime: '19:30', parts: ['technique'], clubName: null }
@@ -58,7 +57,7 @@ describe('recurring changes from today in Warsaw', () => {
     }
   })
   it('leaves week-only additions intact and adjusts an independent target by the occurrence delta', () => {
-    const current = week([{ ...club, id: 'week-only' }]); current.targetCount = 5
+    const current = week([]); current.schedule!.push({ ...club, id: 'week-only', omitted: false }); current.targetCount = 5
     const next = updateCurrentWeekFromRecurring(undefined, recurring([club]), current, now)
     expect(next.schedule).toHaveLength(2); expect(next.targetCount).toBe(6)
   })
@@ -79,7 +78,7 @@ describe('recurring changes from today in Warsaw', () => {
     expect(updateCurrentWeekFromRecurring(next, recurring([club]), result, now).schedule).toHaveLength(1)
   })
   it('rejects overflow rather than dropping a manual or recurring item', () => {
-    const current = week(Array.from({ length: 14 }, (_, i) => ({ ...club, id: `manual-${i}` })))
+    const current = week([]); current.schedule = Array.from({ length: 14 }, (_, i) => ({ ...club, id: `manual-${i}`, omitted: false }))
     expect(() => updateCurrentWeekFromRecurring(undefined, recurring([club]), current, now)).toThrow('limit')
     expect(current.schedule).toHaveLength(14)
   })
@@ -88,12 +87,11 @@ describe('recurring changes from today in Warsaw', () => {
 describe('legacy week presentation and migration', () => {
   it('preserves every ID, saved plan name, category and history field without rewriting on read', () => {
     const legacy: WeekPlan = { weekStart, items: [{ id: 'plan', kind: 'plan', workoutPlanId: 'bag-plan', planNameSnapshot: 'Saved name' }, { id: 'category', kind: 'category', category: 'pads' }], createdAt: '2026-11-01T10:00:00Z', updatedAt: now.toISOString(), editedAfterWeekEnd: true }
-    const library = { ...workoutPlan([block('bag', [continuousExercise('bag', 60)], 'bag')]), id: 'bag-plan' }
-    const migrated = scheduledWeekFromLegacy(legacy, [library])
+    const migrated = scheduledWeekFromLegacy(legacy)
     expect(migrated).toMatchObject({ ...legacy, items: [], targetCount: 2 })
     expect(migrated.schedule).toEqual([
-      { id: 'plan', kind: 'own', day: null, category: 'bag', workoutPlanId: 'bag-plan', planNameSnapshot: 'Saved name', omitted: false },
-      { id: 'category', kind: 'own', day: null, category: 'pads', workoutPlanId: null, planNameSnapshot: null, omitted: false },
+      { id: 'plan', kind: 'own', day: null, category: 'mixed', workoutPlanId: 'bag-plan', planNameSnapshot: 'Saved name', omitted: false, legacyGoal: legacy.items[0] },
+      { id: 'category', kind: 'own', day: null, category: 'pads', workoutPlanId: null, planNameSnapshot: null, omitted: false, legacyGoal: legacy.items[1] },
     ])
     expect(legacy.items).toHaveLength(2)
     expect(scheduledWeekFromLegacy(migrated)).toBe(migrated)
