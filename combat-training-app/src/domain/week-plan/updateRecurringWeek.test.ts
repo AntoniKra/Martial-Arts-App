@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { generateScheduledWeek } from './scheduledWeek'
 import { scheduledWeekFromLegacy, updateCurrentWeekFromRecurring } from './updateRecurringWeek'
-import type { RecurringWeek, WeekActivity, WeekPlan } from './weekPlan.types'
+import type { RecurringWeek, ScheduledWeekItem, WeekActivity, WeekPlan } from './weekPlan.types'
 
 const now = new Date('2026-11-17T10:00:00Z'), weekStart = '2026-11-16'
 const club: WeekActivity = { id: 'club', kind: 'club', day: 1, disciplineKey: 'boxing', startTime: '18:00', endTime: '19:30', parts: ['technique'], clubName: null }
@@ -81,6 +81,63 @@ describe('recurring changes from today in Warsaw', () => {
     const current = week([]); current.schedule = Array.from({ length: 14 }, (_, i) => ({ ...club, id: `manual-${i}`, omitted: false }))
     expect(() => updateCurrentWeekFromRecurring(undefined, recurring([club]), current, now)).toThrow('limit')
     expect(current.schedule).toHaveLength(14)
+  })
+})
+
+describe('automatic reconciliation of pre-176 indexed occurrences', () => {
+  const start = '2026-11-23', openedAt = new Date('2026-11-24T10:00:00Z')
+  const friday = { ...club, day: 4 as const }
+  const indexed: ScheduledWeekItem = { ...friday, id: `${start}:0`, omitted: false }
+  const next: RecurringWeek = { ...recurring([{ ...friday, startTime: '17:00' }]), revision: 1 }
+  const savedWeek = (schedule: ScheduledWeekItem[]): WeekPlan => ({ weekStart: start, items: [], schedule,
+    targetCount: schedule.length, createdAt: now.toISOString(), updatedAt: now.toISOString(), editedAfterWeekEnd: false })
+
+  it('updates the old Friday boxing time without duplicating it or increasing the target', () => {
+    const current = savedWeek([indexed])
+    const result = updateCurrentWeekFromRecurring(undefined, next, current, openedAt)
+    expect(result.schedule).toEqual([{ ...next.items[0], id: `${start}:club`, omitted: false }])
+    expect(result).toMatchObject({ targetCount: 1, appliedRecurringRevision: 1, appliedRecurringIds: ['club'] })
+    expect(updateCurrentWeekFromRecurring(undefined, next, result, openedAt)).toEqual(result)
+    expect(current.schedule).toEqual([indexed])
+  })
+
+  it.each([
+    { ...indexed, day: 3 as const },
+    { ...indexed, disciplineKey: 'muay_thai' as const },
+    { id: indexed.id, kind: 'own' as const, day: 4 as const, category: 'bag' as const, workoutPlanId: null, planNameSnapshot: null, omitted: false },
+  ])('keeps an unmatched indexed entry as a one-off: $kind/$day/$disciplineKey', (unmatched) => {
+    const result = updateCurrentWeekFromRecurring(undefined, next, savedWeek([unmatched, { ...indexed, id: `${start}:1` }]), openedAt)
+    expect(result.schedule).toEqual([unmatched, { ...next.items[0], id: `${start}:club`, omitted: false }])
+    expect(result.targetCount).toBe(2)
+  })
+
+  it('matches each recurring entry at most once and leaves the extra occurrence unchanged', () => {
+    const extra = { ...indexed, id: `${start}:1`, startTime: '20:00', endTime: '21:00' }
+    const result = updateCurrentWeekFromRecurring(undefined, next, savedWeek([indexed, extra]), openedAt)
+    expect(result.schedule).toEqual([{ ...next.items[0], id: `${start}:club`, omitted: false }, extra])
+    expect(result.targetCount).toBe(2)
+  })
+
+  it('preserves an omitted indexed occurrence without adding it back', () => {
+    const current = savedWeek([{ ...indexed, omitted: true }])
+    const result = updateCurrentWeekFromRecurring(undefined, next, current, openedAt)
+    expect(result.schedule).toEqual(current.schedule)
+    expect(result.targetCount).toBe(1)
+  })
+
+  it('preserves a manually detached edit alongside the matched occurrence', () => {
+    const manual = { ...indexed, id: 'manual-edit', startTime: '16:00' }
+    const result = updateCurrentWeekFromRecurring(undefined, next, savedWeek([manual, indexed]), openedAt)
+    expect(result.schedule).toEqual([manual, { ...next.items[0], id: `${start}:club`, omitted: false }])
+    expect(result.targetCount).toBe(2)
+  })
+
+  it('matches own workouts by category rather than their former index', () => {
+    const own = { id: 'bag', kind: 'own' as const, day: null, category: 'bag' as const, workoutPlanId: null, planNameSnapshot: null }
+    const unmatched = { ...own, id: `${start}:0`, category: 'pads' as const, omitted: false }
+    const result = updateCurrentWeekFromRecurring(undefined, { ...next, items: [own] }, savedWeek([unmatched, { ...own, id: `${start}:1`, omitted: false }]), openedAt)
+    expect(result.schedule).toEqual([unmatched, { ...own, id: `${start}:bag`, omitted: false }])
+    expect(result.targetCount).toBe(2)
   })
 })
 

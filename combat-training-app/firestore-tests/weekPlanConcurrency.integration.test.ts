@@ -3,12 +3,14 @@ import { initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/
 import { collection, disableNetwork, doc, enableNetwork, getDocFromServer, getDocsFromServer, setLogLevel, waitForPendingWrites, type Firestore } from 'firebase/firestore'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest'
 import type { RepositorySnapshot } from '../src/application/repositorySubscription'
-import type { RecurringWeek, WeekPlan } from '../src/domain/week-plan/weekPlan.types'
+import type { RecurringWeek, ScheduledWeekItem, WeekPlan } from '../src/domain/week-plan/weekPlan.types'
 import { changeScheduledWeek, generateScheduledWeek } from '../src/domain/week-plan/scheduledWeek'
 import { updateCurrentWeekFromRecurring } from '../src/domain/week-plan/updateRecurringWeek'
 import { currentWeekStart } from '../src/domain/week-plan/weekCalendar'
 import { createFirestoreRecurringWeekRepository } from '../src/infrastructure/firebase/firestoreRecurringWeekRepository'
 import { FirestoreWeekPlanRepository } from '../src/infrastructure/firebase/firestoreWeekPlanRepository'
+import { combineWeekPlanDocuments, storedWeekPlanDocuments } from '../src/infrastructure/firebase/weekPlanDocumentSchema'
+import { recurringWeekRecords } from '../src/infrastructure/firebase/recurringWeekDocumentSchema'
 
 let environment: RulesTestEnvironment
 const uid = 'week-plan-concurrency', instant = '2026-11-15T10:00:00.000Z'
@@ -44,6 +46,7 @@ beforeAll(async () => {
 })
 beforeEach(async () => { await environment.clearFirestore() })
 afterEach(async () => {
+  vi.useRealTimers()
   for (const stop of stops.splice(0)) stop()
   await Promise.all(databases.splice(0).map((db) => enableNetwork(db)))
 })
@@ -89,6 +92,56 @@ it('rejects stale offline propagation, reconciles once, and preserves the other 
   await a.reconcile(sourceB!.items[0], now)
   await waitForPendingWrites(dbA)
   expect(snapshotA?.items[0].revision).toBe(3)
+})
+
+it.each(['original', 'unmatched', 'manual-edit', 'omitted'] as const)('reconciles a pre-176 saved week on November 24: %s', async (scenario) => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-11-17T10:00:00Z'))
+  const start = '2026-11-23', savedAt = new Date().toISOString()
+  const club = { id: 'boxing', kind: 'club' as const, day: 4 as const, disciplineKey: 'boxing' as const,
+    startTime: '18:00', endTime: '19:30', parts: [], clubName: null }
+  const original: ScheduledWeekItem = { ...club, id: `${start}:0`, omitted: scenario === 'omitted' }
+  const extra: ScheduledWeekItem[] = scenario === 'unmatched' ? [{ ...original, id: `${start}:1`, disciplineKey: 'muay_thai' }]
+    : scenario === 'manual-edit' ? [{ ...original, id: 'manual-edit', startTime: '16:00' }] : []
+  const old: WeekPlan = { weekStart: start, items: [], schedule: [original, ...extra], targetCount: 1 + extra.length,
+    createdAt: savedAt, updatedAt: savedAt, editedAfterWeekEnd: false }
+  const source: RecurringWeek = { id: 'default', items: [club], createdAt: savedAt, updatedAt: savedAt }
+  // Seed the actual pre-176 format: no revision or applied-recurring metadata.
+  await environment.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore(), batch = db.batch()
+    for (const record of storedWeekPlanDocuments(old)) batch.set(db.doc(`users/${uid}/weekPlans/${record.id}`), record.data)
+    for (const record of recurringWeekRecords(source)) batch.set(db.doc(`users/${uid}/recurringWeeks/${record.id}`), record)
+    await batch.commit()
+  })
+  const db = database(), repository = new FirestoreWeekPlanRepository(db, uid)
+  const recurringRepository = createFirestoreRecurringWeekRepository(db, uid), errors = vi.fn()
+  let weeks: RepositorySnapshot<WeekPlan> | undefined, recurring: RepositorySnapshot<RecurringWeek> | undefined
+  stops.push(repository.subscribe('2026-11-16', (snapshot) => { weeks = snapshot }, errors))
+  stops.push(recurringRepository.subscribe((snapshot) => { recurring = snapshot }, errors))
+  await vi.waitFor(() => {
+    expect(weeks).toMatchObject({ fromCache: false, invalidDocumentIds: [], items: [old] })
+    expect(recurring).toMatchObject({ fromCache: false, invalidDocumentIds: [], items: [source] })
+  })
+  await recurringRepository.save({ ...source, items: [{ ...club, startTime: '17:00' }] })
+  await waitForPendingWrites(db)
+  await vi.waitFor(() => expect(recurring).toMatchObject({ hasPendingWrites: false, items: [{ revision: 1 }] }))
+  expect(weeks?.items[0]).toEqual(old)
+
+  vi.setSystemTime(new Date('2026-11-24T10:00:00Z'))
+  await repository.reconcile(recurring!.items[0], new Date())
+  await waitForPendingWrites(db)
+  const expected = scenario === 'omitted' ? old.schedule : [{ ...club, id: `${start}:boxing`, startTime: '17:00', omitted: false }, ...extra]
+  await vi.waitFor(() => expect(weeks).toMatchObject({ fromCache: false, hasPendingWrites: false, invalidDocumentIds: [],
+    items: [{ revision: 1, appliedRecurringRevision: 1, appliedRecurringIds: ['boxing'], targetCount: old.targetCount, schedule: expected }] }))
+  const records = await getDocsFromServer(collection(db, 'users', uid, 'weekPlans'))
+  const saved = combineWeekPlanDocuments(records.docs.map((record) => ({ id: record.id, data: record.data() })))
+  expect(saved.schedule).toEqual(expected)
+  expect(saved.targetCount).toBe(old.targetCount)
+  expect(saved.appliedRecurringRevision).toBe(1)
+  await repository.reconcile(recurring!.items[0], new Date())
+  await waitForPendingWrites(db)
+  expect(weeks?.items[0]).toEqual(saved)
+  expect(errors).not.toHaveBeenCalled()
 })
 
 it('reconciles a newer recurring revision on opening the current week without re-adding a manual deletion', async () => {

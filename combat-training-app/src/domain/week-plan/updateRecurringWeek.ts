@@ -24,14 +24,28 @@ export function updateCurrentWeekFromRecurring(previous: RecurringWeek | undefin
   const upcoming = (day: number | null) => day === null || shiftCalendarDate(weekStart, day) >= today
   // Remember even removed IDs: manual deletions must not become additions on reconciliation.
   const linkedIds = schedule.flatMap((item) => item.id.startsWith(`${weekStart}:`) && !/^\d+$/.test(item.id.slice(11)) ? [item.id.slice(11)] : [])
+  const legacyIds = new Map<string, string>()
+  if (!previous && base.appliedRecurringRevision === undefined && base.appliedRecurringIds === undefined) {
+    // Pre-176 snapshots have only indexed IDs. Match slots once; time may have changed since the snapshot.
+    const claimed = new Set(linkedIds)
+    for (const occurrence of schedule) {
+      if (!occurrence.id.startsWith(`${weekStart}:`) || !/^\d+$/.test(occurrence.id.slice(11)) || occurrence.legacyGoal) continue
+      const match = next.items.find((item) => !claimed.has(item.id) && item.day === occurrence.day && item.kind === occurrence.kind
+        && (item.kind !== 'club' || occurrence.kind === 'club' && item.disciplineKey === occurrence.disciplineKey)
+        && (item.kind !== 'own' || occurrence.kind === 'own' && item.category === occurrence.category))
+      if (match) { legacyIds.set(match.id, occurrence.id); claimed.add(match.id) }
+    }
+  }
   const previousIds = [...new Set([
     ...(base.appliedRecurringIds ?? previous?.items.map((item) => item.id) ?? linkedIds),
     ...((base.appliedRecurringRevision ?? 0) === 0 && (previous?.revision ?? 0) === 0 ? previous?.items.map((item) => item.id) ?? [] : []),
+    ...legacyIds.keys(),
   ])]
   for (const [index, oldId] of previousIds.entries()) {
     const old = previous?.items.find((item) => item.id === oldId)
     const stableId = recurringOccurrenceId(weekStart, oldId)
-    const position = schedule.findIndex((item) => item.id === stableId || item.id === `${weekStart}:${index}`)
+    const indexedId = previous ? `${weekStart}:${index}` : legacyIds.get(oldId)
+    const position = schedule.findIndex((item) => item.id === stableId || item.id === indexedId)
     if (position < 0) continue // A removed or manually detached occurrence stays untouched.
     const occurrence = schedule[position]
     const { id: _id, omitted, ...actual } = occurrence
