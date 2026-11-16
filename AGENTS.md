@@ -91,7 +91,7 @@ Read `docs/workout-player-spec.md` before changing the player.
 Read `docs/design-system.md` before UI work.
 
 - Dark mode exists; a light mode with a remembered user choice is required for the final version. Use theme tokens, never hard-coded colours.
-- Near-black charcoal, off-white and a restrained blood-red accent. Angular geometry, 0–4 px radii. No glassmorphism, glow, glossy effects, heavy shadows or decorative gradients.
+- Near-black charcoal, off-white, crimson with ember accents. Angular geometry, 0–4 px radii; rectangular status badges. Gradients allowed per `docs/design-system.md` (primary buttons, accents, charts, Start card decoration); no glassmorphism; status never by colour alone.
 - Archivo for display text, Inter for interface text, tabular figures for timers.
 - Accessibility: never communicate status by colour alone, visible focus states, touch targets of about 44×44 px, respect `prefers-reduced-motion`.
 - Polish UI strings are not repeated by hand across unrelated components; keep shared labels in one place.

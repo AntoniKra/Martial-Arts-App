@@ -45,7 +45,7 @@ for (const theme of ['dark', 'light'] as const) test(`opens one bottom sheet, va
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page).toHaveURL(`/progress/week/${weekStart}`)
   await add.click(); await hours(page); await save(page)
-  await expect(row(page, 'Wtorek', '2026-11-17')).toContainText('○ Plan')
+  await expect(row(page, 'Wtorek', '2026-11-17')).toContainText('Plan')
   await expect.poll(async () => (await app.readWeekPlans())[0]?.schedule?.length).toBe(1)
   expect(await app.readRecurringWeek()).toBeUndefined()
   await expect(page.getByText('Zapisano na urządzeniu.', { exact: true })).toHaveCount(0)
@@ -115,7 +115,7 @@ test('leaves past days, moved, omitted and week-only entries untouched when recu
   await expect(row(page, 'Piątek', '2026-11-20')).toContainText('Boks')
   await thursday.getByRole('button', { name: 'Opcje: Boks', exact: true }).click()
   await thursday.getByRole('button', { name: 'Nie byłem', exact: true }).click()
-  await expect(thursday).toContainText('✗ Nie byłem')
+  await expect(thursday).toContainText('– Nie byłem')
   await expect.poll(async () => (await app.readWeekPlans())[0]?.schedule?.some((item) => item.omitted)).toBe(true)
   const before = (await app.readWeekPlans())[0].schedule
   await page.getByRole('button', { name: /^Stały tydzień/ }).click()

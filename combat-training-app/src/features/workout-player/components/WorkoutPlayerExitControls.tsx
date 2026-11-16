@@ -153,7 +153,7 @@ export function WorkoutPlayerExitControls({
               }}
             >{labels.skipExercise(remainingRounds)}</button> : null}
             <div aria-hidden="true" className="h-5" />
-            <button type="button" className="min-h-[52px] rounded-[2px] bg-crimson px-3 font-display text-sm font-extrabold uppercase tracking-[0.06em] text-on-accent hover:bg-crimson-hi"
+            <button type="button" className="primary-action min-h-[52px] px-3 font-display text-sm font-extrabold uppercase tracking-[0.06em] text-on-accent"
               onClick={() => { closeExit(); onEndEarly() }}
             >{labels.endEarly}</button>
             <button type="button" className="min-h-touch px-3 text-sm font-semibold text-crimson-ink"

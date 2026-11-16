@@ -3,19 +3,22 @@ import { routes } from '@/app/routes'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { formatPolishCount } from '@/domain/language/polishPlural'
 import type { FeaturedWorkoutPlanLoadState } from '../types/homeView.types'
-import { homeLabels as labels } from '../homeLabels'
+import { homeCardDate, homeLabels as labels } from '../homeLabels'
+import { StormDecoration } from './StormDecoration'
 import { homePrimaryButton, homeSecondaryButton, homeSectionLabel } from './HomeScheduleCards'
 
-export function HomeQuickStart({ state, timerLabel, onRetry }: { state: FeaturedWorkoutPlanLoadState; timerLabel: string; onRetry: () => void }) {
+export function HomeQuickStart({ state, today, timerLabel, onRetry }: { state: FeaturedWorkoutPlanLoadState; today: string; timerLabel: string; onRetry: () => void }) {
   const plan = state.status === 'success' ? state.plan : null
-  return <section aria-label={labels.quickStart} className="flex flex-col border border-bd bg-surface">
+  return <section aria-label={labels.quickStart} className="storm-card flex flex-col">
+    <StormDecoration />
     {/* Reserve the same reachable primary-action position as the today card. */}
-    <div className="flex min-h-[282px] flex-col gap-1 px-4 pb-3 pt-4 md:min-h-0">
+    <div className="flex min-h-[366px] flex-col gap-2 px-4 pb-3 pt-[18px] md:min-h-0">
+      <p className={`${homeSectionLabel} text-crimson-ink`}>{homeCardDate(today)}</p>
       <h2 className={homeSectionLabel}>{labels.quickStart}</h2>
       {plan ? <>
         <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-crimson-ink">{labels.discipline(plan.disciplineKey)} · {labels.activePlan}</p>
-        <h3 className="break-words font-display text-[22px] font-bold leading-tight">{plan.name}</h3>
-        <p className="text-sm tabular-nums text-muted">{formatPolishCount(plan.blockCount, 'blok', 'bloki', 'bloków')} · {formatPolishCount(plan.roundCount, 'runda', 'rundy', 'rund')} · {plan.estimatedDurationLabelPl}</p>
+        <h3 className="storm-copy break-words font-display text-[30px] font-extrabold leading-[1.05]">{plan.name}</h3>
+        <p className="storm-copy text-sm tabular-nums text-muted">{formatPolishCount(plan.blockCount, 'blok', 'bloki', 'bloków')} · {formatPolishCount(plan.roundCount, 'runda', 'rundy', 'rund')} · {plan.estimatedDurationLabelPl}</p>
       </> : state.status === 'loading' ? <p role="status" className="text-sm text-muted">{labels.loadingPlan}</p>
         : state.status === 'error' ? <div role="alert" className="text-sm text-muted"><p>{state.message}</p><button type="button" onClick={onRetry} className={homeSecondaryButton}>{labels.retry}</button></div>
           : <p className="text-sm text-muted">{labels.emptyHint}</p>}

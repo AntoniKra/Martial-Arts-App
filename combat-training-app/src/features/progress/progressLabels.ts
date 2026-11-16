@@ -8,6 +8,7 @@ export const progressLabels = {
   chart: 'Oceny według daty treningu', lastWeeks: 'Ostatnie 12 tygodni',
   assessmentAxis: 'Ocena', dateAxis: 'Data treningu', placesLegend: 'Legenda miejsc',
   noActiveSkills: 'Brak aktywnych elementów do poprawy',
+  notRatedYet: 'Jeszcze bez ocen', rateAfterWorkout: 'Ocenisz po najbliższym treningu',
   latest: (value: number | 'unableToRate', date: string, place: string) => `Ostatnia ocena: ${value} · ${formatProgressDate(date)} · ${place}`,
   previous: 'według poprzedniego kryterium', unable: 'Nie umiem ocenić', change: 'Zmiana kryterium',
   currentCount: (count: number) => `Oceny według obecnego kryterium: ${count}`,

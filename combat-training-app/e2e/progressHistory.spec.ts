@@ -17,6 +17,8 @@ test('shows progress tiles, expands five to twelve weeks, and opens the selected
   await expect(page.getByText('minut · zwykle 60', { exact: true })).toBeVisible()
   const chart = page.getByRole('region', { name: 'Ostatnie tygodnie', exact: true })
   await expect(chart.getByRole('link')).toHaveCount(5)
+  await expect(chart.locator('.is-current .progress-week-bar')).toHaveCSS('background-image', /linear-gradient.*rgb\(240, 117, 58\)/)
+  await expect(chart.locator('.progress-week-column:not(.is-current):not(.is-hidden) .progress-week-bar').first()).toHaveCSS('background-image', /linear-gradient.*rgb\(122, 26, 40\)/)
   await chart.getByRole('button', { name: 'Pokaż 12 tygodni', exact: true }).click()
   await expect(chart.getByRole('link')).toHaveCount(12)
   await chart.getByRole('button', { name: 'Pokaż mniej', exact: true }).click()

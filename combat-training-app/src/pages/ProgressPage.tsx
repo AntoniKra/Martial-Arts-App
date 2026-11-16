@@ -18,10 +18,15 @@ function SkillCard({ skill }: { skill: FocusSkill }) {
   return <li><Link to={routes.focusSkillProgress(skill.id)} className="block min-h-touch space-y-2 border border-bd bg-surface p-4 hover:bg-elevated">
     <div className="flex items-start justify-between gap-3"><div><h3 className="break-words font-display text-[15px] font-bold">{skill.name}</h3>
     <p className="break-words text-sm text-muted">{skill.criterion}</p></div>
-    <p className="shrink-0 font-display text-[28px] font-extrabold tabular-nums">{summary.value ?? '—'}<span className="text-sm text-muted">/5</span></p></div>
-    <div aria-hidden="true" className="grid grid-cols-5 gap-[3px]">{[1, 2, 3, 4, 5].map((value) => <span key={value} className={`h-2.5 ${summary.value !== null && value <= summary.value ? 'bg-crimson' : 'bg-bd'}`} />)}</div>
-    <div className="flex flex-wrap justify-between gap-2 text-xs text-muted"><p>{summary.recent.length ? `ostatnio: ${summary.recent.join(' → ')}` : labels.noRatings}</p>
-    {summary.trend && <p className="border border-bd px-2 py-1 font-bold">{summary.trend}</p>}</div>
+    {summary.value !== null && <p className="shrink-0 font-display text-[28px] font-extrabold tabular-nums">{summary.value}<span className="text-sm text-muted">/5</span></p>}</div>
+    {summary.value === null ? <div className="flex items-center gap-2.5 rounded-sm border border-dashed border-bd bg-elevated px-3 py-2.5">
+      <svg aria-hidden="true" className="size-[18px] shrink-0 text-crimson-ink" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" /></svg>
+      <div><p className="text-sm font-bold">{labels.notRatedYet}</p><p className="text-xs text-muted">{labels.rateAfterWorkout}</p></div>
+    </div> : <>
+      <div aria-hidden="true" className="grid grid-cols-5 gap-[3px]">{[1, 2, 3, 4, 5].map((value) => <span key={value} className={`h-2 rounded-[1px] ${summary.value !== null && value <= summary.value ? 'accent-fill' : 'bg-bd'}`} />)}</div>
+      <div className="flex flex-wrap justify-between gap-2 text-xs text-muted"><p>{summary.recent.length ? `ostatnio: ${summary.recent.join(' → ')}` : labels.noRatings}</p>
+      {summary.trend && <p className={`status-badge ${summary.trend.startsWith('↑') ? 'is-improved' : 'is-neutral'}`}>{summary.trend}</p>}</div>
+    </>}
     {focusSkills.pendingIds.has(skill.id) && <p className="text-xs text-muted">{workoutDataLabels.pending}</p>}
   </Link></li>
 }
@@ -32,9 +37,9 @@ export function Component() {
   const correction = ready ? latestCorrection(sessions.items) : null
   const active = selectAvailableFocusSkills(focusSkills.items)
   const archived = focusSkills.items.filter((skill) => skill.archivedAt !== null).sort((a, b) => a.name.localeCompare(b.name, 'pl'))
-  return <div className="space-y-6 px-4 py-6 md:px-0">
-    <h1 className="font-display text-3xl font-bold">{labels.title}</h1>
-    <p className="text-xs text-muted">{new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', timeZone: 'UTC' }).formatRange(new Date(`${currentWeek}T12:00:00Z`), new Date(`${shiftCalendarDate(currentWeek, 6)}T12:00:00Z`))} · ten tydzień</p>
+  return <div className="space-y-[18px] px-4 pb-6 pt-14 md:px-0 md:pt-0">
+    <header className="space-y-0.5"><h1 className="font-display text-[28px] font-extrabold">{labels.title}</h1>
+    <p className="text-[13px] text-muted">{new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', timeZone: 'UTC' }).formatRange(new Date(`${currentWeek}T12:00:00Z`), new Date(`${shiftCalendarDate(currentWeek, 6)}T12:00:00Z`))} · ten tydzień</p></header>
     <ProgressOverview />
     {plans.hasPendingWrites || focusSkills.hasPendingWrites || sessions.hasPendingWrites || weekPlans.hasPendingWrites ? <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p> : null}
     <ProgressDataWarning />

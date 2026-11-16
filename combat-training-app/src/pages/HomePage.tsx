@@ -40,7 +40,7 @@ export function HomePage() {
     : plans.status === 'loading' ? { status: 'loading' as const } : { status: 'error' as const, message: workoutDataLabels.plansLoadError }
   const timer = uid ? createQuickTimerStorage(uid).read() : defaultQuickTimerDraft()
   const timerLabel = `${timer.roundCount} × ${formatSecondsAsClock(timer.roundDurationSeconds)}`
-  const quickStart = <HomeQuickStart state={featuredPlanLoadState} timerLabel={timerLabel} onRetry={retry} />
+  const quickStart = <HomeQuickStart today={today} state={featuredPlanLoadState} timerLabel={timerLabel} onRetry={retry} />
   const progress = calculateWeekPlanProgress(plan.weekStart, plan, sessions.items)
   const minutes = Math.round(calculateWeeklySummary(plan.weekStart, sessions.items).durationSeconds / 60)
   const empty = ready && sessionsReady && plans.status === 'ready' && plans.complete && !plans.invalidDocumentIds.length
@@ -65,7 +65,7 @@ export function HomePage() {
         {[plan, ...weekPlans.items.filter((week) => week.weekStart !== plan.weekStart)].map((week) => <HomeOverdueWeek key={week.weekStart} plan={week} entries={schedule.overdue.filter((entry) => entry.weekStart === week.weekStart)} today={today} />)}
       </section>}
       wellbeing={uid && profile.status === 'ready' && hasWellbeingConsent(profile.items[0]) ? <Suspense fallback={null}><WellbeingHomeCard key={uid} uid={uid} /></Suspense> : null}
-      weekPlan={schedule && <><HomeWeekCard weekStart={plan.weekStart} schedule={schedule} progress={progress} minutes={minutes} /><HomePendingWeek />
+      weekPlan={schedule && <><HomeWeekCard today={today} weekStart={plan.weekStart} schedule={schedule} progress={progress} minutes={minutes} /><HomePendingWeek />
         {generationError && <div role="alert" className="text-sm text-crimson-ink"><p>{scheduleLabels.failed}</p><button type="button" className={homeSecondaryButton} onClick={retryGeneration}>{homeLabels.retry}</button></div>}</>}
       rpeReminder={uid && sessions.status === 'ready' ? <RpeReminder key={uid} uid={uid} sessions={sessions.items} /> : null}
       featuredPlanLoadState={featuredPlanLoadState}

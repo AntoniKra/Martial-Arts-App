@@ -83,7 +83,7 @@ export function WorkoutPlayerControls({
             type="button"
             onClick={handlePrimaryAction}
             aria-label={getPrimaryControlLabel(status)}
-            className="absolute top-1/2 left-1/2 flex size-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-crimson text-on-accent ring-4 ring-bg transition-colors hover:bg-crimson-hi active:bg-crimson"
+            className="absolute top-1/2 left-1/2 flex size-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[image:var(--app-grad-primary)] text-on-accent ring-4 ring-bg transition-colors"
           >
             {showPause ? <PauseIcon className="size-[38px]" /> : <PlayIcon className="size-[38px]" />}
             {status === 'preparing' ? (

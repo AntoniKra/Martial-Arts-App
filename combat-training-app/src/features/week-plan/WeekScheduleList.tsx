@@ -10,13 +10,13 @@ export function WeekScheduleList({ items, weekStart, today, recurring = false, d
   const add = (day: Weekday) => <button type="button" aria-label={`Dodaj trening: ${weekdays[day].name.toLocaleLowerCase('pl-PL')}`} disabled={disabled}
     className="flex size-11 items-center justify-center rounded-[2px] border border-dashed border-bd text-xl text-muted" onClick={() => onAdd(day)}>+</button>
   return <>
-    <ol aria-label={recurring ? labels.recurringList : labels.list} className="divide-y divide-bd border border-bd">
+    <ol aria-label={recurring ? labels.recurringList : labels.list} className="divide-y divide-bd rounded-sm border border-bd bg-surface">
       {weekdays.map(({ day, short, name }) => {
         const date = shiftCalendarDate(weekStart, day), entries = items.filter((item) => item.day === day), isToday = !recurring && date === today
-        return <li key={day} aria-label={recurring ? name : `${name} ${date}`} className={`grid min-h-16 grid-cols-[44px_minmax(0,1fr)] gap-2.5 px-3 py-2.5 ${isToday ? 'shadow-[inset_3px_0_0_var(--app-crimson)]' : ''}`}>
+        return <li key={day} aria-label={recurring ? name : `${name} ${date}`} className={`grid min-h-16 grid-cols-[44px_minmax(0,1fr)] gap-2.5 px-3 py-2.5 ${isToday ? 'schedule-today' : ''}`}>
           <div className={`text-[11px] font-bold uppercase leading-tight tracking-wider ${isToday ? 'text-crimson-ink' : 'text-muted'}`}>{short}
             {!recurring && <b className="block text-[17px] tracking-normal text-ink">{Number(date.slice(-2))}</b>}{isToday && <span className="block">{labels.today}</span>}</div>
-          <div className="min-w-0">{entries.map(renderEntry)}{(!entries.length || recurring) && add(day)}</div>
+          <div className="min-w-0">{entries.map(renderEntry)}{(!entries.length || recurring) && <div className="flex items-center justify-between gap-2">{!entries.length && <span className="inline-flex items-center gap-1.5 text-xs font-bold text-success-ink"><i aria-hidden="true" className="size-2.5 rounded-full border-2 border-success" />{labels.free}</span>}{add(day)}</div>}</div>
         </li>
       })}
     </ol>

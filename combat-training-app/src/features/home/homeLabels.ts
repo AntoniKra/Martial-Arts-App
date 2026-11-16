@@ -13,7 +13,7 @@ export function homeWeekLabel(start: string) {
   return start.slice(0, 7) === end.slice(0, 7) ? `${start.slice(8)}–${short(end)}` : `${short(start)}–${short(end)}`
 }
 export const homeLabels = {
-  heading: 'Gotowy do treningu?', today: 'Dziś', quickStart: 'Szybki start', activePlan: 'Aktywny plan',
+  heading: 'Start', today: 'Dziś', quickStart: 'Szybki start', activePlan: 'Aktywny plan',
   club: 'Klub', entry: 'Wpisz trening po zajęciach', notGoing: 'Nie idę dziś',
   entryHint: (discipline: string, minutes: string) => `Data, ${discipline.toLocaleLowerCase('pl')}${minutes ? `, ${minutes} min` : ''} i części są już wpisane — dodajesz RPE i notatkę.`,
   usual: (parts: string) => `Zwykle: ${parts}`, noParts: 'Wybierzesz części przy wpisie po zajęciach.',
@@ -23,7 +23,6 @@ export const homeLabels = {
   emptyHint: 'Utwórz własny plan lub wpisz trening po zajęciach w klubie.',
   overdue: 'Do uzupełnienia', missing: 'nie wpisano', write: 'Wpisz',
   week: 'Ten tydzień', weekPlan: 'Plan tygodnia', days: 'Dni tygodnia',
-  legend: '✓ wykonane · ○ zaplanowane · – odpoczynek / nie byłem · · wolne',
   flexible: (count: number) => `+ ${formatPolishCount(count, 'trening', 'treningi', 'treningów')} w dowolny dzień`,
   workouts: (count: number) => formatPolishCount(count, 'trening', 'treningi', 'treningów'),
   goal: (count: number, total: number) => `${count} z ${total}`,
@@ -31,9 +30,13 @@ export const homeLabels = {
   last: 'Ostatnia sesja', history: 'Historia', fillRpe: 'Uzupełnij RPE',
   loadingPlan: 'Ładowanie planu…', loadingSessions: 'Ładowanie sesji…',
   retry: 'Spróbuj ponownie', otherPlansSuffix: 'i inne plany',
-  dayStatuses: { done: 'wykonane', planned: 'zaplanowane', rest: 'odpoczynek', omitted: 'nie byłem', free: 'wolne', today: 'dziś' },
   rest: (next: { date: string; item: WeekActivity } | null) => next
     ? `Dziś odpoczynek · następny: ${new Intl.DateTimeFormat('pl-PL', { weekday: 'short', timeZone: 'UTC' }).format(calendarDate(next.date))}, ${activityTitle(next.item).toLocaleLowerCase('pl')}${next.item.kind === 'club' ? ` ${next.item.startTime}` : ''}`
     : 'Dziś odpoczynek',
   discipline: getDisciplineLabelPl,
 } as const
+
+export function homeCardDate(date: string, kind: 'club' | 'own' = 'own') {
+  const short = new Intl.DateTimeFormat('pl-PL', { weekday: 'short', timeZone: 'UTC' }).format(calendarDate(date)).replace('.', '')
+  return `Dziś, ${short} ${date.slice(8)}.${date.slice(5, 7)} · ${kind === 'club' ? 'klub' : 'trening własny'}`
+}

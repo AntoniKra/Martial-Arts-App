@@ -74,7 +74,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await open('/profile/delete-account', 'Usuń konto')
     await capture(21, 'usuniecie-konta', 'Usunięcie konta — bez potwierdzania')
 
-    await open('/', 'Gotowy do treningu?')
+    await open('/', 'Start')
     await expect(page.getByRole('region', { name: 'Ostatnia sesja', exact: true })).toContainText('Trening poza aplikacją · Technika')
     await capture(1, 'start', 'Start')
     await nav().getByRole('button', { name: 'Nowy', exact: true }).click()
