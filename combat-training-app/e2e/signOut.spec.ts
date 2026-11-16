@@ -27,6 +27,7 @@ test.describe('offline with the PWA cache', () => {
     await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
     await page.getByRole('link', { name: 'Treningi', exact: true }).click()
     await page.getByRole('radio', { name: 'Historia', exact: true }).check()
+    await page.getByRole('article').locator('summary').click()
     await expect(pending(page)).toHaveCount(0)
     expect(await app.readSessions()).toHaveLength(1)
 
@@ -85,7 +86,7 @@ test.describe('offline with the PWA cache', () => {
       await page.keyboard.press('Shift+Tab')
       await expect(cancel).toBeFocused()
       await page.evaluate(() => document.fonts.ready)
-      if (testInfo.project.name === 'phone') {
+      if (process.env.CAPTURE_SCREENSHOTS === '1' && testInfo.project.name === 'phone') {
         const path = testInfo.outputPath(`sign-out-${theme}-360x800.png`)
         await page.screenshot({ path })
         await testInfo.attach(`sign-out-${theme}`, { path, contentType: 'image/png' })

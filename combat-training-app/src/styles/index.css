@@ -2,6 +2,26 @@
 @import '@fontsource-variable/inter/opsz.css';
 @import 'tailwindcss';
 
+.progress-weeks-chart { display: flex; border-bottom: 1px solid var(--app-border); padding-top: 4px; }
+.progress-week-column { display: flex; flex: 1 1 0%; min-width: 0; padding-inline: 4px; flex-direction: column; align-items: center; gap: 4px; color: var(--app-muted); transition: flex-grow 300ms ease, padding 300ms ease, transform 300ms ease, opacity 300ms ease; }
+.progress-week-column.is-hidden { flex-grow: 0; width: 0; overflow: hidden; visibility: hidden; padding-inline: 0; opacity: 0; transform: translateX(-24px); }
+.progress-week-track { position: relative; display: flex; align-items: flex-end; width: 60%; height: 110px; }
+.progress-week-bar { width: 100%; background: var(--app-muted); }
+.progress-week-target { position: absolute; left: -4px; right: -4px; border-top: 2px solid var(--app-ink); }
+.progress-week-date { height: 24px; white-space: nowrap; font-size: 11px; }
+.progress-week-column.is-below { color: var(--app-ink); }
+.progress-week-column.is-below .progress-week-bar { background: var(--app-border); }
+.progress-week-column.is-current { color: var(--app-ink); font-weight: 700; }
+.progress-week-column.is-current .progress-week-bar { background: var(--app-crimson); }
+.progress-weeks-chart.is-expanded .progress-week-column { padding-inline: 1.5px; }
+.progress-weeks-chart.is-expanded .progress-week-date { font-size: 9px; }
+@starting-style {
+  .progress-week-column { flex-basis: 0; opacity: 0; transform: translateX(-24px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .progress-week-column { transition: none; }
+}
+
 @theme {
   --font-sans: 'Inter Variable', system-ui, -apple-system, sans-serif;
   --font-display: 'Archivo Variable', system-ui, -apple-system, sans-serif;

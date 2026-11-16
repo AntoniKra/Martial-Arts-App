@@ -10,7 +10,7 @@ test.use({ serviceWorkers: 'allow' })
 const skillName = 'Jab z krokiem w przód'
 const criterion = 'Przednia stopa ląduje przed rękawicą, nie po niej.'
 const exerciseNames = ['Jab na worku', 'Jab na tarczach', 'Walka z cieniem', 'Praca na nogach']
-const toggle = (card: Locator) => card.getByRole('switch', { name: 'Ćwiczenie celu · Oceniaj po treningu', exact: true })
+const toggle = (card: Locator) => card.getByRole('switch', { name: 'Element do poprawy · Oceniaj po treningu', exact: true })
 const cardFor = (page: Page, name: string) => page.getByRole('list', { name: 'Elementy bloku 1 — Technika', exact: true })
   .getByRole('listitem').filter({ has: page.getByRole('heading', { name, exact: true }) })
 const skillOption = (card: Locator, name = skillName) => card.getByRole('radio', { name: new RegExp(`^${name}`) })
@@ -38,7 +38,7 @@ async function checkAccessibility(page: Page) {
 }
 
 async function capture(page: Page, info: TestInfo, screen: 'list' | 'form' | 'preview', theme: 'dark' | 'light') {
-  if (info.project.name !== 'phone') return
+  if (process.env.CAPTURE_SCREENSHOTS !== '1' || info.project.name !== 'phone') return
   const folder = path.resolve('docs/screenshots/issue-68')
   await mkdir(folder, { recursive: true })
   const file = path.join(folder, `${screen}-${theme}-360x800.png`)
@@ -49,11 +49,11 @@ async function capture(page: Page, info: TestInfo, screen: 'list' | 'form' | 'pr
 
 test('creates, reloads and shares focus skills between plans, permits repeats and blocks a fourth mark', async ({ app, page }, info) => {
   await app.open('/workouts/new')
-  await prepareBuilder(page, 'Plan ćwiczeń celu', exerciseNames)
+  await prepareBuilder(page, 'Plan elementów do poprawy', exerciseNames)
   const first = cardFor(page, exerciseNames[0])
   await toggle(first).click()
-  await first.getByRole('radio', { name: /^Nowe ćwiczenie celu/ }).check()
-  const form = first.getByRole('form', { name: 'Nowe ćwiczenie celu', exact: true })
+  await first.getByRole('radio', { name: /^Nowy element do poprawy/ }).check()
+  const form = first.getByRole('form', { name: 'Nowy element do poprawy', exact: true })
   await form.getByRole('button', { name: 'Zapisz ćwiczenie', exact: true }).click()
   await expect(form.getByRole('textbox', { name: 'Nazwa', exact: true })).toHaveAttribute('aria-invalid', 'true')
   await form.getByRole('textbox', { name: 'Nazwa', exact: true }).fill(skillName)
@@ -83,8 +83,8 @@ test('creates, reloads and shares focus skills between plans, permits repeats an
   }
   const fourth = cardFor(page, exerciseNames[3])
   await expect(toggle(fourth)).toBeDisabled()
-  await expect(fourth.getByText('W tym planie: 3 z 3 ćwiczeń celu', { exact: true })).toBeVisible()
-  await expect(fourth.getByText(/W planie są już 3 ćwiczenia celu/)).toBeVisible()
+  await expect(fourth.getByText('W tym planie: 3 z 3 elementów do poprawy', { exact: true })).toBeVisible()
+  await expect(fourth.getByText(/W planie są już 3 elementy do poprawy/)).toBeVisible()
   // Detaching frees a slot and keeps the reusable skill on the list.
   await toggle(first).click()
   await expect(toggle(fourth)).toBeEnabled()
@@ -93,19 +93,19 @@ test('creates, reloads and shares focus skills between plans, permits repeats an
   await skillOption(first).check()
 
   await page.getByRole('button', { name: 'Podgląd planu', exact: true }).click()
-  await expect(page.getByText('3 ćwiczenia celu', { exact: true })).toBeVisible()
+  await expect(page.getByText('3 elementy do poprawy', { exact: true })).toBeVisible()
   await expect(page.getByText('CEL', { exact: true })).toHaveCount(3)
   for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
     await checkAccessibility(page)
-    await page.getByRole('heading', { name: 'Plan ćwiczeń celu', exact: true }).evaluate((element) => element.scrollIntoView({ block: 'start' }))
+    await page.getByRole('heading', { name: 'Plan elementów do poprawy', exact: true }).evaluate((element) => element.scrollIntoView({ block: 'start' }))
     await capture(page, info, 'preview', theme)
   }
   await page.getByRole('button', { name: 'Zapisz plan', exact: true }).click()
   await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
   await expect(page.getByText('CEL', { exact: true })).toHaveCount(3)
   await app.open(new URL(page.url()).pathname)
-  await expect(page.getByText('3 ćwiczenia celu', { exact: true })).toBeVisible()
+  await expect(page.getByText('3 elementy do poprawy', { exact: true })).toBeVisible()
   await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
   await expect(toggle(first)).toHaveAttribute('aria-checked', 'true')
   await expect(skillOption(first)).toBeChecked()
@@ -118,14 +118,14 @@ test('creates, reloads and shares focus skills between plans, permits repeats an
   await toggle(secondPlanCard).click()
   await expect(secondPlanCard.getByText(criterion, { exact: true })).toBeVisible()
   await skillOption(secondPlanCard).check()
-  await secondPlanCard.getByRole('button', { name: 'Edytuj wybrane ćwiczenie celu', exact: true }).click()
-  const editor = secondPlanCard.getByRole('form', { name: 'Popraw ćwiczenie celu', exact: true })
+  await secondPlanCard.getByRole('button', { name: 'Edytuj wybrany element do poprawy', exact: true }).click()
+  const editor = secondPlanCard.getByRole('form', { name: 'Popraw element do poprawy', exact: true })
   await editor.getByRole('textbox', { name: 'Nazwa', exact: true }).fill('Jab i powrót do gardy')
   await editor.getByRole('textbox', { name: 'Kryterium', exact: true }).fill('Ręka wraca do brody.')
   await editor.getByRole('button', { name: 'Zapisz ćwiczenie', exact: true }).click()
   await expect(skillOption(secondPlanCard, 'Jab i powrót do gardy')).toBeChecked()
   await app.savePlan()
-  const firstPlan = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Plan ćwiczeń celu', exact: true }) })
+  const firstPlan = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Plan elementów do poprawy', exact: true }) })
   await firstPlan.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
   await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
   await expect(skillOption(first, 'Jab i powrót do gardy')).toBeChecked()
@@ -137,8 +137,8 @@ test('saves a focus skill offline, warns before sign-out and isolates the next a
   await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
   const first = cardFor(page, 'Praca na nogach')
   await toggle(first).click()
-  await first.getByRole('radio', { name: /^Nowe ćwiczenie celu/ }).check()
-  const form = first.getByRole('form', { name: 'Nowe ćwiczenie celu', exact: true })
+  await first.getByRole('radio', { name: /^Nowy element do poprawy/ }).check()
+  const form = first.getByRole('form', { name: 'Nowy element do poprawy', exact: true })
   await form.getByRole('textbox', { name: 'Nazwa', exact: true }).fill(skillName)
   await form.getByRole('textbox', { name: 'Kryterium', exact: true }).fill(criterion)
   await context.setOffline(true)
@@ -167,5 +167,5 @@ test('saves a focus skill offline, warns before sign-out and isolates the next a
   const secondCard = cardFor(page, 'Nowe ćwiczenie')
   await toggle(secondCard).click()
   await expect(skillOption(secondCard)).toHaveCount(0)
-  await expect(secondCard.getByRole('radio', { name: /^Nowe ćwiczenie celu/ })).toBeVisible()
+  await expect(secondCard.getByRole('radio', { name: /^Nowy element do poprawy/ })).toBeVisible()
 })

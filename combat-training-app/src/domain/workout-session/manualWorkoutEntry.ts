@@ -93,14 +93,14 @@ export function validateManualWorkout(draft: ManualWorkoutDraft, today: string, 
   }
   const focusRatings: ManualFocusRating[] = []
   const seen = new Set<string>()
-  if (draft.focusRatings.length > 3) errors.focusRatings = 'Oceń najwyżej 3 ćwiczenia celu.'
+  if (draft.focusRatings.length > 3) errors.focusRatings = 'Oceń najwyżej 3 elementy do poprawy.'
   for (const rating of draft.focusRatings) {
     const key = `focus-${rating.focusSkillId}` as const
     const hasSavedPlace = original?.focusRatings.some((saved) => saved.focusSkillId === rating.focusSkillId)
     const place = hasSavedPlace ? rating.blockType : manualFocusPlace(category) ?? rating.blockType
-    if (rating.assessment !== 'unableToRate' && !isIntegerInRange(rating.assessment, 1, 5)) errors[key] = 'Wybierz ocenę albo odznacz ćwiczenie celu.'
+    if (rating.assessment !== 'unableToRate' && !isIntegerInRange(rating.assessment, 1, 5)) errors[key] = 'Wybierz ocenę albo odznacz element do poprawy.'
     else if (!place) errors[key] = 'Wybierz, gdzie ćwiczyłeś.'
-    if (seen.has(rating.focusSkillId)) errors[key] = 'Każde ćwiczenie celu można ocenić tylko raz.'
+    if (seen.has(rating.focusSkillId)) errors[key] = 'Każdy element do poprawy można ocenić tylko raz.'
     seen.add(rating.focusSkillId)
     const problem = rating.correction?.problem.trim() ?? '', fix = rating.correction?.fix.trim() ?? ''
     if ((problem || fix) && (!isCorrectionText(problem) || !isCorrectionText(fix))) errors[key] = 'Problem i poprawka muszą mieć po 1–200 znaków.'

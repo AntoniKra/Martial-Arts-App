@@ -29,6 +29,8 @@ export type WorkoutHistoryMutationResult = 'applied' | 'stale'
 export const WORKOUT_HISTORY_NOTE_MAX_LENGTH = 1000
 
 export interface WorkoutHistoryListItem {
+  descriptionPl?: string
+  sparringRounds?: number | null
   workoutDate?: string
   editPath?: string
   isManual?: boolean

@@ -5,7 +5,7 @@ import { routes } from '@/app/routes'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
-import { WorkoutHistoryCard } from '@/features/workouts/components/WorkoutHistoryCard'
+import { HistoryJournal } from './HistoryJournal'
 import { workoutsFilterLabels } from '../workoutsFilterLabels'
 import { WorkoutPlanCard } from '@/features/workouts/components/WorkoutPlanCard'
 import { WorkoutsEmptyState } from '@/features/workouts/components/WorkoutsEmptyState'
@@ -213,16 +213,7 @@ export function WorkoutsView({
     }
 
     return (
-      <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
-        {filteredHistory.map((session) => (
-          <WorkoutHistoryCard
-            key={session.id}
-            session={session}
-            onUpdateNote={onUpdateSessionNote}
-            onDelete={onDeleteSession}
-          />
-        ))}
-      </div>
+      <HistoryJournal history={filteredHistory} sortOrder={filters.sortOrder} onUpdateNote={onUpdateSessionNote} onDelete={onDeleteSession} />
     )
   }
 
@@ -244,7 +235,7 @@ export function WorkoutsView({
           />
         </div>
         <div className="mt-3 pb-3">
-          <WorkoutsFilters filters={filters} onChange={setFilters} idPrefix="workouts" addAction={createWorkoutLink} />
+          <WorkoutsFilters filters={filters} onChange={setFilters} idPrefix="workouts" addAction={createWorkoutLink} history={tab === 'history'} />
         </div>
       </div>
 

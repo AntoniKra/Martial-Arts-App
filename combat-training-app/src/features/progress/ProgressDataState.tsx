@@ -9,6 +9,10 @@ export function ProgressDataState() {
     <p>{focusSkills.status === 'error' ? workoutDataLabels.focusSkillsLoadError : workoutDataLabels.historyLoadError}</p>
     <Button variant="secondary" onClick={retry}>{labels.retry}</Button>
   </div>
+  if (focusSkills.status === 'ready' && sessions.status === 'ready' && (!focusSkills.complete || !sessions.complete || focusSkills.invalidDocumentIds.length || sessions.invalidDocumentIds.length)) return <div role="status" className="space-y-3">
+    <p className="text-muted">Dane są niepełne. Połącz się z siecią i ponów odczyt.</p>
+    <Button variant="secondary" onClick={retry}>{labels.retry}</Button>
+  </div>
   return <p role="status" className="text-muted">{labels.loading}</p>
 }
 

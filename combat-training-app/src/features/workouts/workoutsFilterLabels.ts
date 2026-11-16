@@ -1,5 +1,6 @@
 export const workoutsFilterLabels = {
   search: 'Szukaj treningu',
+  searchHistory: 'Szukaj w nazwach i notatkach',
   filters: 'Filtry',
   discipline: 'Dyscyplina',
   sort: 'Sortowanie',

@@ -10,7 +10,7 @@ export const exerciseLabels = {
   copy: 'Kopiuj do moich', copied: 'Ćwiczenie skopiowane do Moich.',
   archive: 'Archiwizuj', restore: 'Przywróć', archived: 'Zarchiwizowane',
   remove: 'Usuń trwale', confirmDelete: 'Potwierdź trwałe usunięcie',
-  referenced: 'Ćwiczenie jest używane w planie, historii lub ćwiczeniu celu. Możesz je zarchiwizować.',
+  referenced: 'Ćwiczenie jest używane w planie, historii lub elemencie do poprawy. Możesz je zarchiwizować.',
   identity: 'Aby zmienić typ, utwórz nowe ćwiczenie. Zapisane plany i historia zachowują swoje nazwy i parametry.',
   newFrom: 'Utwórz na podstawie', empty: 'Nie masz jeszcze własnych ćwiczeń.',
   error: 'Nie udało się zapisać zmiany. Sprawdź dane i spróbuj ponownie.',

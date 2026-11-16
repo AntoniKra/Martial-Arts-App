@@ -134,6 +134,7 @@ for (const theme of ['dark', 'light'] as const) {
     samples.historyUnselected = await typography(page.getByRole('radio', { name: 'Historia', exact: true }))
     await capture('plans')
     await page.getByRole('radio', { name: 'Historia', exact: true }).click()
+    await page.getByRole('article').locator('summary').click()
     const note = page.getByRole('button', { name: 'Dodaj notatkę', exact: true })
     await expect(note).toBeVisible()
     samples.plansUnselected = await typography(page.getByRole('radio', { name: 'Plany', exact: true }))

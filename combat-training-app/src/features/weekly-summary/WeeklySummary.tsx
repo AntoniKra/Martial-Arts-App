@@ -39,7 +39,7 @@ function LoadRows({ summary }: { summary: WeeklySummaryData }) {
   </>
 }
 
-export function WeeklySummary({ weekStart }: { weekStart: string }) {
+export function WeeklySummary({ weekStart, showTrends = true }: { weekStart: string; showTrends?: boolean }) {
   const { sessions, retrySessions, currentWeek } = useWorkoutData()
   const unavailable = sessions.status === 'loading' ? 'loading'
     : sessions.status === 'error' ? 'error'
@@ -72,10 +72,10 @@ export function WeeklySummary({ weekStart }: { weekStart: string }) {
         </div>
         <LoadRows summary={summary} />
       </dl>
-      <TypicalWeekComparison typical={calculateTypicalWeek(weekStart, sessions.items)} summary={summary} isCurrent={weekStart === currentWeek} />
+      {showTrends && <TypicalWeekComparison typical={calculateTypicalWeek(weekStart, sessions.items)} summary={summary} isCurrent={weekStart === currentWeek} />}
       {summary.sessionLoads.length > 0 && <LoadDetails sessionLoads={summary.sessionLoads} />}
       {sessions.hasPendingWrites && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
-      <WeeklyChart weeks={calculateWeeklySeries(weekStart, sessions.items, currentWeek)} />
+      {showTrends && <WeeklyChart weeks={calculateWeeklySeries(weekStart, sessions.items, currentWeek)} />}
     </>}
   </section>
 }

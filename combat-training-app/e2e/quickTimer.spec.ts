@@ -84,6 +84,7 @@ test('opens New, configures three two-minute bag rounds and saves RPE and a note
   await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
   await expect(page).toHaveURL('/workouts?tab=history')
   const card = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Szybki stoper', exact: true }) })
+  await card.locator('summary').click()
   await expect(card).toContainText('3/3 rund')
   await expect(card).not.toContainText('ćwiczeń')
   await expect(card.getByRole('link', { name: 'Podsumowanie', exact: true })).toBeVisible()
@@ -105,7 +106,7 @@ test('summarizes sparring in both themes, saves optional intensity and removes i
   await page.clock.fastForward(480_000)
   await app.expectWorkoutSaved()
   await expect(page.getByRole('group', { name: /Intensywność sparingu/ })).toBeVisible()
-  await expect(page.getByRole('region', { name: 'Ćwiczenia celu', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Elementy do poprawy', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: /^Techniczny —/ }).click()
   for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
@@ -117,6 +118,7 @@ test('summarizes sparring in both themes, saves optional intensity and removes i
   }
   await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
   await expect.poll(async () => (await app.readSessions())[0]?.sparring[0]?.intensity).toBe('technical')
+  await page.getByRole('article').locator('summary').click()
   await page.getByRole('link', { name: 'Podsumowanie', exact: true }).click()
   await page.getByRole('button', { name: 'Tarcze', exact: true }).click()
   await expect(page.getByRole('group', { name: /Intensywność sparingu/ })).toHaveCount(0)

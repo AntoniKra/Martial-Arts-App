@@ -2,6 +2,10 @@
 
 Stan: 10 listopada 2026. Decyzje właściciela z 4–10 listopada (Q1–Q5, R1–R4, issue #76). Uzasadnienie: research A i C w projekcie pracy. Pola w bazie: `database-model.md`.
 
+Aktualizacja #180, decyzja właściciela 16 listopada: w całym interfejsie „ćwiczenia celu” nazywają się **elementami do poprawy**; tożsamość `focusSkillId`, model i reguły pozostają bez zmian. Postęp pokazuje ostatnią liczbową ocenę według obecnego kryterium, pięć segmentów, trzy ostatnie oceny i tekstowe porównanie z bezpośrednio poprzednią („↑ z N”, „bez zmian”, „↓ z N”). To zastępuje wcześniejszy zakaz strzałek wyłącznie na kartach listy; szczegóły nadal zachowują mediany osobno według miejsca. Element można dodać bez planu z Postępu lub ręcznego wpisu, wspólnym formularzem. Poprzednia ocena z opisem stopnia, datą i miejscem jest podpowiedzią do czasu wybrania dzisiejszej oceny.
+
+Główny Postęp pokazuje aktualny tydzień, bez zdań-wniosków. „Zwykle” dla minut to mediana czterech poprzednich pełnych tygodni, łącznie z pustymi, dopiero gdy historia sięga początku tego okresu. Obciążenie wymaga kompletu RPE do podania wartości „zwykle”. Wykres główny zaczyna się od tygodnia pierwszego wpisu, wymaga trzech tygodni i pokazuje domyślnie do pięciu, po rozwinięciu do dwunastu. Liczy wszystkie zapisane sesje, także częściowe, zgodnie z celem liczby w v2. Historyczne plany pochodzą wyłącznie z zapisanych migawek, bez odtwarzania ich ze stałego tygodnia. Błąd lub niepełna historia nie daje pozornych zer. Dotychczasowy wykres i tabela porównawcza pozostają w szczegółach planu tygodnia, poza głównym ekranem Postępu.
+
 Zasada: każda funkcja ma pomagać kontrolować postęp. Jakość wykonania i ilość pracy pokazujemy osobno, nigdy jako jeden wynik.
 
 ## Po treningu

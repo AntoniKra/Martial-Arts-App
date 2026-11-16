@@ -23,6 +23,7 @@ import { manualCategoryDescriptions, manualPartLabel, manualPartsLabel, manualWo
 import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWorkoutLine'
 import { hasPerformanceObserver, reportPerformanceEvent } from '@/application/performance/performanceEvents'
 import type { ClubWorkoutPrefill } from '@/domain/week-plan/clubWorkoutPrefill'
+import { AddFocusSkill } from '@/features/focus-skills/AddFocusSkill'
 
 const inputClass = 'mt-2 block min-h-touch w-full border border-bd bg-input p-3 text-base text-ink'
 const groupClass = 'min-w-0 space-y-3'
@@ -223,6 +224,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
             {skillsStatus === 'loading' ? <p role="status" className="text-sm text-muted">{labels.skillsLoading}</p>
               : skillsStatus === 'error' ? <div className="space-y-2"><p role="alert" className="text-sm text-muted">{labels.skillsError}</p><Button variant="secondary" onClick={onRetrySkills}>{labels.retry}</Button></div>
                 : <>
+                  <AddFocusSkill manual />
                   {!listedSkills.length && !draft.focusRatings.length && <p className="text-sm text-muted">{labels.noSkills}</p>}
                   {listedSkills.map((skill) => {
                     const selected = draft.focusRatings.some((rating) => rating.focusSkillId === skill.id)

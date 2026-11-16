@@ -9,7 +9,7 @@ export const accountLabels = {
   offline: 'Pobranie danych wymaga połączenia z internetem.',
   pending: 'Poczekaj, aż wszystkie zapisy zostaną wysłane (Czeka na wysłanie).',
   loading: 'Przygotowuję plik…', exportError: 'Nie udało się pobrać danych. Spróbuj ponownie.',
-  deleteIntro: (email: string) => `Usuniemy na zawsze: plany, wszystkie treningi z ocenami i notatkami, ćwiczenia celu, Moje ćwiczenia, plany tygodnia, pomiary masy ciała, wpisy samopoczucia, zgody i konto logowania (${email}). Tego nie da się cofnąć.`,
+  deleteIntro: (email: string) => `Usuniemy na zawsze: plany, wszystkie treningi z ocenami i notatkami, elementy do poprawy, Moje ćwiczenia, plany tygodnia, pomiary masy ciała, wpisy samopoczucia, zgody i konto logowania (${email}). Tego nie da się cofnąć.`,
   otherDevices: 'Jeśli używasz aplikacji na innym urządzeniu, najpierw połącz je z internetem i wyloguj się tam.',
   keepData: 'Jeśli chcesz zachować dane, najpierw je pobierz.',
   confirmPassword: 'Potwierdź hasłem', confirmGoogle: 'Potwierdź kontem Google',
@@ -21,5 +21,5 @@ export const accountLabels = {
   sources: { plan: 'Z planu', quickTimer: 'Szybki stoper', manual: 'Ręczny' },
   units: { exercise: 'ćwiczeń', round: 'rund' },
   yes: 'tak',
-  csvHeaders: ['Data', 'Źródło', 'Status', 'Dyscyplina', 'Rodzaj', 'Nazwa', 'Czas treningu (min)', 'Czas pracy (min)', 'Czas sparingu (min)', 'Realizacja', 'RPE', 'RPE podane', 'RPE z pamięci', 'Sparing: intensywność', 'Sparing: rundy', 'Oceny ćwiczeń celu', 'Notatka'],
+  csvHeaders: ['Data', 'Źródło', 'Status', 'Dyscyplina', 'Rodzaj', 'Nazwa', 'Czas treningu (min)', 'Czas pracy (min)', 'Czas sparingu (min)', 'Realizacja', 'RPE', 'RPE podane', 'RPE z pamięci', 'Sparing: intensywność', 'Sparing: rundy', 'Oceny elementów do poprawy', 'Notatka'],
 } as const

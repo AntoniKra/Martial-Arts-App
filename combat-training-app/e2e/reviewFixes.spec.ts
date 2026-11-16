@@ -27,7 +27,7 @@ test('history filters collapse, count active choices, filter results and clear w
   await expect(activeToggle).toContainText('2')
   await activeToggle.click()
   await expect(activeToggle).toHaveAttribute('aria-expanded', 'false')
-  await page.getByRole('searchbox', { name: 'Szukaj treningu' }).fill('Trening')
+  await page.getByRole('searchbox', { name: 'Szukaj w nazwach i notatkach' }).fill('Trening')
   await activeToggle.click()
   await expect(disciplines.getByRole('button', { name: 'Muay Thai', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('button', { name: 'Wyczyść filtry' }).click()

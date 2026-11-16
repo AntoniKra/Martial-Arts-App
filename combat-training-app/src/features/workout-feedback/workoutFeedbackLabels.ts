@@ -11,7 +11,7 @@ export const workoutFeedbackLabels = {
   previousPlanRunRpe: (rpe: number | null) => `RPE: ${rpe ?? 'brak'}`,
   viewPreviousPlanRun: 'Zobacz',
   planChanged: 'Plan zmieniono po tamtym treningu.',
-  focusHeading: 'Ćwiczenia celu',
+  focusHeading: 'Elementy do poprawy',
   sparringIntensity: (number: number) => `Sparing ${number} · intensywność (opcjonalnie)`,
   assessed: (count: number, total: number) => `oceniono ${count} z ${total}`,
   criterion: 'Kryterium',
