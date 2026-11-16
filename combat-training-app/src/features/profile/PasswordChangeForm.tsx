@@ -10,6 +10,8 @@ export function PasswordChangeForm({ service }: { service: AccountService }) {
   const id = useId(), form = useRef<HTMLFormElement>(null), inFlight = useRef(false)
   const [values, setValues] = useState({ currentPassword: '', newPassword: '' })
   const [errors, setErrors] = useState<PasswordChangeErrors>({})
+  const [expanded, setExpanded] = useState(false)
+  const toggle = useRef<HTMLButtonElement>(null)
   const [busy, setBusy] = useState(false), [message, setMessage] = useState<string | null>(null), [success, setSuccess] = useState(false)
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -24,12 +26,17 @@ export function PasswordChangeForm({ service }: { service: AccountService }) {
     try {
       await service.changePassword(values.currentPassword, values.newPassword)
       setValues({ currentPassword: '', newPassword: '' }); setSuccess(true); setMessage(labels.passwordChanged)
+      setExpanded(false); requestAnimationFrame(() => toggle.current?.focus())
     } catch (cause) {
       const code = typeof cause === 'object' && cause !== null && 'code' in cause ? cause.code : null
       setMessage(code === 'auth/invalid-credential' || code === 'auth/wrong-password' ? labels.wrongPassword : mapAuthError(cause))
     } finally { inFlight.current = false; setBusy(false) }
   }
-  return <form ref={form} noValidate onSubmit={(event) => void submit(event)} aria-label={labels.changePassword} className="space-y-4">
+  return <div className="space-y-4">
+    <button ref={toggle} type="button" aria-expanded={expanded} aria-controls={`${id}-content`} disabled={busy}
+      onClick={() => setExpanded(!expanded)} className={getButtonClassName({ variant: 'secondary', disabled: busy })}>{labels.changePassword}</button>
+    <div id={`${id}-content`} hidden={!expanded}>
+    <form ref={form} noValidate onSubmit={(event) => void submit(event)} aria-label={labels.changePassword} className="space-y-4">
     {(['currentPassword', 'newPassword'] as const).map((field) => <div key={field} className="space-y-2">
       <label htmlFor={`${id}-${field}`} className="block text-sm font-semibold">{field === 'currentPassword' ? labels.currentPassword : labels.newPassword}</label>
       <input id={`${id}-${field}`} type="password" value={values[field]} disabled={busy} autoComplete={field === 'currentPassword' ? 'current-password' : 'new-password'}
@@ -39,7 +46,9 @@ export function PasswordChangeForm({ service }: { service: AccountService }) {
       {errors[field] && <p id={`${id}-${field}-error`} role="alert" className="text-sm text-crimson-ink">{errors[field]}</p>}
     </div>)}
     <p id={`${id}-hint`} className="text-sm text-muted">{authLabels.passwordHint}</p>
-    <button type="submit" disabled={busy} className={getButtonClassName({ variant: 'secondary', disabled: busy })}>{busy ? labels.changingPassword : labels.changePassword}</button>
+    <button type="submit" disabled={busy} className={getButtonClassName({ variant: 'secondary', disabled: busy })}>{busy ? labels.changingPassword : labels.savePassword}</button>
+    </form>
+    </div>
     {message && <p role={success ? 'status' : 'alert'} className={`text-sm ${success ? 'text-muted' : 'text-crimson-ink'}`}>{message}</p>}
-  </form>
+  </div>
 }

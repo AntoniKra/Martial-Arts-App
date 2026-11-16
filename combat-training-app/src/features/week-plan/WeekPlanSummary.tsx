@@ -32,7 +32,12 @@ export function WeekPlanProgress({ weekStart }: { weekStart: string }) {
         aria-valuenow={progress.completed} aria-valuetext={`${progress.completed} z ${progress.total} ukończonych`} className="h-2 bg-elevated">
         <div className="h-full bg-crimson" style={{ width: `${progress.percentage}%` }} />
       </div>
-      <p className="text-sm text-muted">{labels.partial}: {progress.partial} · {labels.unfulfilled}: {progress.unfulfilled} · {labels.extra}: {progress.extra.length}</p>
+      <dl aria-label={labels.details} className="grid grid-cols-3 gap-2 text-center">
+        {[[labels.partial, progress.partial], [labels.unfulfilled, progress.unfulfilled], [labels.extra, progress.extra.length]].map(([label, value]) =>
+          <div key={label} className="flex min-w-0 flex-col-reverse gap-1 border border-bd px-1 py-2">
+            <dt className="text-xs text-muted">{label}</dt><dd className="font-display text-lg font-semibold tabular-nums">{value}</dd>
+          </div>)}
+      </dl>
     </> : <><p className="text-sm text-muted">{labels.empty}</p><p className="text-sm">Treningi w tygodniu: {progress.workoutCount}</p></>}
   </div>
 }
@@ -47,7 +52,7 @@ export function WeekPlanSummary() {
     {weekPlans.pendingIds.has(currentWeek) && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
     {selected.status === 'ready' && selected.plan?.editedAfterWeekEnd && <p className="text-sm text-muted">{labels.historical}</p>}
     <Link to={routes.weekPlan(currentWeek)} className={getButtonClassName({ variant: 'secondary' })}>
-      {selected.status === 'ready' && !selected.plan?.items.length ? labels.arrange : labels.details}
+      {labels.open}
     </Link>
   </section>
 }

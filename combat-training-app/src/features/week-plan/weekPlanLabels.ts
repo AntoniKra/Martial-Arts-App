@@ -11,6 +11,7 @@ function formatDate(date: string) { const [year, month, day] = date.split('-'); 
 
 export const weekPlanLabels = {
   title: 'Plan tygodnia', details: 'Szczegóły planu tygodnia', arrange: 'Ułóż plan tygodnia',
+  open: 'Otwórz plan tygodnia',
   edit: 'Edytuj plan tygodnia', save: 'Zapisz plan tygodnia', saved: 'Plan zapisany na urządzeniu.',
   historical: 'Plan zmieniony po zakończeniu tygodnia',
   empty: 'Nie ustalono celu na ten tydzień.', loading: 'Ładowanie planu tygodnia…',

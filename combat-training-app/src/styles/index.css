@@ -105,6 +105,33 @@
   font-feature-settings: 'tnum' 1;
 }
 
+.radio-tile {
+  position: relative;
+  display: flex;
+  min-height: 44px;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--app-border);
+  padding: 0.5rem 0.75rem;
+  color: var(--app-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.radio-tile:has(input:checked) {
+  border-color: var(--app-crimson);
+  background: var(--app-elevated);
+  color: var(--app-ink);
+  font-weight: 600;
+}
+
+.radio-tile:has(input:focus-visible) {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
 /* Inset-only bottom padding. Pair with explicit base padding where needed (see player footer). */
 .safe-area-pb {
   padding-bottom: env(safe-area-inset-bottom, 0px);

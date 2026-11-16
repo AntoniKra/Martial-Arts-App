@@ -253,6 +253,8 @@ for (const theme of ['dark', 'light'] as const) {
     await exitButton(page).focus()
     await page.keyboard.press('Enter')
     const buttons = exitDialog(page).getByRole('button')
+    await expect(exitDialog(page).getByText('„Porzuć” pyta jeszcze raz: dane przepadną, nie da się cofnąć.', { exact: true })).toHaveCount(0)
+    await expect(buttons.last()).toHaveCSS('text-decoration-line', 'none')
     await expect(buttons).toHaveText(['Wróć do treningu', 'Pomiń resztę ćwiczenia (2 rundy)', 'Zakończ i zapisz', 'Porzuć bez zapisu…'])
     await expect(buttons.first()).toBeFocused()
     await page.keyboard.press('Shift+Tab')

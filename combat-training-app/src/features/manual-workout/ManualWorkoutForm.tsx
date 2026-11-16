@@ -68,7 +68,6 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
   })
   const [draft, setDraft] = useState(initial)
   const [customDuration, setCustomDuration] = useState(!['', '60', '90', '120'].includes(initial.durationMinutes))
-  const [previousCustomMinutes, setPreviousCustomMinutes] = useState(!['', '60', '90', '120'].includes(initial.durationMinutes) ? initial.durationMinutes : '')
   const [errors, setErrors] = useState<ManualWorkoutErrors>({})
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(false)
@@ -129,7 +128,6 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
             <Button variant="secondary" onClick={() => {
               setDraft((current) => applyPreviousManualWorkout(current, previous))
               setCustomDuration(!['60', '90', '120'].includes(String(previous.durationSeconds / 60)))
-              if (!['60', '90', '120'].includes(String(previous.durationSeconds / 60))) setPreviousCustomMinutes(String(previous.durationSeconds / 60))
               setCopied({ disciplineKey: true, durationMinutes: true, parts: manualDraftParts(previous).length > 0 }); setErrors({})
               const hasSparring = manualDraftParts(previous).includes('sparring')
               setSparringAnnouncement(hasSparring ? labels.sparringOpened : '')
@@ -150,8 +148,9 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
           <fieldset className={groupClass} {...invalidProps('disciplineKey')} tabIndex={errors.disciplineKey ? -1 : undefined}>
             <legend className={legendClass}>{labels.discipline}{copiedLabel('disciplineKey')}</legend>
             <div className="grid grid-cols-2 gap-2">{(Object.entries(DISCIPLINE_LABELS_PL) as [keyof typeof DISCIPLINE_LABELS_PL, string][]).map(([value, label]) =>
-              <label key={value} className={`flex min-h-touch items-center gap-2 border p-3 text-sm ${draft.disciplineKey === value ? 'border-crimson text-ink' : 'border-bd text-muted'}`}>
-                <input type="radio" name={`${id}-discipline`} checked={draft.disciplineKey === value} onChange={() => set('disciplineKey', value)} className="accent-crimson" />{label}
+              <label key={value} className="radio-tile">
+                <input type="radio" name={`${id}-discipline`} checked={draft.disciplineKey === value} onChange={() => set('disciplineKey', value)} className="absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0" />
+                {draft.disciplineKey === value && <span aria-hidden="true">✓</span>}{label}
               </label>)}</div>
             <FieldError message={errors.disciplineKey} id={errorId('disciplineKey')} />
           </fieldset>
@@ -175,20 +174,22 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
             </label>)}</div><FieldError message={errors.parts} id={errorId('parts')} />
           </fieldset>
           <fieldset className={groupClass} {...invalidProps('durationMinutes')} tabIndex={errors.durationMinutes ? -1 : undefined}>
-            <legend className={legendClass}>{labels.duration}{copiedLabel('durationMinutes')}</legend><p className="text-sm text-muted">{labels.durationHint}</p>
+            <legend className={legendClass}>{labels.duration}{copiedLabel('durationMinutes')}</legend>
             <div className="grid grid-cols-4 items-center gap-1">{['60', '90', '120', 'other'].map((value) => value === 'other' && customDuration
               ? <div key={value} className="relative min-w-0">
                 <input ref={minutesInput} type="number" min={1} max={480} step={1} inputMode="numeric" aria-label={labels.minutes}
-                  placeholder={previousCustomMinutes || labels.minutesPlaceholder} value={draft.durationMinutes}
-                  onChange={(event) => { set('durationMinutes', event.target.value); if (event.target.value) setPreviousCustomMinutes(event.target.value) }} {...invalidProps('durationMinutes')}
-                  className="min-h-touch w-full min-w-0 appearance-textfield border border-crimson bg-input py-2 pl-2 pr-7 text-base text-ink [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-                <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-1 flex items-center text-xs text-muted">min</span>
+                  value={draft.durationMinutes}
+                  onChange={(event) => set('durationMinutes', event.target.value)} {...invalidProps('durationMinutes')}
+                  className="min-h-touch w-full min-w-0 appearance-textfield border border-crimson bg-input py-2 pl-0 pr-8 text-center text-base font-semibold tabular-nums text-ink [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-1/2 flex items-center text-base tabular-nums text-muted"
+                  style={{ transform: draft.durationMinutes ? `translateX(calc(${draft.durationMinutes.length / 2}ch - 0.75rem))` : 'translateX(-50%)' }}>min</span>
               </div>
               : <label key={value}
-              className={`flex min-h-touch min-w-0 flex-1 items-center justify-center gap-1 border text-xs ${value === 'other' ? customDuration ? 'border-crimson' : 'border-bd' : !customDuration && draft.durationMinutes === value ? 'border-crimson' : 'border-bd'}`}>
+              className="radio-tile !gap-1 !px-1 !text-xs">
               <input type="radio" name={`${id}-duration`} checked={value === 'other' ? customDuration : !customDuration && draft.durationMinutes === value}
                 onChange={() => { setCustomDuration(value === 'other'); set('durationMinutes', value === 'other' ? '' : value)
-                  if (value === 'other') requestAnimationFrame(() => minutesInput.current?.focus()) }} className="accent-crimson" />
+                  if (value === 'other') requestAnimationFrame(() => minutesInput.current?.focus()) }} className="absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0" />
+              {!customDuration && draft.durationMinutes === value && <span aria-hidden="true">✓</span>}
               {value === 'other' ? labels.customDuration : `${value} min`}
             </label>)}
             </div>

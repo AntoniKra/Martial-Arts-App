@@ -83,7 +83,7 @@ test('saves three club parts with sparring, custom minutes and one session load'
   await expect(stats).toContainText('Tarcze: jedne zajęcia')
   await expect(stats).toContainText('Nie dzielimy czasu zajęć z kilkoma częściami')
   await expect(stats).toContainText('1 h 15 min')
-  await page.getByRole('link', { name: 'Szczegóły planu tygodnia', exact: true }).click()
+  await page.getByRole('link', { name: 'Otwórz plan tygodnia', exact: true }).click()
   await expect(summary(page)).toContainText('450 j.u.')
 })
 
@@ -201,7 +201,7 @@ test('adds sparring from home, shows manual cards, and counts toward summary and
   await expect(historyCard(page).locator('[style*="width"]')).toHaveCount(0)
   await expect(history).not.toContainText('0/0')
   await page.getByRole('link', { name: 'Postęp', exact: true }).click()
-  await page.getByRole('link', { name: 'Szczegóły planu tygodnia', exact: true }).click()
+  await page.getByRole('link', { name: 'Otwórz plan tygodnia', exact: true }).click()
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
   await expect(summary(page)).toContainText('Treningi: 1')
   await expect(summary(page)).toContainText('630 j.u.')

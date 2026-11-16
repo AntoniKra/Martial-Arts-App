@@ -50,8 +50,9 @@ export function WeekActivityForm({ initial, defaultDay, recurring, plans, onSave
         <button type="button" aria-pressed={draft.kind === 'rest'} className={getButtonClassName({ variant: 'ghost' })} onClick={() => set('kind', 'rest')}>{labels.addRest}</button>
         <p className="-mt-2.5 text-sm text-muted">{recurring ? labels.recurringHint : labels.oneWeekHint}</p>
         {draft.kind === 'club' && <fieldset className="min-w-0"><legend className={legend}>{labels.discipline}</legend>
-          <div className="grid grid-cols-2 gap-2">{Object.entries(DISCIPLINE_LABELS_PL).map(([key, name]) => <label key={key} className={`flex min-h-12 items-center gap-2 border px-3 text-sm ${draft.disciplineKey === key ? 'border-crimson font-semibold' : 'border-bd text-muted'}`}>
-            <input type="radio" name="week-discipline" checked={draft.disciplineKey === key} onChange={() => set('disciplineKey', key as DisciplineKey)} />{name}</label>)}</div>
+          <div className="grid grid-cols-2 gap-2">{Object.entries(DISCIPLINE_LABELS_PL).map(([key, name]) => <label key={key} className="radio-tile min-h-12">
+            <input type="radio" name="week-discipline" checked={draft.disciplineKey === key} onChange={() => set('disciplineKey', key as DisciplineKey)} className="absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0" />
+            {draft.disciplineKey === key && <span aria-hidden="true">✓</span>}{name}</label>)}</div>
         </fieldset>}
         {draft.kind === 'own' && <>
           <label className="space-y-2 text-sm">{labels.category}<select className={input} value={draft.category} onChange={(event) => {

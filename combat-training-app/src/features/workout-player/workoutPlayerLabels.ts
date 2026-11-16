@@ -17,7 +17,6 @@ export const workoutPlayerLabels = {
   discardWithoutSaving: 'Porzuć bez zapisu…',
   discardTitle: 'Porzucić trening?',
   discardDescription: 'Dane z tego treningu przepadną. Tej operacji nie można cofnąć.',
-  discardHint: '„Porzuć” pyta jeszcze raz: dane przepadną, nie da się cofnąć.',
   discard: 'Porzuć',
   return: 'Wróć',
   endedEarly: 'Trening zakończony wcześniej',

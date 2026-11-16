@@ -105,6 +105,7 @@ test('separate consent, offline daily entry, progress, same-day edit and deletio
   const originalCreated = (await app.readWellbeing())[0] as WellbeingEntry
   expect(originalCreated.createdAt).toBe(instant)
   const csvDownload = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Pobierz swoje dane', exact: true }).click()
   await page.getByRole('button', { name: 'Pobierz samopoczucie (CSV)', exact: true }).click()
   const csv = await csvDownload
   expect(csv.suggestedFilename()).toBe('combat-training-samopoczucie-2026-11-14.csv')

@@ -90,6 +90,7 @@ Te oceny nie tworzą trendów.
 ## RPE i obciążenie (Q2)
 
 - Session-RPE 0–10 dla całego treningu, według Fostera.
+- Kotwice Fostera (0, 1, 2, 3, 4, 5, 7, 10) pozostają bez zmian. Opisy 6 („Między ciężko a bardzo ciężko”), 8 („Między bardzo ciężko a maksymalnie”) i 9 („Prawie maksymalnie”) to nasze opisy pośrednie, nie część oryginalnej skali.
 - Pytanie po 10 minutach wyciszenia. Zapisujemy moment odpowiedzi, żeby znać opóźnienie oceny.
 - Gdy RPE brakuje, strona główna przypomina o nim. Powiadomienia push to rozszerzenie, bo wymagają planu Blaze.
 - **Obciążenie** = RPE × minuty czasu treningu. Zawsze pokazujemy obok czas i RPE osobno, żeby było widać, skąd wzrosło.
