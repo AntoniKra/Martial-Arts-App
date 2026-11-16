@@ -1,8 +1,10 @@
 import { expect, type APIRequestContext } from '@playwright/test'
 import { testPassword } from '../authEmulator'
+import { assertDemoTarget, demoAuthOrigin, demoProjectId } from './emulator'
 
 export async function createDemoAccount(request: APIRequestContext, variant: string) {
-  const identity = 'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1'
+  assertDemoTarget(demoProjectId, demoAuthOrigin)
+  const identity = `${demoAuthOrigin}/identitytoolkit.googleapis.com/v1`
   const email = `pokaz-${variant}@example.test`
   const created = await request.post(`${identity}/accounts:signUp?key=demo-config`, {
     data: { email, password: testPassword, returnSecureToken: true },
@@ -13,5 +15,11 @@ export async function createDemoAccount(request: APIRequestContext, variant: str
     headers: { Authorization: 'Bearer owner' }, data: { localId, emailVerified: true },
   })
   expect(verified.ok()).toBe(true)
-  return { email, password: testPassword, uid: localId }
+  // A fresh token carries email_verified, so fixture writes exercise the real rules.
+  const signedIn = await request.post(`${identity}/accounts:signInWithPassword?key=demo-config`, {
+    data: { email, password: testPassword, returnSecureToken: true },
+  })
+  expect(signedIn.ok()).toBe(true)
+  const { idToken } = await signedIn.json() as { idToken: string }
+  return { email, password: testPassword, uid: localId, idToken }
 }

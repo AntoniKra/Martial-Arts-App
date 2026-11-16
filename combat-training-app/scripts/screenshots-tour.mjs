@@ -23,7 +23,7 @@ const report = { success: result.status === 0 && shots.length === 100, screensho
 await writeFile(path.join(folder, 'report.json'), JSON.stringify(report, null, 2))
 await writeFile(path.join(folder, 'index.html'), `<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Trasa zrzutów — konto pokazowe</title><style>body{font:16px system-ui;background:#f4f4f1;color:#111113;margin:24px}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}figure{margin:0;border:1px solid #bbb;padding:12px}img{display:block;width:100%;height:360px;object-fit:contain;object-position:top}a{color:inherit}figcaption{margin-top:12px}header{max-width:900px;margin-bottom:24px}</style>
-<header><h1>Konto pokazowe — trasa zrzutów</h1><p>Zegar: 19.11.2026, 18:00, Europe/Warsaw. Telefon 360×800 i komputer 1440×900; motyw ciemny i jasny. Obrazy przewijanych ekranów obejmują całą stronę. Kliknij obraz, aby otworzyć pełny rozmiar.</p>
+<header><h1>Konto pokazowe — trasa zrzutów</h1><p>Daty konta liczone względem dnia uruchomienia, Europe/Warsaw. Telefon 360×800 i komputer 1440×900; motyw ciemny i jasny. Obrazy przewijanych ekranów obejmują całą stronę. Kliknij obraz, aby otworzyć pełny rozmiar.</p>
 <p>Wynik: ${report.success ? 'PASS' : 'FAIL — przebieg niepełny, sprawdź wynik polecenia'}. Zrzuty: ${shots.length}. Czas: ${seconds} s.</p><p>Pominięto: ${escape(skipped.join(' '))}</p></header>
 <main>${shots.map(({ file, caption }) => `<figure><a href="${escape(file)}"><img loading="lazy" src="${escape(file)}" alt="${escape(caption)}"></a><figcaption>${escape(caption)}</figcaption></figure>`).join('\n')}</main></html>`)
 console.log(JSON.stringify(report, null, 2))

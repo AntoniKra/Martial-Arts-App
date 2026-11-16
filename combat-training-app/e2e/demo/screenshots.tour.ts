@@ -4,7 +4,7 @@ import path from 'node:path'
 import { test, expect } from '@playwright/test'
 import { signIn } from '../authEmulator'
 import { seedRawAccountDocument, readSessions } from '../firestoreEmulator'
-import { demoInstant, demoPlans, demoProfile } from './data'
+import { demoInstant, demoPlans, demoProfile, demoSessions, demoWeeks } from './data'
 import { seedDemo } from './seed'
 import { createDemoAccount } from './account'
 import { expandProfileSection } from '../fixtures'
@@ -61,7 +61,9 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await capture(23, 'rejestracja', 'Rejestracja')
     // Stable, fictional address in screenshots; each viewport/theme has an isolated account.
     const account = await createDemoAccount(page.request, info.project.name)
-    await seedDemo(page.request, account.uid)
+    await seedDemo(page.request, account)
+    // Only the consent screen needs a temporarily withdrawn weight consent.
+    await seedRawAccountDocument(page.request, account.uid, '', { ...demoProfile, healthDataConsent: null, weightClassLabel: null, schemaVersion: 1 })
     await page.goto('/profile/consent')
     await signIn(page, account)
     await expect(page.getByRole('checkbox', { name: 'Mam ukończone 18 lat.', exact: true })).toBeVisible()
@@ -95,14 +97,14 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await capture(5, 'szczegoly-planu', 'Szczegóły planu')
 
     await open('/workouts?tab=history', 'Treningi')
-    await expect(page.getByRole('region', { name: 'Historia treningów', exact: true }).getByRole('article')).toHaveCount(27)
-    await capture(14, 'historia', 'Historia — 10 tygodni, tydzień regeneracji')
-    await open('/workout-sessions/plan-week-9/feedback', demoPlans[0].nameSnapshot)
+    await expect(page.getByRole('region', { name: 'Historia treningów', exact: true }).getByRole('article')).toHaveCount(demoSessions.length)
+    await capture(14, 'historia', 'Historia — 14 tygodni, dwa tygodnie przerwy')
+    await open('/workout-sessions/plan-week-13/feedback', demoPlans[0].nameSnapshot)
     await expect(page.getByRole('region', { name: /Poprzednio ten plan/ })).toBeVisible()
     await expect(page.getByText('Zapisano RPE 6', { exact: true })).toBeVisible()
     await capture(11, 'podsumowanie-planu', 'Podsumowanie planu — poprzedni trening i RPE')
     await capture(15, 'szczegoly-wpisu', 'Szczegóły wpisu z ocenami i notatką')
-    await open('/workout-sessions/quick-week-9/feedback', 'Szybki stoper')
+    await open('/workout-sessions/quick-week-13/feedback', 'Szybki stoper')
     await expect(page.getByRole('group', { name: /Intensywność sparingu/ })).toBeVisible()
     await capture(12, 'podsumowanie-stopera', 'Podsumowanie stopera — sparing')
     await open('/workout-sessions/new', 'Trening spoza aplikacji')
@@ -116,8 +118,8 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await open('/progress', 'Postęp')
     await expect(page.getByRole('heading', { name: 'Powrót do gardy', exact: true })).toBeVisible()
     await capture(16, 'postep', 'Postęp elementów do poprawy')
-    await open('/progress/week/2026-11-16', 'Plan tygodnia')
-    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '3')
+    await open(`/progress/week/${demoWeeks.at(-1)!.weekStart}`, 'Plan tygodnia')
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '4')
     await capture(17, 'plan-tygodnia', 'Plan bieżącego tygodnia')
     await open('/progress/focus-skills/guard', 'Powrót do gardy')
     await capture(18, 'postep-celu', 'Trend ocen i sprawdzona poprawka')
@@ -173,7 +175,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await page.getByRole('dialog').getByRole('button', { name: 'Anuluj', exact: true }).click()
     await context.setOffline(false)
     simulatingOffline = false
-    await expect.poll(async () => (await readSessions(page.request, account.uid)).length).toBe(29)
+    await expect.poll(async () => (await readSessions(page.request, account.uid)).length).toBe(demoSessions.length + 2)
   } finally {
     // The fixture closes its isolated context after failures, including timeout.
     // Do not mask the original error by calling setOffline on a closed context.
