@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import type { AccountService } from '@/application/account/accountService'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { authLabels } from '@/features/auth/authLabels'
@@ -12,7 +12,13 @@ export function PasswordChangeForm({ service }: { service: AccountService }) {
   const [errors, setErrors] = useState<PasswordChangeErrors>({})
   const [expanded, setExpanded] = useState(false)
   const toggle = useRef<HTMLButtonElement>(null)
+  const restoreFocusAfterSuccess = useRef(false)
   const [busy, setBusy] = useState(false), [message, setMessage] = useState<string | null>(null), [success, setSuccess] = useState(false)
+  useEffect(() => {
+    if (expanded || busy || !restoreFocusAfterSuccess.current) return
+    restoreFocusAfterSuccess.current = false
+    toggle.current?.focus()
+  }, [expanded, busy])
   async function submit(event: FormEvent) {
     event.preventDefault()
     if (inFlight.current) return
@@ -26,7 +32,8 @@ export function PasswordChangeForm({ service }: { service: AccountService }) {
     try {
       await service.changePassword(values.currentPassword, values.newPassword)
       setValues({ currentPassword: '', newPassword: '' }); setSuccess(true); setMessage(labels.passwordChanged)
-      setExpanded(false); requestAnimationFrame(() => toggle.current?.focus())
+      restoreFocusAfterSuccess.current = true
+      setExpanded(false)
     } catch (cause) {
       const code = typeof cause === 'object' && cause !== null && 'code' in cause ? cause.code : null
       setMessage(code === 'auth/invalid-credential' || code === 'auth/wrong-password' ? labels.wrongPassword : mapAuthError(cause))
