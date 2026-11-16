@@ -1,20 +1,13 @@
+import { scaleValueFromKey, scaleValueFromPosition, stepScaleValue } from '@/components/scaleValue'
+
 export function stepRpeValue(value: number | null, step: -1 | 1): number {
-  return value === null ? 5 : Math.max(0, Math.min(10, Math.round(value) + step))
+  return stepScaleValue(value, step, 0, 10)
 }
 
 export function rpeValueFromPosition(position: number, left: number, width: number): number | null {
-  if (!Number.isFinite(position) || !Number.isFinite(left) || !Number.isFinite(width) || width <= 0) return null
-  return Math.max(0, Math.min(10, Math.floor((position - left) / width * 11)))
+  return scaleValueFromPosition(position, left, width, 0, 10)
 }
 
 export function rpeValueFromKey(value: number | null, key: string): number | null {
-  switch (key) {
-    case 'Home': return 0
-    case 'End': return 10
-    case 'ArrowRight':
-    case 'ArrowUp': return stepRpeValue(value, 1)
-    case 'ArrowLeft':
-    case 'ArrowDown': return stepRpeValue(value, -1)
-    default: return null
-  }
+  return scaleValueFromKey(value, key, 0, 10)
 }

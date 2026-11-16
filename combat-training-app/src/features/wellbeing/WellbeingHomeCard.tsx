@@ -3,7 +3,6 @@ import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { useProfileToday } from '@/features/profile/useProfileToday'
 import { wellbeingDismissalStorage } from '@/infrastructure/storage/wellbeingDismissalStorage'
-import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { WellbeingForm } from './WellbeingForm'
 import { WellbeingDataState } from './WellbeingDataState'
 import { wellbeingLabels as labels } from './wellbeingLabels'
@@ -21,9 +20,8 @@ function DailyCard({ uid, today }: { uid: string; today: string }) {
   if (dismissed) return null
   return <section aria-label={labels.prompt} className="space-y-4 border border-bd bg-surface p-4">
     <h2 className="font-display text-xl font-semibold">{labels.prompt}</h2>
-    {withdrawalPending ? <p role="status" className="text-sm text-muted">{labels.withdrawalPending}</p> : wellbeing.status !== 'ready' || wellbeing.invalidDocumentIds.length ? <WellbeingDataState loading={wellbeing.status === 'loading'} retry={retryWellbeing} /> : <>
-      <WellbeingForm date={today} onSave={(value) => wellbeingRepository.save(value)} />
-      <button type="button" className={getButtonClassName({ variant: 'ghost' })} onClick={() => { wellbeingDismissalStorage(uid).dismiss(today); setDismissed(true) }}>{labels.skip}</button>
-    </>}
+    {withdrawalPending ? <p role="status" className="text-sm text-muted">{labels.withdrawalPending}</p> : wellbeing.status !== 'ready' || wellbeing.invalidDocumentIds.length ? <WellbeingDataState loading={wellbeing.status === 'loading'} retry={retryWellbeing} /> :
+      <WellbeingForm date={today} onSave={(value) => wellbeingRepository.save(value)}
+        onSkip={() => { wellbeingDismissalStorage(uid).dismiss(today); setDismissed(true) }} />}
   </section>
 }
