@@ -40,10 +40,12 @@ export function ProgressOverview() {
   const typical = typicalProgress(sessions.items, currentWeek)
   const target = selected.status === 'ready' ? weekTarget(selected.plan) : null
   const schedule = selected.status === 'ready' && selected.plan ? calculateScheduledWeek(selected.plan, sessions.items, today) : null
+  // Same plan credit as Start and the week plan (legacy weeks count completed goals only), not all workouts.
+  const planTile = schedule && schedule.targetCount > 0 ? `${schedule.goalCount} / ${schedule.targetCount}` : target === null ? null : `${summary.workoutCount} / ${target}`
   const rounds = sparringOverview(sessions.items, currentWeek, shiftCalendarDate(currentWeek, 6))
   return <>
     <dl aria-label="Ten tydzień w liczbach" className="grid grid-cols-3 gap-2">
-      {[[`${summary.workoutCount}${target === null ? '' : ` / ${target}`}`, 'treningi' + (target === null ? '' : ' (plan)')],
+      {[[planTile ?? `${summary.workoutCount}`, 'treningi' + (planTile === null ? '' : ' (plan)')],
         [Math.ceil(summary.durationSeconds / 60).toLocaleString('pl-PL'), `minut${typical ? ` · zwykle ${typical.minutes.toLocaleString('pl-PL')}` : ''}`],
         [`${rounds.unknown ? '≥ ' : ''}${rounds.rounds}`, 'rund sparingu']].map(([value, label]) => <div key={label} className="flex min-w-0 flex-col-reverse justify-end gap-1 border border-bd bg-surface px-2 py-3">
         <dt className="text-xs text-muted">{label}</dt><dd className="font-display text-[28px] font-extrabold tabular-nums">{value}</dd>
