@@ -45,6 +45,8 @@ test('reuses a personal exercise across two rated plans, keeps one focus trend a
   await page.getByRole('textbox', { name: 'Kryterium', exact: true }).fill('Ręka wraca do brody.')
   await page.getByRole('button', { name: 'Zapisz ćwiczenie', exact: true }).click()
   await app.savePlan()
+  // Wait for the emulator to receive the plan, exercise and focus skill instead of reading right after the click.
+  await expect.poll(async () => [(await app.readPlans()).length, (await app.readExercises()).length, (await app.readFocusSkills()).length]).toEqual([1, 1, 1])
   const firstPlan = (await app.readPlans())[0]
   const [personal] = await app.readExercises()
   const [skill] = await app.readFocusSkills()
@@ -116,7 +118,7 @@ test('copies a builtin, favorites it with an accessible name, archives offline a
   await expect(page.getByRole('button', { name: 'Usuń z ulubionych: Moja kombinacja', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('region', { name: 'Ulubione', exact: true })).toContainText('Moja kombinacja')
   await accessible(page); await capture(page, info, 'favorites-and-filters')
-  expect((await app.readExercises())[0]).toMatchObject({ copiedFromId: 'combo-jab-cross', favorite: true })
+  await expect.poll(async () => (await app.readExercises())[0]).toMatchObject({ copiedFromId: 'combo-jab-cross', favorite: true })
   await page.getByRole('button', { name: 'Wróć do osi treningu', exact: true }).click()
   await page.getByRole('link', { name: 'Wróć do treningów', exact: true }).click()
   await page.getByRole('button', { name: 'Odrzuć zmiany', exact: true }).click()
