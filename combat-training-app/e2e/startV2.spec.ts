@@ -47,7 +47,8 @@ test('review regression: legacy exact-plan credits agree on Start, Progress and 
   await app.open('/')
   await expect(weekCard(page)).toContainText('1 z 2 treningów')
   await app.open('/progress')
-  await expect(page.getByText('Ukończone: 1 z 2', { exact: true })).toBeVisible()
+  // Progress C (#180) shows completed vs planned workouts in the first tile instead of the old summary line.
+  await expect(page.getByLabel('Ten tydzień w liczbach', { exact: true })).toContainText('1 / 2')
 })
 async function accessible(page: Page) {
   expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
