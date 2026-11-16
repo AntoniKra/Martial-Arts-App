@@ -5,7 +5,7 @@ import { weekDayState } from '@/components/domain/weekDayPresentation'
 import type { selectHomeSchedule } from '@/domain/week-plan/homeSchedule'
 import type { calculateWeekPlanProgress } from '@/domain/week-plan/weekPlanProgress'
 import { activityTitle, weekdays } from '@/features/week-plan/scheduleLabels'
-import { homeLabels as labels } from '../homeLabels'
+import { homeLabels as labels, homeWeekLabel } from '../homeLabels'
 import { homeInlineLink } from './HomeScheduleCards'
 
 export function HomeWeekCard({ weekStart, schedule, progress, minutes, today }: {
@@ -13,7 +13,7 @@ export function HomeWeekCard({ weekStart, schedule, progress, minutes, today }: 
 }) {
   return <section aria-label={labels.week} className="flex flex-col gap-3">
     <div className="flex flex-wrap items-center justify-between gap-x-2">
-      <h2 className="font-display text-lg font-extrabold">{labels.week}</h2>
+      <h2 className="font-display text-lg font-extrabold">{labels.week}<span className="sr-only"> · {homeWeekLabel(weekStart)}</span></h2>
       <Link to={routes.weekPlan(weekStart)} className={homeInlineLink}>{labels.weekPlan} ›</Link>
     </div>
     <ol aria-label={labels.days} className="grid list-none grid-cols-7 gap-1.5 text-center">
