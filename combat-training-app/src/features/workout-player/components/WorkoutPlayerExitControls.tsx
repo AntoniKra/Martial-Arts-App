@@ -96,9 +96,8 @@ export function WorkoutPlayerExitControls({
         type="button"
         aria-label={labels.finishWorkout}
         aria-haspopup="dialog"
-        disabled={!active}
-        onClick={openExit}
-        className="flex min-h-touch min-w-touch shrink-0 items-center justify-center border border-bd bg-surface text-ink disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+        onClick={() => { if (active) openExit(); else void navigate(workoutDetailsPath) }}
+        className="flex min-h-touch min-w-touch shrink-0 items-center justify-center text-ink disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M6 6l12 12M18 6L6 18" />

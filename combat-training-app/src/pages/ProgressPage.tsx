@@ -1,3 +1,4 @@
+import { ScreenHeader } from '@/components/ScreenHeader'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
@@ -38,8 +39,7 @@ export function Component() {
   const active = selectAvailableFocusSkills(focusSkills.items)
   const archived = focusSkills.items.filter((skill) => skill.archivedAt !== null).sort((a, b) => a.name.localeCompare(b.name, 'pl'))
   return <div className="space-y-[18px] px-4 pb-6 pt-14 md:px-0 md:pt-0">
-    <header className="space-y-0.5"><h1 className="font-display text-[28px] font-extrabold">{labels.title}</h1>
-    <p className="text-[13px] text-muted">{new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', timeZone: 'UTC' }).formatRange(new Date(`${currentWeek}T12:00:00Z`), new Date(`${shiftCalendarDate(currentWeek, 6)}T12:00:00Z`))} · ten tydzień</p></header>
+    <ScreenHeader variant="main" title={labels.title} subtitle={<>{new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', timeZone: 'UTC' }).formatRange(new Date(`${currentWeek}T12:00:00Z`), new Date(`${shiftCalendarDate(currentWeek, 6)}T12:00:00Z`))} · ten tydzień</>} />
     <ProgressOverview />
     {plans.hasPendingWrites || focusSkills.hasPendingWrites || sessions.hasPendingWrites || weekPlans.hasPendingWrites ? <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p> : null}
     <ProgressDataWarning />

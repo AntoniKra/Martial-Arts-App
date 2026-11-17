@@ -17,8 +17,10 @@ test('shows the navigation in the requested order with New in the middle', async
     expect(boxes[index][axis]).toBeGreaterThan(boxes[index - 1][axis])
   }
   await page.evaluate(() => document.fonts.ready)
+  if (process.env.CAPTURE_SCREENSHOTS === '1') {
   await page.screenshot({ path: info.outputPath('navigation.png'), fullPage: true })
   await info.attach('navigation', { path: info.outputPath('navigation.png'), contentType: 'image/png' })
+  }
   await controls.nth(2).click()
   await expect(page.getByRole('dialog', { name: 'Nowy trening', exact: true })).toBeVisible()
 })

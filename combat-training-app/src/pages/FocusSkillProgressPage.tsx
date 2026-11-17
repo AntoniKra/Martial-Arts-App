@@ -1,3 +1,4 @@
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { Link, useParams } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
@@ -19,10 +20,9 @@ export function Component() {
   const assessments = skill ? selectFocusSkillAssessments(skill, sessions.items) : []
   const summary = summarizeFocusSkill(assessments)
   return <div className="space-y-6 px-4 py-6 md:px-0">
-    <Link to={routes.progress} className="inline-flex min-h-touch items-center gap-1 text-sm text-muted"><span aria-hidden="true">←</span>{labels.back}</Link>
-    {!ready ? <ProgressDataState /> : !skill ? <h1 className="font-display text-xl font-bold">{labels.notFound}</h1> : <>
+    <RouteScreenHeader title={skill?.name ?? (!ready ? labels.title : labels.notFound)} fallback={routes.progress} />
+    {!ready ? <ProgressDataState /> : !skill ? null : <>
       <header className="space-y-2">
-        <h1 className="break-words font-display text-2xl font-bold">{skill.name}</h1>
         <p className="break-words text-sm leading-relaxed text-muted">{skill.criterion}</p>
         {skill.exerciseId && <p className="break-words text-sm text-muted">Powiązane ćwiczenie: {exercises.items.find((exercise) => exercise.id === skill.exerciseId)?.namePl
           ?? EXERCISE_LIBRARY_FIXTURES.find((exercise) => exercise.id === skill.exerciseId)?.namePl ?? 'niedostępne'}</p>}

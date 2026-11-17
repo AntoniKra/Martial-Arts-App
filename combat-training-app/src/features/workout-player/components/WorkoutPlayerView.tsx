@@ -3,8 +3,7 @@ import type { ActiveWorkout, ActiveWorkoutRepository } from '@/application/worko
 import { useActiveWorkoutPersistence } from '../hooks/useActiveWorkoutPersistence'
 import { Link } from 'react-router-dom'
 
-import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
-import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
+import { LiveScreenHeader, RouteScreenHeader } from '@/components/ScreenHeader'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
@@ -51,30 +50,6 @@ interface WorkoutPlayerViewProps extends WorkoutSummaryOptions {
   saveWorkoutSession: (session: WorkoutSession) => Promise<void>
 }
 
-function BackToWorkoutsLink({ to }: { to: string }) {
-  return (
-    <Link
-      to={to}
-      className="inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-    >
-      <ChevronRightIcon className="rotate-180" />
-      Wróć do planów
-    </Link>
-  )
-}
-
-function BackToPlanLink({ to, quickTimer = false }: { to: string; quickTimer?: boolean }) {
-  return (
-    <Link
-      to={to}
-      className="inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-    >
-      <ChevronRightIcon className="rotate-180" />
-      {quickTimer ? quickTimerLabels.back : 'Wróć do planu'}
-    </Link>
-  )
-}
-
 function StatusPanel({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col items-center border border-bd bg-surface px-6 py-12 text-center">
@@ -86,8 +61,7 @@ function StatusPanel({ children }: { children: ReactNode }) {
 function WorkoutPlayerLoadingState({ workoutsListPath }: { workoutsListPath: string }) {
   return (
     <StatusPanel>
-      <BackToWorkoutsLink to={workoutsListPath} />
-      <h1 className="font-display text-[15px] font-semibold text-ink">Ładowanie treningu</h1>
+      <RouteScreenHeader title="Ładowanie treningu" fallback={workoutsListPath} />
       <p
         className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted"
         role="status"
@@ -108,8 +82,7 @@ interface WorkoutPlayerErrorStateProps {
 function WorkoutPlayerErrorState({ message, workoutsListPath, onRetry }: WorkoutPlayerErrorStateProps) {
   return (
     <StatusPanel>
-      <BackToWorkoutsLink to={workoutsListPath} />
-      <h1 className="font-display text-[15px] font-semibold text-ink">Nie udało się wczytać treningu</h1>
+      <RouteScreenHeader title="Nie udało się wczytać treningu" fallback={workoutsListPath} />
       <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted">{message}</p>
       <button
         type="button"
@@ -125,8 +98,7 @@ function WorkoutPlayerErrorState({ message, workoutsListPath, onRetry }: Workout
 function WorkoutPlayerNotFoundState({ workoutsListPath }: { workoutsListPath: string }) {
   return (
     <StatusPanel>
-      <BackToWorkoutsLink to={workoutsListPath} />
-      <h1 className="font-display text-[15px] font-semibold text-ink">Nie znaleziono planu</h1>
+      <RouteScreenHeader title="Nie znaleziono planu" fallback={workoutsListPath} />
       <Link to={workoutsListPath} className={getButtonClassName({ variant: 'primary', size: 'md', className: 'mt-5' })}>
         Wróć do planów
       </Link>
@@ -378,14 +350,9 @@ function WorkoutPlayerRuntime({
     <main className="flex min-h-dvh flex-col overflow-clip bg-bg">
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col safe-area-pt">
         {focusSkillsUnavailable && <p role="status" className="px-5 pt-3 text-sm leading-relaxed text-muted">{workoutPlayerLabels.focusSkillsUnavailable}</p>}
-        <header className="shrink-0 px-5 pt-5 pb-2">
-          <div className="flex items-start justify-between gap-4">
-            <BackToPlanLink to={workoutDetailsPath} quickTimer={source === 'quickTimer'} />
-            <p className="ml-auto pt-3 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
-              Etap <span className="tabular-nums">{playback.currentStepIndex + 1}</span> z{' '}
-              <span className="tabular-nums">{totalSteps}</span>
-            </p>
-            <WorkoutPlayerExitControls
+        <div className="shrink-0 px-5 pt-5 pb-2">
+          <LiveScreenHeader progress={<>Etap <span className="tabular-nums">{playback.currentStepIndex + 1}</span> z <span className="tabular-nums">{totalSteps}</span></>}
+            exit={<WorkoutPlayerExitControls
               status={playback.status}
               canFinishExercise={currentStep.kind !== 'break'}
               remainingRounds={countRemainingExerciseRounds(timeline.steps, playback.currentStepIndex)}
@@ -398,20 +365,8 @@ function WorkoutPlayerRuntime({
                 expectedStepRevision: playback.stepRevision,
               })}
               onEndEarly={endEarly}
-            />
-          </div>
-
-          <div className="mt-3 flex flex-col items-start gap-1">
-            <DisciplineBadge disciplineKey={plan.disciplineKey} />
-            <p className="break-words font-display text-[14px] font-semibold leading-snug text-ink">
-              {plan.nameSnapshot}
-            </p>
-            <p className="font-display text-[10px] font-semibold uppercase tracking-[0.16em] text-crimson-ink">
-              Blok <span className="tabular-nums">{currentStep.blockIndex + 1}</span> ·{' '}
-              {getWorkoutBlockLabelPl(currentStep.blockType)}
-            </p>
-          </div>
-        </header>
+            />} />
+        </div>
 
         {soundMuted ? <button type="button" onClick={enableSound}
           className={getButtonClassName({ variant: 'secondary', className: 'mx-5 whitespace-normal text-center' })}

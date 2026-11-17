@@ -79,7 +79,7 @@ test('blocks the header link and discards without saving even after completed wo
   await app.freezeClock()
   await app.startWorkout()
   await page.clock.fastForward(60_000)
-  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await page.getByRole('button', { name: 'Zakończ trening', exact: true }).click()
   await expect(exitDialog(page)).toBeVisible()
   await expect(page).toHaveURL(`${planUrl}/active`)
   await confirmDiscard(page)
@@ -165,7 +165,7 @@ test('discards from the exit button by navigating to the plan without saving', a
 test('leaves without confirmation before start and after completion and shows completed status in both histories', async ({ app, page }) => {
   const planUrl = await app.createPlan('Ukonczony trening')
   await app.openPlayer()
-  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await page.getByRole('button', { name: 'Zakończ trening', exact: true }).click()
   await expect(page).toHaveURL(planUrl)
   await expect(exitDialog(page)).toHaveCount(0)
   await app.openPlayer()

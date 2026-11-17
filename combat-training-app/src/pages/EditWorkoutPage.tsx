@@ -10,6 +10,7 @@ import { workoutBuilderReducer } from '@/features/workout-builder/state/workoutB
 import { workoutPlanToBuilderState } from '@/features/workout-builder/state/workoutPlanToBuilderState'
 import { WorkoutPlanDetailsNotFoundState } from '@/features/workout-details/components/WorkoutPlanDetailsView'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 
 function PlanEditor({ plan, repository }: { plan: WorkoutPlan; repository: WorkoutPlanRepository }) {
   const navigate = useNavigate()
@@ -37,7 +38,7 @@ function EditWorkoutLoader({ workoutId }: { workoutId: string }) {
   return (
     <div className="mx-auto w-full max-w-lg overflow-y-auto px-4 py-6 md:max-w-2xl md:py-8">
       {loadState.status === 'loading' ? (
-        <p role="status" className="text-[13px] text-muted">{workoutPlanLabels.loading}</p>
+        <><RouteScreenHeader variant="form" title={workoutPlanLabels.editHeading} fallback={routes.workoutDetails(workoutId)} /><p role="status" className="text-[13px] text-muted">{workoutPlanLabels.loading}</p></>
       ) : (
         <WorkoutPlanDetailsNotFoundState workoutsListPath={routes.workouts} newWorkoutPath={routes.newWorkout} />
       )}

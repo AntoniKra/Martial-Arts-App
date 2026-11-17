@@ -40,7 +40,7 @@ test('keeps a changed plan when the discard dialog is cancelled', async ({ app, 
   await app.createPlan('Plan przed zmiana')
   await openEdit(page)
   await planName(page).fill('Plan zmieniony')
-  await page.getByRole('link', { name: 'Anuluj', exact: true }).click()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
   const dialog = discardDialog(page)
   const stay = dialog.getByRole('button', { name: 'Wróć do edycji', exact: true })
   const discard = dialog.getByRole('button', { name: 'Odrzuć zmiany', exact: true })
@@ -57,7 +57,7 @@ test('keeps a changed plan when the discard dialog is cancelled', async ({ app, 
   await expect(dialog).toHaveCount(0)
   await expect(planName(page)).toHaveValue('Plan zmieniony')
 
-  await page.getByRole('link', { name: 'Anuluj', exact: true }).click()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
   await expect(stay).toBeFocused()
   await stay.click()
   await expect(dialog).toHaveCount(0)
@@ -65,7 +65,7 @@ test('keeps a changed plan when the discard dialog is cancelled', async ({ app, 
   await expect(page).toHaveURL(/\/edit$/)
 
   await app.setTheme('light')
-  await page.getByRole('link', { name: 'Anuluj', exact: true }).click()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
   await expect(stay).toBeFocused()
   await captureReview(page, testInfo, 'discard-light')
   await discard.click()
@@ -77,7 +77,7 @@ test('keeps a changed plan when the discard dialog is cancelled', async ({ app, 
 test('leaves a clean builder and still warns the browser before unload', async ({ app, page }) => {
   await app.open('/workouts/new')
   await expect(saveChanges(page)).toHaveCount(0)
-  await page.getByRole('link', { name: 'Wróć do treningów', exact: true }).click()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
   await expect(discardDialog(page)).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
 
@@ -93,7 +93,7 @@ test('leaves a clean builder and still warns the browser before unload', async (
   page.off('dialog', onCleanReloadDialog)
   expect(reloadInterrupted).toBe(false)
   await expect(page.getByRole('heading', { name: 'Edycja planu', exact: true })).toBeVisible()
-  await page.getByRole('link', { name: 'Anuluj', exact: true }).click()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
   await expect(discardDialog(page)).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Plan bez zmian', exact: true })).toBeVisible()
 
@@ -165,13 +165,13 @@ test('hides rest for one round and restores the previous value at three rounds',
   await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
   await page.getByRole('button', { name: 'Technika', exact: true }).click()
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
-  await page.getByRole('button', { name: 'Wróć do osi treningu', exact: true }).click()
+  await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
   await expect(discardDialog(page)).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Nowy trening', exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
   await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()
-  await page.getByRole('button', { name: 'Wróć do biblioteki', exact: true }).click()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
   await expect(discardDialog(page)).toHaveCount(0)
   await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()
 

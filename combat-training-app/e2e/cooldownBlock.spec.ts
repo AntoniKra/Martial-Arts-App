@@ -29,7 +29,7 @@ test('saves a cooldown block and shows it as block 4 in the player', async ({ ap
   const next = page.getByRole('button', { name: 'Następny etap', exact: true })
   for (let step = 0; step < 3; step += 1) await next.click()
 
-  await expect(page.getByText('Blok 4 · Rozluźnienie', { exact: true })).toBeVisible()
+  await expect(page.getByRole('main').locator('header')).toContainText('Etap 4 z 4')
   await expect(page.getByRole('heading', { name: 'Rozciąganie bioder i nóg', exact: true })).toBeVisible()
 })
 

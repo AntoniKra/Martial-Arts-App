@@ -1,5 +1,6 @@
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
@@ -25,6 +26,7 @@ import { calculateWeekPlanProgress } from '@/domain/week-plan/weekPlanProgress'
 
 export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: string; onRecurring: () => void }) {
   const { weekPlans, recurringWeeks, weekPlanRepository, retryRecurringWeeks, plans, sessions, currentWeek, retrySessions } = useWorkoutData()
+  const { hash } = useLocation()
   const stored = weekPlans.items.find((plan) => plan.weekStart === weekStart)
   const recurring = recurringWeeks.items[0]
   const [openedAt] = useState(() => new Date())
@@ -48,6 +50,13 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
     generation.current = true
     void weekPlanRepository.save(generateScheduledWeek(weekStart, recurring, openedAt)).catch(() => setGenerationError(true))
   }, [canEdit, stored, recurring, recurringReady, weekPlanRepository, weekStart, openedAt])
+
+  useEffect(() => {
+    if (selected.status !== 'ready' || !hash) return
+    const target = document.getElementById(hash.slice(1))
+    target?.scrollIntoView({ block: 'center' })
+    target?.focus({ preventScroll: true })
+  }, [hash, selected.status])
 
   async function saveEntry(items: WeekActivity[], repeat: boolean) {
     const before = plan.schedule ?? []
@@ -102,8 +111,7 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
     </div>
   }
   return <div className="flex flex-col gap-2.5 px-4 pb-6 pt-14 md:px-0 md:pt-0">
-    <header className="-ml-3 flex items-center gap-1"><Link to={routes.progress} aria-label={labels.backProgress} className="flex size-11 shrink-0 items-center justify-center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25"><path d="m15 18-6-6 6-6" /></svg></Link>
-    <h1 className="font-display text-[28px] font-extrabold">{weekPlanLabels.title}</h1></header>
+    <RouteScreenHeader title={weekPlanLabels.title} fallback={routes.progress} />
     {selected.status !== 'ready' && <WeekPlanDataMessage status={selected.status} />}
     <button type="button" className="flex min-h-touch items-center gap-3 rounded-[2px] border border-bd bg-surface p-3.5 text-left" onClick={onRecurring}>
       <span className="accent-icon"><svg aria-hidden="true" className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-5v2a3 3 0 0 1-3 3H3" /></svg></span>

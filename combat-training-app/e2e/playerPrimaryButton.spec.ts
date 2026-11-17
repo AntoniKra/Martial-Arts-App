@@ -91,7 +91,7 @@ for (const theme of ['dark', 'light'] as const) {
     for (const viewport of viewports) {
       await page.setViewportSize(viewport)
       measurements.push({ viewport, theme, state: 'work', ...await checkGeometry(page, 'Pauza') })
-      if (testInfo.project.name === 'phone') {
+      if (process.env.CAPTURE_SCREENSHOTS === '1' && testInfo.project.name === 'phone') {
         mkdirSync(reviewDirectory, { recursive: true })
         await page.screenshot({ path: path.join(reviewDirectory, `work-${theme}-${viewport.width}x${viewport.height}.png`) })
       }
@@ -106,7 +106,7 @@ for (const theme of ['dark', 'light'] as const) {
       await page.keyboard.press('Space')
       await expect(page.getByText('WSTRZYMANO', { exact: true })).toBeVisible()
       measurements.push({ viewport, theme, state: 'paused', ...await checkGeometry(page, 'Wznów') })
-      if (testInfo.project.name === 'phone') {
+      if (process.env.CAPTURE_SCREENSHOTS === '1' && testInfo.project.name === 'phone') {
         await page.screenshot({ path: path.join(reviewDirectory, `paused-${theme}-${viewport.width}x${viewport.height}.png`) })
       }
       // The bottom of the visible circle remains clickable despite viewport clipping.

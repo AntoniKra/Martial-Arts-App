@@ -2,6 +2,11 @@
 @import '@fontsource-variable/inter/opsz.css';
 @import 'tailwindcss';
 
+.home-flexible-workout {
+  border-color: color-mix(in srgb, var(--app-crimson-ink) 40%, var(--app-border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--app-crimson) 10%, var(--app-surface)), color-mix(in srgb, var(--app-ember) 6%, var(--app-surface)));
+}
+
 .progress-weeks-chart { display: flex; border-bottom: 1px solid var(--app-border); padding-top: 4px; }
 .progress-week-column { display: flex; flex: 1 1 0%; min-width: 0; padding-inline: 4px; flex-direction: column; align-items: center; gap: 4px; color: var(--app-muted); transition: flex-grow 300ms ease, padding 300ms ease, transform 300ms ease, opacity 300ms ease; }
 .progress-week-column.is-hidden { flex-grow: 0; width: 0; overflow: hidden; visibility: hidden; padding-inline: 0; opacity: 0; transform: translateX(-24px); }

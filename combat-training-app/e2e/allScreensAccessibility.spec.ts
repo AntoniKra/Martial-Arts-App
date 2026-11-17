@@ -217,7 +217,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/workouts/new')
     await app.setTheme(theme)
     await page.getByRole('textbox', { name: 'Nazwa planu' }).fill('Niezapisany plan')
-    await page.getByRole('link', { name: 'Wróć do treningów', exact: true }).click()
+    await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Odrzucić zmiany?', exact: true })
     await expect(dialog.getByRole('button', { name: 'Wróć do edycji', exact: true })).toBeFocused()
     await audit(page, info, 'discard-changes-dialog', theme)

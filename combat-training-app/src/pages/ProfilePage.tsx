@@ -1,3 +1,4 @@
+import { ScreenHeader } from '@/components/ScreenHeader'
 import { AccountDataSection } from '@/features/account/AccountDataSection'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
@@ -41,11 +42,10 @@ export function Component() {
     : weight.averageKg !== null ? `${weightKgLabel(weight.averageKg)} · średnia z 7 dni`
     : weight.latest ? `Ostatni pomiar: ${weightKgLabel(weight.latest.weightKg)}` : labels.noWeights
   return <div className="space-y-6 px-4 py-6 md:px-0">
-    <header className="space-y-2">
-      <h1 className="font-display text-3xl font-bold">{labels.title}</h1>
+    <ScreenHeader variant="main" title={labels.title} subtitle={<>
       <p className="break-all text-sm text-muted">{state.status === 'ready' ? state.session?.email : ''}</p>
       {account.service && <p className="text-sm text-muted">{account.service.providers.map((provider) => provider === 'password' ? settings.passwordProvider : provider === 'google.com' ? settings.googleProvider : '').filter(Boolean).join(' · ')}</p>}
-    </header>
+    </>} />
     <ProfileDisclosure id="profile-weight" title={labels.weight} summary={unavailable ? labels[unavailable] : weightSummary} open={weightOpen} onToggle={() => setWeightOpen(!weightOpen)}>
       {unavailable ? <ProfileDataState state={unavailable} retry={retryProfile} /> : hasValidHealthConsent(current) ? <BodyWeightSection today={today} profile={current} /> : <>
         <p className="text-sm leading-relaxed text-muted">{labels.intro}</p>

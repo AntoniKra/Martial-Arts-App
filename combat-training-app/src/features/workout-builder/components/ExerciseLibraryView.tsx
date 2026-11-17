@@ -1,7 +1,7 @@
 import { useId, useRef, useState, type FormEvent } from 'react'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
-import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
+import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/Button'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { getDisciplineLabelPl } from '@/domain/discipline/disciplineLabels'
@@ -78,9 +78,8 @@ export function ExerciseLibraryView({ blockType, disciplineKey, libraryUiState, 
   }
   return <div className="flex flex-1 flex-col overflow-y-auto">
     <div className="mx-auto w-full max-w-lg space-y-4 px-4 py-4 md:max-w-2xl">
-      <button type="button" onClick={onBack} className="inline-flex min-h-touch items-center text-sm text-muted"><ChevronRightIcon className="rotate-180" />Wróć do osi treningu</button>
+      <ScreenHeader title="Dodaj ćwiczenie" onBack={onBack} />
       <p className="text-xs text-muted">Blok docelowy · {getWorkoutBlockLabelPl(blockType)} · {getDisciplineLabelPl(disciplineKey)}</p>
-      <h1 className="font-display text-2xl font-bold">Dodaj ćwiczenie</h1>
       <SegmentedControl ariaLabel="Źródło ćwiczenia" options={[{ label: 'Biblioteka', value: 'library' }, { label: 'Własne ćwiczenie', value: 'custom' }]}
         value={libraryUiState.tab} onChange={(tab) => { onLibraryUiStateChange({ ...libraryUiState, tab }); setError(null); setCopy(null) }} />
       {exercises.status === 'loading' && <p role="status" className="text-sm text-muted">{labels.loading}</p>}

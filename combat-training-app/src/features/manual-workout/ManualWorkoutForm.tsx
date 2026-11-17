@@ -1,3 +1,4 @@
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
@@ -121,7 +122,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
   function submit(event: FormEvent) { event.preventDefault(); void save() }
   return <UnsavedPlanChangesGuard isDirty={JSON.stringify(draft) !== JSON.stringify(initial)} allowLeaveRef={allowLeave} description={labels.discard}>
     <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
-      <h1 className="font-display text-2xl font-bold text-ink">{original ? labels.editTitle : labels.title}</h1>
+      <RouteScreenHeader variant="form" title={original ? labels.editTitle : labels.title} fallback={returnTo} disabled={saving} />
       <form ref={form} onSubmit={submit} noValidate aria-label={labels.title} className="space-y-6">
         <fieldset disabled={saving} className="min-w-0 space-y-8">
           {!original && previous && <div className="space-y-2 border border-bd bg-surface p-3 text-sm">

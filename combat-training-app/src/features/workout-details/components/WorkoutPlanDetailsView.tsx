@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
@@ -29,18 +29,6 @@ interface WorkoutPlanDetailsViewProps {
   onRetry: () => void
 }
 
-function BackToWorkoutsLink({ to }: { to: string }) {
-  return (
-    <Link
-      to={to}
-      className="flex min-h-touch w-full items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-    >
-      <ChevronRightIcon className="rotate-180" />
-      Wróć do planów
-    </Link>
-  )
-}
-
 function StatusPanel({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col items-center border border-bd bg-surface px-6 py-12 text-center">
@@ -52,7 +40,7 @@ function StatusPanel({ children }: { children: ReactNode }) {
 function WorkoutPlanDetailsLoadingState({ workoutsListPath }: { workoutsListPath: string }) {
   return (
     <StatusPanel>
-      <BackToWorkoutsLink to={workoutsListPath} />
+      <RouteScreenHeader title="Ładowanie planu" fallback={workoutsListPath} />
       <p
         className="max-w-sm text-[13px] leading-relaxed text-muted"
         role="status"
@@ -77,8 +65,7 @@ function WorkoutPlanDetailsErrorState({
 }: WorkoutPlanDetailsErrorStateProps) {
   return (
     <StatusPanel>
-      <BackToWorkoutsLink to={workoutsListPath} />
-      <h1 className="font-display text-[15px] font-semibold text-ink">Nie udało się wczytać planu</h1>
+      <RouteScreenHeader title="Nie udało się wczytać planu" fallback={workoutsListPath} />
       <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted">{message}</p>
       <button
         type="button"
@@ -102,8 +89,7 @@ export function WorkoutPlanDetailsNotFoundState({
 }: WorkoutPlanDetailsNotFoundStateProps) {
   return (
     <StatusPanel>
-      <BackToWorkoutsLink to={workoutsListPath} />
-      <h1 className="font-display text-[15px] font-semibold text-ink">Nie znaleziono planu</h1>
+      <RouteScreenHeader title="Nie znaleziono planu" fallback={workoutsListPath} />
       <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted">
         Ten plan nie istnieje lub został usunięty.
       </p>
@@ -173,13 +159,8 @@ function WorkoutPlanDetailsSuccessView({
 
   return (
     <div className="flex flex-col items-start gap-3">
-      <BackToWorkoutsLink to={workoutsListPath} />
-
+      <RouteScreenHeader title={plan.nameSnapshot} fallback={workoutsListPath} />
       <DisciplineBadge disciplineKey={plan.disciplineKey} className="text-[11px]" />
-
-      <h1 className="break-words font-display text-[24px] font-bold text-ink md:text-[28px]">
-        {plan.nameSnapshot}
-      </h1>
       <p className="text-[13px] text-muted">{focusSkillLabels.planCount(focusExerciseCount)}</p>
 
       {plan.mainGoal ? (

@@ -94,7 +94,7 @@ test('shows empty and unknown-id states', async ({ app, page }) => {
   await expect(page.getByRole('button', { name: '+ Dodaj', exact: true })).toBeVisible()
   await app.open('/progress/focus-skills/missing')
   await expect(page.getByRole('heading', { name: 'Nie znaleziono elementu do poprawy', exact: true })).toBeVisible()
-  await page.getByRole('link', { name: 'Wróć do listy', exact: true }).click()
+  await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
   await expect(page).toHaveURL(/\/progress$/)
 })
 

@@ -110,7 +110,7 @@ test('creates, reloads and shares focus skills between plans, permits repeats an
   await expect(toggle(first)).toHaveAttribute('aria-checked', 'true')
   await expect(skillOption(first)).toBeChecked()
   await expect(first.getByText(criterion, { exact: true })).toBeVisible()
-  await page.getByRole('link', { name: 'Anuluj', exact: true }).click()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
 
   await app.open('/workouts/new')
   await prepareBuilder(page, 'Drugi plan', ['Powtórka'])
