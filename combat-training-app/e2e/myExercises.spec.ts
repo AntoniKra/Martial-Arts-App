@@ -266,6 +266,6 @@ test('supports plan-only exercises and creates a new personal exercise from an e
   await page.getByRole('button', { name: 'Konfiguruj ćwiczenie', exact: true }).click()
   await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
   await app.savePlan()
-  expect(await app.readExercises()).toMatchObject([{ namePl: 'Nowe łokcie' }])
-  expect((await app.readPlans())[0].blocks[0].items[0]).toMatchObject({ combinationId: null })
+  await expect.poll(() => app.readExercises()).toMatchObject([{ namePl: 'Nowe łokcie' }])
+  await expect.poll(async () => (await app.readPlans())[0]?.blocks[0]?.items[0]).toMatchObject({ combinationId: null })
 })
