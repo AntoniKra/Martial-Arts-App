@@ -1,6 +1,5 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
-import { routes } from '@/app/routes'
+import { SubpageHeader } from '@/components/layout/SubpageHeader'
 import type { QuickTimerWorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { SparringIntensity } from '@/domain/workout/workout.types'
 import { isQuickTimerCategory, type QuickTimerCategory } from '@/domain/quick-timer/quickTimer'
@@ -52,10 +51,10 @@ export function QuickTimerFeedbackForm({ session, pending, rpeCard, onSave }: {
   const metricLabels = [feedbackLabels.metrics[0], feedbackLabels.metrics[1], labels.roundsMetric]
   return <UnsavedPlanChangesGuard isDirty={isDirty} allowLeaveRef={allowLeave} description={feedbackLabels.discardDescription}>
     <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
-    <Link to={`${routes.workouts}?tab=history`} className="inline-flex min-h-touch items-center text-xs font-semibold text-muted">{feedbackLabels.back}</Link>
+    <SubpageHeader title={feedbackLabels.title} />
     <header className="space-y-3">
       <p className="font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-crimson-ink">{feedbackLabels.status[session.status]}</p>
-      <h1 className="font-display text-2xl font-bold text-ink">{workoutSessionName(session)}</h1>
+      <h2 className="font-display text-[22px] font-extrabold text-ink">{workoutSessionName(session)}</h2>
       <p className="text-[13px] leading-relaxed text-muted">{feedbackLabels.savedEntry}</p>
       {pending && <p role="status" className="text-xs font-semibold text-muted">{workoutDataLabels.pending}</p>}
       <dl className="grid grid-cols-3 divide-x divide-bd border-y border-bd py-4">
@@ -77,8 +76,8 @@ export function QuickTimerFeedbackForm({ session, pending, rpeCard, onSave }: {
           </button>)}
         </fieldset>}
         <label className="block font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{feedbackLabels.noteHeading}
-          <textarea rows={4} maxLength={1000} value={note} placeholder={feedbackLabels.notePlaceholder} aria-invalid={!!noteError} aria-describedby={noteError ? 'quick-timer-note-error' : undefined}
-            onChange={(event) => { setNote(event.target.value); setNoteError(undefined) }} className="mt-2 block w-full resize-y border border-bd bg-input p-3 font-sans text-base font-normal normal-case tracking-normal text-ink" />
+          <textarea rows={3} maxLength={1000} value={note} placeholder={feedbackLabels.notePlaceholder} aria-invalid={!!noteError} aria-describedby={noteError ? 'quick-timer-note-error' : undefined}
+            onChange={(event) => { setNote(event.target.value); setNoteError(undefined) }} className="mt-2 block w-full resize-none border border-bd bg-input p-3 font-sans text-base font-normal normal-case tracking-normal text-ink" />
         </label>
         {noteError && <p id="quick-timer-note-error" role="alert" className="text-xs text-crimson-ink">{noteError}</p>}
       </fieldset>

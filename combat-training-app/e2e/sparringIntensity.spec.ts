@@ -36,7 +36,7 @@ test('changes planned sparring intensity offline and includes saved hard rounds 
   await context.setOffline(true)
   await first.getByRole('button', { name: /^Twardy/ }).click()
   await page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true }).fill('Twardy sparing zamiast technicznego.')
-  await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
+  await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
   await expect(page).toHaveURL(/\/workouts\?tab=history$/)
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
   await page.getByRole('article').locator('summary').click()

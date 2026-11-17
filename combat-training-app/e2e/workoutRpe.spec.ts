@@ -71,7 +71,7 @@ test('rates early without losing the summary draft and queues RPE offline', asyn
   expect((await app.readSessions())[0].rpe).toBeNull()
   await context.setOffline(false)
   await expect.poll(async () => (await app.readSessions())[0]?.rpe).toBe(0)
-  await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
+  await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
   await expect.poll(async () => (await app.readSessions())[0]?.note).toBe('Zachowaj szkic podczas oceny RPE.')
   expect((await app.readSessions())[0].rpe).toBe(0)
 })
@@ -101,7 +101,7 @@ test('reminds at home, opens RPE directly, and persists a device dismissal witho
     await checkAccessibility(page)
     await capture(page, test.info(), `countdown-${theme}`)
   }
-  await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
+  await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
   await page.getByRole('link', { name: 'Start', exact: true }).click()
   const reminder = page.getByRole('link', { name: /^Uzupełnij RPE: Technika po treningu,/ })
   await expect(reminder).toBeVisible()

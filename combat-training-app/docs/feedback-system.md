@@ -1,8 +1,10 @@
 # Oceny po treningu i analiza postępu
 
-Stan: 10 listopada 2026. Decyzje właściciela z 4–10 listopada (Q1–Q5, R1–R4, issue #76). Uzasadnienie: research A i C w projekcie pracy. Pola w bazie: `database-model.md`.
+Aktualizacja #187 (17 listopada 2026): nazwy UI to **Cel**, **Błąd** i **Wskazówka**. Pytania: „Czy ten błąd dziś się powtarzał?” (Rzadziej / Tak samo / Nie sprawdzałem) oraz „Jak dobrze ci wychodziło?”. Klucze `criterion`, `problem`, `fix`, `better`, `same`, `notChecked`, dane, reguły i obliczenia pozostają bez zmian. Natywne radia są ukryte wizualnie za kafelkami z widocznym zaznaczeniem i fokusem; „Nie sprawdzałem” i „Nie umiem ocenić” mają formę tekstową. Pominięte ćwiczenie ma plakietkę i wyjaśnienie braku wpływu na średnią. Przycisk „Pozostałe ćwiczenia” rozwija opcjonalne oceny. „Zapisz oceny” zapisuje formularz. Nagłówek „Podsumowanie” ma przycisk „Wstecz”: poprzedni ekran aplikacji lub Historia, gdy brak takiego wpisu.
 
-Aktualizacja #180, decyzja właściciela 16 listopada: w całym interfejsie „ćwiczenia celu” nazywają się **elementami do poprawy**; tożsamość `focusSkillId`, model i reguły pozostają bez zmian. Postęp pokazuje ostatnią liczbową ocenę według obecnego kryterium, pięć segmentów, trzy ostatnie oceny i tekstowe porównanie z bezpośrednio poprzednią („↑ z N”, „bez zmian”, „↓ z N”). To zastępuje wcześniejszy zakaz strzałek wyłącznie na kartach listy; szczegóły nadal zachowują mediany osobno według miejsca. Element można dodać bez planu z Postępu lub ręcznego wpisu, wspólnym formularzem. Poprzednia ocena z opisem stopnia, datą i miejscem jest podpowiedzią do czasu wybrania dzisiejszej oceny.
+Stan wcześniejszych decyzji: 10 listopada 2026. Decyzje właściciela z 4–10 listopada (Q1–Q5, R1–R4, issue #76). Uzasadnienie: research A i C w projekcie pracy. Pola w bazie: `database-model.md`.
+
+Aktualizacja #180, decyzja właściciela 16 listopada: w całym interfejsie „ćwiczenia celu” nazywają się **elementami do poprawy**; tożsamość `focusSkillId`, model i reguły pozostają bez zmian. Postęp pokazuje ostatnią liczbową ocenę według obecnego celu, pięć segmentów, trzy ostatnie oceny i tekstowe porównanie z bezpośrednio poprzednią („↑ z N”, „bez zmian”, „↓ z N”). To zastępuje wcześniejszy zakaz strzałek wyłącznie na kartach listy; szczegóły nadal zachowują mediany osobno według miejsca. Element można dodać bez planu z Postępu lub ręcznego wpisu, wspólnym formularzem. Poprzednia ocena jest plakietką z datą i miejscem, a odpowiadający jej stopień ma znaczek „ostatnio”, także po wybraniu dzisiejszej oceny.
 
 Główny Postęp pokazuje aktualny tydzień, bez zdań-wniosków. „Zwykle” dla minut to mediana czterech poprzednich pełnych tygodni, łącznie z pustymi, dopiero gdy historia sięga początku tego okresu. Obciążenie wymaga kompletu RPE do podania wartości „zwykle”. Wykres główny zaczyna się od tygodnia pierwszego wpisu, wymaga trzech tygodni i pokazuje domyślnie do pięciu, po rozwinięciu do dwunastu. Liczy wszystkie zapisane sesje, także częściowe, zgodnie z celem liczby w v2. Historyczne plany pochodzą wyłącznie z zapisanych migawek, bez odtwarzania ich ze stałego tygodnia. Błąd lub niepełna historia nie daje pozornych zer. Dotychczasowy wykres i tabela porównawcza pozostają w szczegółach planu tygodnia, poza głównym ekranem Postępu.
 
@@ -18,18 +20,18 @@ Wyjście z podsumowania treningu z planu lub szybkiego stopera z niezapisanymi z
 
 ## Ćwiczenia celu (Q1, R1, R2)
 
-Ćwiczenie celu to umiejętność, nad którą pracujesz, np. „Lewy prosty, powrót do gardy”. Ma nazwę i kryterium oceny. Działa we wszystkich planach: jeden wykres zbiera oceny z każdego planu.
+Ćwiczenie celu to umiejętność, nad którą pracujesz, np. „Lewy prosty, powrót do gardy”. Ma nazwę i cel, czyli warunek poprawnego wykonania. Działa we wszystkich planach: jeden wykres zbiera oceny z każdego planu.
 
-Issue #156 / decyzja właściciela 15.11 / ADR 0017: tożsamością nadal jest `focusSkillId`. Nowy cel utworzony przy pozycji biblioteki może dodatkowo zachować `exerciseId`; jego aktualna nazwa jest wyświetlana przy trendzie, ale nie zmienia grupowania ocen. Bez drugiego wykresu i bez przepisywania istniejących ocen. Przy ocenianiu w podsumowaniu i ręcznym wpisie pokazujemy datę, wartość i miejsce wcześniejszej oceny tego samego celu według tego samego kryterium; pomijamy brak oceny i niewykonane ćwiczenia. „Nie umiem ocenić” pozostaje odpowiedzią tekstową.
+Issue #156 / decyzja właściciela 15.11 / ADR 0017: tożsamością nadal jest `focusSkillId`. Nowy cel utworzony przy pozycji biblioteki może dodatkowo zachować `exerciseId`; jego aktualna nazwa jest wyświetlana przy trendzie, ale nie zmienia grupowania ocen. Bez drugiego wykresu i bez przepisywania istniejących ocen. Przy ocenianiu w podsumowaniu i ręcznym wpisie pokazujemy datę, wartość i miejsce wcześniejszej oceny tego samego elementu według tego samego celu; pomijamy brak oceny i niewykonane ćwiczenia. „Nie umiem ocenić” pozostaje odpowiedzią tekstową.
 
 ### W kreatorze
 
 - Oznaczasz do 3 ćwiczeń w planie jako ćwiczenia celu.
-- Wybierasz ćwiczenie celu ze swojej listy albo tworzysz nowe: nazwa i kryterium, np. „Ręka wraca do brody przed następnym ciosem”.
+- Wybierasz ćwiczenie celu ze swojej listy albo tworzysz nowe: nazwa i cel, np. „Ręka wraca do brody przed następnym ciosem”.
 
 ### Ocena po treningu
 
-Pytanie dotyczy kryterium, a nie ogólnego wrażenia. Skala z opisanymi stopniami (R1):
+Pytanie dotyczy celu, a nie ogólnego wrażenia. Skala z opisanymi stopniami (R1):
 
 1. Nie udaje się nawet w prostej próbie.
 2. Udaje się czasem, zwykle przerywam, żeby poprawić.
@@ -43,23 +45,23 @@ Do tego **„Nie umiem ocenić”**. Ta odpowiedź zostaje zapisana, ale nie wch
 - Ocena jest opcjonalna. Brak oceny nie wchodzi do średnich.
 - Każda ocena zapisuje kontekst, czyli typ bloku (worek, tarcze, sparing…). Wykres go pokazuje, żeby nie mylić techniki na worku z techniką w sparingu.
 
-### Notatka „problem i poprawka” (R2)
+### Notatka „błąd i wskazówka” (R2)
 
-- Opcjonalna, przy ocenie ćwiczenia celu: jeden problem i jedna poprawka, np. „opuszczam prawą rękę” i „dotykam rękawicą policzka”.
-- Przy następnym treningu z tym ćwiczeniem celu aplikacja pokazuje notatkę w podglądzie planu, a w podsumowaniu pyta: **lepiej, bez zmian, nie sprawdzono**.
-- „Lepiej” zamyka notatkę. „Bez zmian” i „nie sprawdzono” zostawiają ją na kolejny trening. Nowa notatka zastępuje poprzednią.
+- Opcjonalna, przy ocenie ćwiczenia celu: jeden błąd i jedna wskazówka, np. „opuszczam prawą rękę” i „dotykam rękawicą policzka”.
+- Przy następnym treningu z tym ćwiczeniem celu aplikacja pokazuje notatkę w podglądzie planu, a w podsumowaniu pyta: **Rzadziej, Tak samo, Nie sprawdzałem**.
+- „Rzadziej” zamyka notatkę. „Tak samo” i „Nie sprawdzałem” zostawiają ją na kolejny trening. Nowa notatka zastępuje poprzednią.
 - Usunięcie wpisu zamyka otwartą notatkę z tego wpisu.
 
 ### Trend
 
-- Zakładka **Postęp** pokazuje aktywne ćwiczenia celu alfabetycznie, liczbę ocen według obecnego kryterium i ostatnią taką ocenę z datą oraz miejscem. Schowane ćwiczenia są w osobnej, zwiniętej sekcji.
-- Ekran ćwiczenia celu pokazuje kryterium, otwartą notatkę „problem i poprawka”, wykres i wszystkie oceny od najnowszej. Wiersz oceny prowadzi do podsumowania treningu; lista jest też tekstową wersją wykresu.
+- Zakładka **Postęp** pokazuje aktywne ćwiczenia celu alfabetycznie, liczbę ocen według obecnego celu i ostatnią taką ocenę z datą oraz miejscem. Schowane ćwiczenia są w osobnej, zwiniętej sekcji.
+- Ekran ćwiczenia celu pokazuje cel, otwartą notatkę „błąd i wskazówka”, wykres i wszystkie oceny od najnowszej. Wiersz oceny prowadzi do podsumowania treningu; lista jest też tekstową wersją wykresu.
 - Wykres to punkty bez linii łączących. Oś X: dzień treningu (`workoutDate`), oś Y: ocena 1–5. Każde miejsce (typ bloku) ma własny kształt punktu z legendą, niezależnie od koloru. Gdy liczba punktów przekracza pojemność szerokości ekranu, wykres pokazuje ostatnie 12 tygodni do daty ostatniej oceny; lista nadal zawiera wszystkie oceny.
-- Podsumowanie liczymy **osobno dla każdego miejsca**, tylko z ocen 1–5 według obecnego kryterium (`criterionSnapshot === criterion`). Dwa wystąpienia w jednym treningu są osobnymi ocenami.
+- Podsumowanie liczymy **osobno dla każdego miejsca**, tylko z ocen 1–5 według obecnego celu (`criterionSnapshot === criterion`). Dwa wystąpienia w jednym treningu są osobnymi ocenami.
 - Przy jednej ocenie: „Jedna ocena: 3 (12.11)”; przy dwóch: „Oceny: 2, 3”. Od trzech ocen pokazujemy **środkową ocenę (medianę)** i liczbę ocen, „Ostatnie 3” oraz maksymalnie trzy „Wcześniejsze”. Obie grupy zachowują kolejność chronologiczną. Przy parzystej liczbie ocen mediana jest średnią dwóch środkowych, zapisaną z przecinkiem, np. `3,5`.
 - Bez strzałek, kolorów sugerujących poprawę lub pogorszenie i bez ogłaszania postępu albo regresu na podstawie kilku samoocen.
 - Brak oceny (`null`) pomijamy całkowicie. „Nie umiem ocenić” zostaje na liście i w osobnym liczniku, poza wykresem i obliczeniami.
-- Oceny według poprzedniego kryterium mają puste punkty (sam obrys) i dopisek na liście. Pionowa przerywana linia „Zmiana kryterium” wskazuje pierwszą ocenę według obecnego kryterium po ostatniej ocenie według innego kryterium (także przy powrocie A → B → A). Starsze oceny nie wchodzą do podsumowania; pokazujemy ich liczbę.
+- Oceny według poprzedniego celu mają puste punkty (sam obrys) i dopisek na liście. Pionowa przerywana linia „Zmiana celu” wskazuje pierwszą ocenę według obecnego celu po ostatniej ocenie według innego celu (także przy powrocie A → B → A). Starsze oceny nie wchodzą do podsumowania; pokazujemy ich liczbę.
 - „Schowaj” zdejmuje oznaczenie CEL we wszystkich wskazujących planach, zostawiając ćwiczenia, oceny i wykres. „Przywróć” przywraca ćwiczenie celu na listę w kreatorze, ale nie oznaczenia w planach. Usuwanie jest dostępne tylko bez jakichkolwiek wpisów w `focusRatings`, także tych z `assessment: null`.
 
 ## Ręczny wpis
@@ -72,7 +74,7 @@ Wpis treningu spoza aplikacji dodaje się przyciskiem pod ostatnimi sesjami na s
 - Części zajęć (wielokrotny wybór, minimum jedna, bez domyślnej): technika, tarcze, worek, sparing, kondycja, inne. Nowe wpisy nie oferują „Mieszany”; dawne czytamy bez przepisywania. Edycja dawnego v1 „Mieszany”, również ze szczegółami sparingu, startuje bez zaznaczonych części i wymaga ich świadomego wyboru przed zapisem. Komunikat: „Ten wpis był zapisany jako „Mieszany”. Zaznacz, co było na zajęciach.”. Bez godziny, dystansu, tętna, kalorii, miejsca ani własnej nazwy. Czas to całe zajęcia z rozgrzewką: 60/90/120 min albo własna liczba całkowita 1–480 min.
 - Szczegóły sparingu otwierają się po zaznaczeniu części „Sparing”, z przeniesieniem fokusu i ogłoszeniem czytnika. Odznaczenie czyści intensywność i rundy. Nie ma osobnego pola „Był sparing”. Intensywność jest wymagana, liczba rund 1–50 opcjonalna; czas pracy i sparingu pozostaje `null`.
 - Opcjonalnie do 3 aktywnych ćwiczeń celu, każde raz, ze skalą R1 i „Nie umiem ocenić”. Nie mają `workoutItemId`. Miejsce wynika z pojedynczej nazwanej części; dla kilku części, „Inne” i „Kondycja” wybiera je użytkownik. Przy nowej ocenie zmiana części przelicza miejsce, a przejście do kilku części wymaga ponownego wyboru. Przy edycji istniejącej oceny jej zapisane miejsce pozostaje bez zmian niezależnie od części; można zmienić je wyłącznie świadomie w polu „Gdzie ćwiczyłeś?”.
-- Notatki R2 działają jak po planie: poprzednia otwarta notatka, pytanie „lepiej / bez zmian / nie sprawdzono” i nowa notatka. „Lepiej” zamyka, nowa zastępuje. Wpis wcześniejszy niż otwarta notatka o nią nie pyta. Sesja i notatki zapisują się razem, także offline.
+- Notatki R2 działają jak po planie: poprzednia otwarta notatka, pytanie „Rzadziej / Tak samo / Nie sprawdzałem” i nowa notatka. „Rzadziej” zamyka, nowa zastępuje. Wpis wcześniejszy niż otwarta notatka o nią nie pyta. Sesja i notatki zapisują się razem, także offline.
 - Ręczne oceny trafiają do trendu w Postępie, wiersz prowadzi do poprawy wpisu. Ćwiczenie celu z taką oceną można schować, ale nie usunąć. Ukończony wpis zalicza cel rodzaju w planie tygodnia, a nie cel konkretnego planu; liczy się do tygodniowej liczby, czasu i obciążenia oraz wykresu 12 tygodni. Nieznane czasy nie są zerami.
 
 „Jak ostatnio” nad nowym wpisem kopiuje wyłącznie dyscyplinę, czas i części poprzednich zajęć z klubu. Dopiski „jak ostatnio” znikają osobno przy pierwszej zmianie wypełnionego pola. RPE pozostaje bez wartości domyślnej; kompaktowy wybór 0–10 pokazuje opis wybranej liczby, a dla 6, 8 i 9 opis między sąsiednimi opisanymi stopniami. Notatka jest jedna, z podpowiedzią „Czego się uczyłeś? Co poprawiał trener?” i maksymalnie trzema różnymi wcześniejszymi notatkami użytkownika ze wszystkich źródeł treningu. Data ma skróty „Dziś” / „Wczoraj”; „Inny” od razu pokazuje i ustawia fokus na polu minut w tym samym wierszu.
@@ -81,7 +83,7 @@ W Postępie i Profilu pokazujemy ostatnie 28 dni: liczbę zajęć spoza aplikacj
 
 ## Pozostałe ćwiczenia
 
-Opcjonalnie, pod „Oceń pozostałe” (Q1). Pytanie: **Jak oceniasz wykonanie tego ćwiczenia?**
+Opcjonalnie, pod „Pozostałe ćwiczenia” (Q1). Pytanie: **Jak oceniasz wykonanie tego ćwiczenia?**
 
 1. Nie udało się wykonać zgodnie z założeniem.
 2. Dużo błędów i mała kontrola.
@@ -181,4 +183,4 @@ Koncentracja 1–5, dyskomfort, realizacja celu 1–5 i odczuwany postęp 1–7 
 
 Trasa `/workout-sessions/:sessionId/feedback` obsługuje również `quickTimer`. Pokazuje czas treningu, pracę i ukończone rundy, wspólną kartę RPE z odliczaniem 10 minut, notatkę oraz zmianę jednego z sześciu rodzajów (bez rozgrzewki, rozluźnienia i „Mieszany”). Nie pokazuje ocen ćwiczeń. Przypomnienie RPE na Start i link „Podsumowanie” w Historii obejmują stoper.
 
-Dla rodzaju „Sparing” intensywność jest opcjonalna: lekki, techniczny lub twardy, z tymi samymi etykietami co w planie. Zmiana rodzaju na sparing tworzy jeden wpis z `blockId: null`, liczbą ukończonych rund i `sparringSeconds = workSeconds`. Zmiana na inny rodzaj usuwa wpis sparingu i zeruje czas sparingu. Ten sam zapis uaktualnia `stepResults[].blockType`, `nameSnapshot` etykietą rodzaju, notatkę i `updatedAt`, po walidacji całego dokumentu; zachowuje RPE i czasy treningu. „Gotowe” wraca do Historii także offline. Intensywność w podsumowaniu treningu z planu wdrożono w issue #122 (Q4).
+Dla rodzaju „Sparing” intensywność jest opcjonalna: lekki, techniczny lub twardy, z tymi samymi etykietami co w planie. Zmiana rodzaju na sparing tworzy jeden wpis z `blockId: null`, liczbą ukończonych rund i `sparringSeconds = workSeconds`. Zmiana na inny rodzaj usuwa wpis sparingu i zeruje czas sparingu. Ten sam zapis uaktualnia `stepResults[].blockType`, `nameSnapshot` etykietą rodzaju, notatkę i `updatedAt`, po walidacji całego dokumentu; zachowuje RPE i czasy treningu. „Zapisz oceny” wraca do Historii także offline. Intensywność w podsumowaniu treningu z planu wdrożono w issue #122 (Q4).

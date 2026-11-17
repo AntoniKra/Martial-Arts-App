@@ -254,7 +254,7 @@ test('keeps completed recovery cleared when leaving the player', async ({ app, p
   await page.clock.setFixedTime(new Date(time + 420_000))
   await app.expectWorkoutSaved()
   expect(await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('combat-training.activeWorkout.')))).toEqual([])
-  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
   expect(await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('combat-training.activeWorkout.')))).toEqual([])
   await page.goto('/')
   await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()

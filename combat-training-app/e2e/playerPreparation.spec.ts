@@ -120,7 +120,7 @@ test('starts now at the actual click time and prepares again for a new session',
     startedAt: '2026-11-03T10:00:02.500Z', durationSeconds: 210, workSeconds: 180,
   })
   await app.freezeClock()
-  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
   await app.openPlayer()
   await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
   await expect(page.getByText('PRZYGOTUJ SIĘ', { exact: true })).toBeVisible()
