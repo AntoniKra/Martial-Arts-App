@@ -1,26 +1,42 @@
-import { expect, type APIRequestContext } from '@playwright/test'
-import { seedPlan, seedSession, seedFocusSkill, seedWeekPlan, seedBodyWeight, seedRawAccountDocument } from '../firestoreEmulator'
+import type { APIRequestContext } from '@playwright/test'
 import { workoutPlanDocumentSchema, workoutSessionDocumentSchema } from '../../src/infrastructure/firebase/workoutDocumentSchemas'
+import { workoutDocumentVersion } from '../../src/infrastructure/firebase/workoutDocumentVersion'
 import { focusSkillDocumentSchema } from '../../src/infrastructure/firebase/focusSkillDocumentSchema'
-import { weekPlanDocumentSchema } from '../../src/infrastructure/firebase/weekPlanDocumentSchema'
+import { storedWeekPlanDocuments } from '../../src/infrastructure/firebase/weekPlanDocumentSchema'
+import { recurringWeekRecords } from '../../src/infrastructure/firebase/recurringWeekDocumentSchema'
 import { profileDocumentSchema, bodyWeightDocumentSchema } from '../../src/infrastructure/firebase/profileDocumentSchemas'
-import { demoPlans, demoSessions, demoSkills, demoWeeks, demoWeights, demoProfile } from './data'
+import { wellbeingDocumentSchema } from '../../src/infrastructure/firebase/wellbeingDocumentSchema'
+import { exerciseDocumentSchema } from '../../src/infrastructure/firebase/exerciseDocumentSchema'
+import { createDemoData, type DemoData } from './data'
+import { assertDemoTarget, demoProjectId, demoFirestoreOrigin, encodeFields } from './emulator'
 
-export async function seedDemo(request: APIRequestContext, uid: string) {
-  // These helpers have hardcoded localhost endpoints and a demo- project ID.
-  // Validate the whole history before seeding, so invalid fixtures cannot produce empty screenshots.
-  for (const plan of demoPlans) expect(workoutPlanDocumentSchema.safeParse({ ...plan, schemaVersion: 1 }).success, plan.id).toBe(true)
-  for (const session of demoSessions) expect(workoutSessionDocumentSchema.safeParse({ ...session, schemaVersion: 1 }).success, session.id).toBe(true)
-  expect(demoSessions).toHaveLength(27)
-  expect(demoWeights).toHaveLength(20)
-  expect(profileDocumentSchema.safeParse({ ...demoProfile, schemaVersion: 1 }).success).toBe(true)
-  for (const skill of demoSkills) expect(focusSkillDocumentSchema.safeParse({ ...skill, schemaVersion: 1 }).success, skill.id).toBe(true)
-  for (const week of demoWeeks) expect(weekPlanDocumentSchema.safeParse({ ...week, schemaVersion: 1 }).success, week.weekStart).toBe(true)
-  for (const weight of demoWeights) expect(bodyWeightDocumentSchema.safeParse({ ...weight, schemaVersion: 1 }).success, weight.date).toBe(true)
-  await seedRawAccountDocument(request, uid, '', { ...demoProfile, healthDataConsent: null, weightClassLabel: null, schemaVersion: 1 })
-  for (const skill of demoSkills) await seedFocusSkill(request, uid, skill)
-  for (const plan of demoPlans) await seedPlan(request, uid, plan)
-  for (const session of demoSessions) await seedSession(request, uid, session)
-  for (const week of demoWeeks) await seedWeekPlan(request, uid, week)
-  for (const weight of demoWeights) await seedBodyWeight(request, uid, weight)
+/** Parse everything before writing; retain the same wire documents for both entry points. */
+export function demoDocuments(data: DemoData, empty = false) {
+  const profile = empty ? { ...data.demoProfile, healthDataConsent: null, wellbeingConsent: null, weightClassLabel: null } : data.demoProfile
+  const documents = [{ path: '', data: profileDocumentSchema.parse({ ...profile, schemaVersion: 1 }) }]
+  if (empty) return documents
+  return [
+    ...documents,
+    ...data.demoPlans.map((value) => ({ path: `workoutPlans/${value.id}`, data: workoutPlanDocumentSchema.parse({ ...value, schemaVersion: 1 }) })),
+    ...data.demoSessions.map((value) => ({ path: `workoutSessions/${value.id}`, data: workoutSessionDocumentSchema.parse({ ...value, schemaVersion: workoutDocumentVersion(value) }) })),
+    ...data.demoSkills.map((value) => ({ path: `focusSkills/${value.id}`, data: focusSkillDocumentSchema.parse({ ...value, schemaVersion: workoutDocumentVersion(value) }) })),
+    ...data.demoWeights.map((value) => ({ path: `bodyWeights/${value.date}`, data: bodyWeightDocumentSchema.parse({ ...value, schemaVersion: 1 }) })),
+    ...data.demoWellbeing.map((value) => ({ path: `readiness/${value.date}`, data: wellbeingDocumentSchema.parse({ ...value, schemaVersion: 1 }) })),
+    ...data.demoExercises.map((value) => ({ path: `exercises/${value.id}`, data: exerciseDocumentSchema.parse({ ...value, schemaVersion: 1 }) })),
+    ...data.demoWeeks.flatMap((week) => storedWeekPlanDocuments(week).map((value) => ({ path: `weekPlans/${value.id}`, data: value.data }))),
+    ...recurringWeekRecords(data.demoRecurring).map((value) => ({ path: `recurringWeeks/${value.id}`, data: value })),
+  ]
+}
+
+export async function seedDemo(request: APIRequestContext, account: { uid: string; idToken: string }, data = createDemoData(), empty = false) {
+  const documents = demoDocuments(data, empty)
+  for (const document of documents) {
+    assertDemoTarget(demoProjectId, demoFirestoreOrigin)
+    const url = `${demoFirestoreOrigin}/v1/projects/${demoProjectId}/databases/(default)/documents/users/${account.uid}${document.path ? `/${document.path}` : ''}`
+    // Use the verified athlete identity, never the owner bypass. Consent is written first.
+    const response = await request.patch(url, {
+      headers: { Authorization: `Bearer ${account.idToken}` }, data: { fields: encodeFields(document.data) },
+    })
+    if (!response.ok()) throw new Error(`Demo write failed: ${document.path || 'profile'} (${response.status()})`)
+  }
 }

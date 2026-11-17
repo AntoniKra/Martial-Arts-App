@@ -2,6 +2,8 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e',
+  // Demo-mode data checks are Vitest tests (e2e/demo/vitest.config.ts), not Playwright specs.
+  testIgnore: ['demo/**'],
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   // One CI retry absorbs timing races; a real bug fails twice. Flaky tests stay listed in the report and get fixed.
