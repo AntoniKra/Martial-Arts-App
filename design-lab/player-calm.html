@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Odtwarzacz treningu — Spokojny Premium · Laboratorium Designu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --app-bg: #0b0b0d;
+      --app-surface: #161618;
+      --app-elevated: #1d1d20;
+      --app-border: #2a2a2e;
+      --app-ink: #f4f4f1;
+      --app-muted: #a7a7aa;
+      --app-faint: #85858a;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #d91535;
+      --app-crimson-ink: #ef5d6e;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #f0753a;
+      --app-success: #3fb56b;
+      --app-success-ink: #8fd8a8;
+      --app-missed: #4a4a4f;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+
+      --app-grad-primary: linear-gradient(120deg, #b8102a 0%, #d4152f 55%, #c8341a 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #f0753a 100%);
+      
+      /* Phase Colors */
+      --phase-color: var(--app-crimson);
+      --phase-bg: rgba(193, 18, 47, 0.08);
+      --phase-label-color: var(--app-crimson-ink);
+    }
+
+    /* Rest Phase State */
+    .theme-break {
+      --phase-color: #3fb56b;
+      --phase-bg: rgba(63, 181, 107, 0.08);
+      --phase-label-color: #8fd8a8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      background: #000000;
+      color: var(--app-ink);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .phone-container {
+      width: 390px;
+      height: 844px;
+      background: var(--app-bg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 0 1px #222226;
+      transition: background-color 300ms ease;
+    }
+
+    .status-bar {
+      height: 44px;
+      padding: 12px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--app-ink);
+      z-index: 30;
+      flex-shrink: 0;
+    }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+
+    /* Top Navigation inside player */
+    .player-header {
+      padding: 6px 16px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--app-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      min-height: var(--app-touch-min);
+    }
+    .step-counter {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--app-muted);
+    }
+    .menu-btn {
+      width: 44px;
+      height: 44px;
+      background: transparent;
+      border: none;
+      color: var(--app-muted);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Main Player Body */
+    .player-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px 24px;
+      overflow: hidden;
+    }
+
+    /* Exercise & Round Title */
+    .exercise-headline-block {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      width: 100%;
+    }
+    .block-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--app-crimson-ink);
+    }
+    .exercise-name {
+      font-family: 'Archivo', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--app-ink);
+      line-height: 1.15;
+      transition: color 250ms ease;
+    }
+    .round-indicator {
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--app-muted);
+      margin-top: 2px;
+    }
+
+    /* Circular Timer (260px) */
+    .timer-section {
+      position: relative;
+      width: 250px;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 8px 0;
+    }
+
+    .timer-inner-fill {
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      background: var(--phase-bg);
+      transition: background-color 300ms ease;
+      z-index: 1;
+    }
+
+    .timer-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      z-index: 2;
+    }
+
+    .timer-track-circle {
+      fill: none;
+      stroke: var(--app-border);
+      stroke-width: 9;
+    }
+
+    .timer-progress-circle {
+      fill: none;
+      stroke: var(--phase-color);
+      stroke-width: 9;
+      stroke-linecap: butt;
+      stroke-dasharray: 722; /* 2 * PI * (125 - 9/2) ~ 757 -> r=115 => 2*pi*115=722.5 */
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 950ms linear, stroke 300ms ease;
+    }
+
+    /* Central Timer Numbers */
+    .timer-text-content {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      text-align: center;
+    }
+    .timer-digits {
+      font-family: 'Archivo', sans-serif;
+      font-size: 54px;
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      color: var(--app-ink);
+      transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .timer-digits.tick {
+      transform: scale(1.03);
+    }
+    .phase-badge {
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--phase-label-color);
+      transition: color 300ms ease;
+      margin-top: 4px;
+    }
+
+    /* Adjust Time Controls (-15s / +15s) */
+    .adjust-time-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      background: transparent;
+      border: none;
+      color: var(--app-faint);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: color 150ms ease, transform 150ms ease;
+    }
+    .adjust-time-btn:active {
+      transform: translateY(-50%) scale(0.9);
+      color: var(--app-ink);
+    }
+    .adjust-time-btn.left { left: -36px; }
+    .adjust-time-btn.right { right: -36px; }
+    .adjust-time-btn span:first-child { font-size: 26px; line-height: 1; font-weight: 300; }
+    .adjust-time-btn span:last-child { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; }
+
+    /* Next Up Drawer Banner */
+    .next-preview-card {
+      width: 100%;
+      border: 1px solid var(--app-border);
+      background: var(--app-surface);
+      border-radius: var(--app-radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .next-preview-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .next-preview-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--app-muted);
+    }
+    .next-preview-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+    .next-preview-duration {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--app-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Player Controls at Bottom */
+    .player-controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+      margin-top: 4px;
+    }
+    .btn-step-nav {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--app-radius-sm);
+      border: 1px solid var(--app-border);
+      background: var(--app-surface);
+      color: var(--app-ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 150ms ease, transform 150ms ease;
+    }
+    .btn-step-nav:active {
+      transform: scale(0.92);
+      background: var(--app-elevated);
+    }
+
+    .btn-play-pause {
+      height: 60px;
+      flex: 1;
+      max-width: 170px;
+      border-radius: var(--app-radius-sm);
+      border: 0;
+      background: var(--app-grad-primary);
+      color: var(--app-on-accent);
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(184, 16, 42, 0.4);
+      transition: transform 150ms ease;
+    }
+    .btn-play-pause:active { transform: scale(0.96); }
+
+    /* Phase Switcher Demo Button */
+    .phase-demo-bar {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      margin-top: 6px;
+    }
+    .btn-phase-toggle {
+      background: transparent;
+      border: 1px dashed var(--app-border);
+      color: var(--app-muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 5px 12px;
+      border-radius: var(--app-radius-sm);
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 150ms ease;
+    }
+    .btn-phase-toggle:hover {
+      border-color: var(--app-crimson-ink);
+      color: var(--app-ink);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .timer-progress-circle { transition: none !important; }
+      .timer-digits { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone-container" id="playerContainer">
+  <header class="status-bar" aria-hidden="true">
+    <span>9:41</span>
+    <div class="status-icons">
+      <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+      <svg width="14" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 2.5C5.2 2.5 2.7 3.7 1 5.5l7 8 7-8C13.3 3.7 10.8 2.5 8 2.5z"/></svg>
+      <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor">
+        <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" fill="none" stroke="currentColor"/>
+        <rect x="2" y="2" width="16" height="8" rx="1.5"/>
+        <path d="M23 4.5v3"/>
+      </svg>
+    </div>
+  </header>
+
+  <!-- Player Header -->
+  <div class="player-header">
+    <a href="start-calm.html" class="back-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      Wróć
+    </a>
+    <span class="step-counter" id="stepCounterText">ETAP 3 Z 10 · BLOK 2 TARCZE</span>
+    <button class="menu-btn" onclick="alert('Menu: Zakończ wcześniej / Pomiń etap')">⋯</button>
+  </div>
+
+  <main class="player-body">
+    <!-- Exercise Headline -->
+    <div class="exercise-headline-block">
+      <span class="block-tag" id="blockTagText">KICKBOXING · TARCZE</span>
+      <h1 class="exercise-name" id="exerciseNameText">Kombinacja 1-2-Low Kick</h1>
+      <p class="round-indicator" id="roundIndicatorText">RUNDA 2 Z 3</p>
+    </div>
+
+    <!-- Circular Timer -->
+    <div class="timer-section">
+      <!-- Adjust Time -15s -->
+      <button class="adjust-time-btn left" aria-label="Odejmij 15 sekund" onclick="adjustTime(-15)">
+        <span>−</span>
+        <span>15 s</span>
+      </button>
+
+      <!-- Circular SVG Ring -->
+      <div class="timer-inner-fill"></div>
+      <svg class="timer-svg" viewBox="0 0 250 250">
+        <circle class="timer-track-circle" cx="125" cy="125" r="115" />
+        <circle class="timer-progress-circle" id="timerCircle" cx="125" cy="125" r="115" />
+      </svg>
+
+      <!-- Center Digits & Phase -->
+      <div class="timer-text-content">
+        <span class="timer-digits" id="timerDigits">02:45</span>
+        <span class="phase-badge" id="phaseBadge">RUNDA</span>
+      </div>
+
+      <!-- Adjust Time +15s -->
+      <button class="adjust-time-btn right" aria-label="Dodaj 15 sekund" onclick="adjustTime(15)">
+        <span>+</span>
+        <span>15 s</span>
+      </button>
+    </div>
+
+    <!-- Next Up Drawer -->
+    <div class="next-preview-card">
+      <div class="next-preview-left">
+        <span class="next-preview-label">NASTĘPNIE</span>
+        <span class="next-preview-title" id="nextTitleText">Przerwa regeneracyjna</span>
+      </div>
+      <span class="next-preview-duration" id="nextDurationText">01:00</span>
+    </div>
+
+    <!-- Controls Row -->
+    <div class="player-controls-row">
+      <button class="btn-step-nav" aria-label="Poprzedni etap" onclick="adjustTime(-60)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20L9 12l10-8v16zM5 19V5"/></svg>
+      </button>
+
+      <button class="btn-play-pause" id="btnPlayPause" onclick="togglePlayPause()">
+        <svg id="playPauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="4" width="4" height="16" rx="1"/>
+          <rect x="14" y="4" width="4" height="16" rx="1"/>
+        </svg>
+        <span id="playPauseText">PAUZA</span>
+      </button>
+
+      <button class="btn-step-nav" aria-label="Następny etap" onclick="togglePhase()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l10 8-10 8V4zM19 5v14"/></svg>
+      </button>
+    </div>
+
+    <!-- Interactive Phase Switcher Demo Button -->
+    <div class="phase-demo-bar">
+      <button class="btn-phase-toggle" onclick="togglePhase()">
+        ⟲ Przełącz: Runda ↔ Przerwa
+      </button>
+    </div>
+  </main>
+</div>
+
+<script>
+  let isBreak = false;
+  let isPaused = false;
+  let remainingSeconds = 165; // 02:45
+  let totalSeconds = 180; // 03:00
+  const circumference = 722.5;
+
+  function updateDisplay() {
+    const min = Math.floor(remainingSeconds / 60);
+    const sec = remainingSeconds % 60;
+    const digits = document.getElementById('timerDigits');
+    digits.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+
+    const progressRatio = totalSeconds > 0 ? remainingSeconds / totalSeconds : 0;
+    const offset = circumference * (1 - progressRatio);
+    document.getElementById('timerCircle').style.strokeDashoffset = offset;
+  }
+
+  function adjustTime(delta) {
+    remainingSeconds = Math.max(0, remainingSeconds + delta);
+    updateDisplay();
+  }
+
+  function togglePlayPause() {
+    isPaused = !isPaused;
+    const btnText = document.getElementById('playPauseText');
+    const icon = document.getElementById('playPauseIcon');
+    if (isPaused) {
+      btnText.textContent = 'START';
+      icon.innerHTML = '<path d="M5 3l14 9-14 9V3z"/>';
+    } else {
+      btnText.textContent = 'PAUZA';
+      icon.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
+    }
+  }
+
+  // Smooth Transition: Round -> Break (and vice versa)
+  function togglePhase() {
+    isBreak = !isBreak;
+    const container = document.getElementById('playerContainer');
+    const badge = document.getElementById('phaseBadge');
+    const exerciseName = document.getElementById('exerciseNameText');
+    const roundIndicator = document.getElementById('roundIndicatorText');
+    const nextTitle = document.getElementById('nextTitleText');
+    const nextDuration = document.getElementById('nextDurationText');
+
+    if (isBreak) {
+      container.classList.add('theme-break');
+      badge.textContent = 'PRZERWA';
+      exerciseName.textContent = 'Przerwa regeneracyjna';
+      roundIndicator.textContent = 'ODDECH I WODA';
+      nextTitle.textContent = 'Kombinacja 1-2-Low Kick (Runda 3)';
+      nextDuration.textContent = '03:00';
+      remainingSeconds = 60;
+      totalSeconds = 60;
+    } else {
+      container.classList.remove('theme-break');
+      badge.textContent = 'RUNDA';
+      exerciseName.textContent = 'Kombinacja 1-2-Low Kick';
+      roundIndicator.textContent = 'RUNDA 2 Z 3';
+      nextTitle.textContent = 'Przerwa regeneracyjna';
+      nextDuration.textContent = '01:00';
+      remainingSeconds = 165;
+      totalSeconds = 180;
+    }
+
+    const digits = document.getElementById('timerDigits');
+    digits.classList.add('tick');
+    setTimeout(() => digits.classList.remove('tick'), 200);
+    updateDisplay();
+  }
+
+  // Countdown timer loop
+  setInterval(() => {
+    if (!isPaused && remainingSeconds > 0) {
+      remainingSeconds--;
+      updateDisplay();
+      if (remainingSeconds === 0) {
+        togglePhase();
+      }
+    }
+  }, 1000);
+
+  window.replayAnimations = function() {
+    togglePhase();
+  };
+
+  document.addEventListener('DOMContentLoaded', updateDisplay);
+</script>
+
+</body>
+</html>

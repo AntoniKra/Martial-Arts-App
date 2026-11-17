@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laboratorium Designu UI · PWA Sporty Walki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --lab-bg: #070709;
+      --lab-panel: #111114;
+      --lab-border: #232328;
+      --lab-text: #f4f4f1;
+      --lab-muted: #8e8e93;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #e01639;
+      --app-ember: #f0753a;
+      --app-grad-primary: linear-gradient(120deg, #b8102a 0%, #d4152f 55%, #c8341a 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #f0753a 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--lab-bg);
+      color: var(--lab-text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Studio Header */
+    .lab-header {
+      background: var(--lab-panel);
+      border-bottom: 1px solid var(--lab-border);
+      padding: 16px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      background: var(--app-grad-primary);
+      transform: rotate(45deg);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px rgba(193, 18, 47, 0.5), 0 0 0 2px rgba(240, 117, 58, 0.4);
+      flex-shrink: 0;
+    }
+    .brand-mark svg {
+      transform: rotate(-45deg);
+      color: #fff;
+    }
+    .brand-text h1 {
+      font-family: 'Archivo', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+    }
+    .brand-text p {
+      font-size: 12px;
+      color: var(--lab-muted);
+      margin-top: 2px;
+    }
+
+    /* Top Action: Replay Animations */
+    .btn-replay {
+      height: 44px;
+      padding: 0 20px;
+      background: var(--app-grad-primary);
+      border: 0;
+      border-radius: 4px;
+      color: #ffffff;
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(184, 16, 42, 0.4);
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+    .btn-replay:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(184, 16, 42, 0.6);
+    }
+    .btn-replay:active {
+      transform: translateY(1px);
+    }
+
+    /* Nav Tabs Bar */
+    .views-nav-bar {
+      background: #0d0d10;
+      border-bottom: 1px solid var(--lab-border);
+      padding: 10px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .tabs-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tab-btn {
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px solid var(--lab-border);
+      border-radius: 4px;
+      color: var(--lab-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+    .tab-btn:hover {
+      color: var(--lab-text);
+      border-color: #3f3f46;
+    }
+    .tab-btn.is-active {
+      background: var(--lab-panel);
+      border-color: var(--app-crimson);
+      color: var(--lab-text);
+      font-weight: 700;
+      box-shadow: inset 0 2px 0 var(--app-crimson);
+    }
+
+    .variant-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #16161a;
+      padding: 3px;
+      border-radius: 4px;
+      border: 1px solid var(--lab-border);
+    }
+    .variant-btn {
+      padding: 6px 14px;
+      background: transparent;
+      border: 0;
+      border-radius: 3px;
+      color: var(--lab-muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+    .variant-btn.is-active {
+      background: var(--app-grad-primary);
+      color: #fff;
+    }
+
+    /* Main Showcase Stage */
+    .lab-stage {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 40px;
+      padding: 32px 24px;
+    }
+
+    /* Realistic Phone Frame (390 x 844) */
+    .mockup-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .phone-frame {
+      width: 414px;
+      height: 868px;
+      background: #18181c;
+      border-radius: 48px;
+      padding: 12px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.9), 0 0 0 2px #2f2f35, inset 0 0 0 2px #0a0a0c;
+      position: relative;
+    }
+
+    /* Notch / Dynamic Island */
+    .phone-island {
+      position: absolute;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 110px;
+      height: 28px;
+      background: #000000;
+      border-radius: 20px;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    .phone-iframe {
+      width: 390px;
+      height: 844px;
+      border: 0;
+      border-radius: 38px;
+      background: #0b0b0d;
+      display: block;
+    }
+
+    /* Side Info Card */
+    .info-panel {
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding-top: 10px;
+    }
+
+    .info-card {
+      background: var(--lab-panel);
+      border: 1px solid var(--lab-border);
+      border-radius: 4px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .info-tag {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--app-ember);
+    }
+
+    .info-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .info-desc {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--lab-muted);
+    }
+
+    .info-spec-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+      border-top: 1px solid var(--lab-border);
+      padding-top: 12px;
+    }
+    .info-spec-list li {
+      display: flex;
+      justify-content: space-between;
+      color: var(--lab-muted);
+    }
+    .info-spec-list li strong {
+      color: var(--lab-text);
+      font-weight: 600;
+    }
+
+    .badge-check {
+      color: #3fb56b;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 700;
+    }
+
+    .link-direct {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--app-crimson-hi);
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      margin-top: 6px;
+    }
+    .link-direct:hover { text-decoration: underline; }
+
+    /* Footer */
+    .lab-footer {
+      border-top: 1px solid var(--lab-border);
+      background: var(--lab-panel);
+      padding: 16px 24px;
+      font-size: 12px;
+      color: var(--lab-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Studio Header -->
+  <header class="lab-header">
+    <div class="brand-group">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Laboratorium Designu UI · Sporty Walki</h1>
+        <p>Kierunek „Karmazyn z żarem” (ADR 0019) · Viewport 390×844 · Archivo + Inter</p>
+      </div>
+    </div>
+
+    <!-- Replay Button -->
+    <button class="btn-replay" onclick="triggerReplay()" aria-label="Odtwórz animacje na aktywnym ekranie">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+      </svg>
+      Odtwórz animacje
+    </button>
+  </header>
+
+  <!-- Views Navigation Bar -->
+  <div class="views-nav-bar">
+    <div class="tabs-group" role="tablist">
+      <button class="tab-btn is-active" data-view="start" onclick="switchView('start')">1. Start</button>
+      <button class="tab-btn" data-view="progress" onclick="switchView('progress')">2. Postęp</button>
+      <button class="tab-btn" data-view="week-plan" onclick="switchView('week-plan')">3. Plan tygodnia</button>
+      <button class="tab-btn" data-view="summary" onclick="switchView('summary')">4. Podsumowanie</button>
+      <button class="tab-btn" data-view="player" onclick="switchView('player')">5. Odtwarzacz</button>
+    </div>
+
+    <div class="variant-group" role="group" aria-label="Warianty stylistyczne">
+      <button class="variant-btn is-active" data-variant="calm" onclick="switchVariant('calm')">Spokojny premium</button>
+      <button class="variant-btn" data-variant="bold" onclick="switchVariant('bold')">Odważny</button>
+      <button class="variant-btn" id="lightVariantBtn" data-variant="light" onclick="switchVariant('light')">Jasny (Light)</button>
+    </div>
+  </div>
+
+  <!-- Main Stage -->
+  <main class="lab-stage">
+    <!-- Mockup Frame -->
+    <div class="mockup-wrapper">
+      <div class="phone-frame">
+        <div class="phone-island"></div>
+        <iframe id="viewFrame" class="phone-iframe" src="start-calm.html" title="Podgląd widoku w ramce 390x844"></iframe>
+      </div>
+    </div>
+
+    <!-- Details Info Panel -->
+    <aside class="info-panel">
+      <div class="info-card">
+        <span class="info-tag" id="panelTag">WIDOK 1 · START</span>
+        <h2 class="info-title" id="panelTitle">Start — Spokojny Premium</h2>
+        <p class="info-desc" id="panelDesc">
+          Karta Startu z dyskretną burzą (geometryczny piorun z gradientem żaru i iskrami), układ z główną akcją w zasięgu kciuka w dolnej połowie ekranu 390×844. 7-dniowy pasek z kółkami statusów (zaliczone, nie byłem, wolne, planowane) oraz romb „+” w dolnym menu.
+        </p>
+
+        <ul class="info-spec-list">
+          <li><span>Kluczowa animacja:</span> <strong id="specAnimation">Kaskada wejścia + błysk burzy + licznik</strong></li>
+          <li><span>Czas i krzywa:</span> <strong id="specTiming">150–400 ms · cubic-bezier(0.16, 1, 0.3, 1)</strong></li>
+          <li><span>Tylko transform & opacity:</span> <strong class="badge-check">✓ 60 FPS Android</strong></li>
+          <li><span>Kontrast tekstu:</span> <strong class="badge-check">✓ ≥ 4,5:1 (WCAG AA)</strong></li>
+          <li><span>Minimalny cel dotyku:</span> <strong class="badge-check">✓ ≥ 44×44 px</strong></li>
+          <li><span>Wsparcie reduced-motion:</span> <strong class="badge-check">✓ Bez ruchu przy prefers-reduced-motion</strong></li>
+        </ul>
+
+        <a id="directFileLink" href="start-calm.html" target="_blank" class="link-direct">
+          Otwórz wariant bezpośrednio w nowej karcie ›
+        </a>
+      </div>
+
+      <!-- Quick Index of All Lab Files -->
+      <div class="info-card" style="padding: 14px;">
+        <span class="info-tag">INDEKS PLIKÓW PROJEKTOWYCH</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; margin-top: 4px;">
+          <a href="start-calm.html" style="color: var(--lab-muted); text-decoration: none;">start-calm.html</a>
+          <a href="start-bold.html" style="color: var(--lab-muted); text-decoration: none;">start-bold.html</a>
+          <a href="start-light.html" style="color: var(--lab-muted); text-decoration: none;">start-light.html</a>
+          <a href="progress-calm.html" style="color: var(--lab-muted); text-decoration: none;">progress-calm.html</a>
+          <a href="progress-bold.html" style="color: var(--lab-muted); text-decoration: none;">progress-bold.html</a>
+          <a href="week-plan-calm.html" style="color: var(--lab-muted); text-decoration: none;">week-plan-calm.html</a>
+          <a href="week-plan-bold.html" style="color: var(--lab-muted); text-decoration: none;">week-plan-bold.html</a>
+          <a href="summary-calm.html" style="color: var(--lab-muted); text-decoration: none;">summary-calm.html</a>
+          <a href="summary-bold.html" style="color: var(--lab-muted); text-decoration: none;">summary-bold.html</a>
+          <a href="player-calm.html" style="color: var(--lab-muted); text-decoration: none;">player-calm.html</a>
+          <a href="player-bold.html" style="color: var(--lab-muted); text-decoration: none;">player-bold.html</a>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="lab-footer">
+    Praca dyplomowa: Inżynieria PWA dla sportów walki · Laboratorium Designu Antigravity UI · 17 listopada 2026
+  </footer>
+
+  <script>
+    let currentView = 'start';
+    let currentVariant = 'calm';
+
+    const viewDescriptions = {
+      'start': {
+        name: 'Start',
+        calm: {
+          title: 'Start — Spokojny Premium',
+          desc: 'Karta Startu z wyciszoną burzą (40% ambientowej przezroczystości), czytelną datą i dyscypliną, dużą godziną 18:00–19:30, głównym przyciskiem 56 px w zasięgu kciuka oraz rombem „+” w dolnej nawigacji. Inspiracja: Whoop 4.0 i Apple Watch Ultra.',
+          anim: 'Staggered cascade (40 ms kroki), licznik minut i treningów, subtelny błysk pioruna.',
+          timing: '150–400 ms · cubic-bezier(0.16, 1, 0.3, 1)'
+        },
+        bold: {
+          title: 'Start — Odważny (High Voltage)',
+          desc: 'Wysokoenergetyczna wersja startowa z intensywnym gradientem burzy, iskrzącymi rombami, wyrazistą czerwoną plakietką statusu, Archivo 900 oraz pulsującym przyciskiem akcji. Inspiracja: Nike Training Club i oprawa gal walki.',
+          anim: 'Ekspresyjna fala pioruna, mocny akcent wejścia, powiększenie rombu na kliknięcie.',
+          timing: '150–380 ms · cubic-bezier(0.16, 1, 0.3, 1)'
+        },
+        light: {
+          title: 'Start — Jasny Motyw (Light Mode)',
+          desc: 'Zatwierdzony w ADR 0019 jasny wariant: grafitowy tekst na złamanej bieli (#f1f1ef / #ffffff), czerwień o wysokim kontraście (#a01027), burza osłabiona do 60% krycia. Pełna zgodność z tokenami jasnego motywu.',
+          anim: 'Subtelne wejście, licznik cyfrowy, płynne wypełnienie paska 6 px.',
+          timing: '150–400 ms · cubic-bezier(0.16, 1, 0.3, 1)'
+        }
+      },
+      'progress': {
+        name: 'Postęp',
+        calm: {
+          title: 'Postęp — Spokojny Premium',
+          desc: 'Analityczny panel zawodnika: 3 kafelki liczbowe z górną linią żaru 2 px, kółka dni tygodnia, wykres słupkowy „5 → 12 tygodni” z kreskami planu i rozwinięciem, ocena elementu technicznego (1–5) oraz kafelki 2×2 (Sparing, Obciążenie, Samopoczucie, Waga) z rozwijanymi szufladami. Inspiracja: Whoop i Strava.',
+          anim: 'Licznik cyfr 0→270 min, wzrost słupków z scaleY(0)→scaleY(1), rozwijanie szuflad.',
+          timing: '150–400 ms · transform-origin: bottom'
+        },
+        bold: {
+          title: 'Postęp — Odważny (Fight Camp Stats)',
+          desc: 'Intensywny dziennik obciążenia treningowego z żarzącymi się słupkami bieżącego tygodnia, grubą kreską planu celowego, powiększonymi cyframi Archivo 900 i dynamicznymi plakietkami postępu.',
+          anim: 'Gwałtowny wzrost słupków, pulsująca aura bieżącego tygodnia, animowany licznik.',
+          timing: '150–360 ms · cubic-bezier(0.16, 1, 0.3, 1)'
+        }
+      },
+      'week-plan': {
+        name: 'Plan tygodnia',
+        calm: {
+          title: 'Plan tygodnia — Spokojny Premium',
+          desc: 'Architektoniczny harmonogram tygodniowy (17–23 listopada): karta stałego tygodnia z ikoną powtórzeń, pasek postępu celu 6 px, pionowy gradient 3 px przy dniu dzisiejszym, interaktywny przycisk zaliczenia dnia w planie oraz sekcja elastyczna „w dowolny dzień”.',
+          anim: 'Kaskadowe wsuwanie dni, mikrointerakcja zaznaczenia dnia z impulsem postępu.',
+          timing: '200–350 ms · cubic-bezier(0.16, 1, 0.3, 1)'
+        },
+        bold: {
+          title: 'Plan tygodnia — Odważny (Camp Schedule)',
+          desc: 'Mocny kalendarz przygotowań do walki: kontrastowe karty dni, pulsujący znacznik „DZIŚ”, intensywny pasek celu 8 px oraz dynamiczna celebracja zaliczenia sesji.',
+          anim: 'Błyskawiczny przeskok paska 25%→50%, obrót i puls przycisku zaliczenia.',
+          timing: '150–320 ms · cubic-bezier(0.16, 1, 0.3, 1)'
+        }
+      },
+      'summary': {
+        name: 'Podsumowanie',
+        calm: {
+          title: 'Podsumowanie — Spokojny Premium',
+          desc: 'Potreningowa ocena techniczna według issue 187: czas 45 min (36 min pracy), karta elementu do poprawy (Niski kop po kombinacji), triada Cel / Błąd / Wskazówka z osobnymi etykietami, pytanie „Czy ten błąd dziś się powtarzał?” (Lepiej / Bez zmian / Nie spr.) oraz taktyczna skala 1–5 z opisami.',
+          anim: 'Płynna selekcja kafelków, wejście bloków odpowiedzi z opacity i transform.',
+          timing: '150–350 ms · cubic-bezier(0.16, 1, 0.3, 1)'
+        },
+        bold: {
+          title: 'Podsumowanie — Odważny (Debrief Narożnika)',
+          desc: 'Wojowniczy panel podsumowujący sesję: podświetlenie triady Cel/Błąd/Wskazówka barwami funkcyjnymi, jaskrawa ocena powtórzeń błędu i wysokie kafelki oceny 1–5 z natychmiastowym feedbackiem wizualnym.',
+          anim: 'Wybór kafelka z rozbłyskiem żaru, dynamiczna zmiana stanu przycisków.',
+          timing: '150–300 ms · cubic-bezier(0.2, 0, 0, 1)'
+        }
+      },
+      'player': {
+        name: 'Odtwarzacz',
+        calm: {
+          title: 'Odtwarzacz — Spokojny Premium',
+          desc: 'Maksymalne skupienie w trakcie zmęczenia: duży timer pierścieniowy 250 px ze stroke-dashoffset, cyfry 54 px widoczne z odległości 3 metrów, przyciski ±15 s, płynne przejście faza rundy (czerwień) → faza przerwy (kojący zielony/szary) oraz zapowiedź następnego ćwiczenia.',
+          anim: 'Przejście runda ↔ przerwa z cross-fade kolorów i pulsem cyfr, ruch wskazówki.',
+          timing: '300 ms cross-fade · 950 ms ruch sekundowy'
+        },
+        bold: {
+          title: 'Odtwarzacz — Odważny (Arena Fight Timer)',
+          desc: 'Wojenny stoper bojowy: intensywna poświata pierścienia wokół timera, pulsująca fala uderzeniowa (efekt gongu) przy zmianie fazy, wyraziste cyfry 58 px Archivo 900 i potężne przyciski nawigacji kroków.',
+          anim: 'Fala uderzeniowa (gong shockwave 400 ms), puls przy 10 sekundach, skok cyfr tick.',
+          timing: '200–400 ms · transform scale + opacity'
+        }
+      }
+    };
+
+    function updateIframe() {
+      let fileName = `${currentView}-${currentVariant}.html`;
+      // If light is clicked on non-start view, fallback to calm
+      if (currentVariant === 'light' && currentView !== 'start') {
+        fileName = `${currentView}-calm.html`;
+      }
+      
+      const frame = document.getElementById('viewFrame');
+      frame.src = fileName;
+
+      const data = viewDescriptions[currentView];
+      const variantData = (currentVariant === 'light' && data.light) ? data.light : (data[currentVariant] || data.calm);
+
+      document.getElementById('panelTag').textContent = `WIDOK: ${data.name.toUpperCase()} · WARIANT ${currentVariant.toUpperCase()}`;
+      document.getElementById('panelTitle').textContent = variantData.title;
+      document.getElementById('panelDesc').textContent = variantData.desc;
+      document.getElementById('specAnimation').textContent = variantData.anim;
+      document.getElementById('specTiming').textContent = variantData.timing;
+      document.getElementById('directFileLink').href = fileName;
+
+      // Disable/enable light button
+      const lightBtn = document.getElementById('lightVariantBtn');
+      if (currentView === 'start') {
+        lightBtn.style.display = 'block';
+      } else {
+        lightBtn.style.display = 'none';
+        if (currentVariant === 'light') {
+          switchVariant('calm');
+        }
+      }
+    }
+
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('is-active', btn.getAttribute('data-view') === view);
+      });
+      updateIframe();
+    }
+
+    function switchVariant(variant) {
+      currentVariant = variant;
+      document.querySelectorAll('.variant-btn').forEach(btn => {
+        btn.classList.toggle('is-active', btn.getAttribute('data-variant') === variant);
+      });
+      updateIframe();
+    }
+
+    function triggerReplay() {
+      const frame = document.getElementById('viewFrame');
+      if (frame && frame.contentWindow && typeof frame.contentWindow.replayAnimations === 'function') {
+        frame.contentWindow.replayAnimations();
+      } else {
+        // reload frame if replay function not available
+        frame.src = frame.src;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', updateIframe);
+  </script>
+</body>
+</html>

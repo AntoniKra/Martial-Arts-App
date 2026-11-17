@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Postęp — Spokojny Premium · Laboratorium Designu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --app-bg: #0b0b0d;
+      --app-surface: #161618;
+      --app-elevated: #1d1d20;
+      --app-border: #2a2a2e;
+      --app-ink: #f4f4f1;
+      --app-muted: #a7a7aa;
+      --app-faint: #85858a;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #d91535;
+      --app-crimson-ink: #ef5d6e;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #f0753a;
+      --app-success: #3fb56b;
+      --app-success-ink: #8fd8a8;
+      --app-missed: #4a4a4f;
+      --app-nav: #111113;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+
+      --app-grad-primary: linear-gradient(120deg, #b8102a 0%, #d4152f 55%, #c8341a 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #f0753a 100%);
+      --app-grad-bar-current: linear-gradient(180deg, #f0753a 0%, #d4152f 16%, #9e0d24 100%);
+      --app-grad-bar-past: linear-gradient(180deg, #7a1a28 0%, #4a121c 100%);
+      --app-grad-plus: linear-gradient(150deg, #e0263f 0%, #b8102a 55%, #8e0b20 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      background: #000000;
+      color: var(--app-ink);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .phone-container {
+      width: 390px;
+      height: 844px;
+      background: var(--app-bg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 0 1px #222226;
+    }
+
+    .status-bar {
+      height: 44px;
+      padding: 12px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--app-ink);
+      z-index: 30;
+      flex-shrink: 0;
+    }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+
+    .screen-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 10px 16px 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scrollbar-width: none;
+    }
+    .screen-content::-webkit-scrollbar { display: none; }
+
+    .animate-in {
+      opacity: 0;
+      transform: translateY(14px);
+      animation: entranceCascade 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .delay-1 { animation-delay: 40ms; }
+    .delay-2 { animation-delay: 90ms; }
+    .delay-3 { animation-delay: 140ms; }
+    .delay-4 { animation-delay: 190ms; }
+
+    @keyframes entranceCascade {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .screen-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-top: 4px;
+    }
+    .screen-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .screen-subtitle {
+      font-size: 12px;
+      color: var(--app-muted);
+      font-weight: 500;
+    }
+
+    /* 3 Top Stat Tiles */
+    .top-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .stat-tile {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-tile::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--app-grad-accent);
+    }
+    .stat-tile b {
+      font-family: 'Archivo', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      color: var(--app-ink);
+    }
+    .stat-tile span {
+      font-size: 11px;
+      color: var(--app-muted);
+      line-height: 1.25;
+    }
+
+    /* Card Box */
+    .card {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+
+    /* Week Day Dots */
+    .week-dots-bar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .week-day-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-muted);
+    }
+    .dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .d-done { background: var(--app-grad-primary); color: #fff; }
+    .d-miss { background: var(--app-missed); color: #ccc; }
+    .d-free { border: 2px solid var(--app-success); background: rgba(63, 181, 107, 0.12); }
+    .d-plan { border: 2px dashed var(--app-crimson-ink); }
+    .week-day-col.is-today { color: var(--app-ink); }
+    .week-day-col.is-today .dot { outline: 2px solid var(--app-crimson-ink); outline-offset: 1px; }
+
+    /* Bar Chart Section */
+    .chart-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .chart-columns-wrapper {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 120px;
+      padding: 0 4px 4px;
+      border-bottom: 1px solid var(--app-border);
+      position: relative;
+    }
+    .chart-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      gap: 4px;
+      position: relative;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .bar-value {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .chart-col.is-current .bar-value {
+      color: var(--app-ink);
+      font-weight: 800;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 80px;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+    }
+    .bar-fill {
+      width: 100%;
+      border-radius: 2px 2px 0 0;
+      background: var(--app-grad-bar-past);
+      transform-origin: bottom;
+      transform: scaleY(0);
+      animation: growBar 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .chart-col.is-current .bar-fill {
+      background: var(--app-grad-bar-current);
+      box-shadow: 0 0 10px rgba(240, 117, 58, 0.4);
+    }
+    @keyframes growBar {
+      to { transform: scaleY(1); }
+    }
+
+    .bar-target-line {
+      position: absolute;
+      left: -2px;
+      right: -2px;
+      border-top: 2px solid var(--app-ink);
+      z-index: 5;
+    }
+    .col-date {
+      font-size: 10px;
+      color: var(--app-faint);
+      white-space: nowrap;
+    }
+    .chart-col.is-current .col-date {
+      color: var(--app-crimson-ink);
+      font-weight: 700;
+    }
+
+    .btn-toggle-weeks {
+      height: 40px;
+      border: 1px solid var(--app-border);
+      background: var(--app-elevated);
+      color: var(--app-ink);
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--app-radius-sm);
+      cursor: pointer;
+      align-self: center;
+      padding: 0 16px;
+      transition: background-color 150ms ease, transform 150ms ease;
+    }
+    .btn-toggle-weeks:active {
+      transform: scale(0.98);
+      background: var(--app-border);
+    }
+
+    /* Focus Skills Card */
+    .focus-card {
+      border: 1px solid var(--app-border);
+      background: var(--app-surface);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .focus-header-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--app-crimson-ink);
+    }
+    .focus-name {
+      font-family: 'Archivo', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .criterion-box {
+      border-left: 2px solid var(--app-ember);
+      padding-left: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .criterion-box span {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--app-muted);
+    }
+    .criterion-box p {
+      font-size: 13px;
+      color: var(--app-ink);
+      line-height: 1.35;
+    }
+
+    .rating-track {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .rating-step {
+      height: 28px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--app-muted);
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+    .rating-step.is-filled {
+      background: var(--app-grad-primary);
+      border-color: transparent;
+      color: #fff;
+    }
+    .rating-step:active {
+      transform: scale(0.95);
+    }
+
+    /* 2x2 More Grid */
+    .more-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .more-tile {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      height: 112px;
+      cursor: pointer;
+      transition: transform 150ms ease, border-color 150ms ease;
+    }
+    .more-tile:active {
+      transform: scale(0.98);
+      border-color: var(--app-crimson-ink);
+    }
+    .more-tile-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--app-muted);
+    }
+    .more-tile-value {
+      font-family: 'Archivo', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--app-ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .more-tile-hint {
+      margin-top: auto;
+      font-size: 11px;
+      color: var(--app-faint);
+      line-height: 1.25;
+    }
+
+    /* Expandable drawer for more tile */
+    .more-drawer {
+      grid-column: 1 / -1;
+      border: 1px solid var(--app-border);
+      background: var(--app-elevated);
+      padding: 12px;
+      border-radius: var(--app-radius-sm);
+      display: none;
+      font-size: 12px;
+      color: var(--app-muted);
+      line-height: 1.4;
+    }
+    .more-drawer.is-open { display: block; animation: drawerFade 250ms ease-out; }
+    @keyframes drawerFade {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: var(--app-nav);
+      border-top: 1px solid var(--app-border);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      z-index: 40;
+      padding-bottom: 8px;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--app-muted);
+      text-decoration: none;
+      position: relative;
+      height: 100%;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+    }
+    .nav-item.is-active { color: var(--app-ink); }
+    .nav-item.is-active::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 20%;
+      right: 20%;
+      height: 2px;
+      background: var(--app-grad-accent);
+    }
+    .nav-item.is-active svg { color: var(--app-crimson-ink); }
+
+    .nav-plus-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    .nav-diamond {
+      position: absolute;
+      top: -18px;
+      width: 36px;
+      height: 36px;
+      transform: rotate(45deg);
+      background: var(--app-grad-plus);
+      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 4.5px rgba(240, 117, 58, 0.55);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .nav-diamond svg { transform: rotate(-45deg); color: #fff; }
+    .nav-plus-label { margin-top: 30px; font-size: 10px; font-weight: 600; color: var(--app-muted); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-in { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .bar-fill { animation: none !important; transform: scaleY(1) !important; }
+      .more-drawer.is-open { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone-container">
+  <header class="status-bar" aria-hidden="true">
+    <span>9:41</span>
+    <div class="status-icons">
+      <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+      <svg width="14" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 2.5C5.2 2.5 2.7 3.7 1 5.5l7 8 7-8C13.3 3.7 10.8 2.5 8 2.5z"/></svg>
+      <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor">
+        <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" fill="none" stroke="currentColor"/>
+        <rect x="2" y="2" width="16" height="8" rx="1.5"/>
+        <path d="M23 4.5v3"/>
+      </svg>
+    </div>
+  </header>
+
+  <main class="screen-content">
+    <div class="screen-header animate-in delay-1">
+      <h1 class="screen-title">Postęp</h1>
+      <span class="screen-subtitle">Tydzień 47 · 2026</span>
+    </div>
+
+    <!-- 1. Top 3 Stat Tiles with animated counters -->
+    <div class="top-stats-grid animate-in delay-1" role="group" aria-label="Ten tydzień w liczbach">
+      <div class="stat-tile">
+        <b><span class="counter" data-target="3">0</span> / 4</b>
+        <span>treningi (plan)</span>
+      </div>
+      <div class="stat-tile">
+        <b><span class="counter" data-target="270">0</span></b>
+        <span>minut · zwykle 240</span>
+      </div>
+      <div class="stat-tile">
+        <b>≥ <span class="counter" data-target="12">0</span></b>
+        <span>rund sparingu</span>
+      </div>
+    </div>
+
+    <!-- 2. Ten tydzień Card -->
+    <section class="card animate-in delay-2" aria-label="Ten tydzień">
+      <div class="card-header">
+        <h2 class="card-title">Ten tydzień</h2>
+        <a href="week-plan-calm.html" style="font-size: 13px; font-weight: 600; color: var(--app-crimson-ink); text-decoration: none;">Plan tygodnia ›</a>
+      </div>
+      <div class="week-dots-bar">
+        <div class="week-day-col">
+          <span>PN</span>
+          <span class="dot d-done" role="img" aria-label="Poniedziałek: wykonany">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+          </span>
+        </div>
+        <div class="week-day-col">
+          <span>WT</span>
+          <span class="dot d-miss" role="img" aria-label="Wtorek: nie byłem">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 12h12"/></svg>
+          </span>
+        </div>
+        <div class="week-day-col">
+          <span>ŚR</span>
+          <span class="dot d-free" role="img" aria-label="Środa: wolne"></span>
+        </div>
+        <div class="week-day-col is-today">
+          <span>CZ</span>
+          <span class="dot d-plan" role="img" aria-label="Czwartek: zaplanowany, dzisiaj"></span>
+        </div>
+        <div class="week-day-col">
+          <span>PT</span>
+          <span class="dot d-free" role="img" aria-label="Piątek: wolne"></span>
+        </div>
+        <div class="week-day-col">
+          <span>SB</span>
+          <span class="dot d-plan" role="img" aria-label="Sobota: zaplanowany"></span>
+        </div>
+        <div class="week-day-col">
+          <span>ND</span>
+          <span class="dot d-free" role="img" aria-label="Niedziela: wolne"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Ostatnie tygodnie (Bar Chart: 5 -> 12 weeks expansion) -->
+    <section class="card animate-in delay-2" aria-label="Ostatnie tygodnie">
+      <div class="card-header">
+        <h2 class="card-title">Ostatnie tygodnie</h2>
+        <span style="font-size: 12px; color: var(--app-muted);">treningi w tygodniu</span>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-columns-wrapper" id="chartColumns">
+          <!-- Hidden 7 past weeks for 12-week toggle -->
+          <div class="chart-col extra-week" style="display: none;">
+            <span class="bar-value">3/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 60%;"></div>
+            </div>
+            <span class="col-date">1.09</span>
+          </div>
+          <div class="chart-col extra-week" style="display: none;">
+            <span class="bar-value">4/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 80%;"></div>
+            </div>
+            <span class="col-date">8.09</span>
+          </div>
+          <div class="chart-col extra-week" style="display: none;">
+            <span class="bar-value">2/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 40%;"></div>
+            </div>
+            <span class="col-date">15.09</span>
+          </div>
+          <div class="chart-col extra-week" style="display: none;">
+            <span class="bar-value">4/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 80%;"></div>
+            </div>
+            <span class="col-date">22.09</span>
+          </div>
+          <div class="chart-col extra-week" style="display: none;">
+            <span class="bar-value">3/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 60%;"></div>
+            </div>
+            <span class="col-date">29.09</span>
+          </div>
+          <div class="chart-col extra-week" style="display: none;">
+            <span class="bar-value">5/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 100%;"></div>
+            </div>
+            <span class="col-date">6.10</span>
+          </div>
+          <div class="chart-col extra-week" style="display: none;">
+            <span class="bar-value">4/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 80%;"></div>
+            </div>
+            <span class="col-date">13.10</span>
+          </div>
+
+          <!-- Base 5 weeks visible -->
+          <div class="chart-col">
+            <span class="bar-value">3/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 60%;"></div>
+            </div>
+            <span class="col-date">20.10</span>
+          </div>
+          <div class="chart-col">
+            <span class="bar-value">4/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 80%;"></div>
+            </div>
+            <span class="col-date">27.10</span>
+          </div>
+          <div class="chart-col">
+            <span class="bar-value">2/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 40%;"></div>
+            </div>
+            <span class="col-date">3.11</span>
+          </div>
+          <div class="chart-col">
+            <span class="bar-value">4/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 80%;"></div>
+            </div>
+            <span class="col-date">10.11</span>
+          </div>
+          <!-- Current Week -->
+          <div class="chart-col is-current">
+            <span class="bar-value">3/4</span>
+            <div class="bar-track">
+              <span class="bar-target-line" style="bottom: 80%;"></span>
+              <div class="bar-fill" style="height: 60%;"></div>
+            </div>
+            <span class="col-date">ten tydz.</span>
+          </div>
+        </div>
+
+        <button class="btn-toggle-weeks" id="btnToggleWeeks" onclick="toggle12Weeks()">
+          Pokaż 12 tygodni
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. Element do poprawy (Focus Skill) -->
+    <section class="focus-card animate-in delay-3" aria-label="Element do poprawy">
+      <span class="focus-header-tag">TARCZE · ELEMENT DO POPRAWY</span>
+      <h2 class="focus-name">Niski kop po kombinacji</h2>
+      
+      <div class="criterion-box">
+        <span>Kryterium</span>
+        <p>Po kopnięciu wracam natychmiast do stabilnej pozycji i patrzę na cel.</p>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin-top: 2px;">
+        <span style="color: var(--app-muted);">Ostatnia ocena: <b style="color: var(--app-ink);">4/5</b> (10.11)</span>
+        <span style="color: var(--app-success-ink); font-weight: 700;">+1 poprawa</span>
+      </div>
+
+      <div class="rating-track" role="group" aria-label="Ocena kryterium 1 do 5">
+        <div class="rating-step is-filled">1</div>
+        <div class="rating-step is-filled">2</div>
+        <div class="rating-step is-filled">3</div>
+        <div class="rating-step is-filled">4</div>
+        <div class="rating-step" onclick="this.classList.toggle('is-filled')">5</div>
+      </div>
+    </section>
+
+    <!-- 5. Więcej (2x2 Grid) -->
+    <section class="animate-in delay-4" aria-label="Więcej statystyk">
+      <h2 style="font-family: 'Archivo', sans-serif; font-size: 16px; font-weight: 800; margin-bottom: 8px;">Więcej</h2>
+      <div class="more-grid">
+        <div class="more-tile" onclick="toggleDrawer('drawerSparing')">
+          <span class="more-tile-title">Sparing</span>
+          <strong class="more-tile-value">12 rund</strong>
+          <span class="more-tile-hint">4 treningi ze sparingiem · 4 tyg.</span>
+        </div>
+        <div class="more-tile" onclick="toggleDrawer('drawerLoad')">
+          <span class="more-tile-title">Obciążenie</span>
+          <strong class="more-tile-value">1 890</strong>
+          <span class="more-tile-hint">sRPE × min · zwykle ok. 1 700</span>
+        </div>
+        <div class="more-tile" onclick="toggleDrawer('drawerWellbeing')">
+          <span class="more-tile-title">Samopoczucie</span>
+          <strong class="more-tile-value">14/14</strong>
+          <span class="more-tile-hint">wpisów · norma dostępna</span>
+        </div>
+        <div class="more-tile" onclick="toggleDrawer('drawerWeight')">
+          <span class="more-tile-title">Masa ciała</span>
+          <strong class="more-tile-value">78,4 kg</strong>
+          <span class="more-tile-hint">średnia 7 dni</span>
+        </div>
+
+        <!-- Drawer Content -->
+        <div class="more-drawer" id="drawerSparing">
+          <strong style="color: var(--app-ink);">Szczegóły sparingu:</strong> 12 rund w 4 tygodniach. Średnia intensywność: 7/10. Wszystkie rundy z ochraniaczami i kaskiem klubowym.
+        </div>
+        <div class="more-drawer" id="drawerLoad">
+          <strong style="color: var(--app-ink);">Obciążenie tygodniowe (sRPE):</strong> 1 890 jednostek (3 sesje z wypełnionym RPE). W normie treningowej (+11% względem poprzedniego tygodnia).
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav" aria-label="Główna nawigacja">
+    <button class="nav-item" onclick="location.href='start-calm.html'">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 11l9-7 9 7"/>
+        <path d="M5 10v10h14V10"/>
+      </svg>
+      <span>Start</span>
+    </button>
+
+    <button class="nav-item is-active" aria-current="page">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 20V10"/>
+        <path d="M10 20V4"/>
+        <path d="M16 20v-7"/>
+        <path d="M22 20H2"/>
+      </svg>
+      <span>Postęp</span>
+    </button>
+
+    <div class="nav-plus-wrapper">
+      <button class="nav-diamond" aria-label="Nowy trening" onclick="location.href='player-calm.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+      <span class="nav-plus-label">Nowy</span>
+    </div>
+
+    <button class="nav-item" onclick="location.href='week-plan-calm.html'">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 6h13M8 12h13M8 18h13"/>
+        <path d="M3 6h.01M3 12h.01M3 18h.01"/>
+      </svg>
+      <span>Treningi</span>
+    </button>
+
+    <button class="nav-item" onclick="alert('Profil zawodnika')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+      </svg>
+      <span>Profil</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+  function animateCounters() {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(c => {
+      const target = parseInt(c.getAttribute('data-target'), 10);
+      if (prefersReducedMotion) {
+        c.textContent = target;
+        return;
+      }
+      let current = 0;
+      const duration = 400;
+      const steps = 18;
+      const increment = target / steps;
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          c.textContent = target;
+          clearInterval(timer);
+        } else {
+          c.textContent = Math.round(current);
+        }
+      }, duration / steps);
+    });
+  }
+
+  let is12Weeks = false;
+  function toggle12Weeks() {
+    is12Weeks = !is12Weeks;
+    const extraWeeks = document.querySelectorAll('.extra-week');
+    const btn = document.getElementById('btnToggleWeeks');
+    extraWeeks.forEach(w => {
+      w.style.display = is12Weeks ? 'flex' : 'none';
+      if (is12Weeks) {
+        const fill = w.querySelector('.bar-fill');
+        if (fill) {
+          fill.style.animation = 'none';
+          void fill.offsetWidth;
+          fill.style.animation = 'growBar 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        }
+      }
+    });
+    btn.textContent = is12Weeks ? 'Pokaż mniej' : 'Pokaż 12 tygodni';
+  }
+
+  function toggleDrawer(id) {
+    const drawer = document.getElementById(id);
+    if (!drawer) return;
+    const isOpen = drawer.classList.contains('is-open');
+    document.querySelectorAll('.more-drawer').forEach(d => d.classList.remove('is-open'));
+    if (!isOpen) drawer.classList.add('is-open');
+  }
+
+  window.replayAnimations = function() {
+    const animatedElements = document.querySelectorAll('.animate-in');
+    animatedElements.forEach(el => {
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    });
+
+    const bars = document.querySelectorAll('.bar-fill');
+    bars.forEach(b => {
+      b.style.animation = 'none';
+      void b.offsetWidth;
+      b.style.animation = 'growBar 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards';
+    });
+
+    animateCounters();
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    animateCounters();
+  });
+</script>
+
+</body>
+</html>

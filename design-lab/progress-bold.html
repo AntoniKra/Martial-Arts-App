@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Postęp — Odważny (Bold) · Laboratorium Designu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --app-bg: #09090b;
+      --app-surface: #141416;
+      --app-elevated: #1b1b1e;
+      --app-border: #2a2a2e;
+      --app-border-bold: #3d2328;
+      --app-ink: #ffffff;
+      --app-muted: #a7a7aa;
+      --app-faint: #808085;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #e01639;
+      --app-crimson-ink: #ff5c72;
+      --app-on-accent: #ffffff;
+      --app-ember: #ff7536;
+      --app-ember-ink: #ff7536;
+      --app-success: #3fb56b;
+      --app-success-ink: #8fd8a8;
+      --app-missed: #444449;
+      --app-nav: #0d0d0f;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+
+      --app-grad-primary: linear-gradient(115deg, #b8102a 0%, #e01639 50%, #f0753a 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #ff7536 100%);
+      --app-grad-bar-current: linear-gradient(180deg, #ff7536 0%, #e01639 25%, #9e0d24 100%);
+      --app-grad-bar-past: linear-gradient(180deg, #8a1a2b 0%, #441119 100%);
+      --app-grad-plus: linear-gradient(135deg, #f02d48 0%, #c1122f 50%, #ff7536 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      background: #000000;
+      color: var(--app-ink);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .phone-container {
+      width: 390px;
+      height: 844px;
+      background: var(--app-bg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 0 1px #2a1518;
+    }
+
+    .status-bar {
+      height: 44px;
+      padding: 12px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--app-ink);
+      z-index: 30;
+      flex-shrink: 0;
+    }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+
+    .screen-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 10px 16px 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scrollbar-width: none;
+    }
+    .screen-content::-webkit-scrollbar { display: none; }
+
+    .animate-in {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: boldCascade 360ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .delay-1 { animation-delay: 40ms; }
+    .delay-2 { animation-delay: 90ms; }
+    .delay-3 { animation-delay: 140ms; }
+    .delay-4 { animation-delay: 190ms; }
+
+    @keyframes boldCascade {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .screen-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-top: 4px;
+    }
+    .screen-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+    .screen-badge {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--app-ember);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      background: rgba(255, 117, 54, 0.12);
+      border: 1px solid rgba(255, 117, 54, 0.3);
+      border-radius: var(--app-radius-sm);
+    }
+
+    /* 3 Top Stat Tiles Bold */
+    .top-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .stat-tile-bold {
+      background: var(--app-surface);
+      border: 1px solid #36363d;
+      border-radius: var(--app-radius-sm);
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .stat-tile-bold::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2.5px;
+      background: var(--app-grad-accent);
+      box-shadow: 0 0 8px rgba(255, 117, 54, 0.6);
+    }
+    .stat-tile-bold b {
+      font-family: 'Archivo', sans-serif;
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      color: #ffffff;
+    }
+    .stat-tile-bold span {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--app-muted);
+      line-height: 1.25;
+    }
+
+    /* Card Bold */
+    .card-bold {
+      background: var(--app-surface);
+      border: 1px solid #36363c;
+      border-radius: var(--app-radius-sm);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-title-bold {
+      font-family: 'Archivo', sans-serif;
+      font-size: 17px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+    }
+
+    /* Week Day Dots Bold */
+    .week-dots-bar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .week-day-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--app-muted);
+    }
+    .dot-bold {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .d-done-bold { background: var(--app-grad-primary); color: #fff; box-shadow: 0 2px 8px rgba(224, 22, 57, 0.5); }
+    .d-miss-bold { background: var(--app-missed); color: #fff; }
+    .d-free-bold { border: 2px solid var(--app-success); background: rgba(63, 181, 107, 0.16); }
+    .d-plan-bold { border: 2px dashed var(--app-crimson-ink); }
+    .week-day-col.is-today { color: #ffffff; }
+    .week-day-col.is-today .dot-bold { outline: 2px solid var(--app-ember); outline-offset: 1px; box-shadow: 0 0 8px rgba(255, 117, 54, 0.6); }
+
+    /* Bar Chart Bold */
+    .chart-columns-wrapper-bold {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 125px;
+      padding: 0 4px 6px;
+      border-bottom: 2px solid #2a2a2e;
+      position: relative;
+    }
+    .chart-col-bold {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      gap: 5px;
+      position: relative;
+      cursor: pointer;
+    }
+    .bar-value-bold {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--app-muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .chart-col-bold.is-current .bar-value-bold {
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 900;
+      text-shadow: 0 0 6px rgba(255, 117, 54, 0.6);
+    }
+    .bar-track-bold {
+      width: 100%;
+      height: 82px;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+    }
+    .bar-fill-bold {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      background: var(--app-grad-bar-past);
+      transform-origin: bottom;
+      transform: scaleY(0);
+      animation: growBarBold 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .chart-col-bold.is-current .bar-fill-bold {
+      background: var(--app-grad-bar-current);
+      box-shadow: 0 0 14px rgba(255, 117, 54, 0.7);
+    }
+    @keyframes growBarBold {
+      to { transform: scaleY(1); }
+    }
+
+    .bar-target-line-bold {
+      position: absolute;
+      left: -2px;
+      right: -2px;
+      border-top: 2px solid #ffffff;
+      z-index: 5;
+    }
+    .col-date-bold {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--app-faint);
+    }
+    .chart-col-bold.is-current .col-date-bold {
+      color: var(--app-ember);
+      font-weight: 800;
+    }
+
+    .btn-toggle-bold {
+      height: 42px;
+      border: 1px solid #4a2228;
+      background: var(--app-elevated);
+      color: #ffffff;
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-radius: var(--app-radius-sm);
+      cursor: pointer;
+      align-self: center;
+      padding: 0 18px;
+      transition: background-color 150ms ease, transform 150ms ease, border-color 150ms ease;
+    }
+    .btn-toggle-bold:active {
+      transform: scale(0.97);
+      border-color: var(--app-crimson);
+      background: #25161a;
+    }
+
+    /* Focus Card Bold */
+    .focus-card-bold {
+      border: 1px solid #4a1e26;
+      background: radial-gradient(circle at 90% 10%, rgba(193, 18, 47, 0.15) 0%, rgba(20, 20, 22, 1) 75%);
+      border-radius: var(--app-radius-sm);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .focus-tag-bold {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 0;
+      background: rgba(193, 18, 47, 0.25);
+      border: 1px solid #c1122f;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #ff8c9b;
+      align-self: flex-start;
+    }
+    .focus-name-bold {
+      font-family: 'Archivo', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      color: #ffffff;
+    }
+    .criterion-box-bold {
+      border-left: 3px solid var(--app-ember);
+      padding-left: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .criterion-box-bold span {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--app-ember);
+    }
+    .criterion-box-bold p {
+      font-size: 13px;
+      color: #f4f4f1;
+      line-height: 1.4;
+    }
+
+    .rating-track-bold {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin-top: 4px;
+    }
+    .rating-step-bold {
+      height: 32px;
+      background: var(--app-elevated);
+      border: 1px solid #36363c;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--app-muted);
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+    .rating-step-bold.is-filled {
+      background: var(--app-grad-primary);
+      border-color: transparent;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(224, 22, 57, 0.5);
+    }
+    .rating-step-bold:active {
+      transform: scale(0.94);
+    }
+
+    /* 2x2 More Grid Bold */
+    .more-grid-bold {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .more-tile-bold {
+      background: var(--app-surface);
+      border: 1px solid #36363c;
+      border-radius: var(--app-radius-sm);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      height: 114px;
+      cursor: pointer;
+      transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+    }
+    .more-tile-bold:active {
+      transform: scale(0.97);
+      border-color: var(--app-ember);
+      box-shadow: 0 0 12px rgba(255, 117, 54, 0.4);
+    }
+    .more-tile-title-bold {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--app-muted);
+    }
+    .more-tile-value-bold {
+      font-family: 'Archivo', sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+    }
+    .more-tile-hint-bold {
+      margin-top: auto;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--app-faint);
+      line-height: 1.2;
+    }
+
+    .more-drawer-bold {
+      grid-column: 1 / -1;
+      border: 1px solid #4a2228;
+      background: #1b1619;
+      padding: 14px;
+      border-radius: var(--app-radius-sm);
+      display: none;
+      font-size: 13px;
+      color: #d0d0d5;
+      line-height: 1.45;
+    }
+    .more-drawer-bold.is-open { display: block; animation: drawerFadeBold 250ms ease-out; }
+    @keyframes drawerFadeBold {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: var(--app-nav);
+      border-top: 1px solid #2a2a2e;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      z-index: 40;
+      padding-bottom: 8px;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--app-muted);
+      text-decoration: none;
+      position: relative;
+      height: 100%;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+    }
+    .nav-item.is-active { color: #ffffff; }
+    .nav-item.is-active::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 15%;
+      right: 15%;
+      height: 2.5px;
+      background: linear-gradient(90deg, #c1122f 0%, #ff7536 100%);
+      box-shadow: 0 0 8px rgba(255, 117, 54, 0.7);
+    }
+    .nav-item.is-active svg { color: var(--app-crimson-ink); }
+
+    .nav-plus-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    .nav-diamond-bold {
+      position: absolute;
+      top: -20px;
+      width: 38px;
+      height: 38px;
+      transform: rotate(45deg);
+      background: var(--app-grad-plus);
+      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 5px rgba(255, 117, 54, 0.7), 0 4px 12px rgba(224, 22, 57, 0.6);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .nav-diamond-bold svg { transform: rotate(-45deg); color: #fff; }
+    .nav-plus-label { margin-top: 30px; font-size: 10px; font-weight: 700; color: var(--app-muted); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-in { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .bar-fill-bold { animation: none !important; transform: scaleY(1) !important; }
+      .more-drawer-bold.is-open { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone-container">
+  <header class="status-bar" aria-hidden="true">
+    <span>9:41</span>
+    <div class="status-icons">
+      <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+      <svg width="14" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 2.5C5.2 2.5 2.7 3.7 1 5.5l7 8 7-8C13.3 3.7 10.8 2.5 8 2.5z"/></svg>
+      <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor">
+        <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" fill="none" stroke="currentColor"/>
+        <rect x="2" y="2" width="16" height="8" rx="1.5"/>
+        <path d="M23 4.5v3"/>
+      </svg>
+    </div>
+  </header>
+
+  <main class="screen-content">
+    <div class="screen-header animate-in delay-1">
+      <h1 class="screen-title">Postęp</h1>
+      <span class="screen-badge">Tydzień 47</span>
+    </div>
+
+    <!-- 1. Top 3 Stat Tiles Bold -->
+    <div class="top-stats-grid animate-in delay-1" role="group" aria-label="Ten tydzień w liczbach">
+      <div class="stat-tile-bold">
+        <b><span class="counter-bold" data-target="3">0</span> / 4</b>
+        <span>treningi (plan)</span>
+      </div>
+      <div class="stat-tile-bold">
+        <b><span class="counter-bold" data-target="270">0</span></b>
+        <span>minut · zwykle 240</span>
+      </div>
+      <div class="stat-tile-bold">
+        <b>≥ <span class="counter-bold" data-target="12">0</span></b>
+        <span>rund sparingu</span>
+      </div>
+    </div>
+
+    <!-- 2. Ten tydzień Card Bold -->
+    <section class="card-bold animate-in delay-2" aria-label="Ten tydzień">
+      <div class="card-header">
+        <h2 class="card-title-bold">Ten tydzień</h2>
+        <a href="week-plan-bold.html" style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--app-ember); text-decoration: none;">Plan tygodnia ›</a>
+      </div>
+      <div class="week-dots-bar">
+        <div class="week-day-col">
+          <span>PN</span>
+          <span class="dot-bold d-done-bold" role="img" aria-label="Poniedziałek: wykonany">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+          </span>
+        </div>
+        <div class="week-day-col">
+          <span>WT</span>
+          <span class="dot-bold d-miss-bold" role="img" aria-label="Wtorek: nie byłem">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M6 12h12"/></svg>
+          </span>
+        </div>
+        <div class="week-day-col">
+          <span>ŚR</span>
+          <span class="dot-bold d-free-bold" role="img" aria-label="Środa: wolne"></span>
+        </div>
+        <div class="week-day-col is-today">
+          <span>CZ</span>
+          <span class="dot-bold d-plan-bold" role="img" aria-label="Czwartek: zaplanowany, dzisiaj"></span>
+        </div>
+        <div class="week-day-col">
+          <span>PT</span>
+          <span class="dot-bold d-free-bold" role="img" aria-label="Piątek: wolne"></span>
+        </div>
+        <div class="week-day-col">
+          <span>SB</span>
+          <span class="dot-bold d-plan-bold" role="img" aria-label="Sobota: zaplanowany"></span>
+        </div>
+        <div class="week-day-col">
+          <span>ND</span>
+          <span class="dot-bold d-free-bold" role="img" aria-label="Niedziela: wolne"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Ostatnie tygodnie Bold (12 weeks toggle) -->
+    <section class="card-bold animate-in delay-2" aria-label="Ostatnie tygodnie">
+      <div class="card-header">
+        <h2 class="card-title-bold">Ostatnie tygodnie</h2>
+        <span style="font-size: 12px; font-weight: 600; color: var(--app-ember);">treningi w tygodniu</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="chart-columns-wrapper-bold" id="chartColumnsBold">
+          <!-- 7 hidden weeks -->
+          <div class="chart-col-bold extra-week-bold" style="display: none;">
+            <span class="bar-value-bold">3/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 60%;"></div>
+            </div>
+            <span class="col-date-bold">1.09</span>
+          </div>
+          <div class="chart-col-bold extra-week-bold" style="display: none;">
+            <span class="bar-value-bold">4/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 80%;"></div>
+            </div>
+            <span class="col-date-bold">8.09</span>
+          </div>
+          <div class="chart-col-bold extra-week-bold" style="display: none;">
+            <span class="bar-value-bold">2/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 40%;"></div>
+            </div>
+            <span class="col-date-bold">15.09</span>
+          </div>
+          <div class="chart-col-bold extra-week-bold" style="display: none;">
+            <span class="bar-value-bold">4/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 80%;"></div>
+            </div>
+            <span class="col-date-bold">22.09</span>
+          </div>
+          <div class="chart-col-bold extra-week-bold" style="display: none;">
+            <span class="bar-value-bold">3/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 60%;"></div>
+            </div>
+            <span class="col-date-bold">29.09</span>
+          </div>
+          <div class="chart-col-bold extra-week-bold" style="display: none;">
+            <span class="bar-value-bold">5/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 100%;"></div>
+            </div>
+            <span class="col-date-bold">6.10</span>
+          </div>
+          <div class="chart-col-bold extra-week-bold" style="display: none;">
+            <span class="bar-value-bold">4/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 80%;"></div>
+            </div>
+            <span class="col-date-bold">13.10</span>
+          </div>
+
+          <!-- 5 default weeks -->
+          <div class="chart-col-bold">
+            <span class="bar-value-bold">3/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 60%;"></div>
+            </div>
+            <span class="col-date-bold">20.10</span>
+          </div>
+          <div class="chart-col-bold">
+            <span class="bar-value-bold">4/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 80%;"></div>
+            </div>
+            <span class="col-date-bold">27.10</span>
+          </div>
+          <div class="chart-col-bold">
+            <span class="bar-value-bold">2/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 40%;"></div>
+            </div>
+            <span class="col-date-bold">3.11</span>
+          </div>
+          <div class="chart-col-bold">
+            <span class="bar-value-bold">4/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 80%;"></div>
+            </div>
+            <span class="col-date-bold">10.11</span>
+          </div>
+          <!-- Current Week -->
+          <div class="chart-col-bold is-current">
+            <span class="bar-value-bold">3/4</span>
+            <div class="bar-track-bold">
+              <span class="bar-target-line-bold" style="bottom: 80%;"></span>
+              <div class="bar-fill-bold" style="height: 60%;"></div>
+            </div>
+            <span class="col-date-bold">ten tydz.</span>
+          </div>
+        </div>
+
+        <button class="btn-toggle-bold" id="btnToggleBold" onclick="toggle12WeeksBold()">
+          Pokaż 12 tygodni
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. Focus Skill Bold -->
+    <section class="focus-card-bold animate-in delay-3" aria-label="Element do poprawy">
+      <span class="focus-tag-bold">TARCZE · ELEMENT DO POPRAWY</span>
+      <h2 class="focus-name-bold">Niski kop po kombinacji</h2>
+      
+      <div class="criterion-box-bold">
+        <span>Kryterium</span>
+        <p>Po kopnięciu wracam natychmiast do stabilnej pozycji i patrzę na cel.</p>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 13px;">
+        <span style="color: var(--app-muted);">Ostatnia ocena: <b style="color: #fff;">4/5</b> (10.11)</span>
+        <span style="color: var(--app-success-ink); font-weight: 800; font-size: 12px; letter-spacing: 0.04em;">+1 POPRAWA</span>
+      </div>
+
+      <div class="rating-track-bold" role="group" aria-label="Ocena kryterium 1 do 5">
+        <div class="rating-step-bold is-filled">1</div>
+        <div class="rating-step-bold is-filled">2</div>
+        <div class="rating-step-bold is-filled">3</div>
+        <div class="rating-step-bold is-filled">4</div>
+        <div class="rating-step-bold" onclick="this.classList.toggle('is-filled')">5</div>
+      </div>
+    </section>
+
+    <!-- 5. Więcej 2x2 Bold -->
+    <section class="animate-in delay-4" aria-label="Więcej statystyk">
+      <h2 style="font-family: 'Archivo', sans-serif; font-size: 17px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px;">Więcej</h2>
+      <div class="more-grid-bold">
+        <div class="more-tile-bold" onclick="toggleDrawerBold('drawerSparingBold')">
+          <span class="more-tile-title-bold">Sparing</span>
+          <strong class="more-tile-value-bold">12 rund</strong>
+          <span class="more-tile-hint-bold">4 treningi ze sparingiem · 4 tyg.</span>
+        </div>
+        <div class="more-tile-bold" onclick="toggleDrawerBold('drawerLoadBold')">
+          <span class="more-tile-title-bold">Obciążenie</span>
+          <strong class="more-tile-value-bold">1 890</strong>
+          <span class="more-tile-hint-bold">sRPE × min · zwykle ok. 1 700</span>
+        </div>
+        <div class="more-tile-bold" onclick="toggleDrawerBold('drawerWellbeingBold')">
+          <span class="more-tile-title-bold">Samopoczucie</span>
+          <strong class="more-tile-value-bold">14/14</strong>
+          <span class="more-tile-hint-bold">wpisów · norma dostępna</span>
+        </div>
+        <div class="more-tile-bold" onclick="toggleDrawerBold('drawerWeightBold')">
+          <span class="more-tile-title-bold">Masa ciała</span>
+          <strong class="more-tile-value-bold">78,4 kg</strong>
+          <span class="more-tile-hint-bold">średnia 7 dni</span>
+        </div>
+
+        <div class="more-drawer-bold" id="drawerSparingBold">
+          <strong style="color: #fff;">Szczegóły sparingu:</strong> 12 rund w 4 tygodniach. Średnia intensywność: 7/10. Wszystkie rundy z ochraniaczami i kaskiem klubowym.
+        </div>
+        <div class="more-drawer-bold" id="drawerLoadBold">
+          <strong style="color: #fff;">Obciążenie tygodniowe (sRPE):</strong> 1 890 jednostek (3 sesje z wypełnionym RPE). W normie treningowej (+11% względem poprzedniego tygodnia).
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Główna nawigacja">
+    <button class="nav-item" onclick="location.href='start-bold.html'">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 11l9-7 9 7"/>
+        <path d="M5 10v10h14V10"/>
+      </svg>
+      <span>Start</span>
+    </button>
+
+    <button class="nav-item is-active" aria-current="page">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 20V10"/>
+        <path d="M10 20V4"/>
+        <path d="M16 20v-7"/>
+        <path d="M22 20H2"/>
+      </svg>
+      <span>Postęp</span>
+    </button>
+
+    <div class="nav-plus-wrapper">
+      <button class="nav-diamond-bold" aria-label="Nowy trening" onclick="location.href='player-bold.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+      <span class="nav-plus-label">Nowy</span>
+    </div>
+
+    <button class="nav-item" onclick="location.href='week-plan-bold.html'">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 6h13M8 12h13M8 18h13"/>
+        <path d="M3 6h.01M3 12h.01M3 18h.01"/>
+      </svg>
+      <span>Treningi</span>
+    </button>
+
+    <button class="nav-item" onclick="alert('Profil zawodnika')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+      </svg>
+      <span>Profil</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+  function animateCountersBold() {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const counters = document.querySelectorAll('.counter-bold');
+    counters.forEach(c => {
+      const target = parseInt(c.getAttribute('data-target'), 10);
+      if (prefersReducedMotion) {
+        c.textContent = target;
+        return;
+      }
+      let current = 0;
+      const duration = 350;
+      const steps = 18;
+      const increment = target / steps;
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          c.textContent = target;
+          clearInterval(timer);
+        } else {
+          c.textContent = Math.round(current);
+        }
+      }, duration / steps);
+    });
+  }
+
+  let is12WeeksBold = false;
+  function toggle12WeeksBold() {
+    is12WeeksBold = !is12WeeksBold;
+    const extraWeeks = document.querySelectorAll('.extra-week-bold');
+    const btn = document.getElementById('btnToggleBold');
+    extraWeeks.forEach(w => {
+      w.style.display = is12WeeksBold ? 'flex' : 'none';
+      if (is12WeeksBold) {
+        const fill = w.querySelector('.bar-fill-bold');
+        if (fill) {
+          fill.style.animation = 'none';
+          void fill.offsetWidth;
+          fill.style.animation = 'growBarBold 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        }
+      }
+    });
+    btn.textContent = is12WeeksBold ? 'Pokaż mniej' : 'Pokaż 12 tygodni';
+  }
+
+  function toggleDrawerBold(id) {
+    const drawer = document.getElementById(id);
+    if (!drawer) return;
+    const isOpen = drawer.classList.contains('is-open');
+    document.querySelectorAll('.more-drawer-bold').forEach(d => d.classList.remove('is-open'));
+    if (!isOpen) drawer.classList.add('is-open');
+  }
+
+  window.replayAnimations = function() {
+    const animatedElements = document.querySelectorAll('.animate-in');
+    animatedElements.forEach(el => {
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    });
+
+    const bars = document.querySelectorAll('.bar-fill-bold');
+    bars.forEach(b => {
+      b.style.animation = 'none';
+      void b.offsetWidth;
+      b.style.animation = 'growBarBold 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards';
+    });
+
+    animateCountersBold();
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    animateCountersBold();
+  });
+</script>
+
+</body>
+</html>
