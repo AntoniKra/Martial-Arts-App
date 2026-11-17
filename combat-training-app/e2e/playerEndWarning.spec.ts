@@ -317,6 +317,8 @@ for (const source of ['plan', 'quickTimer'] as const) {
 
   test(`reconciles the real playback hook into the next work warning in ${source}`, async ({ app, page }) => {
     await app.open('/profile')
+    // Settings can render before Firestore is ready; wait before handing off its persistent lease.
+    await openProfile(page)
     await setWarningTimes(page, '10 s', 'Wyłączony')
     if (source === 'plan') {
       await app.open('/workouts')

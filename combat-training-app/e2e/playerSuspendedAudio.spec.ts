@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 import { block, roundsExercise, workoutPlan } from '../src/test/workoutBuilders'
 
 async function audioCounts(page: Page) {
@@ -84,6 +84,8 @@ for (const audio of ['deferred', 'native'] as const) {
       for (const remainingMs of [9000, 7000, 6999]) {
         test(`preserves the current rest warning at ${remainingMs} ms in ${source}`, async ({ app, page }) => {
           await app.open('/profile')
+          // Settings can render before Firestore is ready; wait before handing off its persistent lease.
+          await openProfile(page)
           await page.getByRole('radiogroup', { name: 'Sygnał przed końcem rundy', exact: true })
             .getByRole('radio', { name: 'Wyłączony', exact: true }).click()
           await page.getByRole('radiogroup', { name: 'Sygnał przed końcem przerwy', exact: true })
