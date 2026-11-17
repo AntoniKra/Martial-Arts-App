@@ -5,14 +5,13 @@
 .progress-weeks-chart { display: flex; border-bottom: 1px solid var(--app-border); padding-top: 4px; }
 .progress-week-column { display: flex; flex: 1 1 0%; min-width: 0; padding-inline: 4px; flex-direction: column; align-items: center; gap: 4px; color: var(--app-muted); transition: flex-grow 300ms ease, padding 300ms ease, transform 300ms ease, opacity 300ms ease; }
 .progress-week-column.is-hidden { flex-grow: 0; width: 0; overflow: hidden; visibility: hidden; padding-inline: 0; opacity: 0; transform: translateX(-24px); }
-.progress-week-track { position: relative; display: flex; align-items: flex-end; width: 60%; height: 110px; }
-.progress-week-bar { width: 100%; background: var(--app-muted); }
+.progress-week-track { position: relative; display: flex; align-items: flex-end; width: 100%; height: 120px; }
+.progress-week-bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--app-grad-bar-past); }
 .progress-week-target { position: absolute; left: -4px; right: -4px; border-top: 2px solid var(--app-ink); }
 .progress-week-date { height: 24px; white-space: nowrap; font-size: 11px; }
 .progress-week-column.is-below { color: var(--app-ink); }
-.progress-week-column.is-below .progress-week-bar { background: var(--app-border); }
 .progress-week-column.is-current { color: var(--app-ink); font-weight: 700; }
-.progress-week-column.is-current .progress-week-bar { background: var(--app-crimson); }
+.progress-week-column.is-current .progress-week-bar { background: var(--app-grad-bar-current); }
 .progress-weeks-chart.is-expanded .progress-week-column { padding-inline: 1.5px; }
 .progress-weeks-chart.is-expanded .progress-week-date { font-size: 9px; }
 @starting-style {
@@ -38,6 +37,11 @@
   --color-crimson-ink: var(--app-crimson-ink);
   --color-on-accent: var(--app-on-accent);
   --color-input: var(--app-input);
+  --color-ember: var(--app-ember);
+  --color-ember-ink: var(--app-ember-ink);
+  --color-success: var(--app-success);
+  --color-success-ink: var(--app-success-ink);
+  --color-missed: var(--app-missed);
   --color-discipline-boxing: var(--app-discipline-boxing);
   --color-discipline-kickboxing: var(--app-discipline-kickboxing);
   --color-discipline-muay-thai: var(--app-discipline-muay-thai);
@@ -73,6 +77,22 @@
   --app-discipline-mma-striking: #a7a7aa;
   --app-radius-sm: 4px;
   --app-touch-min: 2.75rem;
+  --app-ember: #f0753a;
+  --app-ember-ink: #f0753a;
+  --app-success: #3fb56b;
+  --app-success-ink: #8fd8a8;
+  --app-missed: #4a4a4f;
+  --app-nav: #111113;
+  --app-storm-line: #ffffff;
+  --app-storm-opacity: 1;
+  --app-storm-border: #34262a;
+  --app-storm-mid: #d4152f;
+  --app-storm-end: #9e0d24;
+  --app-grad-primary: linear-gradient(120deg,#b8102a 0%,#d4152f 55%,#c8341a 100%);
+  --app-grad-accent: linear-gradient(90deg,#c1122f 0%,#f0753a 100%);
+  --app-grad-bar-current: linear-gradient(180deg,#f0753a 0%,#d4152f 16%,#9e0d24 100%);
+  --app-grad-bar-past: linear-gradient(180deg,#7a1a28 0%,#4a121c 100%);
+  --app-grad-plus: linear-gradient(150deg,#e0263f 0%,#b8102a 55%,#8e0b20 100%);
 }
 
 :root[data-theme='light'] {
@@ -95,7 +115,57 @@
   --app-discipline-muay-thai: #b5122b;
   --app-discipline-k1: #365d91;
   --app-discipline-mma-striking: #5f5f63;
+  --app-ember: #f0753a;
+  --app-ember-ink: #9a370e;
+  --app-success: #3fb56b;
+  --app-success-ink: #24613a;
+  --app-missed: #4a4a4f;
+  --app-nav: #ffffff;
+  --app-storm-line: #111113;
+  --app-storm-opacity: 0.6;
+  --app-storm-border: #c9c9c5;
+  --app-storm-mid: #d4152f;
+  --app-storm-end: #9e0d24;
+  --app-grad-primary: linear-gradient(120deg,#b8102a 0%,#d4152f 55%,#c8341a 100%);
+  --app-grad-accent: linear-gradient(90deg,#c1122f 0%,#f0753a 100%);
+  --app-grad-bar-current: linear-gradient(180deg,#f0753a 0%,#d4152f 16%,#9e0d24 100%);
+  --app-grad-bar-past: linear-gradient(180deg,#7a1a28 0%,#4a121c 100%);
+  --app-grad-plus: linear-gradient(150deg,#e0263f 0%,#b8102a 55%,#8e0b20 100%);
 }
+
+.primary-action {
+  border-radius: var(--app-radius-sm);
+  background: var(--app-grad-primary);
+  color: var(--app-on-accent);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+.primary-action:disabled,
+.primary-action[aria-disabled='true'] { background: var(--app-missed); }
+.accent-fill { background: var(--app-grad-accent); }
+.accent-tile { position: relative; overflow: hidden; border-radius: var(--app-radius-sm); }
+.accent-tile::before { content: ''; position: absolute; top: 0; inset-inline: 0; height: 2px; background: var(--app-grad-accent); }
+.status-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 0; padding: 3px 8px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.status-badge.is-done, .rpe-badge { background: var(--app-grad-primary); color: var(--app-on-accent); }
+.status-badge.is-missed { background: var(--app-missed); color: var(--app-on-accent); }
+.status-badge.is-planned { border: 1.5px dashed var(--app-crimson-ink); color: var(--app-ink); }
+.status-badge.is-neutral { border: 1px solid var(--app-border); color: var(--app-muted); }
+.status-badge.is-improved { border: 1px solid var(--app-success); color: var(--app-success-ink); background: color-mix(in srgb, var(--app-success) 12%, var(--app-surface)); }
+.accent-icon { display: inline-flex; width: 40px; height: 40px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--app-radius-sm); background: color-mix(in srgb, var(--app-crimson) 14%, transparent); color: var(--app-crimson-ink); }
+.week-day-dot { display: flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 50%; box-sizing: border-box; }
+.week-day-dot.is-done { background: var(--app-grad-primary); color: var(--app-on-accent); }
+.week-day-dot.is-planned { border: 2px dashed var(--app-crimson-ink); }
+.week-day-dot.is-free { border: 2px solid var(--app-success); background: color-mix(in srgb, var(--app-success) 12%, transparent); }
+.week-day-dot.is-missed { background: var(--app-missed); color: var(--app-on-accent); }
+.week-day-dot.is-unavailable { border: 2px solid var(--app-border); }
+.schedule-today { background: linear-gradient(180deg, var(--app-ember), var(--app-crimson)) left top / 3px 100% no-repeat; }
+.bottom-navigation { background: var(--app-nav); }
+.new-workout-diamond { position: absolute; width: 36px; height: 36px; transform: rotate(45deg); background: var(--app-grad-plus); box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 4px color-mix(in srgb, var(--app-ember) 55%, transparent); }
+.storm-card { position: relative; isolation: isolate; overflow: hidden; border: 1px solid var(--app-storm-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
+.storm-card::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: var(--app-storm-opacity); background: repeating-linear-gradient(115deg, color-mix(in srgb, var(--app-storm-line) 2.8%, transparent) 0 1px, transparent 1px 11px); }
+.storm-card::after { content: ''; position: absolute; inset: 0 0 auto; height: 2px; pointer-events: none; background: linear-gradient(90deg, transparent 25%, var(--app-crimson) 75%, var(--app-ember)); opacity: var(--app-storm-opacity); }
+.storm-decoration { position: absolute; top: 0; right: 0; z-index: -1; width: 358px; height: 340px; pointer-events: none; opacity: var(--app-storm-opacity); }
+.storm-copy { max-width: 220px; }
 
 @layer base {
   html {

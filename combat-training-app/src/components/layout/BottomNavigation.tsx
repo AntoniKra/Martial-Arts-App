@@ -7,9 +7,9 @@ export function BottomNavigation() {
   return (
     <nav
       aria-label="Główna nawigacja"
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-bd bg-surface safe-area-pb md:hidden"
+      className="bottom-navigation fixed inset-x-0 bottom-0 z-20 border-t border-bd safe-area-pb md:hidden"
     >
-      <div className="mx-auto flex h-16 max-w-lg items-stretch">
+      <div className="mx-auto flex h-[68px] max-w-lg items-stretch">
         {mobileNavigationItems.map((item) => (
           <NavigationLink
             key={item.id}

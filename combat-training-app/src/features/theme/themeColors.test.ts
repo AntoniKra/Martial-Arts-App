@@ -33,7 +33,7 @@ function luminance(hex: string): number {
   return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
 }
 
-const textTokens = ['ink', 'muted', 'faint', 'crimson-ink'] as const
+const textTokens = ['ink', 'muted', 'faint', 'crimson-ink', 'success-ink', 'ember-ink'] as const
 const surfaces = ['bg', 'surface', 'elevated', 'input'] as const
 
 /** Colour of a semi-transparent foreground (e.g. `bg-crimson/10`) laid over an opaque background. */
@@ -95,6 +95,23 @@ describe.each(['dark', 'light'] as const)('%s theme colours', (mode) => {
     for (const accent of ['crimson', 'crimson-hi']) {
       expect(contrast(getToken(mode, 'on-accent'), getToken(mode, accent)), accent).toBeGreaterThanOrEqual(4.5)
     }
+  })
+
+  it('keeps primary button text at least 4.5:1 throughout every gradient segment', () => {
+    const block = css.match(new RegExp(`:root\\[data-theme='${mode}'\\] \\{([^}]+)\\}`))?.[1]
+    const stops = block?.match(/--app-grad-primary: ([^;]+);/)?.[1].match(/#[a-f0-9]{6}/gi)
+    expect(stops).toHaveLength(3)
+    for (let index = 1; index < stops!.length; index++) {
+      for (let step = 0; step <= 100; step++) {
+        const background = blend(stops![index], stops![index - 1], step / 100)
+        expect(contrast(getToken(mode, 'on-accent'), background), background).toBeGreaterThanOrEqual(4.5)
+      }
+    }
+  })
+
+  it('keeps status and trend text readable on their filled surfaces', () => {
+    expect(contrast(getToken(mode, 'on-accent'), getToken(mode, 'missed'))).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(getToken(mode, 'success-ink'), blend(getToken(mode, 'success'), getToken(mode, 'surface'), 0.12))).toBeGreaterThanOrEqual(4.5)
   })
 })
 

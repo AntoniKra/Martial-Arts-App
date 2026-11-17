@@ -29,19 +29,15 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
           active ? 'text-crimson-ink' : 'text-faint hover:text-muted',
         ].join(' ')}
       >
-        <span
-          className={[
-            'flex size-9 items-center justify-center border transition-colors',
-            active ? 'border-crimson bg-crimson/10' : 'border-bd',
-          ].join(' ')}
-        >
-          {icon}
+        <span className="relative -mt-6 flex size-[50px] items-center justify-center">
+          <span aria-hidden="true" className="new-workout-diamond" />
+          <span className="relative text-on-accent [&>svg]:size-6">{icon}</span>
         </span>
         <span className="font-display text-[9px] font-semibold uppercase tracking-[0.1em]">{item.label}</span>
         {active ? (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-crimson"
+            className="accent-fill pointer-events-none absolute -top-px left-[24%] right-[24%] h-0.5"
           />
         ) : null}
       </NavigationControl>
@@ -58,10 +54,10 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
           'relative flex min-h-touch items-center gap-3 border-l-2 px-3 py-2.5 font-display text-[12px] font-semibold uppercase tracking-[0.08em] transition-colors',
           active
             ? 'border-crimson bg-elevated font-bold text-ink shadow-[inset_0_0_0_1px_var(--app-border)]'
-            : 'border-transparent text-muted hover:border-bd hover:bg-elevated/60 hover:text-ink',
+            : item.id === 'newWorkout' ? 'border-transparent text-crimson-ink hover:bg-elevated' : 'border-transparent text-muted hover:border-bd hover:bg-elevated/60 hover:text-ink',
         ].join(' ')}
       >
-        {icon}
+        <span className={active ? 'text-crimson-ink' : ''}>{icon}</span>
         <span>{item.label}</span>
       </NavigationControl>
     )
@@ -77,12 +73,12 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
         active ? 'font-semibold text-ink' : 'text-faint hover:text-muted',
       ].join(' ')}
     >
-      {icon}
+      <span className={active ? 'text-crimson-ink' : ''}>{icon}</span>
       <span className="font-display text-[9px] font-semibold uppercase tracking-[0.1em]">{item.label}</span>
       {active ? (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 left-1/2 h-0.5 w-6 -translate-x-1/2 bg-crimson"
+          className="accent-fill pointer-events-none absolute -top-px left-[24%] right-[24%] h-0.5"
         />
       ) : null}
     </NavigationControl>

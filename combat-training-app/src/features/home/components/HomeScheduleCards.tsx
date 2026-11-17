@@ -10,11 +10,13 @@ import { manualPartsLabel } from '@/features/manual-workout/manualWorkoutLabels'
 import { activityTitle, scheduleLabels, weekdays } from '@/features/week-plan/scheduleLabels'
 import { useScheduledWeekActions } from '@/features/week-plan/useScheduledWeekActions'
 import { weekPlanLabels } from '@/features/week-plan/weekPlanLabels'
-import { homeLabels as labels, homeShortDate } from '../homeLabels'
+import { homeCardDate, homeLabels as labels, homeShortDate } from '../homeLabels'
+import { StormDecoration } from './StormDecoration'
+import { ScheduleStatusBadge } from '@/features/week-plan/ScheduleStatusBadge'
 
 type Schedule = ReturnType<typeof selectHomeSchedule>
 export const homeSecondaryButton = 'inline-flex min-h-touch items-center justify-center border border-bd bg-elevated px-3.5 text-[13px] font-semibold text-ink hover:bg-bd disabled:opacity-40'
-export const homePrimaryButton = 'inline-flex min-h-14 items-center justify-center gap-2 bg-crimson px-4 py-3 text-center text-[15px] font-bold uppercase tracking-[0.06em] text-on-accent hover:bg-crimson-hi'
+export const homePrimaryButton = 'primary-action inline-flex min-h-14 items-center justify-center gap-2 px-4 py-3 text-center text-[15px] font-extrabold uppercase tracking-[0.1em] text-on-accent'
 export const homeSectionLabel = 'text-[11px] font-semibold uppercase tracking-[0.14em] text-muted'
 export const homeInlineLink = 'inline-flex min-h-touch items-center text-[13px] text-crimson-ink hover:underline'
 
@@ -35,15 +37,16 @@ export function HomeTodayCards({ plan, schedule, today, fallback }: { plan: Week
     {schedule.kind === 'club' ? schedule.todayClubs.map(({ item, status }) => {
       if (item.kind !== 'club') return null
       const prefill = clubWorkoutPrefill(plan.weekStart, item, today)
-      return <section key={item.id} aria-label={`${labels.today} · ${labels.discipline(item.disciplineKey)} · ${item.startTime}`} className="flex flex-col border border-bd bg-surface">
+      return <section key={item.id} aria-label={`${labels.today} · ${labels.discipline(item.disciplineKey)} · ${item.startTime}`} className="storm-card flex flex-col">
+        <StormDecoration />
         {/* Keep the primary action in the lower half of the first phone screen. */}
-        <div className={`flex flex-col gap-1 px-4 pb-3 pt-4 ${status === 'done' ? '' : 'min-h-[282px] md:min-h-0'}`}>
-          <p className={homeSectionLabel}>{labels.today}</p>
+        <div className={`flex flex-col gap-2 px-4 pb-3 pt-[18px] ${status === 'done' ? '' : 'min-h-[366px] md:min-h-0'}`}>
+          <p className={`${homeSectionLabel} text-crimson-ink`}>{homeCardDate(today, 'club')}</p>
           <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-crimson-ink">{labels.discipline(item.disciplineKey)} · {labels.club}</p>
-          <h2 className="font-display text-[22px] font-bold leading-tight tabular-nums">{item.startTime}–{item.endTime}</h2>
-          <p className="text-sm text-muted">{item.parts.length ? labels.usual(manualPartsLabel(item.parts).toLocaleLowerCase('pl')) : labels.noParts}</p>
+          <h2 className="storm-copy font-display text-[30px] font-extrabold leading-[1.05] tabular-nums">{item.startTime}–{item.endTime}</h2>
+          <p className="storm-copy text-sm text-muted">{item.parts.length ? labels.usual(manualPartsLabel(item.parts).toLocaleLowerCase('pl')) : labels.noParts}</p>
         </div>
-        {status === 'done' ? <p role="status" className="px-4 pb-4 text-sm font-semibold">{scheduleLabels.statuses.done}</p> : prefill && <>
+        {status === 'done' ? <div role="status" className="mx-4 mb-4 self-start"><ScheduleStatusBadge status="done" /></div> : prefill && <>
           <Link to={routes.newManualWorkout} state={{ weekEntry: prefill, returnTo: routes.home }} className={`${homePrimaryButton} mx-4`}>{labels.entry}</Link>
           <p className="mx-4 mt-2 text-xs text-faint">{labels.entryHint(labels.discipline(item.disciplineKey), prefill.durationMinutes)}</p>
           <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-3">
@@ -61,10 +64,6 @@ export function HomeTodayCards({ plan, schedule, today, fallback }: { plan: Week
             ? <Link to={routes.workoutActive(item.workoutPlanId)} className="inline-flex min-h-touch items-center border border-crimson px-3.5 text-[13px] font-bold">{scheduleLabels.start}</Link>
             : item.workoutPlanId && <p className="text-xs text-muted">{weekPlanLabels.unavailable}</p>}
         </div>)}
-        <div className="flex items-center gap-1 border-t border-bd px-4 text-sm text-muted">
-          <Link to={routes.quickTimer} className="inline-flex min-h-touch min-w-touch items-center">{labels.timer}</Link>
-          <Link to={routes.workouts} className="flex min-h-touch flex-1 items-center justify-between py-3.5">{labels.otherPlansSuffix}<span aria-hidden="true">›</span></Link>
-        </div>
       </section>
     }) : fallback}
     <ActionFeedback actions={actions} />
