@@ -33,7 +33,7 @@ test('shows twelve weeks across sources, switches units and themes, and moves wi
   const chart = page.getByRole('region', { name: chartName, exact: true })
   const image = chart.getByRole('img')
   const rows = chart.getByRole('row')
-  const data = chart.locator('details')
+  const data = chart.locator('.disclosure-card')
   await expect(chart.getByRole('button', { name: 'Treningi', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await chart.getByText('Pokaż dane', { exact: true }).click()
   await expect(rows).toHaveCount(13)
@@ -59,7 +59,7 @@ test('shows twelve weeks across sources, switches units and themes, and moves wi
       for (const button of await chart.getByRole('button').all()) {
         expect((await button.boundingBox())?.height).toBeGreaterThanOrEqual(44)
       }
-      await data.locator('summary').click()
+      await data.locator('.disclosure-trigger').first().click()
       if (process.env.CAPTURE_SCREENSHOTS === '1' && info.project.name === 'phone') {
         const folder = path.join(tmpdir(), 'weekly-chart')
         await mkdir(folder, { recursive: true })
@@ -69,7 +69,7 @@ test('shows twelve weeks across sources, switches units and themes, and moves wi
         await chart.screenshot({ path: file })
         await info.attach(name, { path: file, contentType: 'image/png' })
       }
-      await data.locator('summary').click()
+      await data.locator('.disclosure-trigger').first().click()
     }
   }
   await page.getByRole('link', { name: 'Poprzedni tydzień', exact: true }).click()

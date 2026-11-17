@@ -18,7 +18,7 @@ type Schedule = ReturnType<typeof selectHomeSchedule>
 export const homeSecondaryButton = 'inline-flex min-h-touch items-center justify-center border border-bd bg-elevated px-3.5 text-[13px] font-semibold text-ink hover:bg-bd disabled:opacity-40'
 export const homePrimaryButton = 'primary-action inline-flex min-h-14 items-center justify-center gap-2 px-4 py-3 text-center text-[15px] font-extrabold uppercase tracking-[0.1em] text-on-accent'
 export const homeSectionLabel = 'text-[11px] font-semibold uppercase tracking-[0.14em] text-muted'
-export const homeInlineLink = 'inline-flex min-h-touch items-center text-[13px] text-crimson-ink hover:underline'
+export const homeInlineLink = 'inline-flex min-h-touch items-center text-[13px] text-crimson-ink '
 
 function ActionFeedback({ actions }: { actions: ReturnType<typeof useScheduledWeekActions> }) {
   return <>

@@ -15,12 +15,16 @@ for (const theme of ['dark', 'light'] as const) {
       }
       const toggle = page.getByRole('button', { name: theme === 'light' ? 'Włącz jasny motyw' : 'Włącz ciemny motyw', exact: true })
       if (await toggle.isVisible()) await toggle.click()
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
+      await expect(page.getByRole('main')).toHaveCSS('color', theme === 'light' ? 'rgb(17, 17, 19)' : 'rgb(244, 244, 241)')
       await page.evaluate(() => document.fonts.ready)
       const { violations } = await new AxeBuilder({ page }).analyze()
-      const screenshot = testInfo.outputPath(`${screen}-${theme}.png`)
-      await page.screenshot({ path: screenshot, fullPage: true })
-      await testInfo.attach(`${screen}-${theme}`, { path: screenshot, contentType: 'image/png' })
-      await testInfo.attach('axe-violations', { body: JSON.stringify(violations), contentType: 'application/json' })
+      if (process.env.CAPTURE_SCREENSHOTS === '1') {
+        const screenshot = testInfo.outputPath(`${screen}-${theme}.png`)
+        await page.screenshot({ path: screenshot, fullPage: true })
+        await testInfo.attach(`${screen}-${theme}`, { path: screenshot, contentType: 'image/png' })
+        await testInfo.attach('axe-violations', { body: JSON.stringify(violations), contentType: 'application/json' })
+      }
       expect(violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
     })
   }

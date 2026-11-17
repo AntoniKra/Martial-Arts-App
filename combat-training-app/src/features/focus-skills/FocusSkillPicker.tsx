@@ -1,3 +1,4 @@
+import { ChoiceTile } from '@/components/ui/ChoiceTile'
 import { useId, useRef, useState } from 'react'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { Button } from '@/components/ui/Button'
@@ -56,9 +57,7 @@ export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange, e
       className="flex min-h-touch w-full items-center justify-between gap-3 text-left disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]">
       <span><span className="block font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-ink">{labels.title}</span>
         <span className="mt-0.5 block text-[12px] text-muted">{labels.subtitle}</span></span>
-      <span aria-hidden="true" className={`flex h-6 w-10 shrink-0 items-center border px-0.5 ${enabled ? 'justify-end border-crimson bg-crimson' : 'justify-start border-bd bg-elevated'}`}>
-        <span className={`h-4 w-4 ${enabled ? 'bg-on-accent' : 'bg-muted'}`} />
-      </span>
+      <span aria-hidden="true" className={`switch-track ${enabled ? 'is-on' : ''}`} />
     </button>
     <p id={`${id}-count`} className="mt-1 text-[12px] tabular-nums text-muted">{labels.count(focusExerciseCount)}</p>
     {limitReached && <p id={`${id}-limit`} className="mt-2 text-[12px] leading-relaxed text-muted">{labels.limit}</p>}
@@ -73,20 +72,16 @@ export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange, e
       </div>}
       <fieldset disabled={!ready || saving || limitReached} className="mt-3 min-w-0 space-y-2">
         <legend className="mb-2 text-[13px] font-semibold text-ink">{labels.question}</legend>
-        {skills.map((skill) => <label key={skill.id} className={`flex min-h-touch cursor-pointer items-start gap-3 border p-3 ${focusSkillId === skill.id && !editor ? 'border-crimson bg-surface' : 'border-bd'}`}>
-          <input type="radio" name={`${id}-skill`} value={skill.id} checked={focusSkillId === skill.id && !editor}
-            onChange={() => { onChange(skill.id); setChoosing(false); setEditor(null) }}
-            className="mt-1 shrink-0 accent-crimson focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]" />
+        {skills.map((skill) => <ChoiceTile key={skill.id} className="described-choice" name={`${id}-skill`} value={skill.id} checked={focusSkillId === skill.id && !editor}
+            onChange={() => { onChange(skill.id); setChoosing(false); setEditor(null) }}>
           <span className="min-w-0 break-words"><span className="block text-[13px] font-semibold text-ink">{skill.name}</span>
             <span className="mt-1 block text-[12px] leading-relaxed text-muted">{skill.criterion}</span>
             {focusSkills.pendingIds.has(skill.id) && <span className="mt-1 block text-[12px] text-muted">{labels.pending}</span>}</span>
-        </label>)}
-        <label className={`flex min-h-touch cursor-pointer items-start gap-3 border p-3 ${editor?.skill === null ? 'border-crimson bg-surface' : 'border-bd'}`}>
-          <input type="radio" name={`${id}-skill`} checked={editor?.skill === null} onChange={() => setEditor({ skill: null })}
-            className="mt-1 shrink-0 accent-crimson focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]" />
+        </ChoiceTile>)}
+        <ChoiceTile value="new" className="described-choice" name={`${id}-skill`} checked={editor?.skill === null} onChange={() => setEditor({ skill: null })}>
           <span><span className="block text-[13px] font-semibold text-ink">{labels.new}</span>
             <span className="mt-1 block text-[12px] text-muted">{labels.newDescription}</span></span>
-        </label>
+        </ChoiceTile>
       </fieldset>
       {selected && selected.archivedAt === null && !editor && <Button type="button" size="sm" variant="ghost" disabled={!ready || saving} onClick={() => setEditor({ skill: selected })}>{labels.edit}</Button>}
       {editor && !limitReached && <FocusSkillForm key={editor.skill?.id ?? 'new'} initialValues={editor.skill ?? undefined}

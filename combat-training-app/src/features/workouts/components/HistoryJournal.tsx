@@ -34,7 +34,7 @@ export function HistoryJournal({ history, onUpdateNote, onDelete, sortOrder }: {
   }
   return <div className="space-y-3">
     <SegmentedControl ariaLabel="Widok historii" options={[{ label: 'Tygodnie', value: 'weeks' }, { label: 'Miesiąc', value: 'month' }]} value={mode} onChange={setMode} />
-    {validWeek && <div className="flex items-center justify-between gap-2 text-sm"><p>{historyRange(validWeek)}</p><button type="button" className="min-h-touch underline" onClick={() => { const next = new URLSearchParams(params); next.delete('week'); setParams(next) }}>Wszystkie tygodnie</button></div>}
+    {validWeek && <div className="flex items-center justify-between gap-2 text-sm"><p>{historyRange(validWeek)}</p><button type="button" className="min-h-touch" onClick={() => { const next = new URLSearchParams(params); next.delete('week'); setParams(next) }}>Wszystkie tygodnie</button></div>}
     {mode === 'weeks' ? <>
       {!selected.length && <p className="p-3 text-sm text-muted">Brak treningów w tym tygodniu.</p>}
       {groups.map((group) => {

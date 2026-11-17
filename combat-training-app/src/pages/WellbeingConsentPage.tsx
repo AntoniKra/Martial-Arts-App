@@ -1,3 +1,4 @@
+import { Switch } from '@/components/ui/Switch'
 import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
@@ -30,8 +31,8 @@ export function Component() {
         wellbeingConsent: { grantedAt: now, noticeVersion: WELLBEING_NOTICE_VERSION, adultConfirmed: true }, updatedAt: now })
         .then(() => navigate(routes.profile, { replace: true })).catch(() => { setFailed(true); setBusy(false); pending.current = false })
     }}>
-      <label className="flex min-h-touch cursor-pointer items-center gap-3 text-sm"><input type="checkbox" checked={adult} disabled={busy} onChange={(event) => setAdult(event.target.checked)} className="size-5 shrink-0 accent-[var(--app-ink)]" />{labels.adult}</label>
-      <label className="flex min-h-touch cursor-pointer items-start gap-3 py-2 text-sm leading-relaxed"><input type="checkbox" checked={agreed} disabled={busy} onChange={(event) => setAgreed(event.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--app-ink)]" />{labels.agree}</label>
+      <Switch checked={adult} disabled={busy} onChange={(event) => setAdult(event.target.checked)}>{labels.adult}</Switch>
+      <Switch checked={agreed} disabled={busy} onChange={(event) => setAgreed(event.target.checked)}>{labels.agree}</Switch>
       {failed && <p role="alert" className="text-sm">{labels.failed}</p>}
       <div className="flex flex-wrap gap-3"><button type="submit" disabled={disabled} className={getButtonClassName({ variant: 'secondary', disabled })}>{labels.enable}</button>
         <Link to={routes.profile} className={getButtonClassName({ variant: 'ghost' })}>{labels.later}</Link></div>

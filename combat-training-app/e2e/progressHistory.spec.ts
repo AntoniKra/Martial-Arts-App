@@ -67,7 +67,7 @@ test('groups journal weeks, collapses gaps, searches notes and selects calendar 
   await page.getByRole('radio', { name: 'Miesiąc', exact: true }).check()
   await page.getByRole('button', { name: '2026-11-17: 1 treningów', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Treningi 2026-11-17', exact: true }).getByRole('article')).toHaveCount(1)
-  await page.getByRole('region', { name: 'Treningi 2026-11-17', exact: true }).locator('summary').click()
+  await page.getByRole('region', { name: 'Treningi 2026-11-17', exact: true }).locator('.disclosure-trigger').first().click()
   await page.getByRole('link', { name: 'Popraw', exact: true }).click()
   await expect(page).toHaveURL(/workout-sessions\/new\/edit$/)
 })

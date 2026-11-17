@@ -1,3 +1,4 @@
+import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
@@ -49,10 +50,9 @@ export function Component() {
         <p className="text-sm leading-relaxed text-muted">{labels.empty}</p>
       </div> : active.length === 0 ? <p className="text-sm text-muted">{labels.noActiveSkills}</p>
         : <ul className="space-y-3">{active.map((skill) => <SkillCard key={skill.id} skill={skill} />)}</ul>}
-      {archived.length > 0 && <details className="border-t border-bd pt-2">
-        <summary className="min-h-touch cursor-pointer py-3 font-display font-semibold">{labels.archived} ({archived.length})</summary>
+      {archived.length > 0 && <CollapsibleCard title={<>{labels.archived} ({archived.length})</>}>
         <ul className="mt-2 space-y-3">{archived.map((skill) => <SkillCard key={skill.id} skill={skill} />)}</ul>
-      </details>}
+      </CollapsibleCard>}
       {correction && <Link to={correction.source === 'manual' ? routes.editManualWorkout(correction.sessionId) : routes.workoutFeedback(correction.sessionId)} className="block space-y-1 border border-bd bg-surface p-3">
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted">Ostatnia notatka · {Number(correction.workoutDate.slice(8))}.{correction.workoutDate.slice(5, 7)}</p>
         <p className="break-words text-sm">„{correction.problem}” → <strong>{correction.fix}</strong></p>

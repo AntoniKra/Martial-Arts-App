@@ -60,12 +60,12 @@ export function Component() {
     <TrainingSettings />
     <ProfileSettingsSection title={settings.health}>
       <div className="space-y-2">
-        <a href="#profile-weight" onClick={() => setWeightOpen(true)} className="inline-flex min-h-touch items-center gap-2 text-sm font-semibold underline">{settings.manageWeight}</a>
+        <a href="#profile-weight" onClick={() => setWeightOpen(true)} className="inline-flex min-h-touch items-center gap-2 text-sm font-semibold">{settings.manageWeight}</a>
         <p className="text-sm">{weightEnabled ? settings.enabled : settings.disabled}</p>
         <p className="text-sm leading-relaxed text-muted">{settings.weightPurpose}</p>
       </div>
       <div className="space-y-2">
-        <a href="#profile-wellbeing" onClick={() => setWellbeingOpen(true)} className="inline-flex min-h-touch items-center gap-2 text-sm font-semibold underline">{settings.manageWellbeing}</a>
+        <a href="#profile-wellbeing" onClick={() => setWellbeingOpen(true)} className="inline-flex min-h-touch items-center gap-2 text-sm font-semibold">{settings.manageWellbeing}</a>
         <p className="text-sm">{wellbeingEnabled ? settings.enabled : settings.disabled}</p>
         <p className="text-sm leading-relaxed text-muted">{settings.wellbeingPurpose}</p>
       </div>

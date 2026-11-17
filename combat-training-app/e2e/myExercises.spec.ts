@@ -154,11 +154,11 @@ test('combines builtin categories with search and context filters on the phone',
   await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
   await expect(category).toHaveValue('Kombinacje 4-ciosowe')
   await category.selectOption('')
-  await page.getByRole('button', { name: '✓ Boks', exact: true }).click()
+  await page.getByRole('button', { name: 'Boks', exact: true }).click()
   await search.fill('Prawy low kick')
   await expect(results.getByRole('button', { name: 'Prawy low kick', exact: true })).toBeVisible()
   await search.fill('')
-  await page.getByRole('button', { name: '✓ Technika', exact: true }).click()
+  await page.getByRole('button', { name: 'Technika', exact: true }).click()
   await category.selectOption('Siła na czas')
   await expect(results.getByRole('listitem')).toHaveCount(9)
   for (const theme of ['dark', 'light'] as const) { await app.setTheme(theme); await accessible(page) }
@@ -174,7 +174,7 @@ for (const entry of [
 ] as const) {
   test(`copies new ${entry.type} with approved defaults and reuses it in a plan`, async ({ app, page }) => {
     await app.open('/workouts/new'); await beginPlan(page, 'Approved copy')
-    await page.getByRole('button', { name: '✓ Technika', exact: true }).click()
+    await page.getByRole('button', { name: 'Technika', exact: true }).click()
     await page.getByRole('searchbox', { name: 'Szukaj ćwiczenia', exact: true }).fill(entry.name)
     const builtin = page.getByRole('listitem').filter({ has: page.getByRole('button', { name: entry.name, exact: true }) })
     await builtin.getByRole('button', { name: 'Kopiuj do moich', exact: true }).click()

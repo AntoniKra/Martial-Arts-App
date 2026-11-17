@@ -1,3 +1,5 @@
+import { MultiChoiceChip } from '@/components/ui/MultiChoiceChip'
+import { ChoiceTile } from '@/components/ui/ChoiceTile'
 import { useId, useRef, useState, type FormEvent } from 'react'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
@@ -23,7 +25,6 @@ interface ExerciseLibraryViewProps {
   onBack: () => void; onConfigure: (selection: ExerciseSelection) => void
 }
 const fieldClass = 'min-h-touch w-full border border-bd bg-input px-3 py-2 text-base text-ink placeholder:text-faint'
-const buttonClass = 'min-h-touch border border-bd px-3 py-2 text-sm font-semibold'
 
 export function ExerciseLibraryView({ blockType, disciplineKey, libraryUiState, onLibraryUiStateChange, onBack, onConfigure }: ExerciseLibraryViewProps) {
   const { exercises, exerciseRepository, retryExercises } = useWorkoutData()
@@ -97,11 +98,11 @@ export function ExerciseLibraryView({ blockType, disciplineKey, libraryUiState, 
             onChange={(event) => onLibraryUiStateChange({ ...libraryUiState, searchQuery: event.target.value })} />
         </label>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filtry ćwiczeń">
-          <button type="button" className={buttonClass} aria-pressed={disciplineFilter} onClick={() => setDisciplineFilter(!disciplineFilter)}>{disciplineFilter ? '✓ ' : ''}{getDisciplineLabelPl(disciplineKey)}</button>
-          <button type="button" className={buttonClass} aria-pressed={blockFilter} onClick={() => setBlockFilter(!blockFilter)}>{blockFilter ? '✓ ' : ''}{getWorkoutBlockLabelPl(blockType)}</button>
-          <button type="button" className={buttonClass} aria-pressed={mine} onClick={() => {
+          <MultiChoiceChip as="button" aria-pressed={disciplineFilter} onClick={() => setDisciplineFilter(!disciplineFilter)}>{getDisciplineLabelPl(disciplineKey)}</MultiChoiceChip>
+          <MultiChoiceChip as="button" aria-pressed={blockFilter} onClick={() => setBlockFilter(!blockFilter)}>{getWorkoutBlockLabelPl(blockType)}</MultiChoiceChip>
+          <MultiChoiceChip as="button" aria-pressed={mine} onClick={() => {
             setMine(!mine); onLibraryUiStateChange({ ...libraryUiState, category: '' })
-          }}>{mine ? '✓ ' : ''}{labels.mine}</button>
+          }}>{labels.mine}</MultiChoiceChip>
         </div>
         <label className="block space-y-2 text-sm font-semibold">{labels.category}
           <select className={fieldClass} value={category} disabled={mine} onChange={(event) => onLibraryUiStateChange({ ...libraryUiState, category: event.target.value })}>
@@ -118,7 +119,7 @@ export function ExerciseLibraryView({ blockType, disciplineKey, libraryUiState, 
             {builtins.map((exercise) => <li key={exercise.id} className="border border-bd bg-surface p-1">
               <button type="button" className="min-h-touch w-full break-words px-3 py-2 text-left text-sm font-semibold"
                 onClick={() => onConfigure({ type: 'library', combinationId: exercise.id, exerciseNameSnapshot: exercise.namePl })}>{exercise.namePl}<span aria-hidden="true"> ＋</span></button>
-              <button type="button" disabled={!ready} className="min-h-touch px-3 text-sm text-muted underline" onClick={() => setCopy({
+              <button type="button" disabled={!ready} className="min-h-touch px-3 text-sm text-muted" onClick={() => setCopy({
                 id: crypto.randomUUID(), sourceId: exercise.id,
                 initial: { namePl: exercise.namePl, type: exercise.type, disciplines: [...exercise.disciplineKeys], blockTypes: [...exercise.blockTypes],
                   defaultConfiguration: { ...exercise.defaultConfiguration } },
@@ -133,9 +134,8 @@ export function ExerciseLibraryView({ blockType, disciplineKey, libraryUiState, 
         <label className="block text-sm font-semibold">{labels.name}<input ref={customName} value={libraryUiState.customName} maxLength={100} className={`${fieldClass} mt-2`}
           onChange={(event) => { setError(null); onLibraryUiStateChange({ ...libraryUiState, customName: event.target.value }) }} /></label>
         <fieldset><legend className="text-sm font-semibold">Zapis ćwiczenia</legend>
-          {[true, false].map((saveToLibrary) => <label key={String(saveToLibrary)} className="flex min-h-touch items-center gap-2 text-sm">
-            <input type="radio" name={`${id}-save`} checked={(libraryUiState.saveToLibrary !== false) === saveToLibrary} className="accent-crimson"
-              onChange={() => onLibraryUiStateChange({ ...libraryUiState, saveToLibrary })} />{saveToLibrary ? labels.saveToMine : labels.planOnly}</label>)}
+          {[true, false].map((saveToLibrary) => <ChoiceTile key={String(saveToLibrary)} value={String(saveToLibrary)} className="compact-choice my-2" name={`${id}-save`} checked={(libraryUiState.saveToLibrary !== false) === saveToLibrary}
+              onChange={() => onLibraryUiStateChange({ ...libraryUiState, saveToLibrary })}>{saveToLibrary ? labels.saveToMine : labels.planOnly}</ChoiceTile>)}
         </fieldset>
         {libraryUiState.saveToLibrary !== false && <label className="block text-sm font-semibold">{labels.type}<select className={`${fieldClass} mt-2`} value={libraryUiState.exerciseType ?? 'drill'}
           onChange={(event) => { const exerciseType = EXERCISE_TYPES.find((value) => value === event.target.value); if (exerciseType) onLibraryUiStateChange({ ...libraryUiState, exerciseType }) }}>

@@ -15,7 +15,7 @@ const timed = (id: string, workoutDate: string, minutes: number, rpe: number | n
 let data: Pick<WorkoutData, 'sessions' | 'retrySessions' | 'currentWeek'>
 const render = () => renderToStaticMarkup(createElement(WeeklySummary, { weekStart }))
 const row = (html: string, label: string) => html.match(new RegExp(`<dt[^>]*>${label}</dt><dd[^>]*>([^<]*)</dd>`))?.[1]
-const details = (html: string) => html.slice(html.indexOf('<details'))
+const details = (html: string) => html.slice(html.indexOf('class="disclosure-card'))
 
 beforeEach(() => {
   data = { sessions: { status: 'ready', complete: true, items: [entry], pendingIds: new Set(),

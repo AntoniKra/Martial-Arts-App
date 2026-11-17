@@ -200,33 +200,6 @@
   font-feature-settings: 'tnum' 1;
 }
 
-.radio-tile {
-  position: relative;
-  display: flex;
-  min-height: 44px;
-  min-width: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border: 1px solid var(--app-border);
-  padding: 0.5rem 0.75rem;
-  color: var(--app-muted);
-  font-size: 0.875rem;
-  text-align: center;
-}
-
-.radio-tile:has(input:checked) {
-  border-color: var(--app-crimson);
-  background: var(--app-elevated);
-  color: var(--app-ink);
-  font-weight: 600;
-}
-
-.radio-tile:has(input:focus-visible) {
-  outline: 2px solid var(--app-focus-ring);
-  outline-offset: 2px;
-}
-
 /* Inset-only bottom padding. Pair with explicit base padding where needed (see player footer). */
 .safe-area-pb {
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -275,3 +248,37 @@
 .choice-option.is-text { width: fit-content; }
 .choice-option.is-text .choice-face { min-height: 44px; border: 0; background: none; padding: 8px 24px 8px 0; box-shadow: none; }
 .choice-option.is-text .choice-check { top: 50%; right: 0; transform: translateY(-50%); background: none; color: var(--app-ink); }
+
+/* Form controls share native input semantics and the same focus indicator in both themes. */
+.compact-choice .choice-face { justify-content: center; min-height: 52px; padding: 10px 22px 10px 12px; color: var(--app-ink); font-weight: 600; white-space: nowrap; }
+.duration-choice .choice-face { min-height: 52px; padding: 10px 12px 10px 4px; font-size: 12px; }
+.described-choice .choice-face { padding: 12px 28px 12px 12px; color: var(--app-ink); }
+.control-input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.multi-chip { position: relative; display: inline-flex; min-width: 0; cursor: pointer; }
+.multi-chip-button, .multi-chip-face { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 12px; border: 1.5px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: var(--app-muted); font-size: 14px; font-weight: 600; }
+.multi-chip-mark { flex: none; width: 14px; text-align: center; }
+.multi-chip-mark::before { content: '+'; }
+.multi-chip input:checked + .multi-chip-face { border-color: var(--app-crimson-ink); color: var(--app-ink); background: color-mix(in srgb, var(--app-crimson) 14%, var(--app-surface)); }
+.multi-chip input:checked + .multi-chip-face .multi-chip-mark::before { content: '✓'; }
+.multi-chip input:focus-visible + .multi-chip-face, .switch-target input:focus-visible + .switch-track, .disclosure-trigger:focus-visible { outline: 2px solid var(--app-focus-ring); outline-offset: 3px; }
+.multi-chip input:disabled + .multi-chip-face, .switch-target input:disabled + .switch-track { opacity: .6; cursor: not-allowed; }
+.switch-control { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; cursor: pointer; font-size: 14px; line-height: 1.5; }
+.switch-target { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 48px; min-height: 44px; flex: none; }
+.switch-track { position: relative; display: block; flex: none; width: 48px; height: 28px; border-radius: 14px; background: var(--app-border); }
+.switch-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--app-muted); }
+.switch-target input:checked + .switch-track, .switch-track.is-on { background: var(--app-grad-primary); }
+.switch-target input:checked + .switch-track::after, .switch-track.is-on::after { left: 23px; background: var(--app-on-accent); }
+.disclosure-card { min-width: 0; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
+.disclosure-trigger { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 10px 14px; color: var(--app-ink); text-align: left; font-size: 14px; font-weight: 600; }
+.disclosure-chevron { flex: none; color: var(--app-muted); }
+.disclosure-trigger[aria-expanded='true'] .disclosure-chevron { transform: rotate(180deg); }
+.disclosure-content { padding: 12px; border-top: 1px solid var(--app-border); }
+
+.multi-chip-face { width: 100%; }
+.multi-chip-button[aria-pressed='true'] { border-color: var(--app-crimson-ink); color: var(--app-ink); background: color-mix(in srgb, var(--app-crimson) 14%, var(--app-surface)); }
+.multi-chip-button[aria-pressed='true'] .multi-chip-mark::before { content: '✓'; }
+.multi-chip-button:focus-visible { outline: 2px solid var(--app-focus-ring); outline-offset: 3px; }
+.multi-chip-button:disabled { opacity: .6; cursor: not-allowed; }
+
+.disclosure-trigger:focus-visible { outline-offset: -3px; }
+.compact-choice input:checked + .choice-face { background: color-mix(in srgb, var(--app-crimson) 14%, var(--app-surface)); }

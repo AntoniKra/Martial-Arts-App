@@ -188,7 +188,7 @@ function WorkoutPlanDetailsSuccessView({
         </p>
       </section>
 
-      <Link to={`${routes.profile}#profile-training`} className="inline-flex min-h-touch items-center text-sm text-muted underline">{profileSettingsLabels.trainingLink}</Link>
+      <Link to={`${routes.profile}#profile-training`} className="inline-flex min-h-touch items-center text-sm text-muted">{profileSettingsLabels.trainingLink}</Link>
 
       <Link
         to={workoutActivePath}

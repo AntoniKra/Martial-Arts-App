@@ -38,7 +38,7 @@ test('compares three previous weeks across sources, preserves missing load and f
   await expect(table.getByRole('columnheader')).toHaveText(['Miara', 'Ten tydzień (trwa)', 'Zwykle'])
   await expect(table.getByRole('rowheader')).toHaveText(['Treningi', 'Czas treningu', 'Obciążenie'])
   await expect(page.getByText('Zwykle = średnia z 3 tygodni przed tym tygodniem. Tygodnie bez treningów liczą się jako 0. To opis, nie ocena.', { exact: true })).toBeVisible()
-  expect(await table.evaluate((element) => Boolean(element.parentElement?.nextElementSibling?.matches('details')))).toBe(true)
+  expect(await table.evaluate((element) => Boolean(element.parentElement?.nextElementSibling?.matches('.disclosure-card')))).toBe(true)
   for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)

@@ -9,7 +9,7 @@ async function chooseLibraryExercise(page: Page, name: string) {
 
 async function chooseTile(page: Page, groupName: string, optionName: string) {
   const group = page.getByRole('group', { name: groupName, exact: true })
-  await group.getByText(optionName, { exact: true }).click()
+  await group.getByRole('radio', { name: optionName, exact: true }).check()
   await expect(group.getByRole('radio', { name: optionName, exact: true })).toBeChecked()
 }
 

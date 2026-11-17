@@ -79,7 +79,7 @@ function QuickTimerSettings({ uid }: { uid: string }) {
         <Counter label={labels.rest} value={draft.restBetweenRoundsSeconds} display={formatSecondsAsClock(draft.restBetweenRoundsSeconds)} minimum={0} maximum={300} error={errors.restBetweenRoundsSeconds} onChange={(direction) => update({ restBetweenRoundsSeconds: adjustQuickTimerSeconds(draft.restBetweenRoundsSeconds, direction, 0, 300) })} />
       </div>}
       <p className="flex items-center justify-between border-y border-bd py-4 text-sm text-muted">{labels.total}<span className="font-display text-2xl font-bold tabular-nums text-ink">{formatSecondsAsClock(quickTimerDuration(draft))}</span></p>
-      <Link to={`${routes.profile}#profile-training`} className="inline-flex min-h-touch items-center text-sm text-muted underline">{profileSettingsLabels.trainingLink}</Link>
+      <Link to={`${routes.profile}#profile-training`} className="inline-flex min-h-touch items-center text-sm text-muted">{profileSettingsLabels.trainingLink}</Link>
       <p className="text-xs leading-relaxed text-muted">{labels.iphone}</p>
       <Button type="submit" size="lg" className="w-full uppercase tracking-[0.1em]">{labels.start}</Button>
     </form>

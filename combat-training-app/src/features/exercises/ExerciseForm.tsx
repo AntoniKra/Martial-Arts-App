@@ -1,3 +1,4 @@
+import { MultiChoiceChip } from '@/components/ui/MultiChoiceChip'
 import { FormCloseConfirmation } from '@/components/FormCloseConfirmation'
 import { ScreenHeader } from '@/components/ScreenHeader'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
@@ -56,14 +57,12 @@ export function ExerciseForm({ initial, existing = false, onSave, onCancel, full
       </select></label>
       {existing && <p className="text-sm text-muted">{labels.identity}</p>}
       <fieldset className="min-w-0"><legend className="text-sm font-semibold">{labels.disciplines}</legend>
-        <div className="flex flex-wrap gap-x-4">{disciplines.map((key) => <label key={key} className="flex min-h-touch items-center gap-2 text-sm">
-          <input type="checkbox" checked={value.disciplines.includes(key)} className="accent-crimson" onChange={(event) => setValue({ ...value,
-            disciplines: event.target.checked ? [...value.disciplines, key] : value.disciplines.filter((entry) => entry !== key) })} />{DISCIPLINE_LABELS_PL[key]}</label>)}</div>
+        <div className="flex flex-wrap gap-2">{disciplines.map((key) => <MultiChoiceChip key={key} checked={value.disciplines.includes(key)} onChange={(event) => setValue({ ...value,
+            disciplines: event.target.checked ? [...value.disciplines, key] : value.disciplines.filter((entry) => entry !== key) })}>{DISCIPLINE_LABELS_PL[key]}</MultiChoiceChip>)}</div>
       </fieldset>
       <fieldset className="min-w-0"><legend className="text-sm font-semibold">{labels.blocks}</legend>
-        <div className="flex flex-wrap gap-x-4">{WORKOUT_BLOCK_TYPES.map((key) => <label key={key} className="flex min-h-touch items-center gap-2 text-sm">
-          <input type="checkbox" checked={value.blockTypes.includes(key)} className="accent-crimson" onChange={(event) => setValue({ ...value,
-            blockTypes: event.target.checked ? [...value.blockTypes, key] : value.blockTypes.filter((entry) => entry !== key) })} />{getWorkoutBlockLabelPl(key)}</label>)}</div>
+        <div className="flex flex-wrap gap-2">{WORKOUT_BLOCK_TYPES.map((key) => <MultiChoiceChip key={key} checked={value.blockTypes.includes(key)} onChange={(event) => setValue({ ...value,
+            blockTypes: event.target.checked ? [...value.blockTypes, key] : value.blockTypes.filter((entry) => entry !== key) })}>{getWorkoutBlockLabelPl(key)}</MultiChoiceChip>)}</div>
       </fieldset>
       <fieldset className="min-w-0 space-y-3"><legend className="mb-2 text-sm font-semibold">{labels.defaults}</legend>
         <label className="block text-sm font-semibold">{labels.mode}<select value={configuration.mode} className={inputClass} onChange={(event) => setValue({ ...value,
