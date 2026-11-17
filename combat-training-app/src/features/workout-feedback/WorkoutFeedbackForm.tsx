@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { PlanWorkoutSession, WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { findPreviousAssessment } from '@/domain/focus-skill/previousAssessment'
@@ -9,6 +9,7 @@ import type { PreviousPlanRun } from '@/domain/workout-session/previousPlanRun'
 import { Button } from '@/components/ui/Button'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
+import { FeedbackIcon } from './FeedbackIcon'
 import { AssessmentScale, FocusCard } from './FocusCard'
 import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
 import { formatWorkoutFeedbackMetrics, workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
@@ -26,6 +27,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
 }) {
   const [initial] = useState<WorkoutFeedbackDraft>(() => ({ focusRatings: structuredClone(session.focusRatings), exerciseRatings: structuredClone(session.exerciseRatings), sparring: structuredClone(session.sparring), note: session.note ?? '' }))
   const [draft, setDraft] = useState(initial)
+  const [othersOpen, setOthersOpen] = useState(false)
   const allowLeave = useRef(false)
   const [errors, setErrors] = useState<FeedbackErrors>({ corrections: {} })
   const [saveError, setSaveError] = useState(false)
@@ -53,14 +55,11 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
   }
 
   return <UnsavedPlanChangesGuard isDirty={hasUnsavedWorkoutFeedback(draft, initial)} allowLeaveRef={allowLeave} description={labels.discardDescription}>
-    <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
-    <div className="flex flex-wrap justify-between gap-x-4">
-      <Link to={routes.workoutDetails(session.workoutPlanId)} className="inline-flex min-h-touch items-center text-[12px] font-semibold text-muted"><span aria-hidden="true" className="mr-1">←</span>{labels.backToPlan}</Link>
-      <Link to={`${routes.workouts}?tab=history`} className="inline-flex min-h-touch items-center text-[12px] font-semibold text-muted">{labels.back}</Link>
-    </div>
+    <div className="mx-auto w-full max-w-xl space-y-3.5 px-4 py-5">
+    <RouteScreenHeader title={labels.title} fallback={`${routes.workouts}?tab=history`} />
     <header className="space-y-3">
       <p className="font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-crimson-ink">{labels.status[session.status]}</p>
-      <h1 className="break-words font-display text-2xl font-bold text-ink">{session.workoutPlanNameSnapshot}</h1>
+      <h2 className="break-words font-display text-[22px] font-extrabold text-ink">{session.workoutPlanNameSnapshot}</h2>
       <p className="text-[13px] leading-relaxed text-muted">{labels.savedEntry}</p>
       {pending && <p role="status" className="text-[12px] font-semibold text-muted">{workoutDataLabels.pending}</p>}
       <dl className="grid grid-cols-3 divide-x divide-bd border-y border-bd py-4">
@@ -85,7 +84,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
         </fieldset>)}
         {draft.focusRatings.length > 0 && <section aria-labelledby="focus-feedback-heading" className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="focus-feedback-heading" className="font-display text-[12px] font-semibold uppercase tracking-[0.1em] text-ink">{labels.focusHeading}</h2>
+            <h2 id="focus-feedback-heading" className="font-display text-lg font-extrabold text-ink">{labels.focusHeading}</h2>
             <p className="text-[11px] tabular-nums text-muted">{labels.assessed(assessed, draft.focusRatings.length)}</p>
           </div>
           {draft.focusRatings.map((rating, index) => <FocusCard key={rating.workoutItemId} rating={rating} session={session} skills={skills}
@@ -96,9 +95,14 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
               setErrors((current) => ({ ...current, corrections: { ...current.corrections, [edited.workoutItemId]: '' } }))
             }} />)}
         </section>}
-        <details className="border-y border-bd">
-          <summary className="min-h-touch cursor-pointer py-4 text-[12px] font-semibold text-muted">{labels.othersHeading(others.length)}</summary>
-          <div className="space-y-5 pb-4">{others.map((exercise) => <article key={exercise.workoutItemId} aria-label={exercise.nameSnapshot} className="space-y-3 border border-bd bg-surface p-4">
+        <section className="space-y-3">
+          <button type="button" aria-expanded={othersOpen} aria-controls="other-exercises" onClick={() => setOthersOpen(!othersOpen)}
+            className="flex min-h-14 w-full items-center gap-3 rounded-sm border border-bd bg-surface px-3.5 py-2 text-left">
+            <span className="flex-1"><span className="block text-sm font-bold text-ink">{labels.othersHeading}</span>
+              <span className="block text-xs text-muted">opcjonalnie · {labels.assessed(draft.exerciseRatings.filter((rating) => others.some((other) => other.workoutItemId === rating.workoutItemId)).length, others.length)}</span></span>
+            <FeedbackIcon kind="chevron" className={`text-muted ${othersOpen ? 'rotate-180' : ''}`} />
+          </button>
+          <div id="other-exercises" hidden={!othersOpen} className="space-y-5 pb-4">{others.map((exercise) => <article key={exercise.workoutItemId} aria-label={exercise.nameSnapshot} className="space-y-3 border border-bd bg-surface p-4">
             <h3 className="break-words font-display text-sm font-semibold text-ink">{exercise.nameSnapshot}</h3>
             <AssessmentScale question={labels.otherQuestion} descriptions={labels.otherScale}
               value={draft.exerciseRatings.find((value) => value.workoutItemId === exercise.workoutItemId)?.rating ?? null}
@@ -107,13 +111,13 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
                 ...(typeof rating === 'number' ? [{ ...exercise, rating }] : []),
               ] }))} />
           </article>)}</div>
-        </details>
+        </section>
         <label className="block font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">
           {labels.noteHeading}
-          <textarea rows={4} maxLength={1000} value={draft.note ?? ''} placeholder={labels.notePlaceholder} aria-invalid={!!errors.note}
+          <textarea rows={3} maxLength={1000} value={draft.note ?? ''} placeholder={labels.notePlaceholder} aria-invalid={!!errors.note}
             aria-describedby={errors.note ? 'feedback-note-error' : undefined}
             onChange={(event) => { setDraft((current) => ({ ...current, note: event.target.value })); setErrors((current) => ({ ...current, note: undefined })) }}
-            className="mt-2 block w-full resize-y border border-bd bg-input p-3 font-sans text-[16px] font-normal normal-case tracking-normal text-ink" />
+            className="mt-2 block w-full resize-none border border-bd bg-input p-3 font-sans text-[16px] font-normal normal-case tracking-normal text-ink" />
         </label>
         {errors.note && <p id="feedback-note-error" role="alert" className="text-[12px] text-crimson-ink">{errors.note}</p>}
       </fieldset>

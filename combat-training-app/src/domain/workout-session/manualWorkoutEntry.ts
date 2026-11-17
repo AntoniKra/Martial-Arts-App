@@ -103,7 +103,7 @@ export function validateManualWorkout(draft: ManualWorkoutDraft, today: string, 
     if (seen.has(rating.focusSkillId)) errors[key] = 'Każdy element do poprawy można ocenić tylko raz.'
     seen.add(rating.focusSkillId)
     const problem = rating.correction?.problem.trim() ?? '', fix = rating.correction?.fix.trim() ?? ''
-    if ((problem || fix) && (!isCorrectionText(problem) || !isCorrectionText(fix))) errors[key] = 'Problem i poprawka muszą mieć po 1–200 znaków.'
+    if ((problem || fix) && (!isCorrectionText(problem) || !isCorrectionText(fix))) errors[key] = 'Błąd i wskazówka muszą mieć po 1–200 znaków.'
     if (place && rating.assessment !== null) focusRatings.push({ ...rating, assessment: rating.assessment, blockType: place,
       correction: problem || fix ? { problem, fix } : null })
   }

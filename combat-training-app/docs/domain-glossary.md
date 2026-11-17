@@ -38,12 +38,12 @@
 | czas sparingu | `sparringSeconds` |
 | realizacja | `completion` |
 | dzień treningu | `workoutDate` |
-| ćwiczenie celu | `focusSkill` (dokument z nazwą i kryterium); w planie `WorkoutExercise.focusSkillId` |
-| kryterium | `criterion` |
-| ocena ćwiczenia celu | `focusRating.assessment` (1–5 albo `unableToRate`) |
+| element do poprawy | `focusSkill` (dokument z nazwą i celem); w planie `WorkoutExercise.focusSkillId` |
+| cel elementu do poprawy | `criterion` |
+| ocena elementu do poprawy | `focusRating.assessment` (1–5 albo `unableToRate`) |
 | „Nie umiem ocenić” | `unableToRate` |
-| notatka „problem i poprawka” | `correction` (`problem`, `fix`) |
-| lepiej / bez zmian / nie sprawdzono | `better` / `same` / `notChecked` |
+| notatka „błąd i wskazówka” | `correction` (`problem`, `fix`) |
+| Rzadziej / Tak samo / Nie sprawdzałem | `better` / `same` / `notChecked` |
 | RPE treningu | `rpe` |
 | obciążenie | RPE × minuty czasu treningu, liczone, nie zapisywane |
 | intensywność sparingu | `sparringIntensity`: `light`, `technical`, `hard` |

@@ -241,7 +241,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
                     return <div key={rating.focusSkillId} aria-invalid={!!error} aria-describedby={error ? errorId(rating.focusSkillId) : undefined} tabIndex={error ? -1 : undefined}>
                       <FocusCard session={{ id: original?.id ?? 'new-manual-entry', workoutDate: draft.workoutDate }} rating={rating} skills={skills} first
                         previousAssessment={findPreviousAssessment({ id: original?.id ?? 'new-manual-entry', workoutDate: draft.workoutDate, createdAt: original?.createdAt }, rating.focusSkillId, rating.criterionSnapshot, sessions)}
-                        correctionLabel={labels.newCorrection} error={error?.startsWith('Problem') ? error : undefined}
+                        correctionLabel={labels.newCorrection} error={error?.startsWith('Błąd') ? error : undefined}
                         onChange={(value) => { set('focusRatings', draft.focusRatings.map((current) => current.focusSkillId === value.focusSkillId ? value : current)); setErrors({}) }}>
                         {(original?.focusRatings.some((saved) => saved.focusSkillId === rating.focusSkillId) || draft.category === 'mixed' || draft.category === 'conditioning') && <label className="block text-sm font-semibold">
                           {labels.place}<select value={rating.blockType ?? ''} onChange={(event) => {
@@ -253,15 +253,15 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
                           </select>
                         </label>}
                       </FocusCard>
-                      {!error?.startsWith('Problem') && <FieldError message={error} id={errorId(rating.focusSkillId)} />}
+                      {!error?.startsWith('Błąd') && <FieldError message={error} id={errorId(rating.focusSkillId)} />}
                     </div>
                   })}
                 </>}
             <FieldError message={errors.focusRatings} id={errorId('focusRatings')} />
           </section>
           <label className="block text-sm font-semibold">{workoutFeedbackLabels.noteHeading}
-            <textarea rows={4} maxLength={1000} value={draft.note} placeholder={labels.notePlaceholder} {...invalidProps('note')}
-              onChange={(event) => set('note', event.target.value)} className={`${inputClass} resize-y font-normal`} />
+            <textarea rows={3} maxLength={1000} value={draft.note} placeholder={labels.notePlaceholder} {...invalidProps('note')}
+              onChange={(event) => set('note', event.target.value)} className={`${inputClass} resize-none font-normal`} />
           </label><FieldError message={errors.note} id={errorId('note')} />
           {notes.length > 0 && <div role="group" aria-label={labels.notes} className="space-y-2">
             <p className="text-sm text-muted">{labels.notes}</p>

@@ -35,7 +35,7 @@ const quick: QuickTimerWorkoutSession = {
 }
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Odrzucić zmiany?', exact: true })
 const note = (page: Page) => page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })
-const history = (page: Page) => page.getByRole('link', { name: 'Wróć do historii', exact: true })
+const history = (page: Page) => page.getByRole('button', { name: 'Wstecz', exact: true })
 
 test('keeps the note and URL on return, then discards it to open the previous run', async ({ app, page }) => {
   await app.open('/workouts')
@@ -76,7 +76,7 @@ for (const session of [current, quick]) {
     await app.seedSession(session)
     await app.open(`/workout-sessions/${session.id}/feedback`)
     await note(page).fill('Zapisana notatka.')
-    await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
+    await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
     await expect(page).toHaveURL('/workouts?tab=history')
     await expect(dialog(page)).toHaveCount(0)
     await expect.poll(async () => (await app.readSessions()).find(({ id }) => id === session.id)?.note).toBe('Zapisana notatka.')
@@ -95,7 +95,7 @@ for (const session of [current, quick]) {
         throw new Error('Simulated feedback save failure')
       }
     })
-    await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
+    await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
     await expect(page.getByRole('alert')).toHaveText('Nie udało się zapisać ocen. Spróbuj ponownie.')
     await history(page).click()
     await expect(dialog(page)).toBeVisible()
@@ -136,7 +136,7 @@ test('protects focus ratings, other ratings and sparring intensity, allowing res
   await expect(dialog(page)).toBeVisible()
   await dialog(page).getByRole('button', { name: 'Wróć do edycji', exact: true }).click()
   await focus.getByRole('button', { name: 'Wyczyść ocenę', exact: true }).click()
-  await page.getByText('Oceń pozostałe ćwiczenia · 2, opcjonalnie', { exact: true }).click()
+  await page.getByRole('button', { name: /^Pozostałe ćwiczenia/ }).click()
   await other.getByRole('radio', { name: /^4 / }).check()
   await history(page).click()
   await expect(dialog(page)).toBeVisible()
@@ -144,7 +144,7 @@ test('protects focus ratings, other ratings and sparring intensity, allowing res
   await other.getByRole('button', { name: 'Wyczyść ocenę', exact: true }).click()
   const intensity = page.getByRole('button', { name: /^Techniczny/ })
   await intensity.click()
-  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await history(page).click()
   await expect(dialog(page)).toBeVisible()
   await dialog(page).getByRole('button', { name: 'Wróć do edycji', exact: true }).click()
   await intensity.click()

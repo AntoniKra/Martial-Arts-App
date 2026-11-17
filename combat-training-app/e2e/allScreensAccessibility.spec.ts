@@ -52,7 +52,7 @@ async function audit(page: Page, info: TestInfo, screen: string, theme: 'dark' |
   await test.step(`axe: ${screen}`, async () => {
     await page.evaluate(() => document.fonts.ready)
     const { violations } = await new AxeBuilder({ page }).analyze()
-    await info.attach(`axe-${screen}-${theme}`, {
+    if (process.env.CAPTURE_TEST_REPORTS !== '0') await info.attach(`axe-${screen}-${theme}`, {
       body: JSON.stringify({ project: info.project.name, screen, theme, violations }, null, 2),
       contentType: 'application/json',
     })
@@ -137,7 +137,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
     await expect(page.getByRole('heading', { name: /Poprzednio ten plan/ })).toBeVisible()
     await expect(page.getByRole('article', { name: skill.name, exact: true }).getByRole('radio', { name: /^4 / })).toBeChecked()
-    await page.getByText('Oceń pozostałe ćwiczenia · 1, opcjonalnie', { exact: true }).click()
+    await page.getByRole('button', { name: /^Pozostałe ćwiczenia/ }).click()
     await expect(page.getByRole('article', { name: 'Praca na nogach', exact: true })).toBeVisible()
     await audit(page, info, 'plan-feedback', theme)
     await page.getByRole('button', { name: 'Oceń teraz', exact: true }).click()

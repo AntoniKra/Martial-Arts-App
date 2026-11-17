@@ -54,7 +54,7 @@ export function Component() {
         <ul className="mt-2 space-y-3">{archived.map((skill) => <SkillCard key={skill.id} skill={skill} />)}</ul>
       </details>}
       {correction && <Link to={correction.source === 'manual' ? routes.editManualWorkout(correction.sessionId) : routes.workoutFeedback(correction.sessionId)} className="block space-y-1 border border-bd bg-surface p-3">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted">Ostatnia poprawka · {Number(correction.workoutDate.slice(8))}.{correction.workoutDate.slice(5, 7)}</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted">Ostatnia notatka · {Number(correction.workoutDate.slice(8))}.{correction.workoutDate.slice(5, 7)}</p>
         <p className="break-words text-sm">„{correction.problem}” → <strong>{correction.fix}</strong></p>
       </Link>}
     </section>}

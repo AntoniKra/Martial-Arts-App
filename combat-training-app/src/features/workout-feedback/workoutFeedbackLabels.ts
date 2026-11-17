@@ -2,9 +2,8 @@ import type { PlanWorkoutSession } from '@/domain/workout-session/workoutSession
 import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 
 export const workoutFeedbackLabels = {
-  previousAssessment: (date: string, value: string) => `Poprzednia ocena (${date}): ${value}`,
   title: 'Podsumowanie',
-  savedEntry: 'Wpis jest już w dzienniku. Oceny dopisują się do niego.',
+  savedEntry: 'Zapisane w dzienniku. Oceny dopiszą się do wpisu.',
   status: { completed: 'Trening ukończony', partial: 'Trening częściowy' },
   metrics: ['Trening', 'Praca', 'Ćwiczenia'],
   previousPlanRun: (date: string) => `Poprzednio ten plan: ${date}`,
@@ -14,8 +13,8 @@ export const workoutFeedbackLabels = {
   focusHeading: 'Elementy do poprawy',
   sparringIntensity: (number: number) => `Sparing ${number} · intensywność (opcjonalnie)`,
   assessed: (count: number, total: number) => `oceniono ${count} z ${total}`,
-  criterion: 'Kryterium',
-  focusQuestion: 'Jak wyszło kryterium?',
+  criterion: 'Cel',
+  focusQuestion: 'Jak dobrze ci wychodziło?',
   focusScale: [
     'Nie udaje się nawet w prostej próbie.',
     'Udaje się czasem, zwykle przerywam, żeby poprawić.',
@@ -25,20 +24,22 @@ export const workoutFeedbackLabels = {
   ],
   unable: 'Nie umiem ocenić',
   clearAssessment: 'Wyczyść ocenę',
-  skipped: 'Pominięte — bez oceny',
-  todayQuestion: 'Jak było dziś?',
-  checks: { better: 'Lepiej', same: 'Bez zmian', notChecked: 'Nie sprawdzono' },
-  previous: (date: string) => `Notatka z ${date}`,
-  forToday: (date: string) => `Na dziś · z treningu ${date}`,
-  problem: 'Problem',
-  fix: 'Poprawka',
-  newCorrection: 'Nowa notatka: problem i poprawka',
-  correctionHeading: 'Notatka: jeden problem i jedna poprawka',
+  skipped: 'Pominięte w treningu',
+  todayQuestion: 'Czy ten błąd dziś się powtarzał?',
+  checks: { better: 'Rzadziej', same: 'Tak samo', notChecked: 'Nie sprawdzałem' },
+  previous: (date: string) => `Notatka z ${date} · na dziś`,
+  forToday: (date: string) => `Notatka z ${date} · na dziś`,
+  problem: 'Błąd',
+  fix: 'Wskazówka',
+  newCorrection: 'Dodaj notatkę: błąd i wskazówka',
+  correctionHeading: 'Notatka: jeden błąd i jedna wskazówka',
   problemPlaceholder: 'np. po uniku robię krok w tył',
   fixPlaceholder: 'np. kontra z miejsca, ciężar na przedniej nodze',
-  correctionHint: 'Przy następnym treningu z tym ćwiczeniem zapytamy, czy jest lepiej.',
-  previewHint: 'Po treningu zapytamy, czy jest lepiej.',
-  othersHeading: (count: number) => `Oceń pozostałe ćwiczenia · ${count}, opcjonalnie`,
+  correctionHint: 'Przy następnym treningu zapytamy, czy błąd się powtarzał.',
+  previewHint: 'Po treningu zapytamy, czy błąd się powtarzał.',
+  othersHeading: 'Pozostałe ćwiczenia',
+  skippedHeading: 'Dziś bez oceny',
+  skippedHint: 'Ćwiczenie nie zostało wykonane, więc nie oceniasz go. Twoja średnia się nie zmienia.',
   otherQuestion: 'Jak oceniasz wykonanie tego ćwiczenia?',
   otherScale: [
     'Nie udało się wykonać zgodnie z założeniem.',
@@ -49,15 +50,14 @@ export const workoutFeedbackLabels = {
   ],
   noteHeading: 'Notatka do treningu · opcjonalnie',
   notePlaceholder: 'Co zadziałało? Jaki błąd się powtarzał? Co zrobić następnym razem?',
-  done: 'Gotowe',
+  done: 'Zapisz oceny',
   discardDescription: 'Oceny i notatka nie zostaną zapisane.',
   back: 'Wróć do historii',
-  backToPlan: 'Wróć do planu',
   loading: 'Ładowanie podsumowania…',
   unavailable: 'Nie znaleziono podsumowania',
   loadError: 'Nie udało się wczytać podsumowania.',
   saveError: 'Nie udało się zapisać ocen. Spróbuj ponownie.',
-  correctionError: 'Problem i poprawka muszą mieć po 1–200 znaków.',
+  correctionError: 'Błąd i wskazówka muszą mieć po 1–200 znaków.',
   noteError: 'Notatka może mieć do 1000 znaków.',
 } as const
 
@@ -66,6 +66,5 @@ export function formatWorkoutFeedbackMetrics(session: PlanWorkoutSession): strin
 }
 
 export function formatCorrectionDate(date: string): string {
-  return new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
-    .format(new Date(`${date}T12:00:00Z`))
+  return `${Number(date.slice(8))}.${date.slice(5, 7)}`
 }
