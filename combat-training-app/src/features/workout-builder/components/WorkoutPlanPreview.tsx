@@ -1,6 +1,6 @@
 import { forwardRef, type RefObject } from 'react'
 
-import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
+import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/Button'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { RedAccent } from '@/components/ui/RedAccent'
@@ -88,26 +88,7 @@ export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPrev
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-lg px-4 py-6 md:max-w-2xl md:py-8">
-            <button
-              type="button"
-              onClick={onBack}
-              disabled={isSaving}
-              className="mb-6 inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <ChevronRightIcon className="rotate-180" />
-              {workoutBuilderLabels.returnToEditing}
-            </button>
-
-            <p className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
-              {workoutBuilderLabels.previewPlan}
-            </p>
-            <h1
-              ref={headingRef}
-              tabIndex={-1}
-              className="mt-2 break-words font-display text-[24px] font-bold text-ink focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--app-focus-ring)] md:text-[28px]"
-            >
-              {displayPlanName}
-            </h1>
+            <ScreenHeader title={displayPlanName} headingRef={headingRef} onBack={onBack} disabled={isSaving} subtitle={workoutBuilderLabels.previewPlan} />
             <p className="mt-2 text-[13px] text-muted">{focusSkillLabels.planCount(focusExerciseCount)}</p>
 
             {draft.disciplineKey !== null ? (

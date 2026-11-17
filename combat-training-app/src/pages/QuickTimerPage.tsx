@@ -1,3 +1,4 @@
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { routes } from '@/app/routes'
@@ -51,7 +52,7 @@ function QuickTimerSettings({ uid }: { uid: string }) {
     void navigate(routes.quickTimerActive, { state: { quickTimerPlan: { schemaVersion: 1, ...plan } } })
   }
   return <div className="mx-auto w-full max-w-lg px-4 py-6">
-    <h1 className="mb-6 font-display text-2xl font-bold text-ink">{labels.title}</h1>
+    <div className="mb-6"><RouteScreenHeader title={labels.title} fallback={routes.home} /></div>
     <form ref={form} noValidate onSubmit={submit} className="space-y-6">
       <QuickTimerCategoryField value={draft.category} onChange={(category) => update({ category })} error={errors.category} />
       <div>

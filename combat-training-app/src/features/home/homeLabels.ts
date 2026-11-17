@@ -23,7 +23,7 @@ export const homeLabels = {
   emptyHint: 'Utwórz własny plan lub wpisz trening po zajęciach w klubie.',
   overdue: 'Do uzupełnienia', missing: 'nie wpisano', write: 'Wpisz',
   week: 'Ten tydzień', weekPlan: 'Plan tygodnia', days: 'Dni tygodnia',
-  flexible: (count: number) => `+ ${formatPolishCount(count, 'trening', 'treningi', 'treningów')} w dowolny dzień`,
+  next: 'Następny', flexible: 'W dowolny dzień tego tygodnia',
   workouts: (count: number) => formatPolishCount(count, 'trening', 'treningi', 'treningów'),
   goal: (count: number, total: number) => `${count} z ${total}`,
   noGoal: 'Nie ustalono celu.', setGoal: 'Ustal cel tygodnia',

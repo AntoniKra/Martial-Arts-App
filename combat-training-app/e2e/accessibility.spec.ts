@@ -22,6 +22,7 @@ for (const theme of ['dark', 'light'] as const) {
 
       await page.evaluate(() => document.fonts.ready)
       const { violations } = await new AxeBuilder({ page }).analyze()
+      if (process.env.CAPTURE_SCREENSHOTS === '1') {
       await testInfo.attach('axe-violations', {
         body: JSON.stringify({ project: testInfo.project.name, screen, theme, violations }, null, 2),
         contentType: 'application/json',
@@ -30,6 +31,7 @@ for (const theme of ['dark', 'light'] as const) {
         body: await page.screenshot({ fullPage: true }),
         contentType: 'image/png',
       })
+      }
       // Contrast and landmark issues were fixed, so anything from moderate up now blocks the test.
       const blocking = violations.filter(({ impact }) => impact && BLOCKING_IMPACTS.includes(impact))
       const minor = violations.filter((violation) => !blocking.includes(violation))

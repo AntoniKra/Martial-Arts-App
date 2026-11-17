@@ -38,7 +38,7 @@ test('does not save a run without work and resets the message on restart', async
   await expect(page.getByText('Trening niezapisany', { exact: true })).toBeVisible()
   await expect(page.getByRole('status')).toHaveText('Zapisujemy tylko rundy i ćwiczenia, które dobiegły do końca czasu. Tym razem żadne nie dobiegło.')
   expect(await app.readSessions()).toHaveLength(0)
-  await page.screenshot({ path: testInfo.outputPath('no-work.png'), fullPage: true })
+  if (process.env.CAPTURE_SCREENSHOTS === '1') await page.screenshot({ path: testInfo.outputPath('no-work.png'), fullPage: true })
   await page.getByRole('button', { name: 'Uruchom ponownie', exact: true }).click()
   await app.startWorkout()
   await page.clock.fastForward(210_000)

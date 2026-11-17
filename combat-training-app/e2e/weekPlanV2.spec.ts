@@ -78,7 +78,7 @@ test('repeats Sunday immediately, propagates edits and removals offline, and sho
   await hours(page, '11:00', '13:00')
   await context.setOffline(true); await save(page)
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: '‹ Plan tygodnia', exact: true }).click()
+  await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
   await expect(row(page, 'Niedziela', '2026-11-22')).toContainText('11:00–13:00')
   await context.setOffline(false)
   await expect.poll(async () => (await app.readWeekPlans())[0]?.schedule?.[0]).toMatchObject({ startTime: '11:00' })
@@ -108,7 +108,7 @@ test('leaves past days, moved, omitted and week-only entries untouched when recu
   const oneOff: WeekActivity = { id: 'one-off', kind: 'own', day: null, category: 'bag', workoutPlanId: null, planNameSnapshot: null }
   generated.schedule!.push({ ...oneOff, omitted: false })
   await app.seedWeekPlan(generated)
-  await page.getByRole('button', { name: '‹ Plan tygodnia', exact: true }).click()
+  await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
   const tuesday = row(page, 'Wtorek', '2026-11-17'), thursday = row(page, 'Czwartek', '2026-11-19')
   await tuesday.getByRole('button', { name: 'Opcje: Boks', exact: true }).click()
   await tuesday.getByRole('combobox', { name: 'Przenieś na…', exact: true }).selectOption('4')

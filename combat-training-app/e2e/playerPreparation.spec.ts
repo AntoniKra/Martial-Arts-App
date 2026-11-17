@@ -29,7 +29,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.getByRole('button', { name: 'Zacznij teraz', exact: true })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Poprzedni etap', exact: true })).toBeDisabled()
     await expect(page.getByRole('button', { name: 'Następny etap', exact: true })).toBeDisabled()
-    await expect(page.getByRole('button', { name: 'Zakończ trening', exact: true })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Zakończ trening', exact: true })).toBeEnabled()
     expect(await app.readSessions()).toHaveLength(0)
     await page.evaluate(() => document.fonts.ready)
     if (process.env.CAPTURE_SCREENSHOTS === '1' && testInfo.project.name === 'phone') {
@@ -139,7 +139,7 @@ test('leaves preparation without saving or creating an exit confirmation', async
   await app.freezeClock()
   await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
   await page.clock.runFor(5000)
-  await page.getByRole('link', { name: 'Wróć do planu', exact: true }).click()
+  await page.getByRole('button', { name: 'Zakończ trening', exact: true }).click()
   await expect(page).toHaveURL(planUrl)
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await page.clock.fastForward(300_000)

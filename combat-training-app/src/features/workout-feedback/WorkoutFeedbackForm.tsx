@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { SubpageHeader } from '@/components/layout/SubpageHeader'
+import { routes } from '@/app/routes'
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { PlanWorkoutSession, WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { findPreviousAssessment } from '@/domain/focus-skill/previousAssessment'
@@ -55,7 +56,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
 
   return <UnsavedPlanChangesGuard isDirty={hasUnsavedWorkoutFeedback(draft, initial)} allowLeaveRef={allowLeave} description={labels.discardDescription}>
     <div className="mx-auto w-full max-w-xl space-y-3.5 px-4 py-5">
-    <SubpageHeader title={labels.title} />
+    <RouteScreenHeader title={labels.title} fallback={`${routes.workouts}?tab=history`} />
     <header className="space-y-3">
       <p className="font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-crimson-ink">{labels.status[session.status]}</p>
       <h2 className="break-words font-display text-[22px] font-extrabold text-ink">{session.workoutPlanNameSnapshot}</h2>

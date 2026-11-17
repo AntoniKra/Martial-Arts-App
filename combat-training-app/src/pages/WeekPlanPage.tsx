@@ -1,3 +1,4 @@
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { routes } from '@/app/routes'
@@ -17,7 +18,7 @@ export function Component() {
   const selected = selectWeekPlan(weekPlans, weekStart)
   if (recurringEditing) return <div className="px-4 pb-6 pt-4 md:px-0"><RecurringWeekEditor onClose={() => setRecurringEditing(false)} /></div>
   if (!isMonday(weekStart) || selected.status === 'outsideRange') return <div className="space-y-4 px-4 py-6 md:px-0">
-    <h1 className="font-display text-3xl font-bold">{labels.title}</h1><WeekPlanDataMessage status="outsideRange" />
+    <RouteScreenHeader title={labels.title} fallback={routes.progress} /><WeekPlanDataMessage status="outsideRange" />
     <Link to={routes.weekPlan(currentWeek)} className={getButtonClassName()}>{labels.current}</Link>
   </div>
   return <ScheduledWeekView key={weekStart} weekStart={weekStart} onRecurring={() => setRecurringEditing(true)} />

@@ -1,3 +1,4 @@
+import { ScreenHeader } from '@/components/ScreenHeader'
 import { useState } from 'react'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import type { WeekActivity, Weekday } from '@/domain/week-plan/weekPlan.types'
@@ -22,8 +23,7 @@ export function RecurringWeekEditor({ onClose }: { onClose: () => void }) {
     try { await actions.save(items) } catch (error) { setError(weekPlanLabels.failed); throw error } finally { setBusy(false) }
   }
   return <div className="flex flex-col gap-2.5">
-    <button type="button" className="min-h-touch self-start text-[13px] text-muted" disabled={busy} onClick={onClose}>{labels.back}</button>
-    <h1 className="font-display text-[28px] font-extrabold">{labels.recurring}</h1>
+    <ScreenHeader title={labels.recurring} onBack={onClose} disabled={busy} />
     {!actions.ready && <div role={state.status === 'error' || state.invalidDocumentIds.length ? 'alert' : 'status'} className="space-y-3">
       <p>{state.status === 'loading' ? weekPlanLabels.loading : state.status === 'error' || state.invalidDocumentIds.length ? labels.failed : labels.incomplete}</p>
       <button type="button" className={getButtonClassName({ variant: 'secondary' })} onClick={retryRecurringWeeks}>{weekPlanLabels.retry}</button>

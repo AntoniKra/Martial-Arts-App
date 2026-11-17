@@ -103,7 +103,7 @@ for (const theme of ['dark', 'light'] as const) {
     await today.click()
     await expect(page).toHaveURL(`/progress/week/${current}`)
     await expect(today).toHaveCount(0)
-    await page.getByRole('link', { name: 'Wróć do Postępu', exact: true }).click()
-    await expect(page).toHaveURL('/progress')
+    await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
+    await expect(page).toHaveURL('/progress/week/2026-11-23')
   })
 }

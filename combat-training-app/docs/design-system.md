@@ -66,6 +66,20 @@ Profil używa spokojnych kart `surface` z ramką i etykietami sekcji wersalikami
 - liczby timera: cyfry tablicowe;
 - uppercase wyłącznie dla krótkich etykiet i stanów.
 
+## Nagłówki ekranów
+
+Issue #188 wprowadza pięć wzorców, wspólnych dla telefonu i komputera. `src/components/ScreenHeader.tsx` udostępnia nagłówki i ich warianty. Każdy ekran ma dokładnie jeden `h1`, również podczas ładowania i błędu.
+
+- **A — zakładka główna:** Postęp, Treningi i Profil. Archivo 28 px/800 po lewej, bez powrotu; opcjonalny krótki podtytuł i najwyżej jedna akcja ikoną 44×44 z dostępną nazwą.
+- **B — Start:** bez widocznego nagłówka; ukryty `h1` „Start”. Data pozostaje na głównej karcie.
+- **C — podekran:** strzałka 44×44 z nazwą „Wstecz” oraz tytuł Archivo 24 px/800 w jednym wierszu; najwyżej jedna akcja po prawej. Dotyczy m.in. Historii (`/workouts?tab=history`), listy planów (`/workouts?tab=plans`), szczegółów planu, Planu tygodnia, Stałego tygodnia, podstron Profilu, biblioteki, konfiguracji stopera i podglądów. Bez napisów „Wróć do…” i „‹ Postęp”. Powrót używa poprzedniego wpisu historii aplikacji (`navigate(-1)` przy dodatnim indeksie React Routera), a po wejściu bezpośrednim — stałej trasy nadrzędnej. Kroki wewnątrz kreatora wracają do poprzedniego kroku.
+- **D — formularz:** ten sam układ, ale ✕ z nazwą „Zamknij”. Ręczny wpis, nowy/edytowany plan, konfiguracja i edycja ćwiczenia oraz formularz elementu do poprawy. Zamykanie przy zmianach otwiera pytanie o odrzucenie; Escape zachowuje zmiany i przywraca fokus. Zapis jest wyłącznie akcją główną na dole. Formularz osadzony lub modalny używa odpowiednio niższego poziomu nagłówka, zachowując jeden `h1` strony.
+- **E — trening na żywo:** tylko ✕ „Zakończ trening” 44×44 po lewej i wyśrodkowany postęp. Istniejące potwierdzenie, pauza oraz zasady wyjścia przed startem i podczas przygotowania pozostają wspólne dla planu i stopera.
+
+Podsumowanie po treningu należy do równoległego #187; ta migracja nie zmienia jego ekranu.
+
+Start → „Ten tydzień”: pod kółkami licznik „1 z 4 treningów · 90 min” po lewej i liczba pozostałych po prawej; pasek bez zmian. „Następny” jest kartą z datą 48×48, nazwą, opisem i chevronem. Pokazuje tylko następny trening bieżącego tygodnia; otwiera i zaznacza właściwy dzień Planu tygodnia. „W dowolny dzień tego tygodnia” zawiera osobny kafelek każdej niezrealizowanej pozycji: ikona kalendarza, przerywana ramka i delikatny gradient z tokenów crimson/ember. Otwiera sekcję dowolnego dnia Planu tygodnia. Puste sekcje znikają; „Stoper i inne plany” pozostaje bez zmian.
+
 ## Dostępność
 
 - minimalny obszar dotyku około 44×44 px;

@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { SubpageHeader } from '@/components/layout/SubpageHeader'
+import { routes } from '@/app/routes'
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import type { QuickTimerWorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { SparringIntensity } from '@/domain/workout/workout.types'
 import { isQuickTimerCategory, type QuickTimerCategory } from '@/domain/quick-timer/quickTimer'
@@ -51,7 +52,7 @@ export function QuickTimerFeedbackForm({ session, pending, rpeCard, onSave }: {
   const metricLabels = [feedbackLabels.metrics[0], feedbackLabels.metrics[1], labels.roundsMetric]
   return <UnsavedPlanChangesGuard isDirty={isDirty} allowLeaveRef={allowLeave} description={feedbackLabels.discardDescription}>
     <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
-    <SubpageHeader title={feedbackLabels.title} />
+    <RouteScreenHeader title={feedbackLabels.title} fallback={`${routes.workouts}?tab=history`} />
     <header className="space-y-3">
       <p className="font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-crimson-ink">{feedbackLabels.status[session.status]}</p>
       <h2 className="font-display text-[22px] font-extrabold text-ink">{workoutSessionName(session)}</h2>

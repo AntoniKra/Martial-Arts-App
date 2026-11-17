@@ -1,3 +1,4 @@
+import { ScreenHeader } from '@/components/ScreenHeader'
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { routes } from '@/app/routes'
@@ -44,7 +45,7 @@ export function HomeView({ today, featuredPlanLoadState, recentSessionsLoadState
   primary, overdue, weekPlan, rpeReminder, wellbeing, empty, timerLabel }: HomeViewProps) {
   return <div className="flex-1">
     <div className="mx-auto flex w-full max-w-lg flex-col gap-4 px-4 pb-4 pt-14 md:max-w-2xl md:pb-6 md:pt-2">
-      <h1 className="sr-only">{labels.heading}</h1>
+      <ScreenHeader variant="home" title={labels.heading} />
       {empty ? <section aria-label={labels.quickStart} className="storm-card flex flex-col gap-3 p-4">
         <StormDecoration />
         <div className="min-h-[350px] space-y-3 md:min-h-0">

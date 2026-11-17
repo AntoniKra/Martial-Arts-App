@@ -1,3 +1,5 @@
+import { FormCloseConfirmation } from '@/components/FormCloseConfirmation'
+import { ScreenHeader } from '@/components/ScreenHeader'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/Button'
 import { FOCUS_SKILL_CRITERION_MAX_LENGTH, FOCUS_SKILL_NAME_MAX_LENGTH } from '@/domain/focus-skill/focusSkill.types'
@@ -21,6 +23,12 @@ export function FocusSkillForm({ initialValues, busy, onSave, onCancel }: {
   const [errors, setErrors] = useState<FocusSkillFormErrors>({})
   const [saveError, setSaveError] = useState(false)
   useEffect(() => { nameRef.current?.focus() }, [])
+
+  const [confirmClose, setConfirmClose] = useState(false)
+  function close() {
+    if (JSON.stringify(values) !== JSON.stringify(initialValues ?? { name: '', criterion: '' })) setConfirmClose(true)
+    else onCancel()
+  }
 
   function updateField(field: keyof FocusSkillFormValues, value: string) {
     setValues((current) => ({ ...current, [field]: value }))
@@ -47,7 +55,7 @@ export function FocusSkillForm({ initialValues, busy, onSave, onCancel }: {
   }
 
   return <form onSubmit={(event) => void submit(event)} noValidate aria-label={initialValues ? labels.editHeading : labels.new} className="mt-3 space-y-4 border border-bd bg-surface p-3">
-    <h4 className="font-display text-[14px] font-semibold text-ink">{initialValues ? labels.editHeading : labels.new}</h4>
+    <ScreenHeader variant="form" headingLevel={4} title={initialValues ? labels.editHeading : labels.new} onBack={close} disabled={busy} />
     <fieldset disabled={busy} className="min-w-0 space-y-4">
       <div>
         <label htmlFor={`${id}-name`} className={labelClass}>{labels.name}</label>
@@ -71,8 +79,9 @@ export function FocusSkillForm({ initialValues, busy, onSave, onCancel }: {
       {saveError && <p role="alert" className="text-[13px] text-crimson-ink">{labels.saveError}</p>}
       <div className="flex flex-wrap gap-2">
         <Button type="submit" size="sm" variant="primary" className="uppercase tracking-[0.04em]" loading={busy} disabled={busy}>{busy ? labels.saving : labels.save}</Button>
-        <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={onCancel}>{labels.cancel}</Button>
+        <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={close}>{labels.cancel}</Button>
       </div>
     </fieldset>
+    {confirmClose && <FormCloseConfirmation onCancel={() => setConfirmClose(false)} onDiscard={onCancel} />}
   </form>
 }

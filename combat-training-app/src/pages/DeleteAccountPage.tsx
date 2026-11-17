@@ -1,3 +1,4 @@
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
@@ -62,7 +63,7 @@ export function Component() {
   }
   const blocked = busy || availability.blocked || !account.service
   return <div className="space-y-5 px-4 py-6 md:px-0">
-    <h1 className="font-display text-3xl font-bold">{labels.delete}</h1>
+    <RouteScreenHeader title={labels.delete} fallback={routes.profile} />
     <p className="text-sm leading-relaxed">{labels.deleteIntro(session?.email ?? '')}</p>
     <p className="text-sm leading-relaxed text-muted">{labels.otherDevices}</p>
     <p className="text-sm text-muted">{labels.keepData}</p>

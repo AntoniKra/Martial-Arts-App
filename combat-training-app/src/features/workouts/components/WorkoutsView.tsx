@@ -1,3 +1,4 @@
+import { RouteScreenHeader, ScreenHeader } from '@/components/ScreenHeader'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -30,6 +31,8 @@ interface WorkoutsViewProps {
   onRetryLoadPlans: () => void
   onRetryLoadHistory: () => void
   onHistoryActivated: () => void
+  onTabChange?: (tab: WorkoutsTab) => void
+  plansSubscreen?: boolean
   onUpdateSessionNote: (sessionId: string, note: string) => Promise<WorkoutHistoryMutationResult>
   onDeleteSession: (sessionId: string) => Promise<WorkoutHistoryMutationResult>
 }
@@ -107,10 +110,15 @@ export function WorkoutsView({
   onRetryLoadPlans,
   onRetryLoadHistory,
   onHistoryActivated,
+  onTabChange,
+  plansSubscreen = false,
   onUpdateSessionNote,
   onDeleteSession,
 }: WorkoutsViewProps) {
-  const [tab, setTab] = useState<WorkoutsTab>(initialTab)
+  const [selection, setSelection] = useState({ routeTab: initialTab, tab: initialTab })
+  // Select radios immediately while navigation commits, and follow browser back without resetting filters.
+  if (selection.routeTab !== initialTab) setSelection({ routeTab: initialTab, tab: initialTab })
+  const tab = selection.routeTab === initialTab ? selection.tab : initialTab
   const [filters, setFilters] = useState(DEFAULT_WORKOUTS_FILTERS)
 
   function handleTabChange(nextTab: WorkoutsTab): void {
@@ -118,7 +126,8 @@ export function WorkoutsView({
       onHistoryActivated()
     }
 
-    setTab(nextTab)
+    setSelection({ routeTab: initialTab, tab: nextTab })
+    onTabChange?.(nextTab)
   }
 
   const plans = useMemo(
@@ -220,7 +229,10 @@ export function WorkoutsView({
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="mx-auto w-full max-w-lg shrink-0 px-4 pt-6 md:max-w-4xl md:pt-2">
-        <h1 className="font-display text-[28px] font-extrabold text-ink">Treningi</h1>
+        {tab === 'history' || plansSubscreen
+          ? <RouteScreenHeader title={tab === 'history' ? 'Historia' : 'Plany treningowe'} fallback={routes.workouts} />
+          : <ScreenHeader variant="main" title="Treningi" />}
+        <Link to={routes.myExercises} className="inline-flex min-h-touch items-center text-sm font-semibold text-crimson-ink">Moje ćwiczenia</Link>
         {planDeleted ? (
           <p role="status" className="mt-3 border border-bd bg-surface px-3 py-3 text-[13px] text-ink">
             {workoutPlanLabels.deleted}

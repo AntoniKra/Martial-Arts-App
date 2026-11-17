@@ -1,3 +1,4 @@
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { routes } from '@/app/routes'
@@ -17,7 +18,7 @@ export function Component() {
   if (hasWellbeingConsent(current)) return <Navigate to={routes.profile} replace />
   const disabled = !adult || !agreed || busy || !!unavailable
   return <div className="space-y-6 px-4 py-6 md:px-0">
-    <h1 className="font-display text-3xl font-bold">{labels.consentTitle}</h1>
+    <RouteScreenHeader title={labels.consentTitle} fallback={routes.profile} />
     <div className="space-y-4 text-sm leading-relaxed text-muted">{labels.notice.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
     {unavailable && <WellbeingDataState loading={unavailable === 'loading'} retry={retryProfile} />}
     <form className="space-y-5" onSubmit={(event) => {

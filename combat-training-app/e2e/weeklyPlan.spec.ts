@@ -44,7 +44,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect.poll(async () => (await app.readRecurringWeek())?.items.length).toBe(2)
     const recurring = await app.readRecurringWeek()
     await expect(page.getByRole('list', { name: 'Pozycje stałego tygodnia' }).getByText('Muay Thai', { exact: true })).toHaveCount(2)
-    await page.getByRole('button', { name: '‹ Plan tygodnia', exact: true }).click()
+    await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
     await expect.poll(async () => (await app.readWeekPlans()).find((plan) => plan.weekStart === weekStart)?.schedule?.length).toBe(2)
     const tuesday = row(page, 'Wtorek', '2026-11-10'), thursday = row(page, 'Czwartek', '2026-11-12'), friday = row(page, 'Piątek', '2026-11-13')
     await expect(tuesday).toContainText('Muay Thai'); await expect(thursday).toContainText('19:00–20:30')

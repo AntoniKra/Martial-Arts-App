@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { routes } from '@/app/routes'
@@ -62,14 +62,13 @@ export function Component() {
   const sections = selectExerciseSections(exercises.items)
   const matches = (exercise: PersonalExercise) => normalizeExerciseSearch(exercise.namePl).includes(normalizeExerciseSearch(query))
   return <div className="space-y-5 px-4 py-6 md:px-0">
-    <Link to={routes.workouts} className="inline-flex min-h-touch items-center text-sm text-muted">← Treningi</Link>
-    <h1 ref={heading} tabIndex={-1} className="font-display text-3xl font-bold">{labels.title}</h1>
+    {!editor && <RouteScreenHeader title={labels.title} fallback={routes.workouts} headingRef={heading} />}
     {exercises.status === 'loading' && <p role="status">{labels.loading}</p>}
     {exercises.status === 'error' && <p role="alert">{labels.loadError}</p>}
     {exercises.invalidDocumentIds.length > 0 && <p role="alert">{labels.invalid}</p>}
     {(exercises.status === 'error' || exercises.invalidDocumentIds.length > 0) && <Button onClick={retryExercises}>{labels.retry}</Button>}
     {exercises.hasPendingWrites && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
-    {editor ? <ExerciseForm key={editor.exercise?.id ?? 'new'} initial={editor.initial} existing={editor.exercise !== null} onSave={save} onCancel={closeEditor} /> : <>
+    {editor ? <ExerciseForm key={editor.exercise?.id ?? 'new'} initial={editor.initial} existing={editor.exercise !== null} onSave={save} onCancel={closeEditor} fullScreen /> : <>
       <Button disabled={!ready || busy} onClick={() => setEditor({ exercise: null, initial })}>{labels.create}</Button>
       <label className="block text-sm font-semibold">{labels.search}<input type="search" value={query} onChange={(event) => setQuery(event.target.value)}
         className="mt-2 block min-h-touch w-full border border-bd bg-input p-3 text-base" /></label>

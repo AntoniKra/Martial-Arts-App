@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
+import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { buildManualWorkoutSession } from '@/domain/workout-session/manualWorkoutEntry'
@@ -19,13 +20,13 @@ export function Component() {
     ? readClubWorkoutPrefill(location.state.weekEntry, calculateWorkoutDate(new Date().toISOString(), Intl.DateTimeFormat().resolvedOptions().timeZone)) : undefined
   const returnTo = location.state && typeof location.state === 'object' && 'returnTo' in location.state && location.state.returnTo === '/'
     ? routes.home : prefill ? routes.weekPlan(prefill.weekStart) : `${routes.workouts}?tab=history`
-  if (sessions.status === 'loading') return <p role="status" className="p-4 text-muted">{labels.loading}</p>
+  if (sessions.status === 'loading') return <div className="space-y-4 p-4"><RouteScreenHeader variant="form" title={labels.title} fallback={returnTo} /><p role="status" className="text-muted">{labels.loading}</p></div>
   if (sessions.status === 'error' || sessions.invalidDocumentIds.length) return <div className="space-y-4 p-4">
-    <h1 className="font-display text-xl">{labels.loadError}</h1><Button onClick={retry}>{labels.retry}</Button>
+    <RouteScreenHeader variant="form" title={labels.loadError} fallback={returnTo} /><Button onClick={retry}>{labels.retry}</Button>
   </div>
   const original = sessions.items.find((session) => session.id === sessionId)
   if (sessionId && original?.source !== 'manual') return <div className="space-y-4 p-4">
-    <h1 className="font-display text-xl">{original ? labels.unavailable : labels.missing}</h1><Link to={returnTo}>{labels.back}</Link>
+    <RouteScreenHeader variant="form" title={original ? labels.unavailable : labels.missing} fallback={returnTo} />
   </div>
   const manual = original?.source === 'manual' ? original : undefined
   return <ManualWorkoutForm key={sessionId ?? 'new'} original={manual} prefill={prefill} sessions={sessions.items} skills={focusSkills.items}

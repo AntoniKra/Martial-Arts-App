@@ -15,6 +15,8 @@ for (const theme of ['dark', 'light'] as const) {
     }
 
     await app.open('/workouts')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Treningi')
+    await expect(page.getByRole('button', { name: 'Wstecz', exact: true })).toHaveCount(0)
     await expect(page.getByRole('article').getByText('ok. 2:30', { exact: true })).toBeVisible()
     const main = page.getByRole('main')
     const bottomPadding = await main.evaluate((element) => Number.parseFloat(getComputedStyle(element).paddingBottom))
@@ -33,7 +35,10 @@ for (const theme of ['dark', 'light'] as const) {
     await screenshot('featured')
 
     await app.open(`/workouts/${plan.id}`)
+    await expect(page.getByRole('button', { name: 'Wstecz', exact: true })).toBeVisible()
     await app.openPlayer()
+    await expect(page.getByRole('main').locator('header').getByRole('button')).toHaveCount(1)
+    await expect(page.getByRole('main').locator('header')).toContainText('Etap 1 z 3')
     await app.freezeClock()
     await app.startWorkout()
     await expect(page.getByText('PRACA', { exact: true })).toHaveClass(/text-crimson-ink/)
@@ -76,6 +81,7 @@ for (const theme of ['dark', 'light'] as const) {
     const edit = card.getByRole('button', { name: 'Edytuj notatkę', exact: true })
     await expect(edit).toBeVisible()
     measurements.push(await measureTouchTarget('Edytuj notatkę'))
+    expect(measurements).toHaveLength(3)
     if (process.env.CAPTURE_TEST_REPORTS !== '0') await testInfo.attach('touch-targets', { body: JSON.stringify(measurements, null, 2), contentType: 'application/json' })
     await card.getByRole('button', { name: 'Usuń wpis', exact: true }).click()
     await expect(card.getByText('Czy na pewno chcesz usunąć ten wpis? Tej operacji nie można cofnąć.')).toBeVisible()

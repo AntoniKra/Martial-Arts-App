@@ -1,5 +1,7 @@
+import { FormCloseConfirmation } from '@/components/FormCloseConfirmation'
 import {
   useEffect,
+  useState,
   useId,
   useReducer,
   useRef,
@@ -9,7 +11,7 @@ import {
   type RefObject,
 } from 'react'
 
-import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
+import { ScreenHeader } from '@/components/ScreenHeader'
 import { Button } from '@/components/ui/Button'
 import { RedAccent } from '@/components/ui/RedAccent'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
@@ -275,9 +277,14 @@ export function ExerciseConfigurationView({
     ({ configuration, instruction, roundSettings }) =>
       createExerciseConfigurationFormState(configuration, instruction, roundSettings),
   )
+  const [initialForm] = useState(form)
+  const [confirmClose, setConfirmClose] = useState(false)
+  function close() {
+    if (JSON.stringify({ ...form, errors: null }) !== JSON.stringify({ ...initialForm, errors: null })) setConfirmClose(true)
+    else onBack()
+  }
   const selectedFormat = selectedRoundFormat(form)
 
-  const backLabel = variant === 'new' ? 'Wróć do biblioteki' : 'Wróć do osi treningu'
   const heading = variant === 'new' ? 'Konfiguracja ćwiczenia' : 'Edycja ćwiczenia'
   const submitLabel = variant === 'new' ? 'Dodaj ćwiczenie' : workoutBuilderLabels.saveChanges
   const initialMode = initialConfiguration.mode
@@ -395,20 +402,8 @@ export function ExerciseConfigurationView({
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="border-b border-bd bg-surface">
         <div className={`${contentContainerClass} py-4`}>
-          <button
-            type="button"
-            onClick={onBack}
-            disabled={submitPending}
-            className="mb-4 inline-flex min-h-touch items-center gap-1 font-display text-[12px] font-semibold tracking-[0.04em] text-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-          >
-            <ChevronRightIcon className="rotate-180" />
-            {backLabel}
-          </button>
-
-          <p className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
-            Blok · {blockLabel}
-          </p>
-          <h1 className="mt-3 font-display text-[24px] font-bold text-ink md:text-[28px]">{heading}</h1>
+          <ScreenHeader variant="form" title={heading} onBack={close} disabled={submitPending} />
+          <p className="mt-3 font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">Blok · {blockLabel}</p>
           <p className="mt-2 font-display text-[16px] font-semibold leading-snug text-ink">{exerciseName}</p>
           {variant === 'existing' ? (
             <p className="mt-2 text-[13px] leading-relaxed text-muted">
@@ -596,6 +591,7 @@ export function ExerciseConfigurationView({
           </div>
         </div>
       </form>
+      {confirmClose && <FormCloseConfirmation onCancel={() => setConfirmClose(false)} onDiscard={onBack} />}
     </div>
   )
 }
