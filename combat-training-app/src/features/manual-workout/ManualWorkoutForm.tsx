@@ -1,3 +1,5 @@
+import { MultiChoiceChip } from '@/components/ui/MultiChoiceChip'
+import { ChoiceTile } from '@/components/ui/ChoiceTile'
 import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -150,19 +152,14 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
           <fieldset className={groupClass} {...invalidProps('disciplineKey')} tabIndex={errors.disciplineKey ? -1 : undefined}>
             <legend className={legendClass}>{labels.discipline}{copiedLabel('disciplineKey')}</legend>
             <div className="grid grid-cols-2 gap-2">{(Object.entries(DISCIPLINE_LABELS_PL) as [keyof typeof DISCIPLINE_LABELS_PL, string][]).map(([value, label]) =>
-              <label key={value} className="radio-tile">
-                <input type="radio" name={`${id}-discipline`} checked={draft.disciplineKey === value} onChange={() => set('disciplineKey', value)} className="absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0" />
-                {draft.disciplineKey === value && <span aria-hidden="true">✓</span>}{label}
-              </label>)}</div>
+              <ChoiceTile key={value} value={value} className="compact-choice" name={`${id}-discipline`} checked={draft.disciplineKey === value} onChange={() => set('disciplineKey', value)}>{label}</ChoiceTile>)}</div>
             <FieldError message={errors.disciplineKey} id={errorId('disciplineKey')} />
           </fieldset>
           <fieldset aria-label={labels.category} className={groupClass} {...invalidProps('parts')} tabIndex={errors.parts ? -1 : undefined}>
             <legend className={legendClass}>{labels.category}{copiedLabel('parts')}</legend>
             <p className="text-sm text-muted">{labels.partsHint}</p>
             {original && !original.parts && original.category === 'mixed' && <p className="text-sm text-muted">{labels.legacyPartsHint}</p>}
-            <div className="grid grid-cols-2 gap-2">{MANUAL_WORKOUT_PARTS.map((part) => <label key={part}
-              className={`flex min-h-touch items-start gap-2 border p-2 ${draft.parts.includes(part) ? 'border-crimson text-ink' : 'border-bd text-muted'}`}>
-              <input type="checkbox" checked={draft.parts.includes(part)} aria-controls={part === 'sparring' ? `${id}-sparring` : undefined}
+            <div className="grid grid-cols-2 gap-2">{MANUAL_WORKOUT_PARTS.map((part) => <MultiChoiceChip key={part} checked={draft.parts.includes(part)} aria-controls={part === 'sparring' ? `${id}-sparring` : undefined}
                 aria-expanded={part === 'sparring' ? draft.parts.includes(part) : undefined} onChange={() => {
                   const selected = !draft.parts.includes(part)
                   setDraft((current) => changeManualParts(current, selected ? [...current.parts, part] : current.parts.filter((value) => value !== part), original))
@@ -171,9 +168,9 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
                     setSparringAnnouncement(selected ? labels.sparringOpened : labels.sparringClosed)
                     if (selected) requestAnimationFrame(() => sparringSection.current?.focus())
                   }
-                }} className="mt-1 accent-crimson" />
+                }}>
               <span><span className="block text-sm font-semibold">{manualPartLabel(part)}</span><span className="mt-1 block text-xs leading-relaxed text-muted">{manualCategoryDescriptions[part]}</span></span>
-            </label>)}</div><FieldError message={errors.parts} id={errorId('parts')} />
+            </MultiChoiceChip>)}</div><FieldError message={errors.parts} id={errorId('parts')} />
           </fieldset>
           <fieldset className={groupClass} {...invalidProps('durationMinutes')} tabIndex={errors.durationMinutes ? -1 : undefined}>
             <legend className={legendClass}>{labels.duration}{copiedLabel('durationMinutes')}</legend>
@@ -182,18 +179,15 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
                 <input ref={minutesInput} type="number" min={1} max={480} step={1} inputMode="numeric" aria-label={labels.minutes}
                   value={draft.durationMinutes}
                   onChange={(event) => set('durationMinutes', event.target.value)} {...invalidProps('durationMinutes')}
-                  className="min-h-touch w-full min-w-0 appearance-textfield border border-crimson bg-input py-2 pl-0 pr-8 text-center text-base font-semibold tabular-nums text-ink [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  className="min-h-[52px] w-full min-w-0 appearance-textfield border border-crimson bg-input py-2 pl-0 pr-8 text-center text-base font-semibold tabular-nums text-ink [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                 <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-1/2 flex items-center text-base tabular-nums text-muted"
                   style={{ transform: draft.durationMinutes ? `translateX(calc(${draft.durationMinutes.length / 2}ch - 0.75rem))` : 'translateX(-50%)' }}>min</span>
               </div>
-              : <label key={value}
-              className="radio-tile !gap-1 !px-1 !text-xs">
-              <input type="radio" name={`${id}-duration`} checked={value === 'other' ? customDuration : !customDuration && draft.durationMinutes === value}
+              : <ChoiceTile key={value} value={value} className="compact-choice duration-choice" name={`${id}-duration`} checked={value === 'other' ? customDuration : !customDuration && draft.durationMinutes === value}
                 onChange={() => { setCustomDuration(value === 'other'); set('durationMinutes', value === 'other' ? '' : value)
-                  if (value === 'other') requestAnimationFrame(() => minutesInput.current?.focus()) }} className="absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0" />
-              {!customDuration && draft.durationMinutes === value && <span aria-hidden="true">✓</span>}
+                  if (value === 'other') requestAnimationFrame(() => minutesInput.current?.focus()) }}>
               {value === 'other' ? labels.customDuration : `${value} min`}
-            </label>)}
+            </ChoiceTile>)}
             </div>
             <FieldError message={errors.durationMinutes} id={errorId('durationMinutes')} />
           </fieldset>
@@ -210,10 +204,7 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
               <h2 className={legendClass}>{labels.sparring}</h2>
               <fieldset className={groupClass} {...invalidProps('intensity')} tabIndex={errors.intensity ? -1 : undefined}>
                 <legend className={legendClass}>{labels.intensity}</legend>
-                {(Object.entries(sparringIntensityLabels) as [keyof typeof sparringIntensityLabels, string][]).map(([value, label]) => <label key={value}
-                  className={`flex min-h-touch items-start gap-3 border p-3 text-sm leading-relaxed ${draft.intensity === value ? 'border-crimson' : 'border-bd'}`}>
-                  <input type="radio" name={`${id}-intensity`} checked={draft.intensity === value} onChange={() => set('intensity', value)} className="mt-1 accent-crimson" />{label}
-                </label>)}<FieldError message={errors.intensity} id={errorId('intensity')} />
+                {(Object.entries(sparringIntensityLabels) as [keyof typeof sparringIntensityLabels, string][]).map(([value, label]) => <ChoiceTile key={value} value={value} className="described-choice" name={`${id}-intensity`} checked={draft.intensity === value} onChange={() => set('intensity', value)}>{label}</ChoiceTile>)}<FieldError message={errors.intensity} id={errorId('intensity')} />
               </fieldset>
               <label className="block text-sm">{labels.rounds}<input type="number" min={1} max={50} step={1} inputMode="numeric" value={draft.rounds}
                 onChange={(event) => set('rounds', event.target.value)} {...invalidProps('rounds')} className={inputClass} /></label>
@@ -229,12 +220,10 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
                   {!listedSkills.length && !draft.focusRatings.length && <p className="text-sm text-muted">{labels.noSkills}</p>}
                   {listedSkills.map((skill) => {
                     const selected = draft.focusRatings.some((rating) => rating.focusSkillId === skill.id)
-                    return <label key={skill.id} className="flex min-h-touch items-center gap-3 border border-bd p-3 text-sm">
-                      <input type="checkbox" checked={selected} disabled={!selected && draft.focusRatings.length >= 3} className="accent-crimson"
+                    return <MultiChoiceChip key={skill.id} checked={selected} disabled={!selected && draft.focusRatings.length >= 3}
                         onChange={() => set('focusRatings', selected ? draft.focusRatings.filter((rating) => rating.focusSkillId !== skill.id)
                           : [...draft.focusRatings, { workoutItemId: null, focusSkillId: skill.id, skillNameSnapshot: skill.name,
-                            criterionSnapshot: skill.criterion, blockType: manualFocusPlace(draft.category), assessment: null, correction: null, previousCorrectionCheck: null }])} />{skill.name}
-                    </label>
+                            criterionSnapshot: skill.criterion, blockType: manualFocusPlace(draft.category), assessment: null, correction: null, previousCorrectionCheck: null }])}>{skill.name}</MultiChoiceChip>
                   })}
                   {draft.focusRatings.map((rating) => {
                     const error = errors[`focus-${rating.focusSkillId}`]

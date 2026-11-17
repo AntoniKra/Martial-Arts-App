@@ -1,3 +1,6 @@
+import { Switch } from '@/components/ui/Switch'
+import { MultiChoiceChip } from '@/components/ui/MultiChoiceChip'
+import { ChoiceTile } from '@/components/ui/ChoiceTile'
 import { useId, useState } from 'react'
 import type { WeekActivity, Weekday } from '@/domain/week-plan/weekPlan.types'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
@@ -51,9 +54,7 @@ export function WeekActivityForm({ initial, defaultDay, recurring, plans, onSave
         set('days', day === undefined ? [] : [day])
       }}><option value="">Wybierz dzień</option>{weekdays.map(({ day, name }) => <option key={day} value={day}>{name}</option>)}</select></label>}
       {draft.kind === 'club' && <fieldset><legend className={legend}>{labels.discipline}</legend>
-        <div className="flex flex-wrap gap-1.5">{Object.entries(DISCIPLINE_LABELS_PL).map(([key, name]) => <label key={key} className="radio-tile rounded-[2px]">
-          <input type="radio" name="week-discipline" checked={draft.disciplineKey === key} onChange={() => set('disciplineKey', key as DisciplineKey)} className="absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0" />
-          {draft.disciplineKey === key && <span aria-hidden="true">✓</span>}{name}</label>)}</div>
+        <div className="flex flex-wrap gap-1.5">{Object.entries(DISCIPLINE_LABELS_PL).map(([key, name]) => <ChoiceTile key={key} value={key} className="compact-choice" name="week-discipline" checked={draft.disciplineKey === key} onChange={() => set('disciplineKey', key as DisciplineKey)}>{name}</ChoiceTile>)}</div>
       </fieldset>}
       {draft.kind === 'own' && <>
         <label className="space-y-1 text-sm">{labels.category}<select className={input} value={draft.category} onChange={(event) => {
@@ -71,15 +72,11 @@ export function WeekActivityForm({ initial, defaultDay, recurring, plans, onSave
         <div className="grid grid-cols-2 gap-2"><label className="space-y-1 text-sm text-muted">{labels.from}<input type="time" value={draft.startTime} className={input} onChange={(event) => set('startTime', event.target.value)} /></label>
           <label className="space-y-1 text-sm text-muted">{labels.to}<input type="time" value={draft.endTime} className={input} onChange={(event) => set('endTime', event.target.value)} /></label></div>
         <fieldset><legend className={legend}>{labels.parts} {labels.optional}</legend>
-          <div className="flex flex-wrap gap-1.5">{MANUAL_WORKOUT_PARTS.map((part) => <button key={part} type="button" aria-pressed={draft.parts.includes(part)}
-            className={`min-h-touch rounded-[2px] border px-3 text-[13px] ${draft.parts.includes(part) ? 'border-crimson bg-elevated font-semibold' : 'border-bd text-muted'}`} onClick={() => set('parts', draft.parts.includes(part) ? draft.parts.filter((entry) => entry !== part) : [...draft.parts, part])}>{draft.parts.includes(part) ? '✓ ' : ''}{manualPartLabel(part)}</button>)}</div>
+          <div className="flex flex-wrap gap-1.5">{MANUAL_WORKOUT_PARTS.map((part) => <MultiChoiceChip as="button" key={part} aria-pressed={draft.parts.includes(part)} onClick={() => set('parts', draft.parts.includes(part) ? draft.parts.filter((entry) => entry !== part) : [...draft.parts, part])}>{manualPartLabel(part)}</MultiChoiceChip>)}</div>
         </fieldset>
         <label className="space-y-1 text-sm text-muted">{labels.clubName} {labels.optional}<input type="text" maxLength={100} value={draft.clubName} placeholder={labels.clubPlaceholder} className={input} onChange={(event) => set('clubName', event.target.value)} /></label>
       </>}
-      {!recurring && <label className="flex min-h-touch items-center justify-between gap-3 border-t border-bd pt-2.5">
-        <span><span className="block text-[15px] font-semibold">{labels.repeat}</span><span className="text-[13px] text-muted">{labels.repeatHint}</span></span>
-        <input type="checkbox" role="switch" checked={repeat} onChange={(event) => setRepeat(event.target.checked)} className="relative h-[26px] w-11 shrink-0 cursor-pointer appearance-none rounded-full bg-bd after:absolute after:left-[3px] after:top-[3px] after:size-5 after:rounded-full after:bg-ink checked:bg-crimson checked:after:translate-x-[18px] checked:after:bg-on-accent" />
-      </label>}
+      {!recurring && <Switch checked={repeat} onChange={(event) => setRepeat(event.target.checked)} description={labels.repeatHint} className="border-t border-bd pt-2.5">{labels.repeat}</Switch>}
     </fieldset>
     {error && <p role="alert" className="text-sm text-crimson-ink">{error}</p>}
     <button type="submit" disabled={saving} className={getButtonClassName({ disabled: saving, className: 'min-h-[52px] w-full tracking-wider' })}>{labels.save}</button>

@@ -13,7 +13,7 @@ export function AppLayout() {
       <div className="flex min-w-0 flex-1 flex-col safe-area-pt">
         <main className="mx-auto flex w-full max-w-lg flex-1 flex-col pb-[calc(68px+13px+env(safe-area-inset-bottom,0px))] md:max-w-5xl md:px-8 md:pb-8 md:pt-6">
           {exercises.status === 'error' && <div role="alert" className="px-4 text-sm text-crimson-ink">
-            <p>{workoutDataLabels.exercisesLoadError}</p><button type="button" className="min-h-touch underline" onClick={retryExercises}>Spróbuj ponownie</button>
+            <p>{workoutDataLabels.exercisesLoadError}</p><button type="button" className="min-h-touch" onClick={retryExercises}>Spróbuj ponownie</button>
           </div>}
           <Outlet />
         </main>

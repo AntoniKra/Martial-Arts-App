@@ -80,6 +80,18 @@ Podsumowanie po treningu należy do równoległego #187; ta migracja nie zmienia
 
 Start → „Ten tydzień”: pod kółkami licznik „1 z 4 treningów · 90 min” po lewej i liczba pozostałych po prawej; pasek bez zmian. „Następny” jest kartą z datą 48×48, nazwą, opisem i chevronem. Pokazuje tylko następny trening bieżącego tygodnia; otwiera i zaznacza właściwy dzień Planu tygodnia. „W dowolny dzień tego tygodnia” zawiera osobny kafelek każdej niezrealizowanej pozycji: ikona kalendarza, przerywana ramka i delikatny gradient z tokenów crimson/ember. Otwiera sekcję dowolnego dnia Planu tygodnia. Puste sekcje znikają; „Stoper i inne plany” pozostaje bez zmian.
 
+## Kontrolki formularzy
+
+Issue #189 ujednolica wygląd kontrolek bez zmiany danych, reguł, obliczeń ani zachowania formularzy. Makieta „Szablony komponentów” jest wzorcem wizualnym; pierwszeństwo ma treść issue.
+
+- Jedna opcja: wspólny `ChoiceTile` z natywnym radiem w DOM. Zaznaczenie ma ramkę `crimson-ink`, tło crimson około 14%, dolny pasek i ✓ w rogu. Krótkie etykiety są w jednej linii; dłuższa opcja pominięcia jest wariantem tekstowym pod kafelkami. Skale z opisami zachowują opisy i numer w kwadracie.
+- Wiele opcji: `MultiChoiceChip` z natywnym checkboxem oraz symbolem ✓ / +, ramką i delikatnym tłem. Minimalny obszar dotyku 44 px. Opisy pomocnicze mogą zawijać się pod etykietą.
+- Włączanie i wyłączanie: `Switch` z natywnym checkboxem o roli `switch`. Tor ma 48×28 px, obszar dotyku co najmniej 44 px wysokości; włączenie przesuwa uchwyt i nadaje gradient główny. Zgody zdrowotne i potwierdzenie 18+ zachowują pełne teksty, początkowe wyłączenie i dotychczasowy zapis oraz warunki aktywowania przycisku.
+- Rozwijanie: `CollapsibleCard` z natywnym przyciskiem, `aria-expanded`, `aria-controls` i chevronem. Opis pokazuje dostępne podsumowanie danych; zawartość pozostaje zamontowana i jest ukryta do rozwinięcia. Początkowy stan pozostaje zwinięty. Klawisze Enter i Spacja obsługuje przeglądarka.
+- Akcje tekstowe nie mają podkreślenia; działania drugorzędne mogą używać ramki i ikony. Linki wewnątrz treści mogą zachować podkreślenie.
+
+Kontrolki używają tokenów obu motywów, widocznej obwódki fokusu i tekstowych lub geometrycznych oznaczeń stanu, niezależnych od koloru. Natywne radio zachowuje wybór strzałkami, checkbox i przełącznik — Spacją.
+
 ## Dostępność
 
 - minimalny obszar dotyku około 44×44 px;

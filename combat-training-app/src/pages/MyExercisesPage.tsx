@@ -1,3 +1,4 @@
+import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
 import { useRef, useState } from 'react'
 import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useWorkoutData } from '@/application/workoutDataContext'
@@ -74,9 +75,9 @@ export function Component() {
         className="mt-2 block min-h-touch w-full border border-bd bg-input p-3 text-base" /></label>
       {ready && exercises.items.length === 0 && <p className="text-sm text-muted">{labels.empty}</p>}
       <ul aria-label={labels.title} className="space-y-3">{sections.all.filter(matches).map(row)}</ul>
-      <details className="border-t border-bd pt-2"><summary className="min-h-touch cursor-pointer py-3 font-semibold">{labels.archived}</summary>
+      <CollapsibleCard title={<>{labels.archived}</>} description={String(exercises.items.filter((exercise) => exercise.archivedAt !== null && matches(exercise)).length)}>
         <ul className="space-y-3">{exercises.items.filter((exercise) => exercise.archivedAt !== null && matches(exercise)).sort((a, b) => a.namePl.localeCompare(b.namePl, 'pl')).map(row)}</ul>
-      </details>
+      </CollapsibleCard>
     </>}
     {error && <p role="alert" className="text-sm text-crimson-ink">{labels.error}</p>}
   </div>

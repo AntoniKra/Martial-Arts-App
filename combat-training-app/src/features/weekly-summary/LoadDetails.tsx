@@ -1,3 +1,4 @@
+import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
 import type { WeeklySessionLoad } from '@/domain/weekly-summary/weeklySummary'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { categoryLabel } from '@/features/week-plan/weekPlanLabels'
@@ -17,8 +18,7 @@ function workoutDateLabel(workoutDate: string): string {
 }
 
 export function LoadDetails({ sessionLoads }: { sessionLoads: readonly WeeklySessionLoad[] }) {
-  return <details className="border-t border-bd pt-2">
-    <summary className="min-h-touch cursor-pointer py-3 font-display font-semibold">{labels.loadDetails}</summary>
+  return <CollapsibleCard title={<>{labels.loadDetails}</>} description={`Wpisy: ${sessionLoads.length}`}>
     <ul aria-label={labels.loadDetails} className="space-y-3">
       {sessionLoads.map(({ session, load }) => <li key={session.id} className="space-y-2 border border-bd p-3">
         <div>
@@ -32,5 +32,5 @@ export function LoadDetails({ sessionLoads }: { sessionLoads: readonly WeeklySes
         </dl>
       </li>)}
     </ul>
-  </details>
+  </CollapsibleCard>
 }

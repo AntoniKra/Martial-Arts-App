@@ -27,7 +27,7 @@ test.describe('offline with the PWA cache', () => {
     await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
     await page.getByRole('link', { name: 'Treningi', exact: true }).click()
     await page.getByRole('radio', { name: 'Historia', exact: true }).check()
-    await page.getByRole('article').locator('summary').click()
+    await page.getByRole('article').locator('.disclosure-trigger').first().click()
     await expect(pending(page)).toHaveCount(0)
     expect(await app.readSessions()).toHaveLength(1)
 

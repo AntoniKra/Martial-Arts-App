@@ -39,7 +39,7 @@ test('changes planned sparring intensity offline and includes saved hard rounds 
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
   await expect(page).toHaveURL(/\/workouts\?tab=history$/)
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
-  await page.getByRole('article').locator('summary').click()
+  await page.getByRole('article').locator('.disclosure-trigger').first().click()
   await page.getByRole('link', { name: 'Podsumowanie', exact: true }).click()
   await expect(page).toHaveURL(new RegExp(`${feedbackPath}$`))
   await expect(first.getByRole('button', { name: /^Twardy/ })).toHaveAttribute('aria-pressed', 'true')

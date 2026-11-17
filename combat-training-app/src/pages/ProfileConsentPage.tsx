@@ -1,3 +1,4 @@
+import { Switch } from '@/components/ui/Switch'
 import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
@@ -33,12 +34,12 @@ export function Component() {
     {unavailable && <ProfileDataState state={unavailable} retry={retryProfile} />}
     <form className="space-y-5" onSubmit={(event) => { event.preventDefault(); void enable() }}>
       <div>
-        <label className="flex min-h-touch cursor-pointer items-center gap-3 text-sm"><input type="checkbox" checked={adult} disabled={busy}
-          onChange={(event) => setAdult(event.target.checked)} aria-describedby="adult-hint" className="size-5 shrink-0 accent-crimson" />{labels.adult}</label>
+        <Switch checked={adult} disabled={busy}
+          onChange={(event) => setAdult(event.target.checked)} aria-describedby="adult-hint">{labels.adult}</Switch>
         <p id="adult-hint" className="mt-2 text-xs leading-relaxed text-muted">{labels.adultHint}</p>
       </div>
-      <label className="flex min-h-touch cursor-pointer items-start gap-3 py-2 text-sm leading-relaxed"><input type="checkbox" checked={agreed} disabled={busy}
-        onChange={(event) => setAgreed(event.target.checked)} className="mt-0.5 size-5 shrink-0 accent-crimson" />{labels.agree}</label>
+      <Switch checked={agreed} disabled={busy}
+        onChange={(event) => setAgreed(event.target.checked)}>{labels.agree}</Switch>
       {error && <p role="alert" className="text-sm text-crimson-ink">{error}</p>}
       <div className="flex flex-wrap gap-3">
         <button type="submit" disabled={disabled} className={getButtonClassName({ disabled })}>{busy ? labels.saving : labels.grant}</button>

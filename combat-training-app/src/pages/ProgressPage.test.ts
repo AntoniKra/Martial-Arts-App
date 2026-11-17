@@ -19,7 +19,7 @@ vi.mock('@/application/workoutDataContext', () => ({
 it('explains the lack of active skills before the archived section without hiding archived skills', () => {
   const html = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(Component)))
   expect(html).toContain('Brak aktywnych elementów do poprawy')
-  expect(html.indexOf('Brak aktywnych elementów do poprawy')).toBeLessThan(html.indexOf('<details'))
+  expect(html.indexOf('Brak aktywnych elementów do poprawy')).toBeLessThan(html.indexOf('class="disclosure-card'))
   expect(html).toContain('Schowane (1)')
   expect(html).toContain('/progress/focus-skills/guard')
 })

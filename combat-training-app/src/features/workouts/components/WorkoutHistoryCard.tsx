@@ -1,3 +1,4 @@
+import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -179,8 +180,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
 
   return (
     <article className="@container w-full overflow-hidden border border-bd bg-surface">
-      <details>
-        <summary className="flex min-h-touch cursor-pointer list-none items-center gap-2 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
+      <CollapsibleCard title={<span className="flex items-center gap-2">
           <time dateTime={session.workoutDate ?? session.completedAt} className="w-11 shrink-0 text-xs text-muted">{new Intl.DateTimeFormat('pl-PL', { weekday: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${session.workoutDate ?? session.completedAt.slice(0, 10)}T12:00:00Z`))}</time>
           <span className="min-w-0 flex-1"><span className="block font-display text-[15px] font-bold" role="heading" aria-level={4}>
             {session.name}
@@ -189,7 +189,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
           {session.note && <span role="img" aria-label="Ma notatkę" className="border border-bd px-1.5 py-1 text-xs text-muted">✎</span>}
           {!!session.sparringRounds && <span className="shrink-0 border border-bd px-1.5 py-1 text-xs tabular-nums text-muted">{session.sparringRounds} r.</span>}
           <span className="sr-only">Szczegóły wpisu</span>
-        </summary>
+        </span>}>
       <div className="px-4 py-4">
         <div className="mb-1 flex items-start justify-between gap-3">
           <DisciplineBadge disciplineKey={session.disciplineKey} />
@@ -313,13 +313,13 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
               shouldFocusDeleteCancelRef.current = true
               setIsConfirmingDelete(true)
             }}
-            className="min-h-touch w-full px-4 py-3 text-left font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink underline decoration-crimson/40 underline-offset-2 transition-colors hover:text-crimson-hi hover:decoration-crimson disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+            className="min-h-touch w-full px-4 py-3 text-left font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink transition-colors hover:text-crimson-hi disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
             Usuń wpis
           </button>
         )}
       </div>
-      </details>
+      </CollapsibleCard>
     </article>
   )
 }

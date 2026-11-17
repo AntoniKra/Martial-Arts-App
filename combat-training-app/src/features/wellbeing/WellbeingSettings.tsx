@@ -1,3 +1,4 @@
+import { Switch } from '@/components/ui/Switch'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
@@ -22,8 +23,7 @@ export function WellbeingSettings({ today, open, onToggle }: { today: string; op
     : withdrawalPending ? labels.withdrawalPending : entry ? profileSettingsLabels.wellbeingToday : profileSettingsLabels.wellbeingMissing
   return <ProfileDisclosure id="profile-wellbeing" title={labels.title} summary={summary} open={open} onToggle={onToggle}>
     {unavailable ? <WellbeingDataState loading={profile.status === 'loading'} retry={retryProfile} /> : active ? <>
-      <label className="flex min-h-touch cursor-pointer items-center gap-3 text-sm font-semibold">
-        <input type="checkbox" role="switch" checked aria-label={labels.enabled} onChange={() => setWithdrawing(true)} className="size-5 accent-[var(--app-ink)]" />{labels.enabled}</label>
+      <Switch checked aria-label={labels.enabled} onChange={() => setWithdrawing(true)}>{labels.enabled}</Switch>
       {profile.hasPendingWrites && <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p>}
       {withdrawalPending ? <p role="status" className="text-sm text-muted">{labels.withdrawalPending}</p> : wellbeing.status !== 'ready' || wellbeing.invalidDocumentIds.length ? <WellbeingDataState loading={wellbeing.status === 'loading'} retry={retryWellbeing} /> : entry && <>
         <button type="button" className={getButtonClassName({ variant: 'secondary' })} onClick={() => setEditing(true)}>{labels.edit}</button>

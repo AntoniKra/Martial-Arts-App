@@ -1,3 +1,4 @@
+import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
 import type { WeeklyWeightPoint } from '@/domain/profile/bodyWeight'
 import { shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
 import { profileLabels as labels, measurementCountLabel, profileDateLabel, profileRangeLabel, weightKgLabel } from './profileLabels'
@@ -32,8 +33,7 @@ export function BodyWeightChart({ weeks }: { weeks: readonly WeeklyWeightPoint[]
       </svg>
       <p className="text-xs text-muted">{labels.chartHint}</p>
     </> : <p className="text-sm text-muted">{measurementCount ? labels.needChartWeights : labels.noChartWeights}</p>}
-    <details>
-      <summary className="min-h-touch cursor-pointer py-3 font-display font-semibold">{labels.showData}</summary>
+    <CollapsibleCard title={<>{labels.showData}</>} description={measurementCountLabel(measurementCount)}>
       <table className="w-full text-left text-xs tabular-nums">
         <caption className="sr-only">{labels.chart}</caption>
         <thead><tr><th scope="col" className="py-2">{labels.week}</th><th scope="col">{labels.average}</th><th scope="col">{labels.measurements}</th></tr></thead>
@@ -44,6 +44,6 @@ export function BodyWeightChart({ weeks }: { weeks: readonly WeeklyWeightPoint[]
           <td>{measurementCountLabel(week.count)}</td>
         </tr>)}</tbody>
       </table>
-    </details>
+    </CollapsibleCard>
   </section>
 }

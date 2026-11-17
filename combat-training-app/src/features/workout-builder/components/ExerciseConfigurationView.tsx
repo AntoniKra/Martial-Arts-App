@@ -1,3 +1,4 @@
+import { ChoiceTile } from '@/components/ui/ChoiceTile'
 import { FormCloseConfirmation } from '@/components/FormCloseConfirmation'
 import {
   useEffect,
@@ -67,9 +68,6 @@ const fieldClassName =
 const labelClassName =
   'mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint'
 
-const presetLabelClassName =
-  'flex min-h-touch cursor-pointer items-center justify-center border px-3 py-2 font-display text-[12px] font-semibold transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--app-focus-ring)]'
-
 const formatButtonClassName =
   'flex min-h-touch w-full items-center justify-center border px-3 py-2 text-center font-display text-[12px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]'
 
@@ -117,51 +115,13 @@ function PresetRadioGroup({
     <fieldset ref={fieldsetRef} className="space-y-3">
       <legend className={labelClassName}>{legend}</legend>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {presets.map((preset) => {
-          const inputId = `${name}-${preset.value}`
-
-          return (
-            <label
-              key={preset.value}
-              htmlFor={inputId}
-              className={[
-                presetLabelClassName,
-                selectedPreset === preset.value
-                  ? 'border-crimson bg-crimson/10 text-ink ring-1 ring-crimson/40'
-                  : 'border-bd bg-elevated text-muted hover:border-muted/50 hover:text-ink',
-              ].join(' ')}
-            >
-              <input
-                id={inputId}
-                type="radio"
-                name={name}
-                checked={selectedPreset === preset.value}
-                onChange={() => onSelectPreset(preset.value)}
-                className="sr-only"
-              />
-              {preset.label}
-            </label>
-          )
-        })}
-        <label
-          htmlFor={`${name}-custom`}
-          className={[
-            presetLabelClassName,
-            selectedPreset === 'custom'
-              ? 'border-crimson bg-crimson/10 text-ink ring-1 ring-crimson/40'
-              : 'border-bd bg-elevated text-muted hover:border-muted/50 hover:text-ink',
-          ].join(' ')}
-        >
-          <input
-            id={`${name}-custom`}
-            type="radio"
-            name={name}
-            checked={selectedPreset === 'custom'}
-            onChange={() => onSelectPreset('custom')}
-            className="sr-only"
-          />
+        {presets.map((preset) => <ChoiceTile key={preset.value} name={name} value={preset.value}
+          checked={selectedPreset === preset.value} onChange={() => onSelectPreset(preset.value)} className="compact-choice">
+          {preset.label}
+        </ChoiceTile>)}
+        <ChoiceTile name={name} value="custom" checked={selectedPreset === 'custom'} onChange={() => onSelectPreset('custom')} className="compact-choice">
           {customLabel}
-        </label>
+        </ChoiceTile>
       </div>
       {selectedPreset === 'custom' ? customFields : null}
     </fieldset>

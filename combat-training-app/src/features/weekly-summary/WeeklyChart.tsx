@@ -1,3 +1,4 @@
+import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
 import { useEffect, useRef, useState } from 'react'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import type { WeeklySeriesPoint } from '@/domain/weekly-summary/weeklySeries'
@@ -50,8 +51,7 @@ export function WeeklyChart({ weeks }: { weeks: readonly WeeklySeriesPoint[] }) 
       })}
     </svg>
     <p className="text-xs text-muted">{labels.chartHint}</p>
-    <details>
-      <summary className="min-h-touch cursor-pointer py-3 font-display font-semibold">{labels.showData}</summary>
+    <CollapsibleCard title={<>{labels.showData}</>} description={labels.chart}>
       <table className="w-full text-left text-xs tabular-nums">
         <caption className="sr-only">{labels.chart}</caption>
         <thead><tr><th scope="col" className="py-2">{labels.week}</th><th scope="col">{labels.workouts}</th><th scope="col">{labels.minutes}</th></tr></thead>
@@ -62,6 +62,6 @@ export function WeeklyChart({ weeks }: { weeks: readonly WeeklySeriesPoint[] }) 
           </th><td>{week.workoutCount}</td><td>{minutes[index]}</td>
         </tr>)}</tbody>
       </table>
-    </details>
+    </CollapsibleCard>
   </section>
 }

@@ -124,10 +124,10 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
         </Button>
       </>}
       <nav aria-label={labels.login} className="mt-4 flex flex-col items-start">
-        {mode !== 'login' && <Link className="flex min-h-touch items-center text-sm underline" to={{ pathname: '/login', search: location.search }} state={location.state}>{labels.login}</Link>}
+        {mode !== 'login' && <Link className="flex min-h-touch items-center text-sm" to={{ pathname: '/login', search: location.search }} state={location.state}>{labels.login}</Link>}
         {mode === 'login' && <>
-          <Link className="flex min-h-touch items-center text-sm underline" to={{ pathname: '/register', search: location.search }} state={location.state}>{labels.register}</Link>
-          <Link className="flex min-h-touch items-center text-sm underline" to={{ pathname: '/forgot-password', search: location.search }} state={location.state}>{labels.forgotPassword}</Link>
+          <Link className="flex min-h-touch items-center text-sm" to={{ pathname: '/register', search: location.search }} state={location.state}>{labels.register}</Link>
+          <Link className="flex min-h-touch items-center text-sm" to={{ pathname: '/forgot-password', search: location.search }} state={location.state}>{labels.forgotPassword}</Link>
         </>}
       </nav>
     </AuthFrame>

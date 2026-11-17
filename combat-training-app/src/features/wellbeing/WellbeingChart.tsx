@@ -1,3 +1,4 @@
+import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
 import { shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
 import { wellbeingBaseline, type WellbeingEntry, type WellbeingField } from '@/domain/wellbeing/wellbeing'
 import { wellbeingLabels as labels, wellbeingQuestions } from './wellbeingLabels'
@@ -17,12 +18,12 @@ export function WellbeingChart({ entries, field, end, version }: { entries: read
         {index % 9 === 0 && <text x={x(index)} y="153" textAnchor="middle" fontSize="10" fill="currentColor">{day.date.slice(8)}.{day.date.slice(5, 7)}</text>}
       </g>)}
     </svg>
-    <details><summary className="min-h-touch cursor-pointer py-3 text-sm font-semibold">{labels.showData}</summary>
+    <CollapsibleCard title={<>{labels.showData}</>} description={`${wellbeingQuestions[field].name} · 28 dni`}>
       <table className="w-full text-left text-xs tabular-nums"><caption className="sr-only">{wellbeingQuestions[field].name}: 28 dni</caption>
         <thead><tr><th scope="col">{labels.date}</th><th scope="col">{labels.answer}</th><th scope="col">{labels.band}</th></tr></thead>
         <tbody>{days.map((day) => <tr key={day.date} className="border-t border-bd"><th scope="row" className="py-2 pr-2 font-normal">{day.date}</th>
           <td>{day.value === null ? labels.noData : day.value}</td><td>{day.norm ? `${day.norm.p25}–${day.norm.p75}` : labels.noNorm}</td></tr>)}</tbody>
       </table>
-    </details>
+    </CollapsibleCard>
   </div>
 }

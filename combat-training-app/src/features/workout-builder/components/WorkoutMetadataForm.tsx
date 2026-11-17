@@ -1,3 +1,4 @@
+import { ChoiceTile } from '@/components/ui/ChoiceTile'
 import type { Dispatch } from 'react'
 
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
@@ -41,44 +42,12 @@ export function WorkoutMetadataForm({ state, dispatch }: WorkoutMetadataFormProp
         <div className="grid gap-2 sm:grid-cols-2">
           {WORKOUT_BUILDER_DISCIPLINE_KEYS.map((disciplineKey) => {
             const isSelected = draft.disciplineKey === disciplineKey
-            const inputId = `workout-builder-discipline-${disciplineKey}`
 
             return (
-              <label
-                key={disciplineKey}
-                htmlFor={inputId}
-                className={[
-                  'flex min-h-touch cursor-pointer items-center justify-between border px-3 py-3 transition-colors',
-                  canEditDiscipline ? 'hover:border-muted/50' : 'cursor-not-allowed opacity-60',
-                  isSelected
-                    ? 'border-crimson bg-crimson/10 ring-1 ring-crimson/40'
-                    : 'border-bd bg-elevated',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-              >
+              <ChoiceTile key={disciplineKey} name="workout-builder-discipline" value={disciplineKey}
+                checked={isSelected} onChange={() => dispatch({ type: 'setDiscipline', disciplineKey })} className="compact-choice">
                 <DisciplineBadge disciplineKey={disciplineKey} className="text-[11px]" />
-                <span className="flex items-center gap-2">
-                  {isSelected ? (
-                    <span
-                      aria-hidden="true"
-                      className="font-display text-[10px] font-semibold uppercase tracking-[0.1em] text-crimson-ink"
-                    >
-                      Wybrano
-                    </span>
-                  ) : null}
-                  <input
-                    id={inputId}
-                    type="radio"
-                    name="workout-builder-discipline"
-                    value={disciplineKey}
-                    checked={isSelected}
-                    disabled={!canEditDiscipline}
-                    onChange={() => dispatch({ type: 'setDiscipline', disciplineKey })}
-                    className="size-4 shrink-0 accent-[var(--color-crimson)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-                  />
-                </span>
-              </label>
+              </ChoiceTile>
             )
           })}
         </div>

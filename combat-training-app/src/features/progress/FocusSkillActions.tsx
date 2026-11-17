@@ -47,7 +47,7 @@ export function FocusSkillActions({ skill }: { skill: FocusSkill }) {
   }
 
   return <section className="space-y-3 border-t border-bd pt-5">
-    {!ready && <p role="status" className="text-sm text-muted">{labels.unavailable} <button type="button" onClick={retry} className="min-h-touch underline">{labels.retry}</button></p>}
+    {!ready && <p role="status" className="text-sm text-muted">{labels.unavailable} <button type="button" onClick={retry} className="min-h-touch">{labels.retry}</button></p>}
     <button type="button" ref={triggerRef} className={getButtonClassName({ variant: archived ? 'secondary' : 'danger', disabled: busy || !ready })} disabled={busy || !ready} onClick={() => {
       setError(false)
       if (archived) void apply()
