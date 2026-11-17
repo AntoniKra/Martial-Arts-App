@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Obszar Akcji A — Zintegrowany z podpisem · Laboratorium Start v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --app-bg: #0b0b0d;
+      --app-surface: #161618;
+      --app-elevated: #1d1d20;
+      --app-border: #2a2a2e;
+      --app-ink: #f4f4f1;
+      --app-muted: #a7a7aa;
+      --app-faint: #85858a;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #d91535;
+      --app-crimson-ink: #ef5d6e;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #f0753a;
+      --app-success: #3fb56b;
+      --app-success-ink: #8fd8a8;
+      --app-missed: #4a4a4f;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #ef5d6e;
+
+      --app-grad-primary: linear-gradient(120deg, #b8102a 0%, #d4152f 55%, #c8341a 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #f0753a 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: #000000;
+      color: var(--app-ink);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .preview-container {
+      width: 100%;
+      max-width: 390px;
+      background: var(--app-bg);
+      border: 1px solid var(--app-border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--app-border);
+      padding-bottom: 10px;
+    }
+    .header-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--app-ember);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* Karta Dziś */
+    .card-today {
+      background: var(--app-surface);
+      border: 1px solid #34262a;
+      border-radius: var(--app-radius-sm);
+      padding: 18px 16px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .card-today::after {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 15%, var(--app-crimson) 70%, var(--app-ember));
+    }
+
+    .today-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .today-date {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--app-crimson-ink);
+    }
+    .today-discipline {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--app-muted);
+    }
+    .today-time {
+      font-family: 'Archivo', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      color: var(--app-ink);
+      margin-top: 2px;
+    }
+    .today-hint {
+      font-size: 13px;
+      color: var(--app-muted);
+      line-height: 1.35;
+    }
+
+    /* ========================================================
+       WARIANT A: Zintegrowany Przycisk Główny + Pigułki Akcji
+       ======================================================== */
+    .actions-group-a {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    /* Przycisk Główny Zintegrowany (60px) */
+    .btn-main-a {
+      min-height: 60px;
+      width: 100%;
+      border: 0;
+      border-radius: var(--app-radius-sm);
+      background: var(--app-grad-primary);
+      color: var(--app-on-accent);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(184, 16, 42, 0.4);
+      transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease, opacity 150ms ease;
+      text-decoration: none;
+      position: relative;
+    }
+
+    .btn-main-a:hover {
+      box-shadow: 0 6px 18px rgba(184, 16, 42, 0.55);
+    }
+
+    .btn-main-a:active,
+    .btn-main-a.is-active {
+      transform: scale(0.975);
+      box-shadow: 0 2px 8px rgba(184, 16, 42, 0.6);
+      opacity: 0.95;
+    }
+
+    .btn-main-a:focus-visible,
+    .btn-main-a.is-focused {
+      outline: 2px solid var(--app-focus-ring);
+      outline-offset: 2px;
+    }
+
+    .btn-main-a:disabled,
+    .btn-main-a.is-disabled {
+      background: var(--app-missed) !important;
+      color: #a7a7aa !important;
+      box-shadow: none !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      opacity: 0.65;
+    }
+
+    .btn-main-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--app-radius-sm);
+      background: rgba(255, 255, 255, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .btn-main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1px;
+      text-align: left;
+    }
+
+    .btn-main-label {
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+
+    .btn-main-subtext {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(244, 244, 241, 0.82);
+      line-height: 1.2;
+    }
+
+    .btn-main-arrow {
+      color: rgba(244, 244, 241, 0.7);
+      flex-shrink: 0;
+    }
+
+    /* Pigułki Akcji Drugorzędnych (min-height 44px) */
+    .secondary-pills-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-pill-a {
+      min-height: 44px;
+      border: 1px solid var(--app-border);
+      background: var(--app-elevated);
+      color: var(--app-ink);
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--app-radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      cursor: pointer;
+      padding: 0 10px;
+      transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+    }
+
+    .btn-pill-a:hover {
+      background: #25252a;
+      border-color: #3f3f46;
+    }
+
+    .btn-pill-a:active,
+    .btn-pill-a.is-active {
+      transform: scale(0.97);
+      background: var(--app-border);
+    }
+
+    .btn-pill-a:focus-visible,
+    .btn-pill-a.is-focused {
+      outline: 2px solid var(--app-focus-ring);
+      outline-offset: 2px;
+    }
+
+    .btn-pill-a:disabled,
+    .btn-pill-a.is-disabled {
+      background: transparent !important;
+      border-color: #242428 !important;
+      color: var(--app-faint) !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      opacity: 0.5;
+    }
+
+    .btn-pill-a.missed-action:hover {
+      border-color: #55555c;
+      color: #d8d8da;
+    }
+    .btn-pill-a.reschedule-action:hover {
+      border-color: var(--app-ember);
+      color: var(--app-ink);
+    }
+
+    /* Tablica Stanów */
+    .states-board {
+      border-top: 1px solid var(--app-border);
+      padding-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .states-heading {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--app-muted);
+    }
+    .state-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--app-surface);
+      padding: 10px;
+      border-radius: var(--app-radius-sm);
+      border: 1px solid #232328;
+    }
+    .state-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--app-crimson-ink);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="preview-container">
+  <div class="header-bar">
+    <span class="header-title">Wariant A: Zintegrowany z podpisem</span>
+    <span style="font-size: 11px; color: var(--app-muted);">design-lab</span>
+  </div>
+
+  <!-- Karta Dziś w kontekście -->
+  <div class="card-today">
+    <div class="today-meta">
+      <span class="today-date">CZWARTEK, 20 LISTOPADA · KLUB</span>
+      <span class="today-discipline">KICKBOXING · ZAJĘCIA GRUPOWE</span>
+      <div class="today-time">18:00–19:30</div>
+      <p class="today-hint">Zwykle: rozgrzewka, technika w parach, tarcze i sparing zadaniowy.</p>
+    </div>
+
+    <!-- Obszar Akcji Wariant A -->
+    <div class="actions-group-a">
+      <!-- Przycisk Główny 60 px -->
+      <button class="btn-main-a" id="interactiveMainBtn" onclick="alert('Kliknięto: Wpisz trening po zajęciach')">
+        <div class="btn-main-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <div class="btn-main-content">
+          <span class="btn-main-label">Wpisz trening po zajęciach</span>
+          <span class="btn-main-subtext">Kickboxing · 90 min · po powrocie do szatni</span>
+        </div>
+        <div class="btn-main-arrow" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </div>
+      </button>
+
+      <!-- Pigułki Akcji Drugorzędnych 44 px -->
+      <div class="secondary-pills-row">
+        <button class="btn-pill-a missed-action" onclick="alert('Oznaczono: Nie byłem')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14"/>
+          </svg>
+          Nie byłem
+        </button>
+        <button class="btn-pill-a reschedule-action" onclick="alert('Otwieranie przenoszenia dnia...')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Przenieś dzień
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wizualizacja Wszystkich 4 Stanów (Zwykły, Wciśnięty, Focus, Wyłączony) -->
+  <div class="states-board">
+    <div class="states-heading">Przegląd 4 stanów interfejsu (WCAG & Ergonomia)</div>
+
+    <!-- 1. Stan Zwykły -->
+    <div class="state-row">
+      <span class="state-label">1. Stan zwykły (Default)</span>
+      <button class="btn-main-a" tabindex="-1">
+        <div class="btn-main-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="btn-main-content">
+          <span class="btn-main-label">Wpisz trening po zajęciach</span>
+          <span class="btn-main-subtext">Kickboxing · 90 min</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- 2. Stan Wciśnięty -->
+    <div class="state-row">
+      <span class="state-label">2. Stan wciśnięty (Active / Pressed)</span>
+      <button class="btn-main-a is-active" tabindex="-1">
+        <div class="btn-main-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="btn-main-content">
+          <span class="btn-main-label">Wpisz trening po zajęciach</span>
+          <span class="btn-main-subtext">Aktywny docisk fizyczny (-2.5%)</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- 3. Stan Focus-Visible -->
+    <div class="state-row">
+      <span class="state-label">3. Stan fokusu klawiatury (Focus-Visible)</span>
+      <button class="btn-main-a is-focused" tabindex="-1">
+        <div class="btn-main-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="btn-main-content">
+          <span class="btn-main-label">Wpisz trening po zajęciach</span>
+          <span class="btn-main-subtext">Pierścień 2 px #ef5d6e (kontrast 4,5:1)</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- 4. Stan Wyłączony -->
+    <div class="state-row">
+      <span class="state-label">4. Stan wyłączony (Disabled)</span>
+      <button class="btn-main-a is-disabled" disabled>
+        <div class="btn-main-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="btn-main-content">
+          <span class="btn-main-label">Plan niedostępny</span>
+          <span class="btn-main-subtext">Szare tło #4a4a4f bez gradientu</span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
