@@ -248,6 +248,7 @@ test('skips a late threshold and does not replay it when reloaded below ten seco
 
 test('uses independent profile warning times in the quick timer and avoids duplicates after a background return', async ({ app, page }) => {
   await app.open('/profile')
+  await openProfile(page)
   await page.getByRole('radiogroup', { name: 'Sygnał przed końcem rundy', exact: true }).getByRole('radio', { name: '15 s', exact: true }).click()
   await page.getByRole('radiogroup', { name: 'Sygnał przed końcem przerwy', exact: true }).getByRole('radio', { name: '5 s', exact: true }).click()
   await app.open('/quick-timer')
@@ -284,6 +285,7 @@ for (const source of ['plan', 'quickTimer'] as const) {
   for (const remainingMs of [9000, 7000, 6999]) {
     test(`reconciles the real playback hook into the next rest at ${remainingMs} ms in ${source}`, async ({ app, page }) => {
       await app.open('/profile')
+      await openProfile(page)
       await setWarningTimes(page, 'Wyłączony', '10 s')
       if (source === 'plan') {
         await app.open('/workouts')
@@ -317,6 +319,8 @@ for (const source of ['plan', 'quickTimer'] as const) {
 
   test(`reconciles the real playback hook into the next work warning in ${source}`, async ({ app, page }) => {
     await app.open('/profile')
+    // Settings can render before Firestore is ready; wait before handing off its persistent lease.
+    await openProfile(page)
     await setWarningTimes(page, '10 s', 'Wyłączony')
     if (source === 'plan') {
       await app.open('/workouts')
@@ -346,6 +350,7 @@ for (const source of ['plan', 'quickTimer'] as const) {
 for (const seconds of [5, 10]) {
   test(`keeps equal ${seconds}-second round rests and standalone breaks silent in the real hook`, async ({ app, page }) => {
     await app.open('/profile')
+    await openProfile(page)
     await setWarningTimes(page, 'Wyłączony', `${seconds} s`)
     await app.open('/workouts')
     const plan = workoutPlan([block('b1', [roundsExercise('work', 2, 40, seconds), workoutBreak('break', seconds), continuousExercise('last', 40)])])
@@ -368,6 +373,7 @@ for (const seconds of [5, 10]) {
 
 test('keeps a rest equal to the threshold silent after crossing into it in the quick timer hook', async ({ app, page }) => {
   await app.open('/profile')
+  await openProfile(page)
   await setWarningTimes(page, 'Wyłączony', '10 s')
   await app.open('/quick-timer')
   await openQuickTimer(page, 10)
@@ -384,6 +390,7 @@ test('keeps a rest equal to the threshold silent after crossing into it in the q
 
 test('warns only for the current phase when suspension spans multiple stages', async ({ app, page }) => {
   await app.open('/profile')
+  await openProfile(page)
   await setWarningTimes(page, 'Wyłączony', '10 s')
   await app.open('/workouts')
   const plan = workoutPlan([block('b1', [roundsExercise('work', 3, 40, 20)])])
