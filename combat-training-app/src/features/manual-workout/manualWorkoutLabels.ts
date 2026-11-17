@@ -1,3 +1,4 @@
+import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import type { ManualWorkoutPart } from '@/domain/workout-session/workoutSession.types'
 import { categoryLabel } from '@/features/week-plan/weekPlanLabels'
 
@@ -21,7 +22,7 @@ export const manualWorkoutLabels = {
   focus: 'Elementy do poprawy (opcjonalnie)', focusHint: 'Oceń do 3 elementów do poprawy, nad którymi pracowałeś na tych zajęciach.',
   noSkills: 'Nie masz elementów do poprawy. Dodaj jedną rzecz, nad którą pracujesz.', skillsError: 'Nie udało się wczytać elementów do poprawy. Możesz zapisać resztę wpisu bez zmian w ocenach.',
   skillsLoading: 'Wczytywanie elementów do poprawy…', place: 'Gdzie ćwiczyłeś?', choosePlace: 'Wybierz miejsce',
-  newCorrection: '+ Dodaj notatkę „problem i poprawka”', retry: 'Spróbuj ponownie',
+  newCorrection: workoutFeedbackLabels.newCorrection, retry: 'Spróbuj ponownie',
   save: 'Zapisz', cancel: 'Anuluj', back: 'Wróć do historii', discard: 'Zmiany we wpisie nie zostaną zapisane.',
   duplicateTitle: 'Masz już trening z tego dnia',
   duplicate: (name: string) => `Masz już trening „${name}” z tego dnia. To osobny trening?`,

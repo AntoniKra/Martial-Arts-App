@@ -262,7 +262,7 @@ test('requires a place for mixed focus feedback, closes the correction and links
   await expect(form(page).getByText('Wybierz, gdzie ćwiczyłeś.', { exact: true })).toBeVisible()
   expect(await app.readSessions()).toEqual([])
   await card.getByRole('combobox', { name: 'Gdzie ćwiczyłeś?', exact: true }).selectOption('sparring')
-  await card.getByRole('radio', { name: 'Lepiej', exact: true }).check()
+  await card.getByRole('radio', { name: 'Rzadziej', exact: true }).check()
   await save(page)
   await expect.poll(async () => (await app.readFocusSkills())[0]?.openCorrection).toBeNull()
   const session = (await app.readSessions())[0]

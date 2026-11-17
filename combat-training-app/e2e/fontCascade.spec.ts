@@ -125,7 +125,7 @@ for (const theme of ['dark', 'light'] as const) {
     await dialog.getByRole('button', { name: 'Wróć do treningu', exact: true }).click()
     await page.clock.fastForward(150_000)
     await app.expectWorkoutSaved()
-    samples.summaryDone = await typography(page.getByRole('button', { name: 'Gotowe', exact: true }))
+    samples.summaryDone = await typography(page.getByRole('button', { name: 'Zapisz oceny', exact: true }))
     await capture('completed')
 
     await app.open('/workouts')
