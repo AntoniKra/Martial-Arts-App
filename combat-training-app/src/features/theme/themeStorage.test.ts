@@ -19,7 +19,7 @@ const html = readFileSync(new URL('../../../index.html', import.meta.url), 'utf8
 const bootstrapScript = readFileSync(new URL('../../../public/theme-bootstrap.js', import.meta.url), 'utf8')
 
 function mockDocument(hasMeta = true) {
-  const root = { setAttribute: vi.fn() }
+  const root = { setAttribute: vi.fn(), removeAttribute: vi.fn(), offsetWidth: 360 }
   const meta = { setAttribute: vi.fn() }
   const document = { documentElement: root, querySelector: vi.fn(() => hasMeta ? meta : null) }
   return { document, root, meta }
@@ -113,6 +113,18 @@ describe('theme preferences', () => {
 })
 
 describe('document theme', () => {
+  it('commits the new palette with transitions disabled before restoring feedback', () => {
+    const { document, root } = mockDocument()
+    vi.stubGlobal('document', document)
+    const flush = vi.spyOn(root, 'offsetWidth', 'get').mockReturnValue(360)
+    applyThemeToDocument('light')
+    expect(root.setAttribute).toHaveBeenNthCalledWith(1, 'data-theme-changing', '')
+    expect(root.setAttribute).toHaveBeenNthCalledWith(2, 'data-theme', 'light')
+    expect(flush).toHaveBeenCalledOnce()
+    expect(root.removeAttribute).toHaveBeenCalledWith('data-theme-changing')
+    expect(flush.mock.invocationCallOrder[0]).toBeGreaterThan(root.setAttribute.mock.invocationCallOrder[1])
+    expect(root.removeAttribute.mock.invocationCallOrder[0]).toBeGreaterThan(flush.mock.invocationCallOrder[0])
+  })
   it.each(['dark', 'light'] as const)('applies %s and updates the browser bar', (mode) => {
     const { document, root, meta } = mockDocument()
     vi.stubGlobal('document', document)

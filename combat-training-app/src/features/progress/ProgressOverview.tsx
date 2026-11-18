@@ -25,7 +25,7 @@ import { weekdays } from '@/features/week-plan/scheduleLabels'
 export function MoreTile({ title, value, hint, children }: { title: string; value: string; hint: string; children: ReactNode }) {
   const [open, setOpen] = useState(false)
   return <div className={open ? 'col-span-2' : ''}>
-    <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="flex h-28 w-full flex-col gap-1 rounded-sm border border-bd bg-surface p-3 text-left">
+    <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="motion-press flex h-28 w-full flex-col gap-1 rounded-sm border border-bd bg-surface p-3 text-left">
       <span className="text-[11px] font-bold uppercase tracking-widest text-muted">{title}</span>
       <strong className="font-display text-2xl leading-tight tabular-nums">{value}</strong><span title={hint} className="mt-auto line-clamp-2 text-xs leading-tight text-muted">{hint}</span>
     </button>

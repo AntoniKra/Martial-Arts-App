@@ -55,7 +55,13 @@ export function persistThemeMode(mode: ThemePreference): void {
 }
 
 export function applyThemeToDocument(mode: ThemeMode): void {
-  document.documentElement.setAttribute('data-theme', mode)
+  const root = document.documentElement
+  root.setAttribute('data-theme-changing', '')
+  root.setAttribute('data-theme', mode)
+  // Commit the whole palette before re-enabling control transitions: intermediate
+  // foreground/background pairs during a theme change can fail text contrast.
+  void root.offsetWidth
+  root.removeAttribute('data-theme-changing')
 
   const themeColorMeta = document.querySelector('meta[name="theme-color"]')
 

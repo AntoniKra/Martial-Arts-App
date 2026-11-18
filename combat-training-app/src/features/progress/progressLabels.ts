@@ -6,6 +6,8 @@ export const progressLabels = {
   newPlan: 'Nowy plan', loading: 'Ładowanie…', retry: 'Spróbuj ponownie', back: 'Wróć do listy',
   notFound: 'Nie znaleziono elementu do poprawy', allRatings: 'Wszystkie oceny', summary: 'Podsumowanie ocen',
   chart: 'Oceny według daty treningu', lastWeeks: 'Ostatnie 12 tygodni',
+  showMoreWeeks: 'Pokaż 12 tygodni', showFewerWeeks: 'Pokaż mniej',
+  weeksShown: (expanded: boolean) => `Pokazano ${expanded ? 12 : 5} tygodni`,
   assessmentAxis: 'Ocena', dateAxis: 'Data treningu', placesLegend: 'Legenda miejsc',
   noActiveSkills: 'Brak aktywnych elementów do poprawy',
   notRatedYet: 'Jeszcze bez ocen', rateAfterWorkout: 'Ocenisz po najbliższym treningu',
