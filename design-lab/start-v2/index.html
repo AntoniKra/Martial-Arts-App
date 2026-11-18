@@ -392,6 +392,84 @@
       color: var(--app-ember);
     }
 
+    .owner-badge {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 6px;
+      background: rgba(193, 18, 47, 0.22);
+      border: 1px solid rgba(239, 93, 110, 0.5);
+      color: #ef5d6e;
+      border-radius: 2px;
+    }
+    .submode-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 3px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--lab-border);
+      margin-top: 4px;
+    }
+    .submode-label {
+      font-size: 10px;
+      color: var(--lab-muted);
+      font-weight: 700;
+    }
+    .btn-submode {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--lab-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+    .btn-submode.is-active {
+      background: var(--app-crimson);
+      color: #fff;
+      font-weight: 700;
+    }
+    .intro-notice-bar {
+      width: 414px;
+      background: var(--lab-elevated);
+      border: 1px solid var(--app-crimson);
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--lab-text);
+      box-shadow: 0 4px 14px rgba(193, 18, 47, 0.25);
+    }
+    .btn-intro-back {
+      background: var(--app-grad-primary);
+      border: none;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: opacity 150ms ease;
+    }
+    .btn-intro-back:hover { opacity: 0.9; }
+    .link-intro-ext {
+      color: var(--lab-muted);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 6px;
+    }
+    .link-intro-ext:hover { color: #fff; }
+
     @media (max-width: 1024px) {
       .studio-main { flex-direction: column; align-items: center; }
       .phone-column { position: static; }
@@ -417,28 +495,28 @@
     </div>
 
     <div class="header-actions">
-      <!-- Odtwórz animacje w podglądzie -->
-      <button class="btn-ctl primary" id="btnPlayAnims" type="button">
+      <!-- Odtwórz animacje Startu -->
+      <button class="btn-ctl primary" id="btnPlayAnims" type="button" title="Odtwórz mikrointerakcje ekranu Start (licznik, pasek, burza, obwódka)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <polygon points="5 3 19 12 5 21 5 3"/>
         </svg>
-        Odtwórz animacje
+        Odtwórz animacje Startu
       </button>
 
-      <!-- Odtwórz powitanie A -->
-      <button class="btn-ctl" id="btnPlayIntroA" type="button" title="Otwórz standalone demonstrację powitania A">
+      <!-- Powitanie A -->
+      <button class="btn-ctl" id="btnPlayIntroA" type="button" title="Podgląd Powitania A (Iskra zbiegająca się w burzę)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
         </svg>
-        Powitanie A (Iskra)
+        Powitanie A
       </button>
 
-      <!-- Odtwórz powitanie B -->
-      <button class="btn-ctl" id="btnPlayIntroB" type="button" title="Otwórz standalone demonstrację powitania B">
+      <!-- Powitanie B -->
+      <button class="btn-ctl" id="btnPlayIntroB" type="button" title="Podgląd Powitania B (Laserowy kontur krawędziowy)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
           <rect x="2" y="2" width="20" height="20" rx="4"/>
         </svg>
-        Powitanie B (Kontur)
+        Powitanie B
       </button>
 
       <!-- Przełącznik Motywów -->
@@ -447,9 +525,9 @@
         <button class="theme-toggle-btn" id="btnThemeLight" type="button">Jasny</button>
       </div>
 
-      <!-- Reset do rekomendacji -->
-      <button class="btn-ctl" id="btnResetAll" type="button" title="Przywróć wszystkie części do wariantu A">
-        Przywróć rekomendację
+      <!-- Reset do wyboru właściciela -->
+      <button class="btn-ctl" id="btnResetAll" type="button" title="Przywróć kompozycję wybraną przez właściciela (1B · 2B · 3A · 4A · 5A · 6A)">
+        Wybór właściciela
       </button>
     </div>
   </header>
@@ -459,12 +537,21 @@
 
     <!-- Lewa kolumna: Ramka telefonu -->
     <section class="phone-column" aria-label="Podgląd urządzenia 390x844">
+      <!-- Pasek informacyjny przy podglądzie intro -->
+      <div id="introNoticeBar" class="intro-notice-bar" style="display: none;">
+        <span id="introNoticeText" style="font-weight:700;">Podgląd: Powitanie A (Iskra)</span>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <button type="button" class="btn-intro-back" id="btnBackToStart">⬅ Wróć do Startu</button>
+          <a href="intro-a.html" target="_blank" class="link-intro-ext" id="linkIntroExt" title="Otwórz w osobnej karcie">Nowe okno ↗</a>
+        </div>
+      </div>
+
       <div class="phone-shell">
-        <iframe class="phone-iframe" id="previewIframe" src="start-final.html?p1=1A&p2=2A&p3=3A&p4=4A&p5=5A&p6=6A&theme=dark" title="Podgląd ekranu Start v2"></iframe>
+        <iframe class="phone-iframe" id="previewIframe" src="start-final.html?p1=1B-1&p2=2B&p3=3A&p4=4A&p5=5A&p6=6A&theme=dark" title="Podgląd ekranu Start v2"></iframe>
       </div>
       <div class="phone-meta-badge">
         <span class="status-dot-green"></span>
-        <span id="activeConfigSummary">Aktywna kompozycja: 1A · 2A · 3A · 4A · 5A · 6A (Ciemny)</span>
+        <span id="activeConfigSummary">Wybrana kompozycja: 1B-1 · 2B · 3A · 4A · 5A · 6A (Ciemny)</span>
       </div>
     </section>
 
@@ -490,21 +577,40 @@
       <div class="part-card">
         <div class="part-head">
           <div class="part-num-title">1. Karta „Dziś” z burzą</div>
-          <span class="part-current-label" id="labelP1">Wybrano: 1A</span>
+          <span class="part-current-label" id="labelP1">Wybrano: 1B-1</span>
         </div>
         <div class="options-grid">
-          <div class="opt-card is-selected" data-part="p1" data-val="1A">
+          <div class="opt-card is-selected" data-part="p1" data-val="1B-1">
+            <div class="opt-header-row">
+              <span class="opt-code">1B-1 · Czerwona obwódka statyczna</span>
+              <span class="owner-badge">Wybór właściciela</span>
+            </div>
+            <p class="opt-desc">Cienka czerwona obwódka (karmazyn) z bardzo delikatnym czerwonym światłem; żar (#f0753a) pozostaje wyłącznie w samej burzy.</p>
+          </div>
+          <div class="opt-card" data-part="p1" data-val="1B-2">
+            <div class="opt-header-row">
+              <span class="opt-code">1B-2 · Czerwony obieg krawędzi</span>
+              <span class="rec-badge">Animacja obwódki</span>
+            </div>
+            <p class="opt-desc">Czerwony refleks (conic-gradient) powoli obiega krawędź karty przy wejściu (1,4 s); brak żaru w obwódce.</p>
+            <div class="submode-row" onclick="event.stopPropagation()">
+              <span class="submode-label">Tryb:</span>
+              <button type="button" class="btn-submode is-active" id="btnTraceSingle">1 obieg (1,4s)</button>
+              <button type="button" class="btn-submode" id="btnTracePulse">Stały puls (co 4s)</button>
+            </div>
+          </div>
+          <div class="opt-card" data-part="p1" data-val="1B-3">
+            <div class="opt-header-row">
+              <span class="opt-code">1B-3 · Impuls wejściowy z rogu</span>
+              <span class="rec-badge">Impuls</span>
+            </div>
+            <p class="opt-desc">Obwódka rozjaśnia się dynamicznie od prawego górnego rogu (tam, gdzie burza) i gaśnie do subtelnej czerwieni.</p>
+          </div>
+          <div class="opt-card" data-part="p1" data-val="1A">
             <div class="opt-header-row">
               <span class="opt-code">1A · Spokojna burza</span>
-              <span class="rec-badge">Rekomendacja</span>
             </div>
             <p class="opt-desc">Subtelna siatka pod kątem 115°, gradient karmazyn-żar w błyskawicy (55% krycia) oraz górna linia akcentu 2px.</p>
-          </div>
-          <div class="opt-card" data-part="p1" data-val="1B">
-            <div class="opt-header-row">
-              <span class="opt-code">1B · Poświata krawędziowa</span>
-            </div>
-            <p class="opt-desc">Ramka karty otoczona zewnętrzną i wewnętrzną poświatą żaru, wyższy kontrast wyładowania (75% krycia).</p>
           </div>
           <div class="opt-card" data-part="p1" data-val="1C">
             <div class="opt-header-row">
@@ -519,21 +625,22 @@
       <div class="part-card">
         <div class="part-head">
           <div class="part-num-title">2. Obszar przycisków karty „Dziś”</div>
-          <span class="part-current-label" id="labelP2">Wybrano: 2A</span>
+          <span class="part-current-label" id="labelP2">Wybrano: 2B</span>
         </div>
         <div class="options-grid">
-          <div class="opt-card is-selected" data-part="p2" data-val="2A">
-            <div class="opt-header-row">
-              <span class="opt-code">2A · Zintegrowany z podpisem</span>
-              <span class="rec-badge">Rekomendacja</span>
-            </div>
-            <p class="opt-desc">Duży przycisk 60px z podtytułem wyjaśniającym cel + 2 równe pigułki 44px („Nie byłem”, „Przenieś dzień”) pod spodem.</p>
-          </div>
-          <div class="opt-card" data-part="p2" data-val="2B">
+          <div class="opt-card is-selected" data-part="p2" data-val="2B">
             <div class="opt-header-row">
               <span class="opt-code">2B · Kafelki taktyczne</span>
+              <span class="owner-badge">Wybór właściciela</span>
             </div>
             <p class="opt-desc">Główny przycisk 56px + 2 kwadratowe kafelki 52px z ikonami w ramkach; mocny, wojskowy charakter interfejsu.</p>
+          </div>
+          <div class="opt-card" data-part="p2" data-val="2A">
+            <div class="opt-header-row">
+              <span class="opt-code">2A · Zintegrowany z podpisem</span>
+              <span class="rec-badge">Wariant A</span>
+            </div>
+            <p class="opt-desc">Duży przycisk 60px z podtytułem wyjaśniającym cel + 2 równe pigułki 44px („Nie byłem”, „Przenieś dzień”) pod spodem.</p>
           </div>
           <div class="opt-card" data-part="p2" data-val="2C">
             <div class="opt-header-row">
@@ -560,7 +667,7 @@
           <div class="opt-card is-selected" data-part="p3" data-val="3A">
             <div class="opt-header-row">
               <span class="opt-code">3A · Kółka + pasek 6px</span>
-              <span class="rec-badge">Rekomendacja</span>
+              <span class="owner-badge">Wybór właściciela</span>
             </div>
             <p class="opt-desc">7 okrągłych wskaźników z ikonami ukończenia, podkreśleniem dzisiejszego dnia oraz płynnym poziomym paskiem postępu.</p>
           </div>
@@ -589,7 +696,7 @@
           <div class="opt-card is-selected" data-part="p4" data-val="4A">
             <div class="opt-header-row">
               <span class="opt-code">4A · Kalendarzyk + kreska</span>
-              <span class="rec-badge">Rekomendacja</span>
+              <span class="owner-badge">Wybór właściciela</span>
             </div>
             <p class="opt-desc">Karta z plakietką kalendarza 38×38px (CZW 19) oraz przerywana kasetka dla treningu uzupełniającego w dowolny dzień.</p>
           </div>
@@ -618,7 +725,7 @@
           <div class="opt-card is-selected" data-part="p5" data-val="5A">
             <div class="opt-header-row">
               <span class="opt-code">5A · Wiersz + karta sesji</span>
-              <span class="rec-badge">Rekomendacja</span>
+              <span class="owner-badge">Wybór właściciela</span>
             </div>
             <p class="opt-desc">Skrót stopera z czerwoną ikoną czasu oraz dedykowana karta ostatniej jednostki treningowej (RPE 7/10, ZALICZONY).</p>
           </div>
@@ -647,7 +754,7 @@
           <div class="opt-card is-selected" data-part="p6" data-val="6A">
             <div class="opt-header-row">
               <span class="opt-code">6A · Wystający romb 45°</span>
-              <span class="rec-badge">Rekomendacja ADR 0019</span>
+              <span class="owner-badge">Wybór właściciela</span>
             </div>
             <p class="opt-desc">Kultowy romb 36px obrócony o 45°, wystający o 18px ponad belkę z gradientem karmazynowym i poświatą żaru.</p>
           </div>
@@ -687,19 +794,41 @@
   <script>
     const iframe = document.getElementById('previewIframe');
     const summaryLabel = document.getElementById('activeConfigSummary');
+    const introNoticeBar = document.getElementById('introNoticeBar');
+    const introNoticeText = document.getElementById('introNoticeText');
+    const linkIntroExt = document.getElementById('linkIntroExt');
+    const btnBackToStart = document.getElementById('btnBackToStart');
 
-    // Aktualna konfiguracja ekranu
+    // Aktualna konfiguracja ekranu (domyślnie wybór właściciela: 1B-1 · 2B · 3A · 4A · 5A · 6A)
     const state = {
-      p1: '1A',
-      p2: '2A',
+      p1: '1B-1',
+      p2: '2B',
       p3: '3A',
       p4: '4A',
       p5: '5A',
       p6: '6A',
+      traceMode: 'single',
       theme: 'dark'
     };
 
+    let isShowingIntro = false;
+
+    function buildStartUrl() {
+      return `start-final.html?p1=${state.p1}&p2=${state.p2}&p3=${state.p3}&p4=${state.p4}&p5=${state.p5}&p6=${state.p6}&traceMode=${state.traceMode}&theme=${state.theme}`;
+    }
+
+    function returnToStartScreen() {
+      isShowingIntro = false;
+      introNoticeBar.style.display = 'none';
+      iframe.src = buildStartUrl();
+    }
+
     function updateIframe() {
+      if (isShowingIntro) {
+        returnToStartScreen();
+        return;
+      }
+
       // 1. Wyślij postMessage dla natychmiastowej podmiany bez przeładowania
       if (iframe.contentWindow) {
         iframe.contentWindow.postMessage({
@@ -717,7 +846,7 @@
       document.getElementById('labelP6').textContent = 'Wybrano: ' + state.p6;
 
       const themeTxt = state.theme === 'dark' ? 'Ciemny' : 'Jasny';
-      summaryLabel.textContent = `Aktywna kompozycja: ${state.p1} · ${state.p2} · ${state.p3} · ${state.p4} · ${state.p5} · ${state.p6} (${themeTxt})`;
+      summaryLabel.textContent = `Wybrana kompozycja: ${state.p1} · ${state.p2} · ${state.p3} · ${state.p4} · ${state.p5} · ${state.p6} (${themeTxt})`;
     }
 
     // Kliknięcia w kafelki alternatyw
@@ -736,20 +865,59 @@
       });
     });
 
+    // Przełącznik podtrybu 1B-2 (1 obieg vs stały puls)
+    const btnTraceSingle = document.getElementById('btnTraceSingle');
+    const btnTracePulse = document.getElementById('btnTracePulse');
+
+    btnTraceSingle.addEventListener('click', () => {
+      btnTraceSingle.classList.add('is-active');
+      btnTracePulse.classList.remove('is-active');
+      state.traceMode = 'single';
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'SET_TRACE_MODE', mode: 'single' }, '*');
+      }
+    });
+
+    btnTracePulse.addEventListener('click', () => {
+      btnTracePulse.classList.add('is-active');
+      btnTraceSingle.classList.remove('is-active');
+      state.traceMode = 'pulse';
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'SET_TRACE_MODE', mode: 'pulse' }, '*');
+      }
+    });
+
     // Przyciski akcji
     document.getElementById('btnPlayAnims').addEventListener('click', () => {
-      if (iframe.contentWindow) {
-        iframe.contentWindow.postMessage({ type: 'PLAY_ANIMATIONS' }, '*');
+      if (isShowingIntro) {
+        returnToStartScreen();
+        setTimeout(() => {
+          if (iframe.contentWindow) iframe.contentWindow.postMessage({ type: 'PLAY_ANIMATIONS' }, '*');
+        }, 350);
+      } else {
+        if (iframe.contentWindow) {
+          iframe.contentWindow.postMessage({ type: 'PLAY_ANIMATIONS' }, '*');
+        }
       }
     });
 
     document.getElementById('btnPlayIntroA').addEventListener('click', () => {
-      window.open('intro-a.html', '_blank');
+      isShowingIntro = true;
+      introNoticeText.textContent = 'Podgląd: Powitanie A (Iskra zbiegająca się w burzę)';
+      linkIntroExt.href = 'intro-a.html';
+      introNoticeBar.style.display = 'flex';
+      iframe.src = 'intro-a.html';
     });
 
     document.getElementById('btnPlayIntroB').addEventListener('click', () => {
-      window.open('intro-b.html', '_blank');
+      isShowingIntro = true;
+      introNoticeText.textContent = 'Podgląd: Powitanie B (Laserowy kontur krawędziowy i impuls)';
+      linkIntroExt.href = 'intro-b.html';
+      introNoticeBar.style.display = 'flex';
+      iframe.src = 'intro-b.html';
     });
+
+    btnBackToStart.addEventListener('click', returnToStartScreen);
 
     // Przełączanie motywu
     const btnDark = document.getElementById('btnThemeDark');
@@ -769,29 +937,38 @@
       updateIframe();
     });
 
-    // Przywrócenie rekomendacji
+    // Przywrócenie kompozycji właściciela (1B-1 · 2B · 3A · 4A · 5A · 6A)
     document.getElementById('btnResetAll').addEventListener('click', () => {
-      state.p1 = '1A';
-      state.p2 = '2A';
+      state.p1 = '1B-1';
+      state.p2 = '2B';
       state.p3 = '3A';
       state.p4 = '4A';
       state.p5 = '5A';
       state.p6 = '6A';
+      state.traceMode = 'single';
       state.theme = 'dark';
 
       btnDark.classList.add('is-active');
       btnLight.classList.remove('is-active');
+      btnTraceSingle.classList.add('is-active');
+      btnTracePulse.classList.remove('is-active');
 
+      // Zaktualizuj zaznaczenie kafelków
       document.querySelectorAll('.opt-card').forEach(c => {
+        const part = c.getAttribute('data-part');
         const val = c.getAttribute('data-val');
-        if (val.endsWith('A')) {
+        if (state[part] === val) {
           c.classList.add('is-selected');
         } else {
           c.classList.remove('is-selected');
         }
       });
 
-      updateIframe();
+      if (isShowingIntro) {
+        returnToStartScreen();
+      } else {
+        updateIframe();
+      }
     });
   </script>
 </body>
