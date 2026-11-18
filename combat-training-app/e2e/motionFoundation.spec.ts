@@ -131,6 +131,8 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     await expect(face).toHaveCSS('transform', reducedMotion === 'reduce' ? 'none' : 'matrix(0.98, 0, 0, 0.98, 0, 0)')
     await page.mouse.up()
     await app.open('/')
+    // Start swaps the quick start card for the empty state once data loads; press the settled link.
+    await expect(page.getByRole('heading', { name: 'Zacznij swój pierwszy trening', exact: true })).toBeVisible()
     const start = page.getByRole('link', { name: 'Utwórz plan', exact: true })
     await start.hover(); await page.mouse.down()
     await expect(start).toHaveCSS('transform', reducedMotion === 'reduce' ? 'none' : 'matrix(0.98, 0, 0, 0.98, 0, 0)')
