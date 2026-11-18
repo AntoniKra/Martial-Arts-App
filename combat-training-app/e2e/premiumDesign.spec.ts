@@ -42,6 +42,7 @@ for (const theme of ['dark', 'light'] as const) {
     const diamond = create.locator('.new-workout-diamond')
     await expect(diamond).toHaveCSS('width', '36px')
     await expect(diamond).toHaveCSS('transform', /matrix\(0\.707107, 0\.707107, -0\.707107, 0\.707107/)
+    await expect(create.getByText('Trening', { exact: true })).toHaveCSS('top', '2px')
     expect((await create.boundingBox())!.height).toBeGreaterThanOrEqual(44)
     await create.click()
     await expect(page.getByRole('dialog', { name: 'Nowy trening', exact: true })).toBeVisible()
