@@ -17,7 +17,7 @@ import { shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
 function SkillCard({ skill }: { skill: FocusSkill }) {
   const { sessions, focusSkills } = useWorkoutData()
   const summary = focusCardSummary(selectFocusSkillAssessments(skill, sessions.items))
-  return <li><Link to={routes.focusSkillProgress(skill.id)} className="block min-h-touch space-y-2 border border-bd bg-surface p-4 hover:bg-elevated">
+  return <li><Link to={routes.focusSkillProgress(skill.id)} className="motion-press block min-h-touch space-y-2 border border-bd bg-surface p-4 hover:bg-elevated">
     <div className="flex items-start justify-between gap-3"><div><h3 className="break-words font-display text-[15px] font-bold">{skill.name}</h3>
     <p className="break-words text-sm text-muted">{skill.criterion}</p></div>
     {summary.value !== null && <p className="shrink-0 font-display text-[28px] font-extrabold tabular-nums">{summary.value}<span className="text-sm text-muted">/5</span></p>}</div>
@@ -53,7 +53,7 @@ export function Component() {
       {archived.length > 0 && <CollapsibleCard title={<>{labels.archived} ({archived.length})</>}>
         <ul className="mt-2 space-y-3">{archived.map((skill) => <SkillCard key={skill.id} skill={skill} />)}</ul>
       </CollapsibleCard>}
-      {correction && <Link to={correction.source === 'manual' ? routes.editManualWorkout(correction.sessionId) : routes.workoutFeedback(correction.sessionId)} className="block space-y-1 border border-bd bg-surface p-3">
+      {correction && <Link to={correction.source === 'manual' ? routes.editManualWorkout(correction.sessionId) : routes.workoutFeedback(correction.sessionId)} className="motion-press block space-y-1 border border-bd bg-surface p-3">
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted">Ostatnia notatka · {Number(correction.workoutDate.slice(8))}.{correction.workoutDate.slice(5, 7)}</p>
         <p className="break-words text-sm">„{correction.problem}” → <strong>{correction.fix}</strong></p>
       </Link>}

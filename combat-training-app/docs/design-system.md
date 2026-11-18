@@ -92,6 +92,31 @@ Issue #189 ujednolica wygląd kontrolek bez zmiany danych, reguł, obliczeń ani
 
 Kontrolki używają tokenów obu motywów, widocznej obwódki fokusu i tekstowych lub geometrycznych oznaczeń stanu, niezależnych od koloru. Natywne radio zachowuje wybór strzałkami, checkbox i przełącznik — Spacją.
 
+## Ruch
+
+Fundament ruchu (#195) używa wspólnych tokenów CSS dla obu motywów:
+
+- `--motion-fast: 100ms` — wciśnięcie, zaznaczenie i zmiana statusu;
+- `--motion-med: 250ms` — rozwinięcie karty i obrót chevronu;
+- `--motion-slow: 300ms` — przełączenie zakresu wykresu;
+- `--ease-standard: cubic-bezier(0.2,0,0,1)`;
+- `--ease-out: cubic-bezier(0,0,0,1)` — pojawienie się treści;
+- `--ease-in: cubic-bezier(0.3,0,1,1)` — wyjście, gdy jest potrzebne.
+
+Ruch przekazuje informację po działaniu użytkownika lub zmianie statusu. Nie animujemy częstych wejść na ekrany. Nowe mikrointerakcje działają w obszarze `motion-controls`; Start i odtwarzacz pozostają poza nim. Ich istniejące przejścia korzystają ze wspólnych tokenów.
+
+Animujemy wyłącznie `transform` i `opacity`; kolor tekstu, tła i obramowania może mieć przejście koloru. Bez animowania `width`, `height`, `top`, `left`, `box-shadow` ani `filter`. `will-change` tylko punktowo, gdy potwierdzono potrzebę. Bez migania częściej niż 3 razy na sekundę (zwłaszcza czerwieni), kaskad wejścia (stagger), liczników od zera i dekoracyjnych animacji przy wejściu na ekran.
+
+Przycisk główny, kafelek wyboru i karta będąca przyciskiem lub linkiem przy wciśnięciu zmniejszają się do `scale(0.98)` w `--motion-fast` z `--ease-standard`. Zaznaczenie `ChoiceTile`, `MultiChoiceChip` i `Switch` zmienia kolory w 100 ms; znacznik ✓ przenika i skaluje się od 0.9 do 1. Uchwyt przełącznika przesuwa się przez `transform`. Nowa plakietka statusu Planu tygodnia i kółko dnia po zmianie stanu przenikają i skalują się od 0.9 do 1 w `--motion-fast`, bez animacji początkowego stanu.
+
+Postęp przy „Pokaż 12 tygodni” / „Pokaż mniej” używa jednego przejścia `--motion-slow`. Dotychczasowe słupki zmieniają wysokość przez `scaleY()` z początkiem na dole, a dodatkowe kolumny pojawiają się przez `opacity`. Wszystkie jednocześnie, bez animowania szerokości ani odstępów. Przy wejściu wykres jest od razu gotowy. Oba warianty ogłaszają „Pokazano 12 tygodni” / „Pokazano 5 tygodni” przez `aria-live="polite"`.
+
+`CollapsibleCard` zachowuje zamontowaną, ukrytą zawartość. Przy rozwinięciu treść przenika i przesuwa się od -4 px do 0 w `--motion-med`, a chevron obraca się w tym samym czasie.
+
+Przy `prefers-reduced-motion: reduce` nie ma skali wciśnięcia, ruchu znaczników, przesunięcia treści ani obrotu chevronu. Wykres, plakietki i kółka zmieniają się natychmiast. Stan nadal pokazują tekst, geometria i kolory; przejścia kolorów pozostają aktywne. Obsługa klawiatury, fokus i dane pozostają bez zmian.
+
+Sama zmiana motywu jest natychmiastowa: tekst i powierzchnie dostają nową paletę razem, bez przejściowego spadku kontrastu. Następne interakcje kontrolek nadal korzystają z przejść kolorów.
+
 ## Dostępność
 
 - minimalny obszar dotyku około 44×44 px;
