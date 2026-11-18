@@ -225,7 +225,8 @@
 }
 
 .timer-ring {
-  transition: stroke-dashoffset var(--motion-slow) var(--ease-standard);
+  /* Countdown, not feedback: linear over (almost) one tick so time reads as flowing evenly. */
+  transition: stroke-dashoffset 0.95s linear;
 }
 
 @media (prefers-reduced-motion: reduce) {
