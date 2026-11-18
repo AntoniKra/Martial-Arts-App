@@ -40,6 +40,14 @@ Kółka tygodnia (wspólne dla Startu i Postępu) mają 26 px, bez legendy: wyko
 
 Aktualne wartości obu motywów są w `src/styles/index.css`. `src/features/theme/themeColors.test.ts` pilnuje kontrastu co najmniej 4,5:1 dla wszystkich tokenów tekstu na każdym tle.
 
+## Menu główne (#198)
+
+Na telefonie i komputerze kolejność to **Start · Plan · Trening (+) · Postęp · Profil**. Wygląd paska, rombu, etykiet i wskaźnika aktywności pozostaje bez zmian. Start zachowuje dotychczasowy domek; Plan, Postęp i Profil używają konturowych ikon z zatwierdzonej makiety `design-lab/start-v2/final-approval.html` (gałąź `design/antigravity-lab`).
+
+Plan otwiera bieżący Plan tygodnia (`/progress/week`); datowane adresy `/progress/week/:weekStart` nadal działają i zaznaczają Plan. Postęp ma segmenty **Wykresy / Historia**; Historia (`/progress?tab=history`) zachowuje dziennik tygodniowy, wyszukiwanie i filtr tygodnia. Stary adres `/workouts?tab=history` przekierowuje z zachowaniem parametrów i fragmentu.
+
+Trening otwiera dotychczasowy arkusz wyboru z dostępem do stopera, wpisu spoza aplikacji, biblioteki ćwiczeń, kreatora „Nowy plan treningowy” i listy „Moje plany”. Lista, szczegóły i kreator zachowują adresy `/workouts…`; biblioteka działa pod `/exercises` i `/my-exercises`. Lista i biblioteka są podekranami z powrotem. Karta Startu „Stoper i inne plany” pozostaje bez przebudowy.
+
 ## Light mode
 
 Light mode używa przewagi jasnej szarości i bieli, grafitowego tekstu oraz tej samej czerwieni. Komponenty nie mogą zakładać na stałe ciemnego tła.
@@ -70,9 +78,9 @@ Profil używa spokojnych kart `surface` z ramką i etykietami sekcji wersalikami
 
 Issue #188 wprowadza pięć wzorców, wspólnych dla telefonu i komputera. `src/components/ScreenHeader.tsx` udostępnia nagłówki i ich warianty. Każdy ekran ma dokładnie jeden `h1`, również podczas ładowania i błędu.
 
-- **A — zakładka główna:** Postęp, Treningi i Profil. Archivo 28 px/800 po lewej, bez powrotu; opcjonalny krótki podtytuł i najwyżej jedna akcja ikoną 44×44 z dostępną nazwą.
+- **A — zakładka główna:** Plan tygodnia, Postęp i Profil. Archivo 28 px/800 po lewej, bez powrotu; opcjonalny krótki podtytuł i najwyżej jedna akcja ikoną 44×44 z dostępną nazwą.
 - **B — Start:** bez widocznego nagłówka; ukryty `h1` „Start”. Data pozostaje na głównej karcie.
-- **C — podekran:** strzałka 44×44 z nazwą „Wstecz” oraz tytuł Archivo 24 px/800 w jednym wierszu; najwyżej jedna akcja po prawej. Dotyczy m.in. Historii (`/workouts?tab=history`), listy planów (`/workouts?tab=plans`), szczegółów planu, Planu tygodnia, Stałego tygodnia, podstron Profilu, biblioteki, konfiguracji stopera i podglądów. Bez napisów „Wróć do…” i „‹ Postęp”. Powrót używa poprzedniego wpisu historii aplikacji (`navigate(-1)` przy dodatnim indeksie React Routera), a po wejściu bezpośrednim — stałej trasy nadrzędnej. Kroki wewnątrz kreatora wracają do poprzedniego kroku.
+- **C — podekran:** strzałka 44×44 z nazwą „Wstecz” oraz tytuł Archivo 24 px/800 w jednym wierszu; najwyżej jedna akcja po prawej. Dotyczy m.in. listy planów (`/workouts`, `/workouts?tab=plans`), szczegółów planu, Stałego tygodnia, podstron Profilu, biblioteki, konfiguracji stopera i podglądów. Bez napisów „Wróć do…” i „‹ Postęp”. Powrót używa poprzedniego wpisu historii aplikacji (`navigate(-1)` przy dodatnim indeksie React Routera), a po wejściu bezpośrednim — stałej trasy nadrzędnej. Kroki wewnątrz kreatora wracają do poprzedniego kroku.
 - **D — formularz:** ten sam układ, ale ✕ z nazwą „Zamknij”. Ręczny wpis, nowy/edytowany plan, konfiguracja i edycja ćwiczenia oraz formularz elementu do poprawy. Zamykanie przy zmianach otwiera pytanie o odrzucenie; Escape zachowuje zmiany i przywraca fokus. Zapis jest wyłącznie akcją główną na dole. Formularz osadzony lub modalny używa odpowiednio niższego poziomu nagłówka, zachowując jeden `h1` strony.
 - **E — trening na żywo:** tylko ✕ „Zakończ trening” 44×44 po lewej i wyśrodkowany postęp. Istniejące potwierdzenie, pauza oraz zasady wyjścia przed startem i podczas przygotowania pozostają wspólne dla planu i stopera.
 
@@ -133,7 +141,7 @@ Sama zmiana motywu jest natychmiastowa: tekst i powierzchnie dostają nową pale
 
 ## Migracja Figmy
 
-Aktualizacja premium (#184) ma pierwszeństwo nad opisami wcześniejszych migracji poniżej. Start nie ma widocznego nagłówka (zachowuje jeden ukryty h1 „Start”); data jest w etykiecie głównej karty z burzą we wszystkich stanach. Główna akcja pozostaje w dolnej połowie ekranu 390×844. Pasek tygodnia ma 6 px i gradient akcentu. Postęp: linie żaru 2 px na kafelkach, karmazynowe słupki, pięć gradientowych pól ocen, a bez ocen przerywana karta „Jeszcze bez ocen” / „Ocenisz po najbliższym treningu”. Kafelki „Więcej” są równe, około 112 px, opis przy dolnej krawędzi. Plan tygodnia: strzałka 44×44 i tytuł w jednym wierszu, ikona stałego tygodnia w kwadracie 40×40, pasek celu 6 px, pionowy gradient 3 px przy dziś, znacznik „wolne” przy pustych dniach. Na innym tygodniu przycisk „Dziś” z kalendarzem znajduje się przed strzałką następnego tygodnia i wraca do bieżącego. Modele, reguły i obliczenia pozostają bez zmian.
+Aktualizacja premium (#184) ma pierwszeństwo nad opisami wcześniejszych migracji poniżej. Start nie ma widocznego nagłówka (zachowuje jeden ukryty h1 „Start”); data jest w etykiecie głównej karty z burzą we wszystkich stanach. Główna akcja pozostaje w dolnej połowie ekranu 390×844. Pasek tygodnia ma 6 px i gradient akcentu. Postęp: linie żaru 2 px na kafelkach, karmazynowe słupki, pięć gradientowych pól ocen, a bez ocen przerywana karta „Jeszcze bez ocen” / „Ocenisz po najbliższym treningu”. Kafelki „Więcej” są równe, około 112 px, opis przy dolnej krawędzi. Plan tygodnia: nagłówek zakładki głównej bez strzałki, ikona stałego tygodnia w kwadracie 40×40, pasek celu 6 px, pionowy gradient 3 px przy dziś, znacznik „wolne” przy pustych dniach. Na innym tygodniu przycisk „Dziś” z kalendarzem znajduje się przed strzałką następnego tygodnia i wraca do bieżącego. Modele, reguły i obliczenia pozostają bez zmian.
 
 Postęp i Historia (#180) korzystają z HTML właściciela: Postęp C z wykresem „5 → 12 tygodni”, Historia jako dziennik tygodniowy. Postęp ma trzy kafelki, pasek dni, szerokie słupki z liczbami w jednym rzędzie, karty elementów do poprawy oraz kafelki szczegółów 2×2. Wykres nie ma legendy; kreska planu używa tokenu tekstu, bieżący słupek akcentu. Rozwinięcie trwa 300 ms, przy `prefers-reduced-motion` bez animacji. Historia ma zwarte wiersze rozwijające dotychczasowe szczegóły, przerwy między tygodniami i kalendarz miesiąca. Wyszukiwanie obejmuje nazwy i notatki. Zrzuty nie są częścią tego zadania, zgodnie z poleceniem właściciela.
 

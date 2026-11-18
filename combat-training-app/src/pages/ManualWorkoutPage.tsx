@@ -19,7 +19,7 @@ export function Component() {
   const prefill = !sessionId && location.state && typeof location.state === 'object' && 'weekEntry' in location.state
     ? readClubWorkoutPrefill(location.state.weekEntry, calculateWorkoutDate(new Date().toISOString(), Intl.DateTimeFormat().resolvedOptions().timeZone)) : undefined
   const returnTo = location.state && typeof location.state === 'object' && 'returnTo' in location.state && location.state.returnTo === '/'
-    ? routes.home : prefill ? routes.weekPlan(prefill.weekStart) : `${routes.workouts}?tab=history`
+    ? routes.home : prefill ? routes.weekPlan(prefill.weekStart) : routes.progressHistory
   if (sessions.status === 'loading') return <div className="space-y-4 p-4"><RouteScreenHeader variant="form" title={labels.title} fallback={returnTo} /><p role="status" className="text-muted">{labels.loading}</p></div>
   if (sessions.status === 'error' || sessions.invalidDocumentIds.length) return <div className="space-y-4 p-4">
     <RouteScreenHeader variant="form" title={labels.loadError} fallback={returnTo} /><Button onClick={retry}>{labels.retry}</Button>

@@ -55,9 +55,9 @@ test('shows current-criterion summaries per place, all assessments and active pr
   const nav = page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true })
   await expect(nav.getByRole('link', { name: 'Postęp', exact: true })).toHaveAttribute('aria-current', 'page')
   if (info.project.name === 'phone') {
-    await expect(nav.getByRole('link')).toHaveText(['Start', 'Postęp', 'Treningi', 'Profil'])
-    await expect(nav.getByRole('button', { name: 'Nowy', exact: true })).toBeVisible()
-    for (const link of [...await nav.getByRole('link').all(), nav.getByRole('button', { name: 'Nowy', exact: true })]) {
+    await expect(nav.getByRole('link')).toHaveText(['Start', 'Plan', 'Postęp', 'Profil'])
+    await expect(nav.getByRole('button', { name: 'Trening', exact: true })).toBeVisible()
+    for (const link of [...await nav.getByRole('link').all(), nav.getByRole('button', { name: 'Trening', exact: true })]) {
       const box = await link.boundingBox()
       expect(box?.width).toBeGreaterThanOrEqual(44)
       expect(box?.height).toBeGreaterThanOrEqual(44)
@@ -131,7 +131,8 @@ test('archives offline with two plans, keeps history, and restores without resto
   // transfer its IndexedDB primary lease and can defer server writes for five seconds.
   const nav = page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true })
   for (const name of ['Worek', 'Tarcze']) {
-    await nav.getByRole('link', { name: 'Treningi', exact: true }).click()
+    await nav.getByRole('button', { name: 'Trening', exact: true }).click()
+    await page.getByRole('dialog', { name: 'Nowy trening', exact: true }).getByRole('link', { name: /^Moje plany/ }).click()
     await page.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) })
       .getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     await expect(page.getByText('CEL', { exact: true })).toHaveCount(0)

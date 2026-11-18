@@ -38,7 +38,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.locator('.storm-decoration')).toHaveAttribute('aria-hidden', 'true')
     await expect(page.locator('.storm-decoration')).toHaveCSS('opacity', theme === 'dark' ? '1' : '0.6')
     const navigation = page.getByRole('navigation', { name: 'Główna nawigacja', exact: true })
-    const create = navigation.getByRole('button', { name: 'Nowy', exact: true })
+    const create = navigation.getByRole('button', { name: 'Trening', exact: true })
     const diamond = create.locator('.new-workout-diamond')
     await expect(diamond).toHaveCSS('width', '36px')
     await expect(diamond).toHaveCSS('transform', /matrix\(0\.707107, 0\.707107, -0\.707107, 0\.707107/)
@@ -103,7 +103,8 @@ for (const theme of ['dark', 'light'] as const) {
     await today.click()
     await expect(page).toHaveURL(`/progress/week/${current}`)
     await expect(today).toHaveCount(0)
-    await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Wstecz', exact: true })).toHaveCount(0)
+    await page.goBack()
     await expect(page).toHaveURL('/progress/week/2026-11-23')
   })
 }

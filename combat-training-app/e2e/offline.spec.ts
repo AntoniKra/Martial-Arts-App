@@ -17,7 +17,7 @@ test('opens workouts offline after the first visit with a service worker', async
     const response = await page.goto('/workouts')
     expect(response?.fromServiceWorker()).toBe(true)
     await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
-    await expect(page.getByRole('radio', { name: 'Plany', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Wstecz', exact: true })).toBeVisible()
   } finally {
     await context.setOffline(false)
   }

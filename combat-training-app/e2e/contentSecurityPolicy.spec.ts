@@ -38,7 +38,7 @@ test('enforces CSP without violations during sign-in, a workout save and offline
   await app.prepareOffline()
   await context.setOffline(true)
   try {
-    const offlineResponse = await page.goto('/workouts?tab=history')
+    const offlineResponse = await page.goto('/progress?tab=history')
     expect(offlineResponse?.fromServiceWorker()).toBe(true)
     expect(offlineResponse?.headers()['content-security-policy']).toBe(previewContentSecurityPolicy)
     await expect(page.getByRole('heading', { name: 'Plan CSP', exact: true })).toBeVisible()

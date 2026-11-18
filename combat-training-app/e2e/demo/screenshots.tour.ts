@@ -79,7 +79,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await open('/', 'Start')
     await expect(page.getByRole('region', { name: 'Ostatnia sesja', exact: true })).toContainText('Trening poza aplikacją · Technika')
     await capture(1, 'start', 'Start')
-    await nav().getByRole('button', { name: 'Nowy', exact: true }).click()
+    await nav().getByRole('button', { name: 'Trening', exact: true }).click()
     await expect(page.getByRole('dialog', { name: 'Nowy trening', exact: true })).toBeVisible()
     await capture(3, 'menu-nowy', 'Menu Nowy')
     await page.keyboard.press('Escape')
@@ -96,7 +96,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await open(`/workouts/${demoPlans[0].id}`, demoPlans[0].nameSnapshot)
     await capture(5, 'szczegoly-planu', 'Szczegóły planu')
 
-    await open('/workouts?tab=history', 'Treningi')
+    await open('/progress?tab=history', 'Postęp')
     await expect(page.getByRole('region', { name: 'Historia treningów', exact: true }).getByRole('article')).toHaveCount(demoSessions.length)
     await capture(14, 'historia', 'Historia — 14 tygodni, dwa tygodnie przerwy')
     await open('/workout-sessions/plan-week-13/feedback', demoPlans[0].nameSnapshot)
@@ -143,7 +143,8 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     // and service workers are blocked, so a hard navigation loses offline lazy routes.
     await nav().getByRole('link', { name: 'Profil', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
-    await nav().getByRole('link', { name: 'Treningi', exact: true }).click()
+    await nav().getByRole('button', { name: 'Trening', exact: true }).click()
+    await page.getByRole('dialog', { name: 'Nowy trening', exact: true }).getByRole('link', { name: /^Moje plany/ }).click()
     await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
     await page.getByRole('article').filter({ has: page.getByRole('heading', { name: demoPlans[0].nameSnapshot, exact: true }) })
       .getByRole('link', { name: 'Zobacz plan', exact: true }).click()

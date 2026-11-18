@@ -66,7 +66,7 @@ test('leaves a clean plan summary and a restored note without a dialog', async (
   await note(page).fill('Zmiana do cofniecia.')
   await note(page).fill('')
   await history(page).click()
-  await expect(page).toHaveURL('/workouts?tab=history')
+  await expect(page).toHaveURL('/progress?tab=history')
   await expect(dialog(page)).toHaveCount(0)
 })
 
@@ -77,7 +77,7 @@ for (const session of [current, quick]) {
     await app.open(`/workout-sessions/${session.id}/feedback`)
     await note(page).fill('Zapisana notatka.')
     await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-    await expect(page).toHaveURL('/workouts?tab=history')
+    await expect(page).toHaveURL('/progress?tab=history')
     await expect(dialog(page)).toHaveCount(0)
     await expect.poll(async () => (await app.readSessions()).find(({ id }) => id === session.id)?.note).toBe('Zapisana notatka.')
   })
@@ -149,7 +149,7 @@ test('protects focus ratings, other ratings and sparring intensity, allowing res
   await dialog(page).getByRole('button', { name: 'Wróć do edycji', exact: true }).click()
   await intensity.click()
   await history(page).click()
-  await expect(page).toHaveURL('/workouts?tab=history')
+  await expect(page).toHaveURL('/progress?tab=history')
   await expect(dialog(page)).toHaveCount(0)
 })
 
@@ -170,7 +170,7 @@ test('protects quick timer category and intensity and allows restored values', a
   await dialog(page).getByRole('button', { name: 'Wróć do edycji', exact: true }).click()
   await page.getByRole('button', { name: 'Sparing', exact: true }).click()
   await history(page).click()
-  await expect(page).toHaveURL('/workouts?tab=history')
+  await expect(page).toHaveURL('/progress?tab=history')
   await expect(dialog(page)).toHaveCount(0)
 })
 
@@ -184,6 +184,6 @@ test('saves RPE independently without making a clean feedback form dirty', async
   await expect(page.getByRole('status').filter({ hasText: 'Zapisano RPE 6' })).toBeVisible()
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
   await history(page).click()
-  await expect(page).toHaveURL('/workouts?tab=history')
+  await expect(page).toHaveURL('/progress?tab=history')
   await expect(dialog(page)).toHaveCount(0)
 })

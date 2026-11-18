@@ -92,7 +92,7 @@ test('uses centered keyboard-accessible tiles, empty custom minutes and distinct
   await expect(form.getByRole('slider')).toHaveAttribute('aria-valuetext', '9 · Prawie maksymalnie')
   await expect(form.getByText(/Wybierz pole lub przeciągnij/)).toHaveCount(0)
   await form.getByRole('button', { name: 'Zapisz', exact: true }).click()
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect.poll(async () => (await app.readSessions())[0]).toMatchObject({ durationSeconds: 4500, rpe: 9, disciplineKey: 'kickboxing' })
 })
 

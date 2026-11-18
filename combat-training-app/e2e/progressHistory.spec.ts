@@ -54,7 +54,7 @@ test('adds reusable improvement elements from progress and the manual entry with
 })
 
 test('groups journal weeks, collapses gaps, searches notes and selects calendar days', async ({ app, page }) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   for (const [id, workoutDate, note] of [['old', '2026-10-20', null], ['new', '2026-11-17', 'Powrót ręki po jabie']] as const) {
     await app.seedSession(manualWorkoutSession({ id, workoutDate, note, category: 'bag', parts: ['bag'], sparring: [] }))
   }

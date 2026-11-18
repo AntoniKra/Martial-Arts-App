@@ -60,7 +60,7 @@ for (const theme of ['dark', 'light'] as const) {
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-    await expect(page).toHaveURL('/workouts?tab=history')
+    await expect(page).toHaveURL('/progress?tab=history')
     await expect.poll(async () => (await app.readSessions()).filter((entry) => entry.source === 'plan').find(({ id }) => id === current.id)?.focusRatings[0]).toMatchObject({
       assessment: 4, previousCorrectionCheck: 'notChecked', criterionSnapshot: skill.criterion,
     })
@@ -84,7 +84,7 @@ test('saves a manual error and cue with the existing problem/fix fields', async 
   await card.getByRole('textbox', { name: 'Błąd', exact: true }).fill('Garda opada.')
   await card.getByRole('textbox', { name: 'Wskazówka', exact: true }).fill('Ręka do brody.')
   await page.getByRole('button', { name: 'Zapisz', exact: true }).click()
-  await expect(page).toHaveURL('/workouts?tab=history')
+  await expect(page).toHaveURL('/progress?tab=history')
   await expect.poll(async () => (await app.readSessions()).filter((entry) => entry.source === 'manual')[0]?.focusRatings[0]).toMatchObject({
     assessment: 3, previousCorrectionCheck: 'same', correction: { problem: 'Garda opada.', fix: 'Ręka do brody.' },
   })
@@ -96,7 +96,7 @@ test('returns to the application entry and falls back to history for a direct li
   await app.seedSession({ ...current, focusRatings: [{ ...focus, assessment: 3 }] })
   await app.open('/workout-sessions/clarity/feedback')
   await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
-  await expect(page).toHaveURL('/workouts?tab=history')
+  await expect(page).toHaveURL('/progress?tab=history')
   await app.open('/progress/focus-skills/guard')
   await page.locator('a[href="/workout-sessions/clarity/feedback"]').click()
   await page.getByRole('button', { name: 'Wstecz', exact: true }).click()

@@ -29,7 +29,7 @@ function LastSession({ session }: { session: HomeRecentSession }) {
   return <section aria-label={labels.last} className="flex flex-col gap-1.5 border border-bd bg-surface p-4">
     <div className="flex flex-wrap items-center justify-between gap-x-2">
       <h2 className={homeSectionLabel}>{labels.last} · {session.dateLabelPl}</h2>
-      <Link to={`${routes.workouts}?tab=history`} className={homeInlineLink}>{labels.history} ›</Link>
+      <Link to={routes.progressHistory} className={homeInlineLink}>{labels.history} ›</Link>
     </div>
     <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.12em] text-crimson-ink">{labels.discipline(session.disciplineKey)}</p>
     <Link to={path} state={session.isManual ? { returnTo: routes.home } : undefined} className="inline-flex min-h-touch items-center">
