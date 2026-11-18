@@ -7,6 +7,7 @@ import type { WeekActivity } from '../src/domain/week-plan/weekPlan.types'
 import { block, continuousExercise, workoutPlan } from '../src/test/workoutBuilders'
 import { manualWorkoutSession } from '../src/test/manualWorkoutBuilder'
 import { workoutSession } from '../src/test/workoutSessionBuilders'
+import { HOME_INTRO_SESSION_KEY } from '../src/features/home/homeIntro'
 
 test.use({ screenshot: 'off', trace: 'off', serviceWorkers: 'allow' })
 const instant = '2026-11-17T10:00:00Z', weekStart = '2026-11-16'
@@ -135,18 +136,91 @@ test('omits a missed class from the previous week and removes the reminder witho
 test('moves only this week with undo and consciously skips today from home', async ({ app, page }) => {
   await app.open('/'); await app.seedWeekPlan(week([club]))
   await expect(todayCard(page)).toBeVisible()
-  await todayCard(page).getByRole('button', { name: 'Przenieś na…', exact: true }).click()
+  await todayCard(page).getByRole('button', { name: 'Przenieś dzień', exact: true }).click()
   await todayCard(page).getByRole('combobox', { name: 'Przenieś na…', exact: true }).selectOption('3')
   await expect(todayCard(page)).toHaveCount(0)
   await expect(page.getByText('Dziś odpoczynek · następny: czw., muay thai 19:00', { exact: true })).toBeVisible()
+  await weekCard(page).getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
+  await expect(page.getByRole('listitem', { name: 'Czwartek 2026-11-19', exact: true })).toContainText('Muay Thai')
+  await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
+  // Returning mounts the same weekly actions; undo is local to that mounted view.
+  await app.open('/')
+  await app.seedWeekPlan(week([club]))
+  await expect(todayCard(page)).toBeVisible()
+  await todayCard(page).getByRole('button', { name: 'Przenieś dzień', exact: true }).click()
+  await todayCard(page).getByRole('combobox', { name: 'Przenieś na…', exact: true }).selectOption('3')
+  await expect(todayCard(page)).toHaveCount(0)
   await page.getByRole('button', { name: 'Cofnij', exact: true }).click()
   await expect(todayCard(page)).toBeVisible()
-  await todayCard(page).getByRole('button', { name: 'Nie idę dziś', exact: true }).click()
+  await todayCard(page).getByRole('button', { name: 'Nie byłem', exact: true }).click()
   await expect(todayCard(page)).toHaveCount(0)
   await expect(page.getByRole('img', { name: 'wtorek: nie byłem, dziś', exact: true })).toBeVisible()
   await expect.poll(async () => (await app.readWeekPlans()).find((plan) => plan.weekStart === weekStart)?.schedule?.[0]).toMatchObject({ day: 1, omitted: true })
+  await weekCard(page).getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
+  await expect(page.getByRole('listitem', { name: 'Wtorek 2026-11-17', exact: true })).toContainText('– Nie byłem')
   expect(await app.readRecurringWeek()).toBeUndefined()
 })
+
+for (const theme of ['dark', 'light'] as const) {
+  for (const ending of ['tap', 'timeout', 'reduced'] as const) {
+    test(`greeting is non-blocking, once per session, ending with ${ending} in ${theme}`, async ({ app, page }) => {
+      await app.open('/workouts'); await app.setTheme(theme); await app.seedPlan(plan)
+      await app.seedWeekPlan(week([club]))
+      await app.open('/')
+      await expect(todayCard(page)).toBeVisible()
+      const navigation = page.getByRole('navigation', { name: 'Główna nawigacja', exact: true })
+      await navigation.getByRole('link', { name: 'Treningi', exact: true }).click()
+      await expect(page.locator('.home-view')).toHaveCount(0)
+      await page.emulateMedia({ reducedMotion: ending === 'reduced' ? 'reduce' : 'no-preference' })
+      await page.evaluate((key) => sessionStorage.removeItem(key), HOME_INTRO_SESSION_KEY)
+      await page.clock.install({ time: new Date(instant) })
+      await page.clock.pauseAt(new Date(new Date(instant).getTime() + 1000))
+      await navigation.getByRole('link', { name: 'Start', exact: true }).click()
+      await page.clock.runFor(50)
+      const root = page.locator('.home-view')
+      const spark = todayCard(page).locator('.home-intro-spark')
+      await expect(todayCard(page).getByRole('link', { name: 'Wpisz trening po zajęciach', exact: true })).toBeVisible()
+      if (ending === 'reduced') {
+        await expect(root).not.toHaveAttribute('data-home-intro')
+        await expect(spark).toBeHidden()
+        expect(await page.evaluate((key) => sessionStorage.getItem(key), HOME_INTRO_SESSION_KEY)).toBeNull()
+        expect(await todayCard(page).evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0)
+        return
+      }
+      // React may commit the ready card after the first clock frame.
+      await expect.poll(async () => {
+        await page.clock.runFor(16)
+        return {
+          intro: await root.getAttribute('data-home-intro'),
+          claimed: await page.evaluate((key) => sessionStorage.getItem(key), HOME_INTRO_SESSION_KEY),
+          reduced: await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches),
+        }
+      }).toEqual({ intro: 'true', claimed: 'true', reduced: false })
+      await expect(spark).toHaveCSS('pointer-events', 'none')
+      await expect(spark).toHaveCSS('animation-duration', '0.8s')
+      if (ending === 'tap') {
+        // The same tap dismisses the greeting and executes the underlying action.
+        await todayCard(page).getByRole('button', { name: 'Przenieś dzień', exact: true }).click()
+        await expect(todayCard(page).getByRole('combobox', { name: 'Przenieś na…', exact: true })).toBeVisible()
+      } else {
+        await page.clock.runFor(800)
+      }
+      await expect(root).not.toHaveAttribute('data-home-intro')
+      await expect(spark).toBeHidden()
+      expect(await page.evaluate((key) => sessionStorage.getItem(key), HOME_INTRO_SESSION_KEY)).toBe('true')
+      // Auth/Firestore boot after a reload needs its normal timers again.
+      await page.clock.resume()
+      await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Treningi', exact: true }).click()
+      await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Start', exact: true }).click()
+      await expect(todayCard(page)).toBeVisible()
+      await expect(root).not.toHaveAttribute('data-home-intro')
+      await app.open('/')
+      await expect(todayCard(page)).toBeVisible()
+      await expect(root).not.toHaveAttribute('data-home-intro')
+      await expect(spark).toBeHidden()
+    })
+  }
+}
 
 test('keeps one empty-account card with two working entry points', async ({ app, page }) => {
   await app.open('/')

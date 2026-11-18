@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
-import { PlayIcon } from '@/components/icons/PlayIcon'
+import { HomeActionIcon } from './HomeActionIcon'
 import { formatPolishCount } from '@/domain/language/polishPlural'
 import type { FeaturedWorkoutPlanLoadState } from '../types/homeView.types'
 import { homeCardDate, homeLabels as labels } from '../homeLabels'
@@ -23,7 +23,7 @@ export function HomeQuickStart({ state, today, timerLabel, onRetry }: { state: F
         : state.status === 'error' ? <div role="alert" className="text-sm text-muted"><p>{state.message}</p><button type="button" onClick={onRetry} className={homeSecondaryButton}>{labels.retry}</button></div>
           : <p className="text-sm text-muted">{labels.emptyHint}</p>}
     </div>
-    {state.status === 'success' && <Link to={plan ? routes.workoutActive(plan.id) : routes.newWorkout} className={`${homePrimaryButton} mx-4`}><PlayIcon className="h-4 w-4" />{plan ? labels.startPlan : labels.createPlan}</Link>}
+    {state.status === 'success' && <Link to={plan ? routes.workoutActive(plan.id) : routes.newWorkout} className={`${homePrimaryButton} mx-4`}><span className="home-primary-icon"><HomeActionIcon kind="start" /></span>{plan ? labels.startPlan : labels.createPlan}</Link>}
     <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-2">
       <Link to={routes.quickTimer} className={`${homeSecondaryButton} min-h-[52px] flex-col gap-0.5 py-2 text-center text-sm`}>{labels.timer}<span className="text-xs font-medium tabular-nums text-muted">{timerLabel}</span></Link>
       <Link to={routes.newManualWorkout} state={{ returnTo: routes.home }} className={`${homeSecondaryButton} min-h-[52px] flex-col gap-0.5 py-2 text-center text-sm`}>{labels.clubWorkout}<span className="text-xs font-medium text-muted">{labels.afterClass}</span></Link>

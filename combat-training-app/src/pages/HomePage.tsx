@@ -49,6 +49,7 @@ export function HomePage() {
   return <>
     <WorkoutDataWarning />
     <HomeView
+      introReady={ready && sessionsReady && plans.status === 'ready'}
       today={today} empty={empty} timerLabel={timerLabel}
       primary={schedule ? <HomeTodayCards key={plan.weekStart} plan={plan} schedule={schedule} today={today} fallback={<>
         {schedule.next && <p className="text-sm text-muted">{homeLabels.rest(schedule.next.date ? { date: schedule.next.date, item: schedule.next.item } : null)}</p>}
