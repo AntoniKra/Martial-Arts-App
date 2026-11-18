@@ -13,6 +13,10 @@ for (const theme of ['dark', 'light'] as const) {
     await page.reload()
     await expect(setting.getByRole('radio', { name: '5 s', exact: true })).toBeChecked()
     await page.evaluate(() => document.fonts.ready)
+    // Colour transitions (motion tokens) must settle before axe samples contrast.
+    await page.evaluate(() => Promise.all(document.getAnimations()
+      .filter((animation) => Number.isFinite(animation.effect?.getComputedTiming().endTime ?? Infinity))
+      .map((animation) => animation.finished.catch(() => undefined))))
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
     if (process.env.CAPTURE_SCREENSHOTS === '1' && testInfo.project.name === 'phone') {
       const path = testInfo.outputPath(`preparation-setting-${theme}.png`)
