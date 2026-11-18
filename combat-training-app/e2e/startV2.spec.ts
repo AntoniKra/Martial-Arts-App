@@ -31,7 +31,7 @@ test('review regression: legacy exact-plan credits agree on Start, Progress and 
   await weekCard(page).getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
   await expect(page.getByText('0 z 1 treningów', { exact: true })).toBeVisible()
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
-  await expect(page.getByText('Plan', { exact: true })).toBeVisible()
+  await expect(page.locator('.status-badge').filter({ hasText: /^Plan$/ })).toBeVisible()
   expect((await app.readWeekPlans())[0].schedule).toBeUndefined()
   await page.getByRole('region', { name: 'Dowolny dzień · kiedy pasuje', exact: true }).getByRole('button', { name: 'Dodaj', exact: true }).click()
   const sheet = page.getByRole('form', { name: 'Dodaj lub edytuj trening', exact: true })

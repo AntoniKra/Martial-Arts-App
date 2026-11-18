@@ -40,17 +40,28 @@ export function NavHomeIcon({ className, size = 20 }: NavIconProps) {
   )
 }
 
-export function NavWorkoutsIcon({ className, size = 20 }: NavIconProps) {
-  return (
-    <NavIconBase className={className} size={size}>
-      <line x1="8" y1="6" x2="21" y2="6" />
-      <line x1="8" y1="12" x2="21" y2="12" />
-      <line x1="8" y1="18" x2="21" y2="18" />
-      <line x1="3" y1="6" x2="3.01" y2="6" />
-      <line x1="3" y1="12" x2="3.01" y2="12" />
-      <line x1="3" y1="18" x2="3.01" y2="18" />
-    </NavIconBase>
-  )
+export function NavPlanIcon({ className, size = 20 }: NavIconProps) {
+  return <NavIconBase className={className} size={size}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+    <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.2" />
+    <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.2" />
+    <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.2" />
+  </NavIconBase>
+}
+
+export function NavProgressIcon({ className, size = 20 }: NavIconProps) {
+  return <NavIconBase className={className} size={size}>
+    <path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" /><path d="M4 20h16" />
+  </NavIconBase>
+}
+
+export function NavProfileIcon({ className, size = 20 }: NavIconProps) {
+  return <NavIconBase className={className} size={size}>
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+  </NavIconBase>
 }
 
 export function NavCreateIcon({ className, size = 20 }: NavIconProps) {
@@ -61,17 +72,17 @@ export function NavCreateIcon({ className, size = 20 }: NavIconProps) {
   )
 }
 
-export function NavigationIcon({ id }: { id: 'home' | 'workouts' | 'newWorkout' | 'progress' | 'profile' }) {
+export function NavigationIcon({ id }: { id: 'home' | 'plan' | 'newWorkout' | 'progress' | 'profile' }) {
   switch (id) {
     case 'home':
       return <NavHomeIcon />
-    case 'workouts':
-      return <NavWorkoutsIcon />
+    case 'plan':
+      return <NavPlanIcon />
     case 'newWorkout':
       return <NavCreateIcon />
     case 'progress':
-      return <NavIconBase><path d="M4 3v17h17" /><circle cx="8" cy="14" r="1.5" /><path d="m12 8 2-2 2 2-2 2zM18 12h3v3h-3z" /></NavIconBase>
+      return <NavProgressIcon />
     case 'profile':
-      return <NavIconBase><circle cx="12" cy="7" r="4" /><path d="M4 21v-2a8 8 0 0 1 16 0v2" /></NavIconBase>
+      return <NavProfileIcon />
   }
 }

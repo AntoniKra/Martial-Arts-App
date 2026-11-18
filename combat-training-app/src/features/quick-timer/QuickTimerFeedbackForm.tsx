@@ -52,7 +52,7 @@ export function QuickTimerFeedbackForm({ session, pending, rpeCard, onSave }: {
   const metricLabels = [feedbackLabels.metrics[0], feedbackLabels.metrics[1], labels.roundsMetric]
   return <UnsavedPlanChangesGuard isDirty={isDirty} allowLeaveRef={allowLeave} description={feedbackLabels.discardDescription}>
     <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
-    <RouteScreenHeader title={feedbackLabels.title} fallback={`${routes.workouts}?tab=history`} />
+    <RouteScreenHeader title={feedbackLabels.title} fallback={routes.progressHistory} />
     <header className="space-y-3">
       <p className="font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-crimson-ink">{feedbackLabels.status[session.status]}</p>
       <h2 className="font-display text-[22px] font-extrabold text-ink">{workoutSessionName(session)}</h2>

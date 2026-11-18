@@ -57,7 +57,7 @@ test('reuses a personal exercise across two rated plans, keeps one focus trend a
   await page.clock.fastForward(5_000); await app.expectWorkoutSaved()
   await page.getByRole('article', { name: skillName, exact: true }).getByRole('radio', { name: /^3 / }).check()
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
 
   await app.open('/workouts/new'); await beginPlan(page, 'Plan B')
   await expect(page.getByRole('region', { name: 'Ostatnio używane', exact: true })).toContainText(exerciseName)
@@ -79,7 +79,7 @@ test('reuses a personal exercise across two rated plans, keeps one focus trend a
   await page.getByRole('article', { name: skillName, exact: true }).getByRole('radio', { name: /^4 / }).check()
   await capture(page, info, 'previous-assessment')
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect.poll(async () => (await app.readSessions()).filter((session) => session.source === 'plan')
     .flatMap((session) => session.focusRatings).filter((rating) => rating.assessment !== null).length).toBe(2)
   await app.open('/progress')

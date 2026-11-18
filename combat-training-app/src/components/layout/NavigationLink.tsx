@@ -33,7 +33,8 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
           <span aria-hidden="true" className="new-workout-diamond" />
           <span className="relative text-on-accent [&>svg]:size-6">{icon}</span>
         </span>
-        <span className="font-display text-[9px] font-semibold uppercase tracking-[0.1em]">{item.label}</span>
+        {/* Sits 2 px lower than the other labels so it clears the diamond. */}
+        <span className="relative top-0.5 font-display text-[9px] font-semibold uppercase tracking-[0.1em]">{item.label}</span>
         {active ? (
           <span
             aria-hidden="true"

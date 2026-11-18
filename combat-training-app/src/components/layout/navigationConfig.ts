@@ -1,8 +1,8 @@
 import { routes } from '@/app/routes'
 
-export type NavigationItemId = 'home' | 'workouts' | 'newWorkout' | 'progress' | 'profile'
+export type NavigationItemId = 'home' | 'plan' | 'newWorkout' | 'progress' | 'profile'
 
-export type NavigationMatchMode = 'exact' | 'workoutsSection' | 'section' | 'newWorkout'
+export type NavigationMatchMode = 'exact' | 'progress' | 'section' | 'newWorkout'
 
 export interface NavigationItemConfig {
   id: NavigationItemId
@@ -20,8 +20,6 @@ export function normalizeNavigationPathname(pathname: string): string {
 export function isNavigationItemActive(pathname: string, item: NavigationItemConfig): boolean {
   const normalizedPath = normalizeNavigationPathname(pathname)
   const normalizedTarget = normalizeNavigationPathname(item.to)
-  const normalizedWorkouts = normalizeNavigationPathname(routes.workouts)
-  const normalizedNewWorkout = normalizeNavigationPathname(routes.newWorkout)
 
   switch (item.match) {
     case 'newWorkout':
@@ -30,16 +28,9 @@ export function isNavigationItemActive(pathname: string, item: NavigationItemCon
       return normalizedPath === normalizedTarget || normalizedPath.startsWith(`${normalizedTarget}/`)
     case 'exact':
       return normalizedPath === normalizedTarget
-    case 'workoutsSection':
-      if (normalizedPath === routes.myExercises) return true
-      if (normalizedPath === normalizedWorkouts) return true
-      if (
-        normalizedPath.startsWith(`${normalizedWorkouts}/`) &&
-        !normalizedPath.startsWith(normalizedNewWorkout)
-      ) {
-        return true
-      }
-      return false
+    case 'progress':
+      return (normalizedPath === normalizedTarget || normalizedPath.startsWith(`${normalizedTarget}/`)) &&
+        normalizedPath !== routes.plan && !normalizedPath.startsWith(`${routes.plan}/`)
     default:
       return normalizedPath === normalizedTarget
   }
@@ -54,24 +45,24 @@ export const primaryNavigationItems: readonly NavigationItemConfig[] = [
     mobileVariant: 'default',
   },
   {
-    id: 'progress',
-    to: routes.progress,
-    label: 'Postęp',
+    id: 'plan',
+    to: routes.plan,
+    label: 'Plan',
     match: 'section',
     mobileVariant: 'default',
   },
   {
     id: 'newWorkout',
     to: routes.newWorkout,
-    label: 'Nowy',
+    label: 'Trening',
     match: 'newWorkout',
     mobileVariant: 'create',
   },
-  { id: 'workouts', to: routes.workouts, label: 'Treningi', match: 'workoutsSection', mobileVariant: 'default' },
+  { id: 'progress', to: routes.progress, label: 'Postęp', match: 'progress', mobileVariant: 'default' },
   { id: 'profile', to: routes.profile, label: 'Profil', match: 'section', mobileVariant: 'default' },
 ] as const
 
-export const mobileNavigationOrder = ['home', 'progress', 'newWorkout', 'workouts', 'profile'] as const satisfies readonly NavigationItemId[]
+export const mobileNavigationOrder = ['home', 'plan', 'newWorkout', 'progress', 'profile'] as const satisfies readonly NavigationItemId[]
 
 function getNavigationItemById(id: NavigationItemId): NavigationItemConfig {
   const item = primaryNavigationItems.find((entry) => entry.id === id)

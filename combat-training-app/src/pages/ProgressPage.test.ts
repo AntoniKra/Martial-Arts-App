@@ -12,7 +12,7 @@ vi.mock('@/application/workoutDataContext', () => ({
     focusSkills: { status: 'ready', items: [{ id: 'guard', name: 'Guard', criterion: 'Chin',
       archivedAt: '2026-11-10T10:00:00.000Z' }], complete: true, pendingIds: new Set(), invalidDocumentIds: [], hasPendingWrites: false },
     sessions: { status: 'ready', items: [], complete: true, invalidDocumentIds: [] },
-    plans: { hasPendingWrites: false },
+    plans: { status: 'ready', items: [], invalidDocumentIds: [], hasPendingWrites: false },
   }),
 }))
 
@@ -22,4 +22,13 @@ it('explains the lack of active skills before the archived section without hidin
   expect(html.indexOf('Brak aktywnych elementów do poprawy')).toBeLessThan(html.indexOf('class="disclosure-card'))
   expect(html).toContain('Schowane (1)')
   expect(html).toContain('/progress/focus-skills/guard')
+})
+
+it('embeds the journal in Progress with one header and keeps charts in the other segment', () => {
+  const html = renderToStaticMarkup(createElement(MemoryRouter, { initialEntries: ['/progress?tab=history'] }, createElement(Component)))
+  expect(html.match(/<h1[ >]/g)).toHaveLength(1)
+  expect(html).toContain('Zakładki Postępu')
+  expect(html).toContain('Historia treningów')
+  expect(html).toContain('Szukaj w nazwach i notatkach')
+  expect(html).not.toContain('Ostatnie tygodnie')
 })
