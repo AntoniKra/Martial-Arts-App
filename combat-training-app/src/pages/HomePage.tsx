@@ -18,7 +18,6 @@ import { HomeQuickStart } from '@/features/home/components/HomeQuickStart'
 import { HomeWeekCard } from '@/features/home/components/HomeWeekCard'
 import { homeLabels } from '@/features/home/homeLabels'
 import { calculateWeekPlanProgress } from '@/domain/week-plan/weekPlanProgress'
-import { calculateWeeklySummary } from '@/domain/weekly-summary/weeklySummary'
 import { createQuickTimerStorage } from '@/infrastructure/storage/quickTimerStorage'
 import { defaultQuickTimerDraft } from '@/domain/quick-timer/quickTimer'
 import { formatSecondsAsClock } from '@/domain/time/formatDuration'
@@ -42,7 +41,10 @@ export function HomePage() {
   const timerLabel = `${timer.roundCount} × ${formatSecondsAsClock(timer.roundDurationSeconds)}`
   const quickStart = <HomeQuickStart today={today} state={featuredPlanLoadState} timerLabel={timerLabel} onRetry={retry} />
   const progress = calculateWeekPlanProgress(plan.weekStart, plan, sessions.items)
-  const minutes = Math.round(calculateWeeklySummary(plan.weekStart, sessions.items).durationSeconds / 60)
+  const disciplines = [...new Set((plan.schedule ?? []).flatMap((item) => item.kind === 'club' ? [item.disciplineKey]
+    : item.kind === 'own' && item.workoutPlanId ? plans.items.filter((candidate) => candidate.id === item.workoutPlanId).map((candidate) => candidate.disciplineKey) : []))]
+  if (!disciplines.length && latest) disciplines.push(latest.disciplineKey)
+  const disciplineTag = `${disciplines.length ? `${disciplines.map(homeLabels.discipline).join(' / ')} · ` : ''}${homeLabels.season(today.slice(0, 4))}`
   const empty = ready && sessionsReady && plans.status === 'ready' && plans.complete && !plans.invalidDocumentIds.length
     && !plans.items.length && !sessions.items.length && !plan.items.length && !plan.schedule?.length && !plan.targetCount
     && !recurringWeeks.items[0]?.items.length && !weekPlans.items.some((week) => week.items.length || week.schedule?.length)
@@ -50,11 +52,8 @@ export function HomePage() {
     <WorkoutDataWarning />
     <HomeView
       introReady={ready && sessionsReady && plans.status === 'ready'}
-      today={today} empty={empty} timerLabel={timerLabel}
-      primary={schedule ? <HomeTodayCards key={plan.weekStart} plan={plan} schedule={schedule} today={today} fallback={<>
-        {schedule.next && <p className="text-sm text-muted">{homeLabels.rest(schedule.next.date ? { date: schedule.next.date, item: schedule.next.item } : null)}</p>}
-        {quickStart}
-      </>} /> : <>
+      disciplineTag={disciplineTag} today={today} empty={empty} timerLabel={timerLabel}
+      primary={schedule ? <HomeTodayCards key={plan.weekStart} plan={plan} schedule={schedule} today={today} fallback={quickStart} /> : <>
         {quickStart}
         {!ready ? selected.status !== 'ready' ? <WeekPlanDataMessage status={selected.status} /> : <div role="status" className="text-sm text-muted">
           <p>{recurringWeeks.status === 'loading' ? homeLabels.loadingPlan : scheduleLabels.failed}</p>
@@ -66,7 +65,7 @@ export function HomePage() {
         {[plan, ...weekPlans.items.filter((week) => week.weekStart !== plan.weekStart)].map((week) => <HomeOverdueWeek key={week.weekStart} plan={week} entries={schedule.overdue.filter((entry) => entry.weekStart === week.weekStart)} today={today} />)}
       </section>}
       wellbeing={uid && profile.status === 'ready' && hasWellbeingConsent(profile.items[0]) ? <Suspense fallback={null}><WellbeingHomeCard key={uid} uid={uid} /></Suspense> : null}
-      weekPlan={schedule && <><HomeWeekCard today={today} weekStart={plan.weekStart} schedule={schedule} progress={progress} minutes={minutes} /><HomePendingWeek />
+      weekPlan={schedule && <><HomeWeekCard today={today} weekStart={plan.weekStart} schedule={schedule} progress={progress} /><HomePendingWeek />
         {generationError && <div role="alert" className="text-sm text-crimson-ink"><p>{scheduleLabels.failed}</p><button type="button" className={homeSecondaryButton} onClick={retryGeneration}>{homeLabels.retry}</button></div>}</>}
       rpeReminder={uid && sessions.status === 'ready' ? <RpeReminder key={uid} uid={uid} sessions={sessions.items} /> : null}
       featuredPlanLoadState={featuredPlanLoadState}

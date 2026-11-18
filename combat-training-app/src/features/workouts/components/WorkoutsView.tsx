@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
+import { homeLabels } from '@/features/home/homeLabels'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 import { HistoryJournal } from './HistoryJournal'
@@ -208,6 +209,7 @@ export function WorkoutsView({
       <div className="mx-auto w-full max-w-lg shrink-0 px-4 pt-6 md:max-w-4xl md:pt-2">
         {tab === 'plans' && <>
           <RouteScreenHeader title={plansSubscreen ? 'Plany treningowe' : 'Treningi'} fallback={routes.home} />
+          <Link to={routes.quickTimer} className="mr-4 inline-flex min-h-touch items-center text-sm font-semibold text-crimson-ink">{homeLabels.timerRounds}</Link>
           <Link to={routes.myExercises} className="inline-flex min-h-touch items-center text-sm font-semibold text-crimson-ink">Moje ćwiczenia</Link>
         </>}
         {planDeleted ? (
