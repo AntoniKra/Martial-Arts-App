@@ -10,6 +10,8 @@
   --ease-standard: cubic-bezier(0.2,0,0,1);
   --ease-out: cubic-bezier(0,0,0,1);
   --ease-in: cubic-bezier(0.3,0,1,1);
+  /* Countdown ring: linear over almost one tick so time reads as flowing evenly. */
+  --motion-countdown: 950ms;
 }
 
 .transition-colors, .transition-all {
@@ -225,8 +227,7 @@
 }
 
 .timer-ring {
-  /* Countdown, not feedback: linear over (almost) one tick so time reads as flowing evenly. */
-  transition: stroke-dashoffset 0.95s linear;
+  transition: stroke-dashoffset var(--motion-countdown) linear;
 }
 
 @media (prefers-reduced-motion: reduce) {
