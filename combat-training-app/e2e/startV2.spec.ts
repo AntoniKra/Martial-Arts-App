@@ -142,7 +142,7 @@ test('moves only this week with undo and consciously skips today from home', asy
   await expect(page.getByText('Dziś odpoczynek · następny: czw., muay thai 19:00', { exact: true })).toBeVisible()
   await weekCard(page).getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
   await expect(page.getByRole('listitem', { name: 'Czwartek 2026-11-19', exact: true })).toContainText('Muay Thai')
-  await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Start', exact: true }).click()
   // Returning mounts the same weekly actions; undo is local to that mounted view.
   await app.open('/')
   await app.seedWeekPlan(week([club]))

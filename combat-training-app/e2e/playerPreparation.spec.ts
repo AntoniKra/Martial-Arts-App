@@ -13,6 +13,8 @@ for (const theme of ['dark', 'light'] as const) {
     await page.reload()
     await expect(setting.getByRole('radio', { name: '5 s', exact: true })).toBeChecked()
     await page.evaluate(() => document.fonts.ready)
+    // Sign-out is briefly disabled (40% opacity) after reload; its fade back would start after the wait below.
+    await expect(page.getByRole('button', { name: 'Wyloguj', exact: true })).toBeEnabled()
     // Colour transitions (motion tokens) must settle before axe samples contrast.
     await page.evaluate(() => Promise.all(document.getAnimations()
       .filter((animation) => Number.isFinite(animation.effect?.getComputedTiming().endTime ?? Infinity))
