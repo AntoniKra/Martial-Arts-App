@@ -1378,6 +1378,146 @@
       cursor: pointer;
     }
 
+    .nav-diamond-6a1.mode-app {
+      top: -18px;
+    }
+    .nav-diamond-6a1.mode-lowered {
+      top: -9px;
+    }
+
+    /* =========================================================================
+       EKRAN POMOCNICZY (A): DOLNY ARKUSZ PO KLIKNIĘCIU „+” (TRENING)
+       ========================================================================= */
+    .plus-sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+    }
+    .plus-sheet-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .plus-action-sheet {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--app-surface);
+      border-top: 1px solid var(--app-border);
+      border-radius: 16px 16px 0 0;
+      padding: 16px 18px 24px;
+      z-index: 101;
+      transform: translateY(100%);
+      transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.6);
+    }
+    .plus-sheet-backdrop.is-open .plus-action-sheet {
+      transform: translateY(0);
+    }
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--app-border);
+      border-radius: 2px;
+      margin: 0 auto 6px;
+    }
+    .sheet-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sheet-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .sheet-close-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      color: var(--app-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .sheet-choices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sheet-choice-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      text-align: left;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+    .sheet-choice-btn:hover {
+      background: color-mix(in srgb, var(--app-elevated) 75%, var(--app-ink));
+      border-color: var(--app-crimson);
+    }
+    .choice-icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      background: rgba(193, 18, 47, 0.12);
+      border: 1px solid rgba(193, 18, 47, 0.35);
+      color: var(--app-crimson-ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .choice-texts {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+    .choice-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--app-ink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .choice-badge {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: var(--app-ember);
+      color: #fff;
+      padding: 1px 5px;
+      border-radius: 2px;
+    }
+    .choice-desc {
+      font-size: 11px;
+      color: var(--app-muted);
+      line-height: 1.3;
+    }
+
     /* =========================================================================
        EKRAN HISTORII (PODGLĄD DOCELOWYCH WIDOKÓW DLA NAV-A, NAV-B, NAV-C)
        ========================================================================= */
@@ -2006,7 +2146,7 @@
       <!-- Slot centralnego przycisku (6A-1, 6A-2, 6A-3, 6B, 6C) -->
       <!-- 6A-1: Obecny romb obniżony o 9 px (Wybór właściciela, mniej wystaje ponad pasek) -->
       <div id="slotNav6A1" class="variant-6a1">
-        <button class="nav-diamond-6a1" type="button" aria-label="Szybki trening" onclick="showToast('Szybki start: nowy trening')">
+        <button class="nav-diamond-6a1" type="button" aria-label="Szybki trening" onclick="togglePlusSheet()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
@@ -2017,7 +2157,7 @@
       <!-- 6A-2: Romb wkomponowany ze stylem 6A (Flush Notch Diamond) -->
       <div id="slotNav6A2" class="variant-6a2" style="display: none;">
         <div class="nav-notch-base-6a2"></div>
-        <button class="nav-diamond-6a2" type="button" aria-label="Szybki trening" onclick="showToast('Szybki start: nowy trening')">
+        <button class="nav-diamond-6a2" type="button" aria-label="Szybki trening" onclick="togglePlusSheet()">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
@@ -2028,7 +2168,7 @@
       <!-- 6A-3: Taktyczny kanciasty heksagon / ścięty romb (Tactical Chamfer Diamond) -->
       <div id="slotNav6A3" class="variant-6a3" style="display: none;">
         <div class="nav-diamond-6a3-border"></div>
-        <button class="nav-diamond-6a3" type="button" aria-label="Szybki trening" onclick="showToast('Szybki start: nowy trening')">
+        <button class="nav-diamond-6a3" type="button" aria-label="Szybki trening" onclick="togglePlusSheet()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
@@ -2038,7 +2178,7 @@
 
       <!-- Warianty legacy 6A, 6B, 6C -->
       <div id="slotNav6A" class="variant-6a" style="display: none;">
-        <button class="nav-diamond-6a" type="button" aria-label="Szybki trening" onclick="showToast('Szybki start: nowy trening')">
+        <button class="nav-diamond-6a" type="button" aria-label="Szybki trening" onclick="togglePlusSheet()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
@@ -2167,10 +2307,76 @@
         </article>
       </div>
     </div>
+
+    <!-- ===================================================================
+         NAKŁADKA: DOLNY ARKUSZ PO KLIKNIĘCIU „+” (TRENING)
+         =================================================================== -->
+    <div class="plus-sheet-backdrop" id="plusSheetBackdrop" onclick="handlePlusBackdropClick(event)" role="dialog" aria-modal="true" aria-labelledby="startSheetTitle">
+      <div class="plus-action-sheet" id="plusActionSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header-row">
+          <h2 class="sheet-title" id="startSheetTitle">Nowy trening / rejestracja</h2>
+          <button class="sheet-close-btn" type="button" onclick="closePlusSheet()" aria-label="Zamknij">✕</button>
+        </div>
+
+        <div class="sheet-choices-list">
+          <button class="sheet-choice-btn" type="button" onclick="closePlusSheet(); showToast('Otwarto formularz: Wpisz trening po zajęciach');">
+            <div class="choice-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </div>
+            <div class="choice-texts">
+              <div class="choice-title">
+                Wpisz trening po zajęciach
+                <span class="choice-badge">Najczęstsze</span>
+              </div>
+              <div class="choice-desc">Klub, sparingi, zadaniówki i praca na worku (szybki zapis)</div>
+            </div>
+          </button>
+
+          <button class="sheet-choice-btn" type="button" onclick="closePlusSheet(); showToast('Uruchomiono odtwarzacz: Rozpocznij plan');">
+            <div class="choice-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </div>
+            <div class="choice-texts">
+              <div class="choice-title">Rozpocznij plan</div>
+              <div class="choice-desc">Uruchom zaplanowaną jednostkę z timerem rund i przerw</div>
+            </div>
+          </button>
+
+          <button class="sheet-choice-btn" type="button" onclick="closePlusSheet(); showToast('Otwarto: Szybki stoper rund i przerw');">
+            <div class="choice-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="14" r="8"/><path d="M12 2v4M9 2h6M12 10v4l3 2"/>
+              </svg>
+            </div>
+            <div class="choice-texts">
+              <div class="choice-title">Stoper rund</div>
+              <div class="choice-desc">Czysty stoper interwałowy do walki bez konieczności planu</div>
+            </div>
+          </button>
+
+          <button class="sheet-choice-btn" type="button" onclick="closePlusSheet(); showToast('Otwarto kreator: Nowy plan treningowy');">
+            <div class="choice-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3H4v18h16V3h-4M8 3v4h8V3H8Zm0 9h8m-8 5h8"/>
+              </svg>
+            </div>
+            <div class="choice-texts">
+              <div class="choice-title">Nowy plan treningowy</div>
+              <div class="choice-desc">Stwórz nowy schemat treningowy z bloków i ćwiczeń</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script>
-    // System zarządzania wariantami modułowymi (Wybór właściciela: 1B-1 · 2B-1 · 3A · 4A · 5A · 6A-1 · NAV-A)
+    // System zarządzania wariantami modułowymi (Wybór właściciela: 1B-1 · 2B-2 · 3A · 4A · 5A · 6A-1 · NAV-A)
     const currentConfig = {
       p1: '1B-1',
       p2: '2B',
@@ -2178,7 +2384,7 @@
       p4: '4A',
       p5: '5A',
       p6: '6A-1',
-      color2b: '2B-1',
+      color2b: '2B-2',
       nav: 'NAV-A',
       traceMode: 'single',
       theme: 'dark'
@@ -2371,6 +2577,23 @@
       if (overlay) overlay.classList.remove('is-open');
     }
 
+    // Interakcje nakładki dolnego arkusza „+”
+    function togglePlusSheet() {
+      const backdrop = document.getElementById('plusSheetBackdrop');
+      if (backdrop) backdrop.classList.toggle('is-open');
+    }
+    function openPlusSheet() {
+      const backdrop = document.getElementById('plusSheetBackdrop');
+      if (backdrop) backdrop.classList.add('is-open');
+    }
+    function closePlusSheet() {
+      const backdrop = document.getElementById('plusSheetBackdrop');
+      if (backdrop) backdrop.classList.remove('is-open');
+    }
+    function handlePlusBackdropClick(e) {
+      if (e.target === document.getElementById('plusSheetBackdrop')) closePlusSheet();
+    }
+
     // Obsługa kliknięć w zakładki dolnego menu
     function handleNavTab2Click() {
       if (currentConfig.nav === 'NAV-C') {
@@ -2427,6 +2650,16 @@
           showHistoryOverlay(event.data.navVariant || currentConfig.nav);
         } else if (event.data.type === 'HIDE_HISTORY_VIEW') {
           closeHistoryOverlay();
+        } else if (event.data.type === 'OPEN_PLUS_SHEET') {
+          openPlusSheet();
+        } else if (event.data.type === 'CLOSE_PLUS_SHEET') {
+          closePlusSheet();
+        } else if (event.data.type === 'SET_DIAMOND_MODE') {
+          const btn = document.querySelector('.nav-diamond-6a1');
+          if (btn) {
+            btn.classList.toggle('mode-app', event.data.mode === 'app');
+            btn.classList.toggle('mode-lowered', event.data.mode === 'lowered');
+          }
         }
       }
     });

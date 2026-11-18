@@ -1,0 +1,2017 @@
+<!doctype html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Start v2 — Wersja do ostatecznej akceptacji · Laboratorium Designu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================================
+       TOKENS & THEMING (ADR 0019 & combat-training-app/src/styles/index.css)
+       ========================================================================= */
+    :root,
+    :root[data-theme='dark'] {
+      color-scheme: dark;
+      --app-bg: #0b0b0d;
+      --app-surface: #171719;
+      --app-elevated: #1d1d20;
+      --app-border: #2a2a2e;
+      --app-ink: #f4f4f1;
+      --app-muted: #a7a7aa;
+      --app-faint: #85858a;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #d91535;
+      --app-crimson-ink: #ef5d6e;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #f0753a;
+      --app-success: #3fb56b;
+      --app-success-ink: #8fd8a8;
+      --app-missed: #4a4a4f;
+      --app-nav: #111113;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #ef5d6e;
+
+      --app-storm-line: #ffffff;
+      --app-storm-opacity: 1;
+      --app-storm-border: #34262a;
+
+      --app-discipline-boxing: #e8a030;
+      --app-discipline-kickboxing: #6baf8a;
+      --app-discipline-muay-thai: #f06b82;
+      --app-discipline-k1: #7b9fd4;
+
+      --app-grad-primary: linear-gradient(120deg, #b8102a 0%, #d4152f 55%, #c8341a 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #f0753a 100%);
+      --app-grad-plus: linear-gradient(150deg, #e0263f 0%, #b8102a 55%, #8e0b20 100%);
+      --app-grad-bar-current: linear-gradient(180deg, #f0753a 0%, #d4152f 16%, #9e0d24 100%);
+      --app-grad-bar-past: linear-gradient(180deg, #7a1a28 0%, #4a121c 100%);
+    }
+
+    :root[data-theme='light'] {
+      color-scheme: light;
+      --app-bg: #f1f1ef;
+      --app-surface: #ffffff;
+      --app-elevated: #e8e8e5;
+      --app-border: #c9c9c5;
+      --app-ink: #111113;
+      --app-muted: #5f5f63;
+      --app-faint: #66666a;
+      --app-crimson: #b5122b;
+      --app-crimson-hi: #c1122f;
+      --app-crimson-ink: #a01027;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #9a370e;
+      --app-success: #286243;
+      --app-success-ink: #286243;
+      --app-missed: #c9c9c5;
+      --app-nav: #ffffff;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #b5122b;
+
+      --app-storm-line: #111113;
+      --app-storm-opacity: 0.6;
+      --app-storm-border: #c9c9c5;
+
+      --app-discipline-boxing: #87520c;
+      --app-discipline-kickboxing: #286243;
+      --app-discipline-muay-thai: #b5122b;
+      --app-discipline-k1: #365d91;
+
+      --app-grad-primary: linear-gradient(120deg, #a01027 0%, #b5122b 55%, #c24b10 100%);
+      --app-grad-accent: linear-gradient(90deg, #a01027 0%, #c24b10 100%);
+      --app-grad-plus: linear-gradient(150deg, #c1122f 0%, #a01027 55%, #7a0c1d 100%);
+      --app-grad-bar-current: linear-gradient(180deg, #c24b10 0%, #b5122b 16%, #7a0c1d 100%);
+      --app-grad-bar-past: linear-gradient(180deg, #9e3d4c 0%, #6e1c28 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: #060608;
+      color: var(--app-ink);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px 0 40px;
+      overflow-x: hidden;
+    }
+
+    body.is-embedded {
+      padding: 0;
+      margin: 0;
+      width: 390px;
+      height: 844px;
+      overflow: hidden;
+      background: var(--app-bg);
+      justify-content: center;
+    }
+    body.is-embedded .approval-toolbar {
+      display: none;
+    }
+    body.is-embedded .phone-frame {
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    /* Pasek narzędziowy podglądu (poza ramką telefonu) */
+    .approval-toolbar {
+      width: 100%;
+      max-width: 860px;
+      background: #111114;
+      border: 1px solid #232328;
+      border-radius: 8px;
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .approval-meta h1 {
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: #f4f4f1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-approved {
+      background: rgba(63, 181, 107, 0.15);
+      border: 1px solid rgba(63, 181, 107, 0.4);
+      color: #3fb56b;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 3px;
+      letter-spacing: 0.05em;
+    }
+    .approval-meta p {
+      font-size: 11px;
+      color: #8e8e93;
+      margin-top: 3px;
+    }
+    .approval-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-tool {
+      height: 32px;
+      padding: 0 11px;
+      background: #1a1a1f;
+      border: 1px solid #2a2a32;
+      border-radius: 4px;
+      color: #f4f4f1;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 150ms ease;
+      text-decoration: none;
+    }
+    .btn-tool:hover {
+      background: #23232a;
+      border-color: #3a3a46;
+    }
+    .btn-tool.active {
+      background: var(--app-grad-primary);
+      border-color: rgba(240, 117, 58, 0.5);
+      color: #fff;
+    }
+    .segmented-tool {
+      display: inline-flex;
+      background: #0a0a0d;
+      border: 1px solid #2a2a32;
+      border-radius: 5px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .segmented-tool button {
+      height: 26px;
+      padding: 0 10px;
+      background: transparent;
+      border: none;
+      border-radius: 3px;
+      color: #a7a7aa;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 120ms ease;
+    }
+    .segmented-tool button.active {
+      background: #23232a;
+      color: #f4f4f1;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Ramka telefonu 390x844 */
+    .phone-frame {
+      width: 390px;
+      height: 844px;
+      background: var(--app-bg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border-radius: 36px;
+      border: 8px solid #1c1c20;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 0 1px #2a2a30;
+      user-select: none;
+      transition: background-color 200ms ease;
+    }
+
+    /* Notch */
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 125px;
+      height: 24px;
+      background: #1c1c20;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      z-index: 60;
+      pointer-events: none;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 44px;
+      padding: 12px 24px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--app-ink);
+      z-index: 50;
+      flex-shrink: 0;
+    }
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Główny obszar przewijania Startu */
+    .start-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 10px 16px 88px; /* dolny odstęp pod navigation bar 68px + zapas */
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scrollbar-width: none;
+    }
+    .start-scroll-area::-webkit-scrollbar { display: none; }
+
+    /* Nagłówek aplikacji (Topbar) */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 4px;
+    }
+    .brand-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, var(--app-ink) 40%, var(--app-muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--app-ember);
+      border-radius: 1px;
+      transform: rotate(45deg);
+      box-shadow: 0 0 8px var(--app-ember);
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-ember);
+    }
+
+    /* =========================================================================
+       3A: MIKRO-STATUS DNIA
+       ========================================================================= */
+    .status-strip-3a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-left: 3px solid var(--app-crimson);
+      border-radius: var(--app-radius-sm);
+    }
+    .status-strip-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .status-strip-date {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--app-muted);
+    }
+    .status-strip-event {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+    .status-strip-badge {
+      font-family: 'Archivo', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(239, 93, 110, 0.15);
+      border: 1px solid rgba(239, 93, 110, 0.4);
+      color: var(--app-crimson-ink);
+      padding: 3px 6px;
+      border-radius: 3px;
+    }
+
+    /* =========================================================================
+       1B-1: KARTA „DZIŚ” ZE STATYCZNĄ SUBTELNĄ CZERWONĄ OBWÓDKĄ
+       ========================================================================= */
+    .card-today-1b1 {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      background: var(--app-surface);
+      border: 1px solid rgba(193, 18, 47, 0.45);
+      border-radius: var(--app-radius-sm);
+      padding: 16px;
+      box-shadow: 0 0 16px rgba(193, 18, 47, 0.14), inset 0 0 12px rgba(193, 18, 47, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Efekt burzy (Storm Lines & Ember Glow w prawym górnym rogu) */
+    .card-today-1b1::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: var(--app-storm-opacity);
+      background: repeating-linear-gradient(115deg, color-mix(in srgb, var(--app-storm-line) 2.8%, transparent) 0 1px, transparent 1px 11px);
+    }
+    .card-today-1b1::after {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 2px;
+      pointer-events: none;
+      background: linear-gradient(90deg, transparent 20%, var(--app-crimson) 70%, var(--app-ember) 100%);
+      opacity: var(--app-storm-opacity);
+    }
+
+    /* Subtelne rozjaśnienie burzowe w tle karty */
+    .storm-flare {
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(240, 117, 58, 0.22) 0%, rgba(193, 18, 47, 0.12) 45%, transparent 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .today-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .today-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--app-discipline-boxing);
+      background: color-mix(in srgb, var(--app-discipline-boxing) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--app-discipline-boxing) 30%, transparent);
+      padding: 3px 7px;
+      border-radius: 3px;
+    }
+    .today-time {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--app-muted);
+    }
+
+    .today-headline {
+      font-family: 'Archivo', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--app-ink);
+    }
+
+    .today-target-box {
+      background: var(--app-elevated);
+      border-left: 2px solid var(--app-ember);
+      padding: 8px 10px;
+      border-radius: 0 3px 3px 0;
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--app-ink);
+    }
+    .today-target-label {
+      font-family: 'Archivo', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--app-ember);
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+
+    /* =========================================================================
+       2B-2: OBSZAR PRZYCISKÓW KARTY DZIŚ
+       Przycisk główny: głęboki karmazyn (#580814 -> #750a1a) z cienką krawędzią żaru (#f0753a)
+       ========================================================================= */
+    .actions-area-2b2 {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-main-2b2 {
+      min-height: 48px;
+      background: linear-gradient(135deg, #580814 0%, #750a1a 55%, #880c1e 100%);
+      color: #ffffff;
+      border: 1px solid rgba(240, 117, 58, 0.85);
+      border-radius: var(--app-radius-sm);
+      box-shadow: 0 4px 16px rgba(117, 10, 26, 0.4), 0 0 12px rgba(240, 117, 58, 0.25), inset 0 0 0 1px rgba(240, 117, 58, 0.15);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      transition: transform 120ms ease, box-shadow 150ms ease, background 150ms ease;
+    }
+    .btn-main-2b2:hover {
+      box-shadow: 0 6px 20px rgba(117, 10, 26, 0.5), 0 0 16px rgba(240, 117, 58, 0.35);
+      border-color: #f0753a;
+    }
+    .btn-main-2b2:active {
+      transform: scale(0.985);
+      background: #460610;
+      border-color: #f0753a;
+      box-shadow: 0 2px 8px rgba(117, 10, 26, 0.4);
+    }
+    .btn-main-2b2:focus-visible {
+      outline: 2px solid var(--app-focus-ring);
+      outline-offset: 2px;
+    }
+    .btn-main-icon {
+      width: 32px;
+      height: 32px;
+      background: rgba(240, 117, 58, 0.15);
+      border: 1px solid rgba(240, 117, 58, 0.4);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--app-ember);
+      flex-shrink: 0;
+    }
+    .btn-main-texts {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .btn-main-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      color: #ffffff;
+    }
+    .btn-main-desc {
+      font-size: 10.5px;
+      color: rgba(255, 255, 255, 0.75);
+      margin-top: 1px;
+    }
+
+    /* Kafelki akcji drugorzędnych (2 kolumny) */
+    .secondary-actions-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .btn-sec-tile {
+      min-height: 44px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 6px 8px;
+      transition: background 120ms ease, border-color 120ms ease, transform 100ms ease;
+    }
+    .btn-sec-tile:hover {
+      background: color-mix(in srgb, var(--app-elevated) 80%, var(--app-ink));
+      border-color: var(--app-muted);
+    }
+    .btn-sec-tile:active {
+      transform: scale(0.97);
+    }
+    .btn-sec-tile:focus-visible {
+      outline: 2px solid var(--app-focus-ring);
+      outline-offset: 2px;
+    }
+    .btn-sec-tile svg {
+      color: var(--app-muted);
+      flex-shrink: 0;
+    }
+
+    /* =========================================================================
+       4A: TYGODNIOWY TRACKER 7 DNI
+       ========================================================================= */
+    .week-tracker-4a {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tracker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tracker-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--app-muted);
+    }
+    .tracker-progress-text {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+    .tracker-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .tracker-day-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .tracker-day-name {
+      font-family: 'Archivo', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--app-muted);
+    }
+    .tracker-day-node {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-muted);
+      transition: all 150ms ease;
+    }
+    .tracker-day-node.is-done {
+      background: var(--app-grad-primary);
+      border-color: var(--app-crimson);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(193, 18, 47, 0.35);
+    }
+    .tracker-day-node.is-today {
+      border: 2px solid var(--app-ember);
+      color: var(--app-ink);
+      box-shadow: 0 0 10px rgba(240, 117, 58, 0.4);
+      animation: pulse-today 2s infinite ease-in-out;
+    }
+    @keyframes pulse-today {
+      0%, 100% { box-shadow: 0 0 8px rgba(240, 117, 58, 0.3); }
+      50% { box-shadow: 0 0 16px rgba(240, 117, 58, 0.65); }
+    }
+    .tracker-day-node.is-planned {
+      border: 1px dashed var(--app-crimson-ink);
+      color: var(--app-crimson-ink);
+    }
+
+    /* Pasek postępu pod kropkami */
+    .tracker-bar-track {
+      width: 100%;
+      height: 4px;
+      background: var(--app-elevated);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+    .tracker-bar-fill {
+      width: 50%;
+      height: 100%;
+      background: var(--app-grad-accent);
+      border-radius: 2px;
+      transition: width 400ms ease;
+    }
+
+    /* =========================================================================
+       5A: KARTA NASTĘPNY TRENING
+       ========================================================================= */
+    .card-next-5a {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      transition: border-color 150ms ease, background 150ms ease;
+    }
+    .card-next-5a:hover {
+      border-color: var(--app-muted);
+      background: var(--app-elevated);
+    }
+    .next-info-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .next-label-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .next-pill {
+      font-family: 'Archivo', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: color-mix(in srgb, var(--app-discipline-k1) 15%, transparent);
+      color: var(--app-discipline-k1);
+      border: 1px solid color-mix(in srgb, var(--app-discipline-k1) 35%, transparent);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .next-day-text {
+      font-size: 11px;
+      color: var(--app-muted);
+      font-weight: 600;
+    }
+    .next-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+    .next-arrow-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 3px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--app-muted);
+      flex-shrink: 0;
+    }
+
+    /* Karta szybkiego wejścia do Historii z poziomu Startu */
+    .card-recent-session {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .recent-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--app-muted);
+    }
+    .recent-link-btn {
+      background: none;
+      border: none;
+      color: var(--app-crimson-ink);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .recent-session-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--app-elevated);
+      padding: 8px 10px;
+      border-radius: 3px;
+    }
+    .recent-session-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+    .recent-session-stats {
+      font-size: 11px;
+      color: var(--app-muted);
+      margin-top: 2px;
+    }
+    .recent-rpe-badge {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      background: var(--app-grad-primary);
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 3px;
+    }
+
+    /* =========================================================================
+       DOLNE MENU — 1:1 ODTWORZENIE MENU Z APLIKACJI
+       combat-training-app/src/components/layout/BottomNavigation.tsx
+       combat-training-app/src/components/layout/NavigationLink.tsx
+       index.css (.bottom-navigation, .new-workout-diamond, .accent-fill)
+       ========================================================================= */
+    .bottom-navigation {
+      position: absolute;
+      inset-x: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      height: 68px;
+      background: var(--app-nav);
+      border-top: 1px solid var(--app-border);
+      user-select: none;
+    }
+
+    .bottom-nav-inner {
+      display: flex;
+      height: 68px;
+      max-width: 100%;
+      margin: 0 auto;
+      align-items: stretch;
+    }
+
+    /* Standardowe elementy nawigacji (Start, Plan, Postęp, Profil) */
+    .nav-control-item {
+      position: relative;
+      display: flex;
+      flex: 1;
+      min-height: 44px; /* touch-min */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--app-faint);
+      transition: color 150ms ease;
+      text-decoration: none;
+    }
+    .nav-control-item:hover {
+      color: var(--app-muted);
+    }
+    .nav-control-item.is-active {
+      color: var(--app-ink);
+      font-weight: 600;
+    }
+    .nav-control-item.is-active .nav-icon {
+      color: var(--app-crimson-ink);
+    }
+
+    /* Linia aktywnej zakładki: .accent-fill pointer-events-none absolute -top-px left-[24%] right-[24%] h-0.5 */
+    .nav-active-bar {
+      display: none;
+      position: absolute;
+      top: -1px;
+      left: 24%;
+      right: 24%;
+      height: 2px;
+      background: var(--app-grad-accent);
+      pointer-events: none;
+    }
+    .nav-control-item.is-active .nav-active-bar {
+      display: block;
+    }
+
+    .nav-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 150ms ease;
+    }
+
+    .nav-label {
+      font-family: 'Archivo', sans-serif;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      line-height: 1;
+    }
+
+    /* Centralny przycisk z rombem (+) wg specyfikacji aplikacji */
+    .nav-create-control {
+      position: relative;
+      display: flex;
+      flex: 1;
+      min-height: 44px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    /* Kontener rombu: w aplikacji size-[50px] -mt-6 */
+    .nav-diamond-box {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: margin-top 200ms cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    /* Tryb 1 (domyślny): Romb dokładnie jak w aplikacji (-mt-6 czyli ok. -24px, wystaje ~18px) */
+    .nav-diamond-box.mode-app-diamond {
+      margin-top: -24px;
+    }
+
+    /* Tryb 2: Romb obniżony o 9 px (-15px, wystaje ok. 9px ponad krawędź paska) */
+    .nav-diamond-box.mode-lowered-diamond {
+      margin-top: -15px;
+    }
+
+    /* Kształt rombu .new-workout-diamond z combat-training-app/src/styles/index.css */
+    .new-workout-diamond {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      transform: rotate(45deg);
+      background: var(--app-grad-plus);
+      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 4px color-mix(in srgb, var(--app-ember) 55%, transparent);
+      border-radius: 3px;
+      transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease;
+    }
+
+    .nav-create-control:active .new-workout-diamond {
+      transform: rotate(45deg) scale(0.92);
+      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 5px rgba(240, 117, 58, 0.85);
+    }
+
+    .nav-create-icon {
+      position: relative;
+      color: var(--app-on-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .nav-create-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 2.2;
+    }
+
+    /* Napis pod rombem: „Trening” zamiast „Nowy”, przesunięty odrobinę w dół */
+    .nav-create-label {
+      font-family: 'Archivo', sans-serif;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--app-muted);
+      line-height: 1;
+      margin-top: 3px; /* lekkie odsunięcie w dół dla lepszego oddechu */
+    }
+
+    /* =========================================================================
+       EKRAN POMOCNICZY (A): DOLNY ARKUSZ PO KLIKNIĘCIU „+” (TRENING)
+       ========================================================================= */
+    .plus-sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+    }
+    .plus-sheet-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .plus-action-sheet {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--app-surface);
+      border-top: 1px solid var(--app-border);
+      border-radius: 16px 16px 0 0;
+      padding: 16px 18px 24px;
+      z-index: 101;
+      transform: translateY(100%);
+      transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.6);
+    }
+    .plus-sheet-backdrop.is-open .plus-action-sheet {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--app-border);
+      border-radius: 2px;
+      margin: 0 auto 6px;
+    }
+    .sheet-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sheet-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .sheet-close-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      color: var(--app-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .sheet-choices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sheet-choice-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      text-align: left;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+    .sheet-choice-btn:hover {
+      background: color-mix(in srgb, var(--app-elevated) 75%, var(--app-ink));
+      border-color: var(--app-crimson);
+    }
+    .choice-icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      background: rgba(193, 18, 47, 0.12);
+      border: 1px solid rgba(193, 18, 47, 0.35);
+      color: var(--app-crimson-ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .choice-texts {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+    .choice-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--app-ink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .choice-badge {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: var(--app-ember);
+      color: #fff;
+      padding: 1px 5px;
+      border-radius: 2px;
+    }
+    .choice-desc {
+      font-size: 11px;
+      color: var(--app-muted);
+      line-height: 1.3;
+    }
+
+    /* =========================================================================
+       EKRAN POMOCNICZY (B): POSTĘP Z SEGMENTEM [WYKRESY] [HISTORIA] (NAV-A)
+       ========================================================================= */
+    .progress-history-view {
+      position: absolute;
+      inset: 0;
+      background: var(--app-bg);
+      z-index: 80;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .progress-history-view.is-open {
+      transform: translateX(0);
+    }
+
+    .hist-view-header {
+      padding: 12px 16px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--app-border);
+      background: var(--app-surface);
+      flex-shrink: 0;
+    }
+    .btn-back-start {
+      background: transparent;
+      border: none;
+      color: var(--app-crimson-ink);
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .arch-tag-nava {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      color: var(--app-muted);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .hist-view-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scrollbar-width: none;
+    }
+    .hist-view-scroll::-webkit-scrollbar { display: none; }
+
+    .hist-intro-box h2 {
+      font-family: 'Archivo', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .hist-intro-box p {
+      font-size: 11.5px;
+      color: var(--app-muted);
+      margin-top: 2px;
+    }
+
+    /* Segmented Control [Wykresy i analityka] [Historia sesji (aktywna)] */
+    .hist-segmented-nav {
+      display: flex;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: 6px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .hist-seg-btn {
+      flex: 1;
+      height: 34px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-muted);
+      cursor: pointer;
+      transition: all 120ms ease;
+    }
+    .hist-seg-btn.is-active {
+      background: var(--app-grad-primary);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(193, 18, 47, 0.4);
+    }
+
+    /* Pasek podsumowania tygodnia */
+    .hist-summary-card {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-left: 3px solid var(--app-ember);
+      border-radius: var(--app-radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .hist-summary-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--app-muted);
+    }
+    .hist-summary-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+
+    /* Karty jednostek treningowych w Historii */
+    .hist-session-item {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .hist-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .hist-item-tag {
+      font-family: 'Archivo', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .hist-item-tag.boxing {
+      background: color-mix(in srgb, var(--app-discipline-boxing) 15%, transparent);
+      border: 1px solid color-mix(in srgb, var(--app-discipline-boxing) 30%, transparent);
+      color: var(--app-discipline-boxing);
+    }
+    .hist-item-tag.muay-thai {
+      background: color-mix(in srgb, var(--app-discipline-muay-thai) 15%, transparent);
+      border: 1px solid color-mix(in srgb, var(--app-discipline-muay-thai) 30%, transparent);
+      color: var(--app-discipline-muay-thai);
+    }
+    .hist-item-date {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--app-muted);
+    }
+    .hist-item-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .hist-item-params {
+      font-size: 11px;
+      color: var(--app-muted);
+      line-height: 1.4;
+    }
+    .hist-item-feedback {
+      background: var(--app-elevated);
+      border-left: 2px solid var(--app-crimson);
+      padding: 6px 8px;
+      border-radius: 0 3px 3px 0;
+      font-size: 11px;
+      color: var(--app-ink);
+    }
+    .hist-feedback-label {
+      font-family: 'Archivo', sans-serif;
+      font-size: 8.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--app-crimson-ink);
+      letter-spacing: 0.05em;
+    }
+
+    /* =========================================================================
+       POWITANIE A (INTRO STORM FLASH)
+       Subtelna animacja błysku burzy przy pierwszym wejściu (ok. 1s)
+       ========================================================================= */
+    .intro-storm-overlay {
+      position: absolute;
+      inset: 0;
+      background: #0b0b0d;
+      z-index: 120;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 250ms ease;
+    }
+    .intro-storm-overlay.is-active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .intro-spark {
+      width: 44px;
+      height: 44px;
+      background: var(--app-grad-primary);
+      transform: rotate(45deg);
+      border-radius: 4px;
+      box-shadow: 0 0 24px rgba(240, 117, 58, 0.8), 0 0 40px rgba(193, 18, 47, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      animation: intro-spark-pulse 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .intro-spark svg {
+      transform: rotate(-45deg);
+    }
+    @keyframes intro-spark-pulse {
+      0% { transform: rotate(45deg) scale(0.4); opacity: 0; }
+      40% { transform: rotate(45deg) scale(1.15); opacity: 1; }
+      100% { transform: rotate(45deg) scale(1); opacity: 0; }
+    }
+    .intro-text-hint {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--app-muted);
+      margin-top: 16px;
+      opacity: 0;
+      animation: intro-text-fade 0.9s ease forwards;
+    }
+    @keyframes intro-text-fade {
+      0% { opacity: 0; transform: translateY(6px); }
+      50% { opacity: 0.8; }
+      100% { opacity: 0; transform: translateY(-4px); }
+    }
+
+    /* Toast powiadomień */
+    .toast-pill {
+      position: absolute;
+      top: 54px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background: #1d1d22;
+      border: 1px solid var(--app-border);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--app-ink);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 180ms cubic-bezier(0.2, 0, 0, 1);
+      white-space: nowrap;
+    }
+    .toast-pill.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Dostępność: wyłączenie animacji przy prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .tracker-day-node.is-today { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pasek narzędziowy podglądu i akceptacji -->
+  <header class="approval-toolbar">
+    <div class="approval-meta">
+      <h1>
+        Start v2 — Wersja do ostatecznej akceptacji
+        <span class="badge-approved">Gotowa do wdrożenia</span>
+      </h1>
+      <p>Kompozycja: 1B-1 (subtelna czerwona obwódka) · 2B-2 (głęboki karmazyn z krawędzią żaru) · 3A · 4A · 5A · NAV-A</p>
+    </div>
+
+    <div class="approval-actions">
+      <!-- Przełącznik motywów -->
+      <div class="segmented-tool" title="Wybór motywu kolorystycznego">
+        <button id="btnThemeDark" class="active" onclick="setTheme('dark')">Ciemny</button>
+        <button id="btnThemeLight" onclick="setTheme('light')">Jasny</button>
+      </div>
+
+      <!-- Przełącznik rombu „+”: jak w aplikacji (domyślnie) vs obniżony o 9 px -->
+      <div class="segmented-tool" title="Wybór wysokości rombu '+' w dolnym menu">
+        <button id="btnDiamondApp" class="active" onclick="setDiamondMode('app')">Romb jak w aplikacji (domyślnie)</button>
+        <button id="btnDiamondLow" onclick="setDiamondMode('lowered')">Romb obniżony o 9 px</button>
+      </div>
+
+      <!-- Akcje pomocnicze -->
+      <button class="btn-tool" onclick="togglePlusSheet()" title="Podgląd dolnego arkusza po kliknięciu '+'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Arkusz «+» (Trening)
+      </button>
+
+      <button class="btn-tool" onclick="toggleProgressHistory()" title="Podgląd ekranu Postępu z segmentem Historia">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Postęp → Historia
+      </button>
+
+      <button class="btn-tool" onclick="triggerIntroA()" title="Odtwórz animację powitania A">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Powitanie A
+      </button>
+
+      <a class="btn-tool" href="index.html" title="Wróć do pełnego studia wariantów">
+        ← Galeria Alternatyw
+      </a>
+    </div>
+  </header>
+
+  <!-- Ramka telefonu 390x844 -->
+  <main class="phone-frame" id="phoneFrame">
+    <!-- Notch -->
+    <div class="phone-notch"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span>09:41</span>
+      <div class="status-icons">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg width="16" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="18" height="10" rx="2" ry="2"/><path d="M22 11v2"/></svg>
+      </div>
+    </div>
+
+    <!-- Toast powiadomień -->
+    <div class="toast-pill" id="toastPill">Wpisz trening po zajęciach</div>
+
+    <!-- Obszar przewijania Startu -->
+    <div class="start-scroll-area" id="startScrollArea">
+      <!-- Topbar aplikacji -->
+      <header class="app-header">
+        <div class="brand-title">
+          FIGHTLOG<span class="brand-dot"></span>PWA
+        </div>
+        <div class="topbar-right">
+          <div class="streak-badge" title="Aktualna seria zaliczonych dni">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1.1 0 2 .9 2 2 0 .74-.4 1.38-1 1.72v1.56c2.8 1.15 4.8 3.88 4.8 7.02 0 4.25-3.45 7.7-7.7 7.7-4.25 0-7.7-3.45-7.7-7.7 0-3.14 2-5.87 4.8-7.02V5.72C6.4 5.38 6 4.74 6 4c0-1.1.9-2 2-2h4z"/></svg>
+            <span>Seria: 4 tyg.</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- 3A: Zwięzły pasek mikro-statusu dnia -->
+      <section class="status-strip-3a" aria-label="Status dzisiejszego dnia">
+        <div class="status-strip-info">
+          <span class="status-strip-date">ŚRODA, 18 LISTOPADA</span>
+          <span class="status-strip-event">Boks techniczny · 18:30 (Klub)</span>
+        </div>
+        <span class="status-strip-badge">Zaplanowane</span>
+      </section>
+
+      <!-- 1B-1 & 2B-2: Karta „Dziś” ze statyczną czerwoną obwódką i przyciskiem głęboki karmazyn -->
+      <section class="card-today-1b1" id="sectionToday" aria-labelledby="todayHeading">
+        <div class="storm-flare" aria-hidden="true"></div>
+
+        <div class="today-meta-row">
+          <span class="today-tag">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+            BOKS KLUBOWY
+          </span>
+          <span class="today-time">Czas trwania: ~75 min</span>
+        </div>
+
+        <h2 id="todayHeading" class="today-headline">
+          Boks techniczny + sparingi zadaniowe
+        </h2>
+
+        <div class="today-target-box">
+          <div class="today-target-label">Główny cel do poprawy</div>
+          <div>Szybki powrót prawej ręki do brody po ciosie prostym (ochrona przed lewym sierpem z kontry)</div>
+        </div>
+
+        <!-- 2B-2: Obszar przycisków karty Dziś -->
+        <div class="actions-area-2b2">
+          <!-- Główny przycisk: głęboki karmazyn z krawędzią żaru -->
+          <button class="btn-main-2b2" type="button" onclick="showToast('Otwarto formularz: Wpisz trening po zajęciach')">
+            <div class="btn-main-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </div>
+            <div class="btn-main-texts">
+              <span class="btn-main-title">Wpisz trening po zajęciach</span>
+              <span class="btn-main-desc">Zapisz wykonane rundy, sparingi i oceń błędy techniczne</span>
+            </div>
+          </button>
+
+          <!-- Dwie akcje drugorzędne pod spodem -->
+          <div class="secondary-actions-row">
+            <button class="btn-sec-tile" type="button" onclick="showToast('Oznaczono: Dzień wolny / Nie byłem')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+              <span>Nie byłem</span>
+            </button>
+            <button class="btn-sec-tile" type="button" onclick="showToast('Otwarto: Przenieś dzień na jutro')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+              </svg>
+              <span>Przenieś dzień</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4A: Tygodniowy tracker 7 dni -->
+      <section class="week-tracker-4a" aria-label="Tygodniowy plan treningowy">
+        <div class="tracker-header">
+          <span class="tracker-title">Plan tygodnia</span>
+          <span class="tracker-progress-text">2 / 4 zaliczone (50%)</span>
+        </div>
+
+        <div class="tracker-days-grid">
+          <!-- Pn -->
+          <div class="tracker-day-item">
+            <span class="tracker-day-name">Pn</span>
+            <div class="tracker-day-node is-done" title="Poniedziałek: Zaliczony (Boks 6 rund)">✓</div>
+          </div>
+          <!-- Wt -->
+          <div class="tracker-day-item">
+            <span class="tracker-day-name">Wt</span>
+            <div class="tracker-day-node is-done" title="Wtorek: Zaliczony (Boks techniczny)">✓</div>
+          </div>
+          <!-- Śr (Dziś) -->
+          <div class="tracker-day-item">
+            <span class="tracker-day-name" style="color:var(--app-ember);">Śr</span>
+            <div class="tracker-day-node is-today" title="Środa: DZIŚ (Zaplanowany boks klubowy)">18</div>
+          </div>
+          <!-- Cz -->
+          <div class="tracker-day-item">
+            <span class="tracker-day-name">Cz</span>
+            <div class="tracker-day-node is-planned" title="Czwartek: Zaplanowany (K-1 sparingi)">19</div>
+          </div>
+          <!-- Pt -->
+          <div class="tracker-day-item">
+            <span class="tracker-day-name">Pt</span>
+            <div class="tracker-day-node is-planned" title="Piątek: Zaplanowany (Muay Thai)">20</div>
+          </div>
+          <!-- So -->
+          <div class="tracker-day-item">
+            <span class="tracker-day-name">So</span>
+            <div class="tracker-day-node" title="Sobota: Odpoczynek">—</div>
+          </div>
+          <!-- Nd -->
+          <div class="tracker-day-item">
+            <span class="tracker-day-name">Nd</span>
+            <div class="tracker-day-node" title="Niedziela: Odpoczynek">—</div>
+          </div>
+        </div>
+
+        <div class="tracker-bar-track">
+          <div class="tracker-bar-fill"></div>
+        </div>
+      </section>
+
+      <!-- 5A: Karta „Następny trening” -->
+      <section class="card-next-5a" onclick="showToast('Szczegóły treningu: K-1 w czwartek')" aria-label="Następny zaplanowany trening">
+        <div class="next-info-group">
+          <div class="next-label-row">
+            <span class="next-pill">K-1</span>
+            <span class="next-day-text">Jutro · Czwartek, 19:00</span>
+          </div>
+          <div class="next-title">Sparingi zadaniowe + praca na low kicki</div>
+        </div>
+        <div class="next-arrow-btn" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </section>
+
+      <!-- Karta ostatniej sesji (bezpośrednie przejście do Historii) -->
+      <section class="card-recent-session" aria-label="Ostatnio zarejestrowana sesja">
+        <div class="recent-head">
+          <span>Ostatnio zarejestrowany trening</span>
+          <button class="recent-link-btn" type="button" onclick="toggleProgressHistory()">
+            Historia sesji →
+          </button>
+        </div>
+        <div class="recent-session-body">
+          <div>
+            <div class="recent-session-title">Boks — sparingi zadaniowe</div>
+            <div class="recent-session-stats">Wczoraj (17 lis) · 5 rund · RPE 8.0</div>
+          </div>
+          <span class="recent-rpe-badge">RPE 8</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- =======================================================================
+         DOLNE MENU — 1:1 ODTWORZENIE MENU Z APLIKACJI (ARCHITEKTURA NAV-A)
+         Start · Plan · [+] (Trening) · Postęp · Profil
+         ======================================================================= -->
+    <nav class="bottom-navigation" aria-label="Główna nawigacja mobilna">
+      <div class="bottom-nav-inner">
+        <!-- Zakładka 1: Start (aktywna) -->
+        <button class="nav-control-item is-active" id="tabStart" type="button" onclick="closeAllOverlays(); showToast('Jesteś na ekranie Start');">
+          <div class="nav-active-bar" aria-hidden="true"></div>
+          <span class="nav-icon">
+            <!-- Ikona Start: identyczna jak w aplikacji (NavHomeIcon) -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+          </span>
+          <span class="nav-label">Start</span>
+        </button>
+
+        <!-- Zakładka 2: Plan (nowoczesna ikona siatki/kalendarza) -->
+        <button class="nav-control-item" id="tabPlan" type="button" onclick="showToast('Przejście do modułu: Plan tygodnia');">
+          <div class="nav-active-bar" aria-hidden="true"></div>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <line x1="8" y1="14" x2="8.01" y2="14" stroke-width="2.2"/>
+              <line x1="12" y1="14" x2="12.01" y2="14" stroke-width="2.2"/>
+              <line x1="16" y1="14" x2="16.01" y2="14" stroke-width="2.2"/>
+            </svg>
+          </span>
+          <span class="nav-label">Plan</span>
+        </button>
+
+        <!-- Zakładka 3: [+] (Trening) — Centralny romb z gradientem i obwódką -->
+        <button class="nav-create-control" id="tabCreate" type="button" onclick="togglePlusSheet()" aria-label="Nowy trening" aria-haspopup="dialog">
+          <div class="nav-diamond-box mode-app-diamond" id="diamondBox">
+            <span aria-hidden="true" class="new-workout-diamond"></span>
+            <span class="nav-create-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </span>
+          </div>
+          <span class="nav-create-label">Trening</span>
+        </button>
+
+        <!-- Zakładka 4: Postęp (nowoczesna ikona słupków z analityką, otwiera Postęp/Historię) -->
+        <button class="nav-control-item" id="tabProgress" type="button" onclick="toggleProgressHistory();">
+          <div class="nav-active-bar" aria-hidden="true"></div>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 20V10"/>
+              <path d="M12 20V4"/>
+              <path d="M6 20v-6"/>
+              <path d="M4 20h16"/>
+            </svg>
+          </span>
+          <span class="nav-label">Postęp</span>
+        </button>
+
+        <!-- Zakładka 5: Profil (nowoczesna ikona obrysu zawodnika) -->
+        <button class="nav-control-item" id="tabProfile" type="button" onclick="showToast('Przejście do modułu: Profil zawodnika');">
+          <div class="nav-active-bar" aria-hidden="true"></div>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </span>
+          <span class="nav-label">Profil</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- =======================================================================
+         EKRAN POMOCNICZY (A): DOLNY ARKUSZ PO STUKNIĘCIU „+” (TRENING)
+         ======================================================================= -->
+    <div class="plus-sheet-backdrop" id="plusSheetBackdrop" onclick="handleBackdropClick(event)" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="plus-action-sheet" id="plusActionSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header-row">
+          <h2 class="sheet-title" id="sheetTitle">Nowy trening / rejestracja</h2>
+          <button class="sheet-close-btn" type="button" onclick="closePlusSheet()" aria-label="Zamknij">✕</button>
+        </div>
+
+        <div class="sheet-choices-list">
+          <!-- 1. Wpisz trening po zajęciach -->
+          <button class="sheet-choice-btn" type="button" onclick="closePlusSheet(); showToast('Otwarto formularz: Wpisz trening po zajęciach');">
+            <div class="choice-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </div>
+            <div class="choice-texts">
+              <div class="choice-title">
+                Wpisz trening po zajęciach
+                <span class="choice-badge">Najczęstsze</span>
+              </div>
+              <div class="choice-desc">Klub, sparingi, zadaniówki i praca na worku (szybki zapis)</div>
+            </div>
+          </button>
+
+          <!-- 2. Rozpocznij plan -->
+          <button class="sheet-choice-btn" type="button" onclick="closePlusSheet(); showToast('Uruchomiono odtwarzacz: Rozpocznij plan');">
+            <div class="choice-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </div>
+            <div class="choice-texts">
+              <div class="choice-title">Rozpocznij plan</div>
+              <div class="choice-desc">Uruchom zaplanowaną jednostkę z timerem rund i przerw</div>
+            </div>
+          </button>
+
+          <!-- 3. Stoper rund -->
+          <button class="sheet-choice-btn" type="button" onclick="closePlusSheet(); showToast('Otwarto: Szybki stoper rund i przerw');">
+            <div class="choice-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="14" r="8"/><path d="M12 2v4M9 2h6M12 10v4l3 2"/>
+              </svg>
+            </div>
+            <div class="choice-texts">
+              <div class="choice-title">Stoper rund</div>
+              <div class="choice-desc">Czysty stoper interwałowy do walki bez konieczności planu</div>
+            </div>
+          </button>
+
+          <!-- 4. Nowy plan treningowy -->
+          <button class="sheet-choice-btn" type="button" onclick="closePlusSheet(); showToast('Otwarto kreator: Nowy plan treningowy');">
+            <div class="choice-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3H4v18h16V3h-4M8 3v4h8V3H8Zm0 9h8m-8 5h8"/>
+              </svg>
+            </div>
+            <div class="choice-texts">
+              <div class="choice-title">Nowy plan treningowy</div>
+              <div class="choice-desc">Stwórz nowy schemat treningowy z bloków i ćwiczeń</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         EKRAN POMOCNICZY (B): POSTĘP Z SEGMENTEM [WYKRESY] [HISTORIA]
+         Architektura NAV-A: Gdzie ląduje Historia
+         ======================================================================= -->
+    <div class="progress-history-view" id="progressHistoryView" role="dialog" aria-modal="true" aria-labelledby="histHeading">
+      <div class="hist-view-header">
+        <button class="btn-back-start" type="button" onclick="closeProgressHistory()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Start
+        </button>
+        <span class="arch-tag-nava">Architektura NAV-A</span>
+      </div>
+
+      <div class="hist-view-scroll">
+        <div class="hist-intro-box">
+          <h2 id="histHeading">Postęp i Dziennik</h2>
+          <p>W architekturze NAV-A Historia sesji ląduje jako segment modułu Postęp</p>
+        </div>
+
+        <!-- Segmented control -->
+        <div class="hist-segmented-nav">
+          <button class="hist-seg-btn" type="button" onclick="showToast('Przełączono na podgląd wykresów i trendów')">Wykresy i analityka</button>
+          <button class="hist-seg-btn is-active" type="button">Historia sesji (aktywna)</button>
+        </div>
+
+        <!-- Pasek podsumowania tygodnia -->
+        <div class="hist-summary-card">
+          <span class="hist-summary-title">Podsumowanie bieżącego tygodnia (Tydzień 46)</span>
+          <div class="hist-summary-stats">
+            <span>3 jednostki treningowe</span>
+            <span>210 min</span>
+            <span>Śr. RPE 7.8</span>
+          </div>
+        </div>
+
+        <!-- Sesja 1: Wczoraj -->
+        <div class="hist-session-item">
+          <div class="hist-item-header">
+            <span class="hist-item-tag boxing">BOKS</span>
+            <span class="hist-item-date">Wczoraj, 17 lis (18:30)</span>
+          </div>
+          <div class="hist-item-title">Sparingi zadaniowe z kontrą</div>
+          <div class="hist-item-params">5 rund × 3:00 (przerwa 1:00) · Czas: 65 min · RPE 8.0/10</div>
+          <div class="hist-item-feedback">
+            <div class="hist-feedback-label">Element do poprawy · Ocena 4/5</div>
+            <div>Powrót prawej ręki po crossie — garda szczelna, mniej trafień rywala z kontry.</div>
+          </div>
+        </div>
+
+        <!-- Sesja 2: Piątek -->
+        <div class="hist-session-item">
+          <div class="hist-item-header">
+            <span class="hist-item-tag muay-thai">MUAY THAI</span>
+            <span class="hist-item-date">Piątek, 14 lis (19:00)</span>
+          </div>
+          <div class="hist-item-title">Mocna praca na tarczach</div>
+          <div class="hist-item-params">6 rund × 3:00 · Czas: 75 min · RPE 8.5/10</div>
+          <div class="hist-item-feedback">
+            <div class="hist-feedback-label">Element do poprawy · Ocena 4/5</div>
+            <div>Dokręcenie biodra przy prawym low kicku — wyraźniejsza siła uderzenia na odejściu.</div>
+          </div>
+        </div>
+
+        <!-- Sesja 3: Środa ubiegły tydzień -->
+        <div class="hist-session-item">
+          <div class="hist-item-header">
+            <span class="hist-item-tag boxing">BOKS</span>
+            <span class="hist-item-date">Środa, 12 lis (18:00)</span>
+          </div>
+          <div class="hist-item-title">Boks techniczny (Trening własny)</div>
+          <div class="hist-item-params">6 rund · Czas: 50 min · RPE 7.0/10</div>
+          <div class="hist-item-feedback">
+            <div class="hist-feedback-label">Status realizacji</div>
+            <div>Zrealizowano cały plan PWA bez skracania rund.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         POWITANIE A (INTRO STORM FLASH)
+         ======================================================================= -->
+    <div class="intro-storm-overlay" id="introStormOverlay" onclick="dismissIntroA()">
+      <div class="intro-spark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </div>
+      <div class="intro-text-hint">FIGHTLOG PWA · START</div>
+    </div>
+  </main>
+
+  <script>
+    // Stan widoku akceptacji
+    const state = {
+      theme: 'dark',
+      diamondMode: 'app', // 'app' (jak w aplikacji) | 'lowered' (obniżony o 9 px)
+      plusSheetOpen: false,
+      progressHistoryOpen: false
+    };
+
+    // Zarządzanie motywem
+    function setTheme(theme) {
+      state.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('btnThemeDark').classList.toggle('active', theme === 'dark');
+      document.getElementById('btnThemeLight').classList.toggle('active', theme === 'light');
+    }
+
+    // Zarządzanie rombem „+” (Tryb aplikacji vs Obniżony o 9 px)
+    function setDiamondMode(mode) {
+      state.diamondMode = mode;
+      const box = document.getElementById('diamondBox');
+      const btnApp = document.getElementById('btnDiamondApp');
+      const btnLow = document.getElementById('btnDiamondLow');
+
+      if (mode === 'lowered') {
+        box.classList.remove('mode-app-diamond');
+        box.classList.add('mode-lowered-diamond');
+        btnApp.classList.remove('active');
+        btnLow.classList.add('active');
+        showToast('Romb: Obniżony o 9 px');
+      } else {
+        box.classList.remove('mode-lowered-diamond');
+        box.classList.add('mode-app-diamond');
+        btnApp.classList.add('active');
+        btnLow.classList.remove('active');
+        showToast('Romb: Jak w aplikacji (domyślnie)');
+      }
+    }
+
+    // Ekran pomocniczy (a): Dolny arkusz po kliknięciu „+”
+    function togglePlusSheet() {
+      if (state.plusSheetOpen) {
+        closePlusSheet();
+      } else {
+        openPlusSheet();
+      }
+    }
+    function openPlusSheet() {
+      state.plusSheetOpen = true;
+      document.getElementById('plusSheetBackdrop').classList.add('is-open');
+    }
+    function closePlusSheet() {
+      state.plusSheetOpen = false;
+      document.getElementById('plusSheetBackdrop').classList.remove('is-open');
+    }
+    function handleBackdropClick(e) {
+      if (e.target === document.getElementById('plusSheetBackdrop')) {
+        closePlusSheet();
+      }
+    }
+
+    // Ekran pomocniczy (b): Postęp z Historią
+    function toggleProgressHistory() {
+      if (state.progressHistoryOpen) {
+        closeProgressHistory();
+      } else {
+        openProgressHistory();
+      }
+    }
+    function openProgressHistory() {
+      state.progressHistoryOpen = true;
+      document.getElementById('progressHistoryView').classList.add('is-open');
+      document.getElementById('tabProgress').classList.add('is-active');
+      document.getElementById('tabStart').classList.remove('is-active');
+    }
+    function closeProgressHistory() {
+      state.progressHistoryOpen = false;
+      document.getElementById('progressHistoryView').classList.remove('is-open');
+      document.getElementById('tabProgress').classList.remove('is-active');
+      document.getElementById('tabStart').classList.add('is-active');
+    }
+
+    function closeAllOverlays() {
+      closePlusSheet();
+      closeProgressHistory();
+    }
+
+    // Powitanie A
+    let introTimer = null;
+    function triggerIntroA() {
+      const overlay = document.getElementById('introStormOverlay');
+      overlay.classList.add('is-active');
+      if (introTimer) clearTimeout(introTimer);
+      introTimer = setTimeout(() => {
+        dismissIntroA();
+      }, 950);
+    }
+    function dismissIntroA() {
+      const overlay = document.getElementById('introStormOverlay');
+      overlay.classList.remove('is-active');
+      if (introTimer) clearTimeout(introTimer);
+    }
+
+    // Toast
+    let toastTimer = null;
+    function showToast(text) {
+      const toast = document.getElementById('toastPill');
+      toast.textContent = text;
+      toast.classList.add('visible');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('visible');
+      }, 2000);
+    }
+
+    // Komunikacja postMessage dla ramki iframe w index.html
+    window.addEventListener('message', (event) => {
+      if (event.data && typeof event.data === 'object') {
+        const { type } = event.data;
+        if (type === 'SET_THEME') {
+          setTheme(event.data.theme);
+        } else if (type === 'SET_DIAMOND_MODE') {
+          setDiamondMode(event.data.mode);
+        } else if (type === 'OPEN_PLUS_SHEET') {
+          openPlusSheet();
+        } else if (type === 'CLOSE_PLUS_SHEET') {
+          closePlusSheet();
+        } else if (type === 'OPEN_PROGRESS_HISTORY') {
+          openProgressHistory();
+        } else if (type === 'CLOSE_PROGRESS_HISTORY') {
+          closeProgressHistory();
+        } else if (type === 'TRIGGER_INTRO_A') {
+          triggerIntroA();
+        }
+      }
+    });
+
+    // Sprawdź, czy strona działa w ramce iframe (np. w index.html)
+    if (window.self !== window.top) {
+      document.body.classList.add('is-embedded');
+    }
+
+    // Uruchom powitanie A raz na start sesji (o ile nie preferuje redukcji ruchu)
+    window.addEventListener('DOMContentLoaded', () => {
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!sessionStorage.getItem('flog_intro_a_shown') && !prefersReduced) {
+        triggerIntroA();
+        sessionStorage.setItem('flog_intro_a_shown', 'true');
+      }
+    });
+  </script>
+</body>
+</html>
