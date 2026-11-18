@@ -140,6 +140,8 @@ test('moves only this week with undo and consciously skips today from home', asy
   await todayCard(page).getByRole('combobox', { name: 'Przenieś na…', exact: true }).selectOption('3')
   await expect(todayCard(page)).toHaveCount(0)
   await expect(page.getByText('Dziś odpoczynek · następny: czw., muay thai 19:00', { exact: true })).toBeVisible()
+  // The move must reach the emulator before the week is re-seeded, or the late write overwrites the seed.
+  await expect.poll(async () => (await app.readWeekPlans()).find((plan) => plan.weekStart === weekStart)?.schedule?.[0]).toMatchObject({ day: 3 })
   await weekCard(page).getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
   await expect(page.getByRole('listitem', { name: 'Czwartek 2026-11-19', exact: true })).toContainText('Muay Thai')
   await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Start', exact: true }).click()
