@@ -14,6 +14,10 @@ const back = (page: Page) => page.getByRole('button', { name: 'Wstecz', exact: t
 const close = (page: Page) => page.getByRole('button', { name: 'Zamknij', exact: true })
 async function accessible(page: Page) {
   await expect(page.locator('h1')).toHaveCount(1)
+  // Colour transitions (motion tokens) must settle before axe samples contrast.
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter((animation) => Number.isFinite(animation.effect?.getComputedTiming().endTime ?? Infinity))
+    .map((animation) => animation.finished.catch(() => undefined))))
   expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 }
