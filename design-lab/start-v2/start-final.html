@@ -482,7 +482,7 @@
     }
     .btn-pill-2a:active { background: var(--app-border); transform: scale(0.98); }
 
-    /* 2B: Kafelki taktyczne */
+    /* 2B: Kafelki taktyczne (Wybór właściciela: 2B) */
     .variant-2b {
       display: flex;
       flex-direction: column;
@@ -491,10 +491,7 @@
     .btn-main-2b {
       min-height: 56px;
       width: 100%;
-      border: none;
       border-radius: var(--app-radius-sm);
-      background: var(--app-grad-primary);
-      color: var(--app-on-accent);
       font-family: 'Archivo', sans-serif;
       font-size: 14px;
       font-weight: 800;
@@ -505,7 +502,116 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      box-shadow: 0 4px 14px rgba(184, 16, 42, 0.35);
+      padding: 0 16px;
+      position: relative;
+      border: 1px solid transparent;
+      transition: transform 120ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+    }
+    .btn-main-2b:focus-visible {
+      outline: 2px solid var(--app-focus-ring);
+      outline-offset: 2px;
+    }
+    .btn-main-2b:disabled,
+    .btn-main-2b.is-disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+      pointer-events: none;
+      box-shadow: none !important;
+      filter: grayscale(0.5);
+    }
+
+    /* 2B-1: Ciemniejszy gradient karmazynu (#7e0b1d → #9e0d24 → #b8102a) - kontrast bieli 7.1:1 */
+    .btn-main-2b,
+    .btn-main-2b[data-color="2B-1"],
+    .variant-2b[data-color="2B-1"] .btn-main-2b {
+      background: linear-gradient(135deg, #7e0b1d 0%, #9e0d24 52%, #b8102a 100%);
+      color: #ffffff;
+      border: 1px solid rgba(239, 93, 110, 0.25);
+      box-shadow: 0 4px 16px rgba(126, 11, 29, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+    .btn-main-2b:active,
+    .btn-main-2b[data-color="2B-1"]:active,
+    .variant-2b[data-color="2B-1"] .btn-main-2b:active {
+      transform: scale(0.985);
+      background: linear-gradient(135deg, #640816 0%, #820b1e 100%);
+      box-shadow: 0 2px 8px rgba(126, 11, 29, 0.35);
+    }
+
+    /* 2B-2: Głęboki karmazyn z cienką krawędzią żaru (#580814 → #750a1a z ramką #f0753a) - kontrast bieli 9.5:1 */
+    .btn-main-2b[data-color="2B-2"],
+    .variant-2b[data-color="2B-2"] .btn-main-2b {
+      background: linear-gradient(135deg, #580814 0%, #750a1a 55%, #880c1e 100%);
+      color: #ffffff;
+      border: 1px solid rgba(240, 117, 58, 0.85);
+      box-shadow: 0 4px 16px rgba(117, 10, 26, 0.4), 0 0 12px rgba(240, 117, 58, 0.25), inset 0 0 0 1px rgba(240, 117, 58, 0.15);
+    }
+    .btn-main-2b[data-color="2B-2"] svg,
+    .variant-2b[data-color="2B-2"] .btn-main-2b svg {
+      color: var(--app-ember);
+    }
+    .btn-main-2b[data-color="2B-2"]:active,
+    .variant-2b[data-color="2B-2"] .btn-main-2b:active {
+      transform: scale(0.985);
+      background: #460610;
+      border-color: #f0753a;
+      box-shadow: 0 2px 8px rgba(240, 117, 58, 0.4);
+    }
+
+    /* 2B-3: Ciemny grafitowy przycisk z czerwoną obwódką i czerwoną ikoną - kontrast bieli 14.5:1 */
+    .btn-main-2b[data-color="2B-3"],
+    .variant-2b[data-color="2B-3"] .btn-main-2b {
+      background: var(--app-elevated);
+      color: #ffffff;
+      border: 1.5px solid var(--app-crimson);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55), 0 0 14px rgba(193, 18, 47, 0.22);
+    }
+    .btn-main-2b[data-color="2B-3"] svg,
+    .variant-2b[data-color="2B-3"] .btn-main-2b svg {
+      color: var(--app-crimson-ink);
+    }
+    .btn-main-2b[data-color="2B-3"]:active,
+    .variant-2b[data-color="2B-3"] .btn-main-2b:active {
+      transform: scale(0.985);
+      background: #25252a;
+      border-color: var(--app-crimson-hi);
+    }
+
+    /* 2B-4: Tactical Ruby Charcoal (autorski rubinowy węgiel, mikro-plakietka ikony, punkt żaru) - kontrast bieli 12.4:1 */
+    .btn-main-2b[data-color="2B-4"],
+    .variant-2b[data-color="2B-4"] .btn-main-2b {
+      background: linear-gradient(145deg, #220c10 0%, #130508 100%);
+      color: #ffffff;
+      border: 1px solid #780d1c;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(239, 93, 110, 0.25);
+    }
+    .btn-main-2b[data-color="2B-4"] .btn-icon-box-2b,
+    .variant-2b[data-color="2B-4"] .btn-icon-box-2b {
+      width: 28px;
+      height: 28px;
+      background: rgba(193, 18, 47, 0.35);
+      border: 1px solid rgba(239, 93, 110, 0.45);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+    .btn-main-2b[data-color="2B-4"] .btn-ember-dot-2b,
+    .variant-2b[data-color="2B-4"] .btn-ember-dot-2b {
+      display: block !important;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--app-ember);
+      box-shadow: 0 0 8px rgba(240, 117, 58, 0.95);
+      margin-left: auto;
+    }
+    .btn-main-2b[data-color="2B-4"]:active,
+    .variant-2b[data-color="2B-4"] .btn-main-2b:active {
+      transform: scale(0.985);
+      background: #110406;
+      border-color: #9e0d24;
     }
     .tiles-row-2b {
       display: grid;
@@ -970,8 +1076,61 @@
       align-items: center;
     }
 
+    /* Pasek górny aplikacji / profil dla NAV-B */
+    .app-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 16px 6px 16px;
+      min-height: 38px;
+      z-index: 20;
+      position: relative;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .topbar-discipline-tag {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--app-crimson-ink);
+      text-transform: uppercase;
+    }
+    .topbar-profile-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: 20px;
+      padding: 3px 10px 3px 4px;
+      color: var(--app-ink);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 150ms ease, border-color 150ms ease;
+    }
+    .topbar-profile-btn:hover {
+      border-color: var(--app-crimson);
+    }
+    .topbar-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--app-grad-primary);
+      color: #ffffff;
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     /* =========================================================================
-       SEKCJA 6: DOLNE MENU Z ROMBEM „+” (WARIANTY 6A, 6B, 6C)
+       SEKCJA 6: DOLNE MENU Z ROMBEM „+” (WARIANTY 6A-1, 6A-2, 6A-3, 6B, 6C)
        ========================================================================= */
     .bottom-nav {
       position: absolute;
@@ -1016,8 +1175,8 @@
     }
     .nav-item.is-active svg { color: var(--app-crimson-ink); }
 
-    /* 6A: Wystający romb 45° (Rekomendowany ADR 0019) */
-    .variant-6a {
+    /* 6A-1: Obecny romb obniżony o 9 px (Wybór właściciela, mniej wystaje ponad pasek) */
+    .variant-6a1, .variant-6a {
       position: relative;
       display: flex;
       flex-direction: column;
@@ -1025,31 +1184,149 @@
       justify-content: center;
       height: 100%;
     }
-    .nav-diamond-6a {
+    .nav-diamond-6a1 {
       position: absolute;
-      top: -18px;
+      top: -9px;
       width: 36px;
       height: 36px;
       transform: rotate(45deg);
       background: var(--app-grad-plus);
-      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 4.5px rgba(240, 117, 58, 0.55);
+      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 4px color-mix(in srgb, var(--app-ember) 55%, transparent);
       border-radius: 3px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      border: none;
       transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease;
     }
-    .nav-diamond-6a:active {
+    .nav-diamond-6a1::after {
+      content: '';
+      position: absolute;
+      inset: -6px; /* Cel dotyku 48x48 px */
+    }
+    .nav-diamond-6a1:active {
       transform: rotate(45deg) scale(0.92);
       box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 5px rgba(240, 117, 58, 0.85);
     }
-    .nav-diamond-6a svg {
+    .nav-diamond-6a1 svg {
       transform: rotate(-45deg);
       color: var(--app-on-accent);
     }
-    .nav-plus-label-6a {
-      margin-top: 30px;
+    .nav-plus-label-6a1 {
+      margin-top: 32px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--app-muted);
+    }
+
+    /* 6A-2: Romb wkomponowany ze stylem 6A (Flush Notch Diamond / Zintegrowana baza notch) */
+    .variant-6a2 {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    .nav-notch-base-6a2 {
+      position: absolute;
+      top: -11px;
+      width: 50px;
+      height: 18px;
+      background: var(--app-nav);
+      border-top: 1px solid var(--app-border);
+      border-left: 1px solid var(--app-border);
+      border-right: 1px solid var(--app-border);
+      border-radius: 6px 6px 0 0;
+      z-index: 1;
+    }
+    .nav-diamond-6a2 {
+      position: absolute;
+      top: -6px;
+      width: 34px;
+      height: 34px;
+      transform: rotate(45deg);
+      background: linear-gradient(135deg, #b8102a 0%, #8e0b20 100%);
+      box-shadow: 0 0 0 2.5px var(--app-nav), 0 0 0 4px rgba(193, 18, 47, 0.65), 0 0 10px rgba(240, 117, 58, 0.35);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      z-index: 2;
+      transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease;
+    }
+    .nav-diamond-6a2::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+    }
+    .nav-diamond-6a2:active {
+      transform: rotate(45deg) scale(0.92);
+      box-shadow: 0 0 0 2.5px var(--app-nav), 0 0 0 4.5px rgba(240, 117, 58, 0.9);
+    }
+    .nav-diamond-6a2 svg {
+      transform: rotate(-45deg);
+      color: #ffffff;
+    }
+    .nav-plus-label-6a2 {
+      margin-top: 32px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--app-muted);
+      z-index: 2;
+    }
+
+    /* 6A-3: Taktyczny kanciasty heksagon / ścięty romb (Tactical Chamfer Diamond) */
+    .variant-6a3 {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    .nav-diamond-6a3-border {
+      position: absolute;
+      top: -8px;
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(180deg, rgba(240, 117, 58, 0.8) 0%, rgba(193, 18, 47, 0.4) 100%);
+      clip-path: polygon(15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%, 0% 15%);
+      z-index: 0;
+    }
+    .nav-diamond-6a3 {
+      position: absolute;
+      top: -6px;
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(150deg, #9e0d24 0%, #6e0918 100%);
+      clip-path: polygon(15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%, 0% 15%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      z-index: 1;
+      transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), filter 150ms ease;
+    }
+    .nav-diamond-6a3::after {
+      content: '';
+      position: absolute;
+      inset: -5px;
+    }
+    .nav-diamond-6a3:active {
+      transform: scale(0.92);
+      filter: brightness(1.2);
+    }
+    .nav-diamond-6a3 svg {
+      color: #ffffff;
+      z-index: 2;
+    }
+    .nav-plus-label-6a3 {
+      margin-top: 32px;
       font-size: 10px;
       font-weight: 600;
       color: var(--app-muted);
@@ -1074,6 +1351,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      border: none;
     }
     .nav-diamond-6b svg { transform: rotate(-45deg); color: #fff; }
     .nav-label-6b { font-size: 10px; font-weight: 600; color: var(--app-muted); }
@@ -1098,6 +1376,214 @@
       font-size: 11px;
       font-weight: 800;
       cursor: pointer;
+    }
+
+    /* =========================================================================
+       EKRAN HISTORII (PODGLĄD DOCELOWYCH WIDOKÓW DLA NAV-A, NAV-B, NAV-C)
+       ========================================================================= */
+    .history-view-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--app-bg);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease;
+    }
+    .history-view-overlay.is-open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .history-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--app-border);
+      background: var(--app-surface);
+      gap: 8px;
+    }
+    .btn-history-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: none;
+      color: var(--app-crimson-ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 6px 0;
+    }
+    .history-arch-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 3px;
+      background: var(--app-elevated);
+      color: var(--app-muted);
+      border: 1px solid var(--app-border);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .history-scroll-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-bottom: 90px;
+    }
+    .history-title-box h2 {
+      font-family: 'Archivo', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--app-ink);
+      line-height: 1.1;
+    }
+    .history-title-box p {
+      font-size: 12px;
+      color: var(--app-muted);
+      margin-top: 4px;
+    }
+    .history-segmented-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: 4px;
+      padding: 3px;
+      gap: 4px;
+    }
+    .history-seg-btn {
+      padding: 8px 10px;
+      border: none;
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--app-muted);
+      border-radius: 3px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .history-seg-btn.is-active {
+      background: var(--app-elevated);
+      color: var(--app-ink);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+    .history-week-banner {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-left: 3px solid var(--app-crimson);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .history-week-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .history-week-stats {
+      font-size: 11px;
+      color: var(--app-muted);
+      margin-top: 2px;
+    }
+    .history-filter-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+    .history-chip {
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 14px;
+      border: 1px solid var(--app-border);
+      background: var(--app-surface);
+      color: var(--app-muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .history-chip.is-active {
+      border-color: var(--app-crimson);
+      background: rgba(193, 18, 47, 0.15);
+      color: var(--app-ink);
+      font-weight: 700;
+    }
+    .history-card-item {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .history-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .history-disc-badge {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 2px;
+      background: rgba(193, 18, 47, 0.18);
+      color: var(--app-crimson-ink);
+      border: 1px solid rgba(193, 18, 47, 0.3);
+    }
+    .history-date-txt {
+      font-size: 11px;
+      color: var(--app-muted);
+    }
+    .history-session-name {
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--app-ink);
+      line-height: 1.25;
+    }
+    .history-metrics-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--app-muted);
+    }
+    .rpe-tag {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 2px;
+      background: var(--app-elevated);
+      color: var(--app-ember);
+      border: 1px solid var(--app-border);
+    }
+    .history-note-box {
+      background: var(--app-elevated);
+      border-left: 2px solid var(--app-ember);
+      padding: 8px 10px;
+      border-radius: 0 3px 3px 0;
+      font-size: 11px;
+      color: var(--app-ink);
+      line-height: 1.35;
     }
 
     /* Toast powiadomień po akcjach */
@@ -1169,6 +1655,17 @@
       </svg>
       <span id="toastText">Akcja wykonana</span>
     </div>
+
+    <!-- Pasek górny (z awatarem Profilu dla wariantu NAV-B) -->
+    <header class="app-topbar" id="appTopbar">
+      <div class="topbar-brand">
+        <span class="topbar-discipline-tag">BOKS / KICKBOXING · SEZON 2026</span>
+      </div>
+      <button class="topbar-profile-btn" id="topbarProfileBtn" style="display: none;" type="button" onclick="showToast('Przejście do Profilu (ikona w nagłówku dla NAV-B)')" aria-label="Profil użytkownika">
+        <div class="topbar-avatar">AK</div>
+        <span>Profil</span>
+      </button>
+    </header>
 
     <!-- Zawartość ekranu Start -->
     <div class="screen-content" id="screenContent">
@@ -1264,12 +1761,15 @@
           </div>
 
           <!-- Wariant 2B (Wybrany przez właściciela) -->
-          <div class="variant-2b" id="slotAction2B">
-            <button class="btn-main-2b" type="button" onclick="showToast('Otwieranie formularza wpisu...')">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-              </svg>
-              Wpisz trening po zajęciach
+          <div class="variant-2b" id="slotAction2B" data-color="2B-1">
+            <button class="btn-main-2b" id="btnMain2B" data-color="2B-1" type="button" onclick="showToast('Otwieranie formularza wpisu...')">
+              <div class="btn-icon-box-2b">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+              </div>
+              <span class="btn-main-label-2b">Wpisz trening po zajęciach</span>
+              <span class="btn-ember-dot-2b" id="btnEmberDot2B" style="display: none;" aria-hidden="true"></span>
             </button>
             <div class="tiles-row-2b">
               <button class="btn-tile-2b" type="button" onclick="showToast('Nie byłem')">
@@ -1443,9 +1943,12 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--app-muted)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
 
-          <div class="last-session-card-5a">
+          <div class="last-session-card-5a" onclick="handleLastSessionHistoryClick(event)" style="cursor:pointer;" title="Kliknij, aby otworzyć widok Historii">
             <div class="last-session-left">
-              <span style="color:var(--app-muted);">Ostatnia sesja: Poniedziałek, 16 lis</span>
+              <span style="color:var(--app-muted); display:flex; align-items:center; gap:6px;">
+                Ostatnia sesja: Poniedziałek, 16 lis
+                <span style="color:var(--app-crimson-ink); font-size:11px; font-weight:700;">Historia &rsaquo;</span>
+              </span>
               <b>Boks Technika A · 6 rund · RPE 7/10</b>
             </div>
             <span class="last-badge-5a">ZALICZONY</span>
@@ -1483,22 +1986,58 @@
     </div>
 
     <!-- ===================================================================
-         CZĘŚĆ 6: DOLNA NAWIGACJA Z ROMBEM „+” (WARIANTY 6A, 6B, 6C)
+         CZĘŚĆ 6 & ARCHITEKTURA DOLNEGO MENU (NAV-A, NAV-B, NAV-C)
          =================================================================== -->
-    <nav class="bottom-nav" id="sectionNav" aria-label="Główna nawigacja">
-      <button class="nav-item is-active" type="button">
+    <nav class="bottom-nav" id="sectionNav" data-nav="NAV-A" aria-label="Główna nawigacja">
+      <!-- Zakładka 1: Start (wspólna, aktywna) -->
+      <button class="nav-item is-active" id="navItemStart" type="button" onclick="closeHistoryOverlay(); showToast('Jesteś na ekranie Start')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         <span>Start</span>
       </button>
-      <button class="nav-item" type="button" onclick="showToast('Przejście do ekranu: Plan')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+      <!-- Zakładka 2: Plan (NAV-A, NAV-B) lub Dziennik (NAV-C) -->
+      <button class="nav-item" id="navItemTab2" type="button" onclick="handleNavTab2Click()">
+        <svg id="navTab2Icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
-        <span>Plan</span>
+        <span id="navTab2Label">Plan</span>
       </button>
 
-      <!-- Slot centralnego przycisku (6A, 6B, 6C) -->
-      <div id="slotNav6A" class="variant-6a">
+      <!-- Slot centralnego przycisku (6A-1, 6A-2, 6A-3, 6B, 6C) -->
+      <!-- 6A-1: Obecny romb obniżony o 9 px (Wybór właściciela, mniej wystaje ponad pasek) -->
+      <div id="slotNav6A1" class="variant-6a1">
+        <button class="nav-diamond-6a1" type="button" aria-label="Szybki trening" onclick="showToast('Szybki start: nowy trening')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <span class="nav-plus-label-6a1">Trening</span>
+      </div>
+
+      <!-- 6A-2: Romb wkomponowany ze stylem 6A (Flush Notch Diamond) -->
+      <div id="slotNav6A2" class="variant-6a2" style="display: none;">
+        <div class="nav-notch-base-6a2"></div>
+        <button class="nav-diamond-6a2" type="button" aria-label="Szybki trening" onclick="showToast('Szybki start: nowy trening')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <span class="nav-plus-label-6a2">Trening</span>
+      </div>
+
+      <!-- 6A-3: Taktyczny kanciasty heksagon / ścięty romb (Tactical Chamfer Diamond) -->
+      <div id="slotNav6A3" class="variant-6a3" style="display: none;">
+        <div class="nav-diamond-6a3-border"></div>
+        <button class="nav-diamond-6a3" type="button" aria-label="Szybki trening" onclick="showToast('Szybki start: nowy trening')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <span class="nav-plus-label-6a3">Trening</span>
+      </div>
+
+      <!-- Warianty legacy 6A, 6B, 6C -->
+      <div id="slotNav6A" class="variant-6a" style="display: none;">
         <button class="nav-diamond-6a" type="button" aria-label="Szybki trening" onclick="showToast('Szybki start: nowy trening')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -1523,30 +2062,124 @@
         </button>
       </div>
 
-      <button class="nav-item" type="button" onclick="showToast('Przejście do ekranu: Postęp')">
+      <!-- Zakładka 4: Postęp (wspólna) -->
+      <button class="nav-item" id="navItemTab4" type="button" onclick="handleNavTab4Click()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
         </svg>
         <span>Postęp</span>
       </button>
-      <button class="nav-item" type="button" onclick="showToast('Przejście do ekranu: Historia')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+
+      <!-- Zakładka 5: Profil (NAV-A, NAV-C) lub Treningi (NAV-B) -->
+      <button class="nav-item" id="navItemTab5" type="button" onclick="handleNavTab5Click()">
+        <svg id="navTab5Icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
         </svg>
-        <span>Historia</span>
+        <span id="navTab5Label">Profil</span>
       </button>
     </nav>
+
+    <!-- ===================================================================
+         NAKŁADKA: PEŁNY EKRAN GDZIE LĄDUJE HISTORIA (DLA NAV-A, NAV-B, NAV-C)
+         =================================================================== -->
+    <div class="history-view-overlay" id="historyViewOverlay" aria-modal="true" role="dialog" aria-labelledby="histScreenTitle">
+      <header class="history-header">
+        <button class="btn-history-back" type="button" onclick="closeHistoryOverlay()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Wróć do Startu
+        </button>
+        <span class="history-arch-badge" id="histArchBadge">Wariant NAV-A</span>
+      </header>
+
+      <div class="history-scroll-body">
+        <div class="history-title-box">
+          <h2 id="histScreenTitle">Postęp i Historia</h2>
+          <p id="histScreenSubtitle">Dziennik sesji treningowych sportów walki</p>
+        </div>
+
+        <!-- Przełącznik segmentowy na samej górze widoku docelowego -->
+        <div class="history-segmented-control" id="histSegControl">
+          <button class="history-seg-btn" id="histSegBtn1" type="button" onclick="showToast('Przełączono na podgląd wykresów')">Wykresy i cele</button>
+          <button class="history-seg-btn is-active" id="histSegBtn2" type="button">Historia sesji (aktywna)</button>
+        </div>
+
+        <!-- Filtry dyscyplin -->
+        <div class="history-filter-chips">
+          <button class="history-chip is-active" type="button" onclick="showToast('Filtr: Wszystkie sesje')">Wszystkie (24)</button>
+          <button class="history-chip" type="button" onclick="showToast('Filtr: Boks')">Boks (16)</button>
+          <button class="history-chip" type="button" onclick="showToast('Filtr: Kickboxing / K-1')">Kickboxing / K-1 (8)</button>
+          <button class="history-chip" type="button" onclick="showToast('Filtr: Sparingi')">Sparingi</button>
+        </div>
+
+        <!-- Podsumowanie tygodnia -->
+        <div class="history-week-banner">
+          <div>
+            <div class="history-week-title">Ten tydzień · 11–17 lis</div>
+            <div class="history-week-stats">3 treningi · 210 min łącznego czasu · plan 3/4</div>
+          </div>
+          <span class="status-badge" style="background:rgba(63,181,107,0.18); color:var(--app-success-ink); border:1px solid rgba(63,181,107,0.3); font-size:11px; font-weight:800; padding:4px 8px; border-radius:3px;">CEL: 75%</span>
+        </div>
+
+        <!-- Karty historii sesji -->
+        <article class="history-card-item">
+          <div class="history-card-top">
+            <span class="history-disc-badge">BOKS</span>
+            <span class="history-date-txt">Wtorek, 12 lis · 18:30</span>
+          </div>
+          <h3 class="history-session-name">Technika kombinacji i sparingi zadaniowe</h3>
+          <div class="history-metrics-row">
+            <span>Czas: <b>75 min</b></span>
+            <span>Rundy: <b>5 × 3 min</b></span>
+            <span class="rpe-tag">RPE 8</span>
+          </div>
+          <div class="history-note-box">
+            <b>Uwaga z treningu:</b> Lewa ręka zbyt nisko przy wyjściu z prawego prostego; trener kazał skupić się na powrocie do szczelnej gardy.
+          </div>
+        </article>
+
+        <article class="history-card-item">
+          <div class="history-card-top">
+            <span class="history-disc-badge" style="color:var(--app-ember); border-color:rgba(240,117,58,0.4); background:rgba(240,117,58,0.15);">KICKBOXING / K-1</span>
+            <span class="history-date-txt">Czwartek, 14 lis · 19:00</span>
+          </div>
+          <h3 class="history-session-name">Tarcze bokserskie + low-kick po kombinacji</h3>
+          <div class="history-metrics-row">
+            <span>Czas: <b>60 min</b></span>
+            <span>Rundy: <b>6 × 2 min</b></span>
+            <span class="rpe-tag">RPE 7</span>
+          </div>
+          <div class="history-note-box">
+            <b>Uwaga z treningu:</b> Płynne przeniesienie ciężaru ciała na zakroczną nogę przed kopnięciem low-kick.
+          </div>
+        </article>
+
+        <article class="history-card-item">
+          <div class="history-card-top">
+            <span class="history-disc-badge">BOKS</span>
+            <span class="history-date-txt">Sobota, 16 lis · 10:30</span>
+          </div>
+          <h3 class="history-session-name">Praca na worku i interwały na skakance</h3>
+          <div class="history-metrics-row">
+            <span>Czas: <b>75 min</b></span>
+            <span>Ciągły</span>
+            <span class="rpe-tag">RPE 6</span>
+          </div>
+        </article>
+      </div>
+    </div>
   </main>
 
   <script>
-    // System zarządzania wariantami modułowymi (Wybór właściciela: 1B-1 · 2B · 3A · 4A · 5A · 6A)
+    // System zarządzania wariantami modułowymi (Wybór właściciela: 1B-1 · 2B-1 · 3A · 4A · 5A · 6A-1 · NAV-A)
     const currentConfig = {
       p1: '1B-1',
       p2: '2B',
       p3: '3A',
       p4: '4A',
       p5: '5A',
-      p6: '6A',
+      p6: '6A-1',
+      color2b: '2B-1',
+      nav: 'NAV-A',
       traceMode: 'single',
       theme: 'dark'
     };
@@ -1582,7 +2215,6 @@
 
       // Część 1: Karta Dziś z burzą (1A, 1B-1, 1B-2, 1B-3, 1C)
       if (cfg.p1) {
-        // Mapowanie '1B' -> '1B-1'
         const mappedP1 = cfg.p1 === '1B' ? '1B-1' : cfg.p1;
         currentConfig.p1 = mappedP1;
         document.getElementById('sectionToday').setAttribute('data-variant-1', mappedP1);
@@ -1603,12 +2235,25 @@
         });
       }
 
+      // Kolor przycisku 2B (2B-1, 2B-2, 2B-3, 2B-4)
+      if (cfg.color2b) {
+        currentConfig.color2b = cfg.color2b;
+        const slot2B = document.getElementById('slotAction2B');
+        const btn2B = document.getElementById('btnMain2B');
+        if (slot2B) slot2B.setAttribute('data-color', cfg.color2b);
+        if (btn2B) {
+          btn2B.setAttribute('data-color', cfg.color2b);
+          const dot = document.getElementById('btnEmberDot2B');
+          if (dot) dot.style.display = (cfg.color2b === '2B-4') ? 'block' : 'none';
+        }
+      }
+
       // Część 3: Ten tydzień
       if (cfg.p3) {
         currentConfig.p3 = cfg.p3;
         ['3A', '3B', '3C'].forEach(v => {
           const el = document.getElementById('slotWeek' + v);
-          if (el) el.style.display = (v === cfg.p3) ? (v === '3C' ? 'flex' : 'flex') : 'none';
+          if (el) el.style.display = (v === cfg.p3) ? 'flex' : 'none';
         });
       }
 
@@ -1617,7 +2262,7 @@
         currentConfig.p4 = cfg.p4;
         ['4A', '4B', '4C'].forEach(v => {
           const el = document.getElementById('slotNext' + v);
-          if (el) el.style.display = (v === cfg.p4) ? (v === '4C' ? 'flex' : 'flex') : 'none';
+          if (el) el.style.display = (v === cfg.p4) ? 'flex' : 'none';
         });
       }
 
@@ -1630,25 +2275,144 @@
         });
       }
 
-      // Część 6: Dolna belka z rombem +
+      // Część 6: Dolna belka z rombem + (6A-1, 6A-2, 6A-3, 6A, 6B, 6C)
       if (cfg.p6) {
-        currentConfig.p6 = cfg.p6;
-        ['6A', '6B', '6C'].forEach(v => {
-          const el = document.getElementById('slotNav' + v);
-          if (el) el.style.display = (v === cfg.p6) ? 'flex' : 'none';
+        const mappedP6 = cfg.p6 === '6A' ? '6A-1' : cfg.p6;
+        currentConfig.p6 = mappedP6;
+        const idMap = {
+          '6A-1': 'slotNav6A1',
+          '6A-2': 'slotNav6A2',
+          '6A-3': 'slotNav6A3',
+          '6A': 'slotNav6A1',
+          '6B': 'slotNav6B',
+          '6C': 'slotNav6C'
+        };
+        ['slotNav6A1', 'slotNav6A2', 'slotNav6A3', 'slotNav6A', 'slotNav6B', 'slotNav6C'].forEach(slotId => {
+          const el = document.getElementById(slotId);
+          if (el) el.style.display = 'none';
         });
+        const targetSlot = document.getElementById(idMap[mappedP6] || 'slotNav6A1');
+        if (targetSlot) targetSlot.style.display = 'flex';
+      }
+
+      // Architektura dolnego menu (NAV-A, NAV-B, NAV-C)
+      if (cfg.nav) {
+        currentConfig.nav = cfg.nav;
+        const navBar = document.getElementById('sectionNav');
+        const topbarProfileBtn = document.getElementById('topbarProfileBtn');
+        const tab2Label = document.getElementById('navTab2Label');
+        const tab2Icon = document.getElementById('navTab2Icon');
+        const tab5Label = document.getElementById('navTab5Label');
+        const tab5Icon = document.getElementById('navTab5Icon');
+
+        if (navBar) navBar.setAttribute('data-nav', cfg.nav);
+
+        if (cfg.nav === 'NAV-A') {
+          // NAV-A: Start · Plan · + · Postęp (z Historią) · Profil
+          if (topbarProfileBtn) topbarProfileBtn.style.display = 'none';
+          if (tab2Label) tab2Label.textContent = 'Plan';
+          if (tab2Icon) tab2Icon.innerHTML = '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>';
+          if (tab5Label) tab5Label.textContent = 'Profil';
+          if (tab5Icon) tab5Icon.innerHTML = '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>';
+        } else if (cfg.nav === 'NAV-B') {
+          // NAV-B: Start · Plan · + · Postęp · Treningi (z Historią), Profil w nagłówku
+          if (topbarProfileBtn) topbarProfileBtn.style.display = 'flex';
+          if (tab2Label) tab2Label.textContent = 'Plan';
+          if (tab2Icon) tab2Icon.innerHTML = '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>';
+          if (tab5Label) tab5Label.textContent = 'Treningi';
+          if (tab5Icon) tab5Icon.innerHTML = '<line x1="6" y1="5" x2="6" y2="19"/><line x1="18" y1="5" x2="18" y2="19"/><line x1="2" y1="9" x2="6" y2="9"/><line x1="18" y1="9" x2="22" y2="9"/><line x1="2" y1="15" x2="6" y2="15"/><line x1="18" y1="15" x2="22" y2="15"/><line x1="6" y1="12" x2="18" y2="12"/>';
+        } else if (cfg.nav === 'NAV-C') {
+          // NAV-C: Start · Dziennik (Plan + Historia) · + · Postęp · Profil
+          if (topbarProfileBtn) topbarProfileBtn.style.display = 'none';
+          if (tab2Label) tab2Label.textContent = 'Dziennik';
+          if (tab2Icon) tab2Icon.innerHTML = '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/>';
+          if (tab5Label) tab5Label.textContent = 'Profil';
+          if (tab5Icon) tab5Icon.innerHTML = '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>';
+        }
       }
     }
 
-    // Obsługa URL query params (?p1=1B-1&p2=2B...)
+    // Interakcje nakładki ekranu Historii
+    function showHistoryOverlay(navVariant) {
+      const overlay = document.getElementById('historyViewOverlay');
+      const badge = document.getElementById('histArchBadge');
+      const title = document.getElementById('histScreenTitle');
+      const subtitle = document.getElementById('histScreenSubtitle');
+      const segBtn1 = document.getElementById('histSegBtn1');
+      const segBtn2 = document.getElementById('histSegBtn2');
+
+      const v = navVariant || currentConfig.nav || 'NAV-A';
+
+      if (v === 'NAV-A') {
+        badge.textContent = 'Architektura NAV-A';
+        title.textContent = 'Postęp i Dziennik';
+        subtitle.textContent = 'Historia sesji jako zintegrowana zakładka w module Postępu';
+        segBtn1.textContent = 'Wykresy i cele';
+        segBtn2.textContent = 'Historia sesji (aktywna)';
+      } else if (v === 'NAV-B') {
+        badge.textContent = 'Architektura NAV-B';
+        title.textContent = 'Treningi · Historia';
+        subtitle.textContent = 'Dedykowana zakładka Treningi (Historia + Baza planów); Profil w nagłówku';
+        segBtn1.textContent = 'Baza planów i ćwiczeń';
+        segBtn2.textContent = 'Historia sesji (aktywna)';
+      } else if (v === 'NAV-C') {
+        badge.textContent = 'Architektura NAV-C';
+        title.textContent = 'Dziennik Zawodnika';
+        subtitle.textContent = 'Wspólna oś czasu: Plan mikrocyklu i Historia sesji w jednym miejscu';
+        segBtn1.textContent = 'Plan tygodnia';
+        segBtn2.textContent = 'Historia sesji (aktywna)';
+      }
+
+      overlay.classList.add('is-open');
+    }
+
+    function closeHistoryOverlay() {
+      const overlay = document.getElementById('historyViewOverlay');
+      if (overlay) overlay.classList.remove('is-open');
+    }
+
+    // Obsługa kliknięć w zakładki dolnego menu
+    function handleNavTab2Click() {
+      if (currentConfig.nav === 'NAV-C') {
+        // W NAV-C zakładka 2 to Dziennik (zawiera Historię)
+        showHistoryOverlay('NAV-C');
+      } else {
+        showToast('Przejście do ekranu: Plan tygodnia');
+      }
+    }
+
+    function handleNavTab4Click() {
+      if (currentConfig.nav === 'NAV-A') {
+        // W NAV-A w Postępie znajduje się Historia
+        showHistoryOverlay('NAV-A');
+      } else {
+        showToast('Przejście do ekranu: Postęp (wykresy i analityka)');
+      }
+    }
+
+    function handleNavTab5Click() {
+      if (currentConfig.nav === 'NAV-B') {
+        // W NAV-B zakładka 5 to Treningi (gdzie ląduje Historia!)
+        showHistoryOverlay('NAV-B');
+      } else {
+        showToast('Przejście do ekranu: Profil zawodnika');
+      }
+    }
+
+    function handleLastSessionHistoryClick(event) {
+      if (event) event.preventDefault();
+      showHistoryOverlay(currentConfig.nav);
+    }
+
+    // Obsługa URL query params
     const params = new URLSearchParams(window.location.search);
     const initialConfig = {};
-    ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'traceMode', 'theme'].forEach(key => {
+    ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'color2b', 'nav', 'traceMode', 'theme'].forEach(key => {
       if (params.has(key)) initialConfig[key] = params.get(key);
     });
     applyConfig(initialConfig);
 
-    // Komunikacja postMessage z index.html (dla podglądu na żywo w panelu Alternatyw)
+    // Komunikacja postMessage z index.html
     window.addEventListener('message', (event) => {
       if (event.data && typeof event.data === 'object') {
         if (event.data.type === 'SET_CONFIG') {
@@ -1659,6 +2423,10 @@
           applyConfig({ theme: event.data.theme });
         } else if (event.data.type === 'SET_TRACE_MODE') {
           applyConfig({ traceMode: event.data.mode });
+        } else if (event.data.type === 'SHOW_HISTORY_VIEW') {
+          showHistoryOverlay(event.data.navVariant || currentConfig.nav);
+        } else if (event.data.type === 'HIDE_HISTORY_VIEW') {
+          closeHistoryOverlay();
         }
       }
     });
@@ -1678,16 +2446,15 @@
 
     // Mikrointerakcje
     function playMicroInteractions() {
-      // Błysk burzy
       const stormLayer = document.getElementById('stormSvgLayer');
-      stormLayer.classList.remove('storm-pulse-active');
-      void stormLayer.offsetWidth;
-      stormLayer.classList.add('storm-pulse-active');
+      if (stormLayer) {
+        stormLayer.classList.remove('storm-pulse-active');
+        void stormLayer.offsetWidth;
+        stormLayer.classList.add('storm-pulse-active');
+      }
 
-      // Animacja obwódki (dla 1B-2 i 1B-3)
       triggerBorderAnimation(currentConfig.p1);
 
-      // Pasek postępu i licznik
       const fill = document.getElementById('weekProgressFill');
       const statCompleted = document.getElementById('statCompleted');
       const statPercent = document.getElementById('statPercent');
@@ -1699,7 +2466,6 @@
 
         setTimeout(() => {
           fill.style.width = '50%';
-          // Prosty licznik
           let step = 0;
           const interval = setInterval(() => {
             step++;
@@ -1714,12 +2480,9 @@
       }
     }
 
-    // Autostart animacji przy wejściu
     setTimeout(playMicroInteractions, 300);
 
-    // Kliknięcie w kartę Dziś wywołuje błysk burzy
     document.getElementById('sectionToday').addEventListener('click', (e) => {
-      // Ignoruj kliknięcia w same przyciski wewnątrz
       if (e.target.closest('button')) return;
       playMicroInteractions();
     });
