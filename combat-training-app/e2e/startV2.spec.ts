@@ -169,7 +169,7 @@ for (const theme of ['dark', 'light'] as const) {
       await app.open('/')
       await expect(todayCard(page)).toBeVisible()
       const navigation = page.getByRole('navigation', { name: 'Główna nawigacja', exact: true })
-      await navigation.getByRole('link', { name: 'Treningi', exact: true }).click()
+      await navigation.getByRole('link', { name: 'Postęp', exact: true }).click()
       await expect(page.locator('.home-view')).toHaveCount(0)
       await page.emulateMedia({ reducedMotion: ending === 'reduced' ? 'reduce' : 'no-preference' })
       await page.evaluate((key) => sessionStorage.removeItem(key), HOME_INTRO_SESSION_KEY)
@@ -210,7 +210,7 @@ for (const theme of ['dark', 'light'] as const) {
       expect(await page.evaluate((key) => sessionStorage.getItem(key), HOME_INTRO_SESSION_KEY)).toBe('true')
       // Auth/Firestore boot after a reload needs its normal timers again.
       await page.clock.resume()
-      await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Treningi', exact: true }).click()
+      await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Postęp', exact: true }).click()
       await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Start', exact: true }).click()
       await expect(todayCard(page)).toBeVisible()
       await expect(root).not.toHaveAttribute('data-home-intro')
