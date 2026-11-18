@@ -8,6 +8,8 @@ export const routes = {
   newManualWorkout: '/workout-sessions/new',
   editManualWorkout: (sessionId: string) => `/workout-sessions/${sessionId}/edit`,
   progress: '/progress',
+  progressHistory: '/progress?tab=history',
+  plan: '/progress/week',
   profile: '/profile',
   deleteAccount: '/profile/delete-account',
   profileConsent: '/profile/consent',

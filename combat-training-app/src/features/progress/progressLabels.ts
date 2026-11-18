@@ -1,6 +1,7 @@
 import { focusSkillLabels } from '@/features/focus-skills/focusSkillLabels'
 
 export const progressLabels = {
+  tabs: 'Zakładki Postępu', charts: 'Wykresy', history: 'Historia',
   title: 'Postęp', skills: 'Elementy do poprawy', archived: focusSkillLabels.archived, noRatings: 'Brak ocen',
   empty: 'Dodaj jedną rzecz, nad którą pracujesz, np. ręka wraca do brody po jabie. Po treningu ocenisz, jak wyszła.',
   newPlan: 'Nowy plan', loading: 'Ładowanie…', retry: 'Spróbuj ponownie', back: 'Wróć do listy',

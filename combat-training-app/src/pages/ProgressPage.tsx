@@ -1,6 +1,9 @@
+import { useState } from 'react'
+import { SegmentedControl } from '@/components/ui/SegmentedControl'
+import { WorkoutListContent } from '@/features/workouts/WorkoutListContent'
 import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
 import { ScreenHeader } from '@/components/ScreenHeader'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
@@ -34,6 +37,13 @@ function SkillCard({ skill }: { skill: FocusSkill }) {
 }
 
 export function Component() {
+  const [params, setParams] = useSearchParams()
+  const routeTab = params.get('tab') === 'history' ? 'history' : 'charts'
+  const [selection, setSelection] = useState({ routeTab, tab: routeTab })
+  // Update the radio immediately while the route transition commits; follow browser Back.
+  if (selection.routeTab !== routeTab) setSelection({ routeTab, tab: routeTab })
+  const tab = selection.routeTab === routeTab ? selection.tab : routeTab
+  const history = tab === 'history'
   const { focusSkills, sessions, plans, currentWeek, weekPlans } = useWorkoutData()
   const ready = focusSkills.status === 'ready' && sessions.status === 'ready' && focusSkills.complete && sessions.complete && !focusSkills.invalidDocumentIds.length && !sessions.invalidDocumentIds.length
   const correction = ready ? latestCorrection(sessions.items) : null
@@ -41,6 +51,15 @@ export function Component() {
   const archived = focusSkills.items.filter((skill) => skill.archivedAt !== null).sort((a, b) => a.name.localeCompare(b.name, 'pl'))
   return <div className="space-y-[18px] px-4 pb-6 pt-14 md:px-0 md:pt-0">
     <ScreenHeader variant="main" title={labels.title} subtitle={<>{new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', timeZone: 'UTC' }).formatRange(new Date(`${currentWeek}T12:00:00Z`), new Date(`${shiftCalendarDate(currentWeek, 6)}T12:00:00Z`))} · ten tydzień</>} />
+    <SegmentedControl ariaLabel={labels.tabs} options={[{ label: labels.charts, value: 'charts' }, { label: labels.history, value: 'history' }]} value={history ? 'history' : 'charts'}
+      onChange={(nextTab) => {
+        setSelection({ routeTab, tab: nextTab })
+        const next = new URLSearchParams(params)
+        if (nextTab === 'history') next.set('tab', nextTab)
+        else { next.delete('tab'); next.delete('week') }
+        setParams(next)
+      }} />
+    {history ? <WorkoutListContent history /> : <>
     <ProgressOverview />
     {plans.hasPendingWrites || focusSkills.hasPendingWrites || sessions.hasPendingWrites || weekPlans.hasPendingWrites ? <p role="status" className="text-sm text-muted">{workoutDataLabels.pending}</p> : null}
     <ProgressDataWarning />
@@ -59,5 +78,6 @@ export function Component() {
       </Link>}
     </section>}
     <ProgressMore />
+    </>}
   </div>
 }

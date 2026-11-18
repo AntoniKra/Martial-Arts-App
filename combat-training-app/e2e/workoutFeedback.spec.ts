@@ -6,6 +6,9 @@ import { test, expect } from './fixtures'
 import { block, continuousExercise, workoutPlan } from '../src/test/workoutBuilders'
 import type { FocusSkill } from '../src/domain/focus-skill/focusSkill.types'
 
+// Only offline cases need Progress's PWA precache; reload tests keep their original setup.
+const offlineTest = test.extend({ serviceWorkers: 'allow' })
+
 const instant = '2026-11-01T10:00:00.000Z'
 const skills: FocusSkill[] = [
   { id: 'guard', name: 'Lewy prosty, powrót do gardy', criterion: 'Ręka wraca do brody przed następnym ciosem.', openCorrection: null, archivedAt: null, createdAt: instant, updatedAt: instant },
@@ -74,7 +77,7 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   await page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true }).fill('Pilnuj powrotu do gardy.')
   const firstSummary = new URL(page.url()).pathname
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect.poll(async () => (await app.readSessions())[0]?.note).toBe('Pilnuj powrotu do gardy.')
   await app.open(firstSummary)
   await expect(card(page).getByRole('radio', { name: /^3 / })).toBeChecked()
@@ -114,7 +117,7 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   await expect(page.getByText(/Notatka z .* · na dziś/)).toHaveCount(0)
 })
 
-test('opens a partial summary, keeps a skipped focus unassessed, and saves a note without ratings offline', async ({ app, page, context }) => {
+offlineTest('opens a partial summary, keeps a skipped focus unassessed, and saves a note without ratings offline', async ({ app, page, context }) => {
   await app.open('/workouts')
   for (const skill of skills) await app.seedFocusSkill(skill)
   await app.seedPlan(plan)
@@ -133,7 +136,7 @@ test('opens a partial summary, keeps a skipped focus unassessed, and saves a not
   await context.setOffline(true)
   await page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true }).fill('Notatka bez ocen, bez sieci.')
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
   await page.getByRole('article').locator('.disclosure-trigger').first().click()
   await page.getByRole('link', { name: 'Podsumowanie', exact: true }).click()
@@ -167,7 +170,7 @@ test('retains training-time focus snapshots across a reload and library edits du
   ] })
 })
 
-test('queues ratings and a new correction together offline and sends both after reconnection', async ({ app, page, context }) => {
+offlineTest('queues ratings and a new correction together offline and sends both after reconnection', async ({ app, page, context }) => {
   await app.open('/workouts')
   for (const skill of skills) await app.seedFocusSkill(skill)
   await app.seedPlan(plan)
@@ -183,7 +186,7 @@ test('queues ratings and a new correction together offline and sends both after 
   await card(page).getByRole('textbox', { name: 'Wskazówka', exact: true }).fill('Ręka do brody.')
   await context.setOffline(true)
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
   expect((await app.readFocusSkills()).find((skill) => skill.id === 'guard')?.openCorrection).toBeNull()
   await page.getByRole('article').locator('.disclosure-trigger').first().click()

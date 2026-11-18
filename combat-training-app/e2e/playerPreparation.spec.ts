@@ -13,6 +13,10 @@ for (const theme of ['dark', 'light'] as const) {
     await page.reload()
     await expect(setting.getByRole('radio', { name: '5 s', exact: true })).toBeChecked()
     await page.evaluate(() => document.fonts.ready)
+    // Colour transitions (motion tokens) must settle before axe samples contrast.
+    await page.evaluate(() => Promise.all(document.getAnimations()
+      .filter((animation) => Number.isFinite(animation.effect?.getComputedTiming().endTime ?? Infinity))
+      .map((animation) => animation.finished.catch(() => undefined))))
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
     if (process.env.CAPTURE_SCREENSHOTS === '1' && testInfo.project.name === 'phone') {
       const path = testInfo.outputPath(`preparation-setting-${theme}.png`)
@@ -20,7 +24,8 @@ for (const theme of ['dark', 'light'] as const) {
       await testInfo.attach(`preparation-setting-${theme}`, { path, contentType: 'image/png' })
     }
 
-    await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+    await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('button', { name: 'Trening', exact: true }).click()
+    await page.getByRole('dialog', { name: 'Nowy trening', exact: true }).getByRole('link', { name: /^Moje plany/ }).click()
     await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     await app.openPlayer()
     await app.freezeClock()
@@ -160,7 +165,8 @@ test('uses ten seconds in both the setting and player after a failed preference 
   })
   await setting.getByRole('radio', { name: '5 s', exact: true }).click()
   await expect(setting.getByRole('radio', { name: '10 s', exact: true })).toBeChecked()
-  await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('button', { name: 'Trening', exact: true }).click()
+  await page.getByRole('dialog', { name: 'Nowy trening', exact: true }).getByRole('link', { name: /^Moje plany/ }).click()
   await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
   await app.openPlayer()
   await app.freezeClock()

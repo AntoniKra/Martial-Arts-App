@@ -2,6 +2,9 @@ import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures'
 import { roundsExercise, workoutPlan } from '../src/test/workoutBuilders'
 
+// Offline navigation to Progress uses the PWA precache.
+test.use({ serviceWorkers: 'allow' })
+
 test('changes planned sparring intensity offline and includes saved hard rounds in the week', async ({ app, page, context }) => {
   const plan = { ...workoutPlan([
     { id: 'technical', blockType: 'sparring', sparringIntensity: 'technical', items: [roundsExercise('three-rounds', 3, 60, 0)] },
@@ -37,7 +40,7 @@ test('changes planned sparring intensity offline and includes saved hard rounds 
   await first.getByRole('button', { name: /^Twardy/ }).click()
   await page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true }).fill('Twardy sparing zamiast technicznego.')
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
   await page.getByRole('article').locator('.disclosure-trigger').first().click()
   await page.getByRole('link', { name: 'Podsumowanie', exact: true }).click()

@@ -1,3 +1,4 @@
+import { routes } from '@/app/routes'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useWorkoutData } from '@/application/workoutDataContext'
@@ -24,7 +25,7 @@ export function ProgressWeeksChart() {
     <div><h2 className="font-display text-lg font-bold">Ostatnie tygodnie</h2><p className="text-sm text-muted">treningi w tygodniu</p></div>
     <div className={`progress-weeks-chart ${expanded ? 'is-expanded' : ''} ${interacted ? 'has-toggled' : ''}`} role="group"
       aria-label={`Treningi w tygodniu. ${visible.map((item) => `${item.week}: ${item.count}${item.target === null ? '' : `, plan ${item.target}`}${item.planKnown ? '' : ', plan niedostępny'}`).join('; ')}`}>
-      {series.map((item, index) => <Link key={item.week} to={`/workouts?tab=history&week=${item.week}`}
+      {series.map((item, index) => <Link key={item.week} to={`${routes.progressHistory}&week=${item.week}`}
         aria-hidden={!expanded && index < series.length - 5} tabIndex={!expanded && index < series.length - 5 ? -1 : undefined}
         className={`progress-week-column ${index < series.length - 5 ? 'is-older' : 'is-recent'} ${!expanded && index < series.length - 5 ? 'is-hidden' : ''} ${item.week === currentWeek ? 'is-current' : ''} ${item.target !== null && item.count < item.target ? 'is-below' : ''}`}>
         <span className="h-5 text-xs font-bold tabular-nums">{item.count}{!expanded && item.target !== null ? `/${item.target}` : ''}</span>

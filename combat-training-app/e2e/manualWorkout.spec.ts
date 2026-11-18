@@ -91,7 +91,7 @@ test('saves three club parts with sparring, custom minutes and one session load'
 })
 
 test('uses only previous discipline, duration and parts with badges until each field changes', async ({ app, page }, info) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   await app.seedSession(manualWorkoutSession({ category: 'mixed', disciplineKey: 'kickboxing', parts: ['technique', 'pads', 'sparring'],
     rpe: 9, sparring: [{ blockId: null, intensity: 'hard', rounds: 8 }], note: 'Praca na dystansie.' }))
   await expect(page.getByRole('heading', { name: 'Trening poza aplikacją · Technika, Tarcze, Sparing', exact: true })).toBeVisible()
@@ -121,7 +121,7 @@ test('uses only previous discipline, duration and parts with badges until each f
 })
 
 test('clears sparring details on deselection and preserves untouched legacy mixed history', async ({ app, page }) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   await app.seedSession(manualWorkoutSession({ category: 'mixed' }))
   const oldCard = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Trening poza aplikacją · Mieszany', exact: true }) })
   await expect(oldCard).toBeVisible()
@@ -142,7 +142,7 @@ test('clears sparring details on deselection and preserves untouched legacy mixe
 })
 
 test('requires confirmed parts for legacy mixed sparring and preserves saved focus places until explicitly changed', async ({ app, page }, info) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   await app.seedFocusSkill({ ...skill, openCorrection: null })
   const rating = manualFocusRating({ skillNameSnapshot: skill.name, criterionSnapshot: skill.criterion, blockType: 'pads' })
   const original = manualWorkoutSession({ category: 'mixed', note: 'Pierwotna notatka.', focusRatings: [rating],
@@ -166,7 +166,7 @@ test('requires confirmed parts for legacy mixed sparring and preserves saved foc
   await expect(form(page).getByRole('radio', { name: /^Twardy/ })).toBeChecked()
   await expect(form(page).getByRole('spinbutton', { name: 'Liczba rund (opcjonalnie)' })).toHaveValue('6')
   await save(page)
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect.poll(async () => (await app.readSessions())[0]?.note).toBe('Poprawiona notatka.')
   expect((await app.readSessions())[0]).toMatchObject({ schemaVersion: 2, parts: ['sparring'], category: 'sparring', focusRatings: [rating],
     durationSeconds: 5400, createdAt: original.createdAt, rpeRecordedAt: original.rpeRecordedAt })
@@ -199,7 +199,7 @@ test('adds sparring from home, shows manual cards, and counts toward summary and
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
   // Follow the user journey without restarting the Firestore client. A hard
   // navigation discards collection completeness and races the old primary lease.
-  await page.getByRole('link', { name: 'Treningi', exact: true }).click()
+  await page.getByRole('link', { name: 'Postęp', exact: true }).click()
   await page.getByRole('radio', { name: 'Historia', exact: true }).check()
   const history = page.getByRole('region', { name: 'Historia treningów', exact: true })
   await expect(historyCard(page)).toBeVisible()
@@ -216,13 +216,13 @@ test('adds sparring from home, shows manual cards, and counts toward summary and
 })
 
 test('marks a four-day-old RPE in history and load details and returns to history', async ({ app, page }) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   await page.getByRole('link', { name: addLabel, exact: true }).click()
   await fill(page)
   await form(page).getByLabel('Data', { exact: true }).fill('2026-11-08')
   await expect(form(page)).toContainText('Ten trening był 4 dni temu.')
   await save(page)
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await historyCard(page).locator('.disclosure-trigger').first().click()
   await expect(historyCard(page).getByText('z pamięci', { exact: true })).toBeVisible()
   // Reload only after the server acknowledged the entry: an immediate reload can drop the local write.
@@ -235,7 +235,7 @@ test('marks a four-day-old RPE in history and load details and returns to histor
 })
 
 test('warns about a plan duplicate, cancels without writing and explicitly saves separately', async ({ app, page }) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   await app.seedSession(workoutSession({ id: 'plan-duplicate', workoutDate: '2026-11-12', category: 'sparring',
     workoutPlanNameSnapshot: 'Sparing z planu', durationSeconds: 600 }))
   await page.getByRole('link', { name: addLabel, exact: true }).click()
@@ -251,7 +251,7 @@ test('warns about a plan duplicate, cancels without writing and explicitly saves
 })
 
 test('requires a place for mixed focus feedback, closes the correction and links the trend to editing', async ({ app, page }) => {
-  await app.open('/workouts?tab=history'); await app.seedFocusSkill(skill)
+  await app.open('/progress?tab=history'); await app.seedFocusSkill(skill)
   await page.getByRole('link', { name: addLabel, exact: true }).click()
   await fill(page, 'Technika')
   await category(page).getByRole('checkbox', { name: /^Tarcze/ }).check()
@@ -275,7 +275,7 @@ test('requires a place for mixed focus feedback, closes the correction and links
 })
 
 test('edits duration and RPE while timed entries remain unavailable for editing', async ({ app, page }) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   await app.seedSession(manualWorkoutSession({ category: 'sparring', sparring: [{ blockId: null, intensity: 'hard', rounds: 6 }], rpeRecordedAt: '2026-11-11T12:00:00.000Z' }))
   await expect(historyCard(page)).toBeVisible()
   await historyCard(page).locator('.disclosure-trigger').first().click()
@@ -295,10 +295,10 @@ test('edits duration and RPE while timed entries remain unavailable for editing'
 })
 
 test('saves a manual entry offline and confirms it on reconnect', async ({ app, page, context }) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   await page.getByRole('link', { name: addLabel, exact: true }).click()
   await fill(page); await context.setOffline(true); await save(page)
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect(historyCard(page)).toContainText('Czeka na wysłanie')
   expect(await app.readSessions()).toEqual([])
   await context.setOffline(false)
@@ -318,11 +318,11 @@ test('guards unsaved changes and focuses the first invalid field', async ({ app,
   await expect(form(page)).toBeVisible()
   await form(page).getByRole('button', { name: 'Anuluj', exact: true }).click()
   await dialog.getByRole('button', { name: 'Odrzuć zmiany', exact: true }).click()
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
 })
 
 test('retains saved focus ratings when the skill section fails and still saves the other fields', async ({ app, page }) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   const entry = manualWorkoutSession({ focusRatings: [manualFocusRating()] })
   await app.seedSession(entry)
   const savedCard = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Trening poza aplikacją · Worek', exact: true }) })
@@ -341,14 +341,14 @@ test('retains saved focus ratings when the skill section fails and still saves t
   await expect(category(page).getByRole('checkbox', { name: /^Tarcze/ })).toBeChecked()
   await expect(form(page).getByRole('radio', { name: '120 min', exact: true })).toBeChecked()
   await save(page)
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect.poll(async () => (await app.readSessions())[0]?.durationSeconds).toBe(7200)
   expect((await app.readSessions())[0]).toMatchObject({ category: 'pads', focusRatings: entry.focusRatings, rpeRecordedAt: entry.rpeRecordedAt })
 })
 
 for (const theme of ['dark', 'light'] as const) {
   test(`accessible manual form and four requested screenshots in ${theme} theme`, async ({ app, page }, info) => {
-    await app.open('/workouts?tab=history'); await app.setTheme(theme); await app.seedFocusSkill(skill)
+    await app.open('/progress?tab=history'); await app.setTheme(theme); await app.seedFocusSkill(skill)
     await app.seedSession(workoutSession({ id: 'duplicate', workoutDate: '2026-11-12', category: 'sparring', durationSeconds: 60 }))
     await page.getByRole('link', { name: addLabel, exact: true }).click()
     await fill(page)

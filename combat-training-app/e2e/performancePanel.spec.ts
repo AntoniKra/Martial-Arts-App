@@ -1,10 +1,13 @@
 import { selectRpe } from './rpeSlider'
 import { test, expect } from './fixtures'
 
+// Offline navigation to Progress uses the PWA precache.
+test.use({ serviceWorkers: 'allow' })
+
 test('opt-in panel measures a real offline manual entry and stays absent without the flag', async ({ app, page, context }, info) => {
   const downloaded: string[] = []
   page.on('request', (request) => downloaded.push(request.url()))
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   const panel = page.getByRole('group', { name: 'Panel pomiarów wydajności', exact: true })
   await expect(panel).toHaveCount(0)
   expect(downloaded.some((url) => /performance-panel|web-vitals/.test(url))).toBe(false)
@@ -26,7 +29,7 @@ test('opt-in panel measures a real offline manual entry and stays absent without
   await selectRpe(form, 7)
   await context.setOffline(true)
   await form.getByRole('button', { name: 'Zapisz', exact: true }).click()
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await panel.locator('summary').click()
   const results = panel.getByLabel('Wyniki pomiarów', { exact: true })
   await expect(results).toContainText(/T_lokalny: \d+\.\d+ ms/)
@@ -36,6 +39,6 @@ test('opt-in panel measures a real offline manual entry and stays absent without
   await panel.getByRole('button', { name: 'Przywróć sieć Firestore', exact: true }).click()
   await expect(results).toContainText(/T_sync: \d+\.\d+ ms/)
   await expect.poll(async () => (await app.readSessions()).length).toBe(1)
-  await app.open('/workouts?tab=history&perf=0')
+  await app.open('/progress?tab=history&perf=0')
   await expect(panel).toHaveCount(0)
 })

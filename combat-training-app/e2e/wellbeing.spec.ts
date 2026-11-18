@@ -246,7 +246,7 @@ test('seeded personal norms, neutral chart data and wellbeing beside RPE for all
   const current = workoutSession({ id: 'wellbeing-current', stepResults: [sessionStep()], workoutDate: today, startedAt: '2026-11-14T10:00:00.000Z', completedAt: '2026-11-14T11:00:00.000Z', rpe: 8, rpeRecordedAt: '2026-11-14T11:10:00.000Z' })
   expect(workoutSessionDocumentSchema.safeParse({ ...current, schemaVersion: 1 }).success).toBe(true)
   await app.seedSession(first); await app.seedSession(current)
-  await nav(page, 'Treningi').click()
+  await nav(page, 'Postęp').click()
   await page.getByRole('radio', { name: 'Historia', exact: true }).check()
   await page.getByRole('article').filter({ has: page.locator(`a[href="/workout-sessions/${current.id}/feedback"]`) }).locator('.disclosure-trigger').first().click()
   await page.locator(`a[href="/workout-sessions/${current.id}/feedback"]`).click()

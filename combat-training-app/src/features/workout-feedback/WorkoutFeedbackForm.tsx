@@ -56,7 +56,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
 
   return <UnsavedPlanChangesGuard isDirty={hasUnsavedWorkoutFeedback(draft, initial)} allowLeaveRef={allowLeave} description={labels.discardDescription}>
     <div className="mx-auto w-full max-w-xl space-y-3.5 px-4 py-5">
-    <RouteScreenHeader title={labels.title} fallback={`${routes.workouts}?tab=history`} />
+    <RouteScreenHeader title={labels.title} fallback={routes.progressHistory} />
     <header className="space-y-3">
       <p className="font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-crimson-ink">{labels.status[session.status]}</p>
       <h2 className="break-words font-display text-[22px] font-extrabold text-ink">{session.workoutPlanNameSnapshot}</h2>

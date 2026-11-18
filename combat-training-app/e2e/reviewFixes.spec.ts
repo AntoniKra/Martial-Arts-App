@@ -8,7 +8,7 @@ test.use({ screenshot: 'off', trace: 'off', video: 'off' })
 const sliderName = 'RPE od 0 do 10'
 
 test('history filters collapse, count active choices, filter results and clear without losing search', async ({ app, page }) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   await app.seedSession(workoutSession({ id: 'boxing', workoutPlanNameSnapshot: 'Trening boks', stepResults: [sessionStep()] }))
   await app.seedSession(workoutSession({ id: 'thai', workoutPlanNameSnapshot: 'Trening thai', disciplineKey: 'muay_thai', stepResults: [sessionStep()] }))
   await expect(page.getByRole('article')).toHaveCount(2)
@@ -47,15 +47,13 @@ test('history filters collapse, count active choices, filter results and clear w
   await expect(page.getByRole('form', { name: 'Trening spoza aplikacji' })).toBeVisible()
 })
 
-test('plans share filter state with history and the plus opens the builder', async ({ app, page }) => {
+test('plans keep filter controls and the plus opens the builder', async ({ app, page }) => {
   await app.open('/workouts')
   await app.seedPlan({ ...workoutPlan([block('bag', [continuousExercise('first', 60)], 'bag')]), nameSnapshot: 'Plan boks' })
   await page.getByRole('button', { name: 'Filtry', exact: true }).click()
   await page.getByRole('group', { name: 'Dyscyplina', exact: true }).getByRole('button', { name: 'Muay Thai', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Plan boks', exact: true })).toHaveCount(0)
-  await page.getByRole('radio', { name: 'Historia', exact: true }).check()
   await expect(page.getByRole('button', { name: /^Filtry/ })).toContainText('1')
-  await page.getByRole('radio', { name: 'Plany', exact: true }).check()
   await page.getByRole('button', { name: 'Wyczyść filtry' }).click()
   await expect(page.getByRole('heading', { name: 'Plan boks', exact: true })).toBeVisible()
   await page.getByRole('link', { name: 'Utwórz nowy trening', exact: true }).click()
@@ -63,7 +61,7 @@ test('plans share filter state with history and the plus opens the builder', asy
 })
 
 test('RPE has no initial choice, supports touch drag, snaps to six and saves it', async ({ app, page, context }) => {
-  await app.open('/workouts?tab=history')
+  await app.open('/progress?tab=history')
   const session = workoutSession({ stepResults: [sessionStep()] })
   await app.seedSession(session)
   await app.open(`/workout-sessions/${session.id}/feedback`)
@@ -146,6 +144,6 @@ test('custom minutes replace Other without a placeholder and save with aligned d
   await expect(form.getByRole('slider')).toHaveAttribute('aria-valuetext', 'Nie wybrano RPE')
   await selectRpe(form, 7)
   await form.getByRole('button', { name: 'Zapisz', exact: true }).click()
-  await expect(page).toHaveURL(/\/workouts\?tab=history$/)
+  await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect.poll(async () => (await app.readSessions())[0]?.durationSeconds).toBe(4500)
 })

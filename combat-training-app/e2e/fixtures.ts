@@ -186,7 +186,7 @@ class WorkoutApp {
   }
 
   async openHistory() {
-    await this.open('/workouts')
+    await this.open('/progress')
     await this.page.getByRole('radio', { name: 'Historia', exact: true }).click()
     const history = this.page.getByRole('region', { name: 'Historia treningów', exact: true })
     await expect(history.getByText('Ładowanie historii…', { exact: true })).toHaveCount(0)
