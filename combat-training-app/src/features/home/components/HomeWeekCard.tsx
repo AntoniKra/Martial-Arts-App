@@ -17,8 +17,9 @@ export function HomeWeekCard({ weekStart, schedule, progress, minutes, today }: 
   const dateClass = 'flex size-12 flex-col items-center justify-center gap-1 rounded-sm bg-elevated leading-none'
   const dayPath = (date: string | null) => `${routes.weekPlan(weekStart)}${date ? `?day=${date}#day-${date}` : '#flexible-workouts'}`
   return <section aria-label={labels.week} className="flex flex-col gap-3">
+    <div className="home-week-tracker">
     <div className="flex flex-wrap items-center justify-between gap-x-2">
-      <h2 className="font-display text-lg font-extrabold">{labels.week}<span className="sr-only"> · {homeWeekLabel(weekStart)}</span></h2>
+      <h2 className="font-display text-[11px] font-bold uppercase tracking-[0.08em] text-muted">{labels.week}<span className="sr-only"> · {homeWeekLabel(weekStart)}</span></h2>
       <Link to={routes.weekPlan(weekStart)} className={homeInlineLink}>{labels.weekPlan} ›</Link>
     </div>
     <ol aria-label={labels.days} className="grid list-none grid-cols-7 gap-1.5 text-center">
@@ -35,6 +36,7 @@ export function HomeWeekCard({ weekStart, schedule, progress, minutes, today }: 
     </div>
     {progress.hasGoal && <div role="progressbar" aria-label={labels.week} aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.completed}
       aria-valuetext={labels.goal(progress.goalCount, progress.total)} className="h-1.5 overflow-hidden rounded-[3px] bg-bd"><div className="accent-fill h-full" style={{ width: `${progress.percentage}%` }} /></div>}
+    </div>
     {cards.next && <div className="space-y-2">
       <h3 className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">{labels.next}</h3>
       <Link to={dayPath(cards.next.date)} className={cardClass}>

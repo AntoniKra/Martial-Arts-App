@@ -2,7 +2,7 @@ import { useId } from 'react'
 
 export function StormDecoration() {
   const gradient = useId()
-  return <svg aria-hidden="true" focusable="false" className="storm-decoration" viewBox="0 0 358 340" fill="var(--app-ember)">
+  return <><span className="home-intro-spark" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg></span><svg aria-hidden="true" focusable="false" className="storm-decoration" viewBox="0 0 358 340" fill="var(--app-ember)">
     <defs><linearGradient id={gradient} x1="1" y1="0" x2="0" y2="1">
       <stop offset="0" stopColor="var(--app-ember)" stopOpacity=".95" />
       <stop offset=".35" stopColor="var(--app-storm-mid)" stopOpacity=".75" />
@@ -22,5 +22,5 @@ export function StormDecoration() {
     <rect x="330" y="56" width="5" height="5" opacity=".8" transform="rotate(45 332.5 58.5)" />
     <rect x="214" y="248" width="5" height="5" opacity=".6" transform="rotate(45 216.5 250.5)" />
     <rect x="268" y="22" width="4" height="4" opacity=".7" transform="rotate(45 270 24)" />
-  </svg>
+  </svg></>
 }

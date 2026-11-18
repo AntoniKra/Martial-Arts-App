@@ -155,6 +155,111 @@
   --app-grad-plus: linear-gradient(150deg,#e0263f 0%,#b8102a 55%,#8e0b20 100%);
 }
 
+/* Start v2 only: the rest of the app retains its existing primary palette. */
+:root {
+  --app-home-card-border: rgba(193,18,47,0.45);
+  --app-home-card-light: rgba(193,18,47,0.14);
+  --app-home-card-inset: rgba(193,18,47,0.05);
+  --app-home-grad-primary: linear-gradient(135deg,#580814 0%,#750a1a 100%);
+  --app-home-primary-pressed: #460610;
+  --app-home-primary-ink: #ffffff;
+  --app-home-primary-muted: #e5c8cd;
+  --app-home-primary-edge: rgba(240,117,58,0.85);
+  --app-home-primary-light: rgba(117,10,26,0.4);
+}
+
+.home-view .storm-card {
+  border-color: var(--app-home-card-border);
+  box-shadow: 0 0 16px var(--app-home-card-light), inset 0 0 12px var(--app-home-card-inset);
+}
+.home-primary-action {
+  border: 1px solid var(--app-home-primary-edge);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-home-grad-primary);
+  color: var(--app-home-primary-ink);
+  font-family: var(--font-display);
+  box-shadow: 0 4px 16px var(--app-home-primary-light);
+}
+.home-primary-action:hover { border-color: var(--app-ember); }
+.home-primary-action:not(:disabled):not([aria-disabled='true']):active { background: var(--app-home-primary-pressed); }
+.home-primary-action:disabled, .home-primary-action[aria-disabled='true'] {
+  background: var(--app-missed);
+  color: var(--app-on-accent);
+  border-color: var(--app-border);
+  box-shadow: none;
+}
+.home-primary-action:disabled .home-primary-description, .home-primary-action[aria-disabled='true'] .home-primary-description { color: inherit; }
+.home-primary-icon {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--app-ember) 40%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--app-ember) 15%, transparent);
+  color: var(--app-ember);
+}
+.home-primary-description { display: block; margin-top: 1px; font-family: var(--font-sans); font-size: 10.5px; font-weight: 400; color: var(--app-home-primary-muted); }
+.home-secondary-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-elevated);
+  color: var(--app-ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+.home-secondary-action svg { flex-shrink: 0; color: var(--app-muted); }
+.home-secondary-action:hover { border-color: var(--app-muted); }
+.home-secondary-action:disabled { opacity: 0.4; }
+.home-week-tracker { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
+.home-week-tracker .week-day-dot { width: 32px; height: 32px; border-radius: var(--app-radius-sm); }
+.home-intro-spark { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-primary-action, .home-secondary-action {
+    transition: transform var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+  }
+  :is(.home-primary-action, .home-secondary-action):not(:disabled):not([aria-disabled='true']):active { transform: scale(0.98); }
+  .home-view[data-home-intro] .home-content > .storm-card:first-of-type > .home-intro-spark {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 1;
+    display: flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--app-radius-sm);
+    background: var(--app-grad-primary);
+    color: var(--app-home-primary-ink);
+    pointer-events: none;
+    animation: home-intro-spark calc(var(--motion-slow) + var(--motion-med) * 2) var(--ease-standard) both;
+  }
+  .home-view[data-home-intro] .home-content > .storm-card:first-of-type > .storm-decoration {
+    animation: home-intro-storm calc(var(--motion-slow) + var(--motion-med) * 2) var(--ease-out) both;
+  }
+  @keyframes home-intro-spark {
+    0% { transform: translate(-120px,160px) rotate(45deg) scale(0.4); opacity: 0; }
+    25% { transform: translate(-100px,130px) rotate(45deg) scale(1); opacity: 1; }
+    65% { transform: translate(0,0) rotate(45deg) scale(0.2); opacity: 1; }
+    100% { transform: translate(0,0) rotate(45deg) scale(0); opacity: 0; }
+  }
+  @keyframes home-intro-storm {
+    0%, 60% { opacity: var(--app-storm-opacity); }
+    70% { opacity: 0.15; }
+    85%, 100% { opacity: var(--app-storm-opacity); }
+  }
+}
+
 .primary-action {
   border-radius: var(--app-radius-sm);
   background: var(--app-grad-primary);

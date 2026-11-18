@@ -14,7 +14,7 @@ export function homeWeekLabel(start: string) {
 }
 export const homeLabels = {
   heading: 'Start', today: 'Dziś', quickStart: 'Szybki start', activePlan: 'Aktywny plan',
-  club: 'Klub', entry: 'Wpisz trening po zajęciach', notGoing: 'Nie idę dziś',
+  club: 'Klub', entry: 'Wpisz trening po zajęciach', moveDay: 'Przenieś dzień',
   entryHint: (discipline: string, minutes: string) => `Data, ${discipline.toLocaleLowerCase('pl')}${minutes ? `, ${minutes} min` : ''} i części są już wpisane — dodajesz RPE i notatkę.`,
   usual: (parts: string) => `Zwykle: ${parts}`, noParts: 'Wybierzesz części przy wpisie po zajęciach.',
   later: 'W tym tygodniu jeszcze', otherPlans: 'Stoper i inne plany', allPlans: 'Wszystkie plany i nowy plan',

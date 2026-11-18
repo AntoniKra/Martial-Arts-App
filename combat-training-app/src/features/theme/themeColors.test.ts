@@ -109,6 +109,25 @@ describe.each(['dark', 'light'] as const)('%s theme colours', (mode) => {
     }
   })
 
+  it('keeps Start text readable across the full gradient and pressed state', () => {
+    const token = (name: string) => {
+      const value = css.match(new RegExp(`--app-home-${name}: (#[a-f0-9]{6});`, 'i'))?.[1]
+      if (!value) throw new Error(`Missing home token: ${name}`)
+      return value
+    }
+    const stops = css.match(/--app-home-grad-primary: ([^;]+);/)?.[1].match(/#[a-f0-9]{6}/gi)
+    expect(stops).toHaveLength(2)
+    const backgrounds = [token('primary-pressed')]
+    for (let index = 1; index < stops!.length; index++) {
+      for (let step = 0; step <= 100; step++) backgrounds.push(blend(stops![index], stops![index - 1], step / 100))
+    }
+    for (const background of backgrounds) {
+      expect(contrast(token('primary-ink'), background)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(token('primary-muted'), background)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(getToken(mode, 'ember'), blend(getToken(mode, 'ember'), background, 0.15))).toBeGreaterThanOrEqual(3)
+    }
+  })
+
   it('keeps status and trend text readable on their filled surfaces', () => {
     expect(contrast(getToken(mode, 'on-accent'), getToken(mode, 'missed'))).toBeGreaterThanOrEqual(4.5)
     expect(contrast(getToken(mode, 'success-ink'), blend(getToken(mode, 'success'), getToken(mode, 'surface'), 0.12))).toBeGreaterThanOrEqual(4.5)

@@ -32,6 +32,12 @@ for (const theme of ['dark', 'light'] as const) {
     const featured = page.getByRole('region', { name: 'Szybki start', exact: true })
     await expect(featured.getByText('1 blok · 2 rundy · 2:30', { exact: true })).toBeVisible()
     await expect(featured.getByRole('link', { name: 'Rozpocznij plan', exact: true })).toHaveAttribute('href', `/workouts/${plan.id}/active`)
+    const startAction = featured.getByRole('link', { name: 'Rozpocznij plan', exact: true })
+    await expect(startAction).toHaveClass(/home-primary-action/)
+    await expect(startAction).toHaveCSS('border-top-width', '1px')
+    await expect(startAction).toHaveCSS('color', 'rgb(255, 255, 255)')
+    expect(await startAction.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain('rgb(88, 8, 20)')
+    await expect(startAction.locator('.home-primary-icon')).toHaveCSS('color', 'rgb(240, 117, 58)')
     await screenshot('featured')
 
     await app.open(`/workouts/${plan.id}`)

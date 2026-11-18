@@ -1,11 +1,11 @@
-import { useState, type ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { clubWorkoutPrefill } from '@/domain/week-plan/clubWorkoutPrefill'
 import type { selectHomeSchedule } from '@/domain/week-plan/homeSchedule'
-import type { WeekPlan } from '@/domain/week-plan/weekPlan.types'
+import type { ScheduledWeekItem, WeekPlan } from '@/domain/week-plan/weekPlan.types'
 import { manualPartsLabel } from '@/features/manual-workout/manualWorkoutLabels'
 import { activityTitle, scheduleLabels, weekdays } from '@/features/week-plan/scheduleLabels'
 import { useScheduledWeekActions } from '@/features/week-plan/useScheduledWeekActions'
@@ -13,12 +13,28 @@ import { weekPlanLabels } from '@/features/week-plan/weekPlanLabels'
 import { homeCardDate, homeLabels as labels, homeShortDate } from '../homeLabels'
 import { StormDecoration } from './StormDecoration'
 import { ScheduleStatusBadge } from '@/features/week-plan/ScheduleStatusBadge'
+import { HomeActionIcon } from './HomeActionIcon'
 
 type Schedule = ReturnType<typeof selectHomeSchedule>
 export const homeSecondaryButton = 'inline-flex min-h-touch items-center justify-center border border-bd bg-elevated px-3.5 text-[13px] font-semibold text-ink hover:bg-bd disabled:opacity-40'
-export const homePrimaryButton = 'primary-action inline-flex min-h-14 items-center justify-center gap-2 px-4 py-3 text-center text-[15px] font-extrabold uppercase tracking-[0.1em] text-on-accent'
+export const homePrimaryButton = 'home-primary-action inline-flex min-h-14 items-center gap-3 px-3.5 py-2.5 text-left text-[13px] font-extrabold'
 export const homeSectionLabel = 'text-[11px] font-semibold uppercase tracking-[0.14em] text-muted'
 export const homeInlineLink = 'inline-flex min-h-touch items-center text-[13px] text-crimson-ink '
+
+export function HomeTodayActions({ item, actions, moving, onMoving }: {
+  item: ScheduledWeekItem; actions: ReturnType<typeof useScheduledWeekActions>; moving: boolean; onMoving: () => void
+}) {
+  return <>
+    <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-2">
+      <button type="button" disabled={actions.busy} className="home-secondary-action" onClick={() => { void actions.toggleOmitted(item) }}><HomeActionIcon kind="omit" />{scheduleLabels.omit}</button>
+      <button type="button" disabled={actions.busy} aria-expanded={moving} className="home-secondary-action" onClick={onMoving}><HomeActionIcon kind="move" />{labels.moveDay}</button>
+    </div>
+    {moving && <label className="px-4 pb-4 text-sm text-muted">{scheduleLabels.move}<select className="mt-1 block min-h-touch w-full border border-bd bg-input px-3 text-base text-ink" value={item.day ?? ''} disabled={actions.busy} onChange={(event) => {
+      const day = weekdays.find(({ day }) => String(day) === event.target.value)?.day
+      if (day !== undefined) void actions.move(item, day)
+    }}>{weekdays.map(({ day, name }) => <option key={day} value={day}>{name}</option>)}</select></label>}
+  </>
+}
 
 function ActionFeedback({ actions }: { actions: ReturnType<typeof useScheduledWeekActions> }) {
   return <>
@@ -30,6 +46,7 @@ function ActionFeedback({ actions }: { actions: ReturnType<typeof useScheduledWe
 }
 
 export function HomeTodayCards({ plan, schedule, today, fallback }: { plan: WeekPlan; schedule: Schedule; today: string; fallback: ReactNode }) {
+  const descriptionId = useId()
   const actions = useScheduledWeekActions(plan, true)
   const [moving, setMoving] = useState<string | null>(null)
   const { plans } = useWorkoutData()
@@ -47,16 +64,11 @@ export function HomeTodayCards({ plan, schedule, today, fallback }: { plan: Week
           <p className="storm-copy text-sm text-muted">{item.parts.length ? labels.usual(manualPartsLabel(item.parts).toLocaleLowerCase('pl')) : labels.noParts}</p>
         </div>
         {status === 'done' ? <div role="status" className="mx-4 mb-4 self-start"><ScheduleStatusBadge status="done" /></div> : prefill && <>
-          <Link to={routes.newManualWorkout} state={{ weekEntry: prefill, returnTo: routes.home }} className={`${homePrimaryButton} mx-4`}>{labels.entry}</Link>
-          <p className="mx-4 mt-2 text-xs text-faint">{labels.entryHint(labels.discipline(item.disciplineKey), prefill.durationMinutes)}</p>
-          <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-3">
-            <button type="button" disabled={actions.busy} className={`${homeSecondaryButton} min-h-12`} onClick={() => { void actions.toggleOmitted(item) }}>{labels.notGoing}</button>
-            <button type="button" disabled={actions.busy} aria-expanded={moving === item.id} className={`${homeSecondaryButton} min-h-12`} onClick={() => setMoving(moving === item.id ? null : item.id)}>{scheduleLabels.move}</button>
-          </div>
-          {moving === item.id && <label className="px-4 pb-4 text-sm text-muted">{scheduleLabels.move}<select className="mt-1 block min-h-touch w-full border border-bd bg-input px-3 text-base text-ink" value={item.day} disabled={actions.busy} onChange={(event) => {
-            const day = weekdays.find(({ day }) => String(day) === event.target.value)?.day
-            if (day !== undefined) void actions.move(item, day)
-          }}>{weekdays.map(({ day, name }) => <option key={day} value={day}>{name}</option>)}</select></label>}
+          <Link to={routes.newManualWorkout} state={{ weekEntry: prefill, returnTo: routes.home }} aria-describedby={`${descriptionId}-${item.id}`} className={`${homePrimaryButton} mx-4`}>
+            <span className="home-primary-icon"><HomeActionIcon kind="entry" /></span>
+            <span className="min-w-0"><span className="block">{labels.entry}</span><span id={`${descriptionId}-${item.id}`} aria-hidden="true" className="home-primary-description">{labels.entryHint(labels.discipline(item.disciplineKey), prefill.durationMinutes)}</span></span>
+          </Link>
+          <HomeTodayActions item={item} actions={actions} moving={moving === item.id} onMoving={() => setMoving(moving === item.id ? null : item.id)} />
         </>}
         {schedule.flexible.map(({ item }) => item.kind === 'own' && <div key={item.id} className="flex items-center justify-between gap-2 border-t border-bd px-4 py-3">
           <div className="min-w-0"><p className="text-xs text-muted">{labels.later}</p><p className="mt-0.5 break-words text-sm font-semibold tabular-nums">{item.planNameSnapshot ?? activityTitle(item)}</p></div>

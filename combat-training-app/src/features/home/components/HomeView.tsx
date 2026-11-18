@@ -8,6 +8,8 @@ import { StormDecoration } from './StormDecoration'
 import { HomeQuickStart } from './HomeQuickStart'
 import { homeInlineLink, homePrimaryButton, homeSecondaryButton, homeSectionLabel } from './HomeScheduleCards'
 import type { HomeRecentSession, RecentWorkoutSessionsLoadState, FeaturedWorkoutPlanLoadState } from '../types/homeView.types'
+import { useHomeIntro } from '../useHomeIntro'
+import { HomeActionIcon } from './HomeActionIcon'
 
 interface HomeViewProps {
   today: string
@@ -22,29 +24,35 @@ interface HomeViewProps {
   wellbeing?: ReactNode
   empty?: boolean
   timerLabel: string
+  introReady?: boolean
 }
 
 function LastSession({ session }: { session: HomeRecentSession }) {
   const path = session.editPath ?? routes.workoutReport(session.id)
-  return <section aria-label={labels.last} className="flex flex-col gap-1.5 border border-bd bg-surface p-4">
+  return <section aria-label={labels.last} className="home-recent-session flex flex-col gap-2 rounded-sm border border-bd bg-surface px-3.5 py-3">
     <div className="flex flex-wrap items-center justify-between gap-x-2">
       <h2 className={homeSectionLabel}>{labels.last} · {session.dateLabelPl}</h2>
       <Link to={routes.progressHistory} className={homeInlineLink}>{labels.history} ›</Link>
     </div>
-    <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.12em] text-crimson-ink">{labels.discipline(session.disciplineKey)}</p>
-    <Link to={path} state={session.isManual ? { returnTo: routes.home } : undefined} className="inline-flex min-h-touch items-center">
-      <h3 className="break-words font-display text-[17px] font-bold">{session.name}</h3>
-    </Link>
-    <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm tabular-nums text-muted">{session.durationLabelPl}</p>{session.rpe !== null && <span className="status-badge rpe-badge">RPE {session.rpe}</span>}</div>
+    <div className="flex items-center justify-between gap-2 rounded-sm bg-elevated px-2.5 py-2">
+      <div className="min-w-0"><p className="text-[11px] font-bold uppercase tracking-[0.06em] text-crimson-ink">{labels.discipline(session.disciplineKey)}</p>
+        <Link to={path} state={session.isManual ? { returnTo: routes.home } : undefined} className="inline-flex min-h-touch items-center">
+          <h3 className="break-words text-xs font-bold">{session.name}</h3>
+        </Link>
+        <p className="text-[11px] tabular-nums text-muted">{session.durationLabelPl}</p>
+      </div>
+      {session.rpe !== null && <span className="status-badge rpe-badge">RPE {session.rpe}</span>}
+    </div>
     {session.hasPendingWrites && <p role="status" className="text-xs text-muted">{workoutDataLabels.pending}</p>}
     {session.rpe === null && <Link to={`${routes.workoutFeedback(session.id)}?rpe=1`} className={`${homeSecondaryButton} self-start`}>{labels.fillRpe}</Link>}
   </section>
 }
 
 export function HomeView({ today, featuredPlanLoadState, recentSessionsLoadState, onRetryLoadFeaturedPlan, onRetryLoadRecentSessions,
-  primary, overdue, weekPlan, rpeReminder, wellbeing, empty, timerLabel }: HomeViewProps) {
-  return <div className="flex-1">
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-4 px-4 pb-4 pt-14 md:max-w-2xl md:pb-6 md:pt-2">
+  primary, overdue, weekPlan, rpeReminder, wellbeing, empty, timerLabel, introReady = true }: HomeViewProps) {
+  const introRef = useHomeIntro(introReady)
+  return <div ref={introRef} className="home-view flex-1">
+    <div className="home-content mx-auto flex w-full max-w-lg flex-col gap-4 px-4 pb-4 pt-14 md:max-w-2xl md:pb-6 md:pt-2">
       <ScreenHeader variant="home" title={labels.heading} />
       {empty ? <section aria-label={labels.quickStart} className="storm-card flex flex-col gap-3 p-4">
         <StormDecoration />
@@ -53,7 +61,7 @@ export function HomeView({ today, featuredPlanLoadState, recentSessionsLoadState
           <h2 className="storm-copy font-display text-[30px] font-extrabold leading-[1.05]">{labels.empty}</h2>
           <p className="storm-copy text-sm text-muted">{labels.emptyHint}</p>
         </div>
-        <Link to={routes.newWorkout} className={homePrimaryButton}>{labels.createPlan}</Link>
+        <Link to={routes.newWorkout} className={homePrimaryButton}><span className="home-primary-icon"><HomeActionIcon kind="start" /></span>{labels.createPlan}</Link>
         <Link to={routes.newManualWorkout} state={{ returnTo: routes.home }} className={homeSecondaryButton}>{labels.firstClub}</Link>
       </section> : <>
         {primary ?? <HomeQuickStart today={today} state={featuredPlanLoadState} timerLabel={timerLabel} onRetry={onRetryLoadFeaturedPlan} />}
