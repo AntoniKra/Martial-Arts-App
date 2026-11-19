@@ -19,7 +19,8 @@ describe('session card completion counters', () => {
       const markup = renderToStaticMarkup(createElement(MemoryRouter, null, card))
       expect(markup).toContain('Trening poza aplikacją · Worek')
       expect(markup).toContain('/workout-sessions/manual/edit')
-      expect(markup).toContain('Popraw')
+      if (card.type === WorkoutHistoryCard) expect(markup).toContain('Popraw')
+      else expect(markup).toContain('home-session-status is-done')
       expect(markup).not.toMatch(/0\/0|width:|ćwiczeń|rund/)
     }
     expect(renderToStaticMarkup(createElement(MemoryRouter, null, createElement(WorkoutHistoryCard, {
@@ -39,6 +40,12 @@ describe('session card completion counters', () => {
     for (const card of [home, history]) {
       const markup = renderToStaticMarkup(createElement(MemoryRouter, null, card))
       const text = markup.replace(/<[^>]+>/g, '')
+      if (card.type === RecentSessionCard) {
+        expect(text).toContain('Częściowy')
+        expect(markup).not.toContain('width:')
+        expect(text).not.toContain('ćwiczeń')
+        continue
+      }
       expect(text).toContain('0/1 ćwiczeń')
       expect(text).not.toContain('wykonania')
       expect(markup).toContain('width:0%')
@@ -60,6 +67,11 @@ it('shows only round completion and its percentage for quick timers on both sess
       onUpdateNote: async () => 'applied' as const, onDelete: async () => 'applied' as const })]
   for (const card of cards) {
     const markup = renderToStaticMarkup(createElement(MemoryRouter, null, card))
+    if (card.type === RecentSessionCard) {
+      expect(markup).toContain('Częściowy')
+      expect(markup).not.toContain('width:')
+      continue
+    }
     expect(markup.replace(/<[^>]+>/g, '')).toContain('1/3 rund')
     expect(markup).not.toContain('ćwiczeń')
     expect(markup).toContain('width:33%')

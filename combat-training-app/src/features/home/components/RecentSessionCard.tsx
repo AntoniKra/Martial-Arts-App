@@ -1,58 +1,26 @@
 import { Link } from 'react-router-dom'
-
 import { routes } from '@/app/routes'
-import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
-import { WorkoutCompletionCounts } from '@/components/domain/WorkoutCompletionCounts'
-import type { HomeRecentSession } from '@/features/home/types/homeView.types'
+import type { HomeRecentSession } from '../types/homeView.types'
+import { homeLabels as labels } from '../homeLabels'
+import { homeSecondaryButton } from './HomeScheduleCards'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
-import { manualWorkoutLabels } from '@/features/manual-workout/manualWorkoutLabels'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 
-interface RecentSessionCardProps {
-  session: HomeRecentSession
-}
-
-export function RecentSessionCard({ session }: RecentSessionCardProps) {
-  return (
-    <Link
-      to={session.editPath ?? routes.workoutReport(session.id)}
-      state={session.isManual ? { returnTo: '/' } : undefined}
-      className="block w-full overflow-hidden border border-bd bg-surface text-left transition-colors hover:border-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-    >
-      <div className="px-4 py-4">
-        <div className="mb-1 flex items-center justify-between">
-          <DisciplineBadge disciplineKey={session.disciplineKey} />
-          <time className="text-[10px] text-muted">{session.dateLabelPl}</time>
-        </div>
-        <h3 className="mt-1 font-display text-[14px] font-semibold text-ink">{session.name}</h3>
-        <p className="mt-2 font-display text-xs font-semibold text-muted">{workoutPlayerLabels.sessionStatus[session.status]}</p>
-        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 font-display text-[11px] text-muted min-[350px]:grid-cols-[repeat(4,auto)] min-[350px]:items-baseline min-[350px]:justify-between min-[350px]:gap-x-2 min-[350px]:gap-y-0">
-          <span className="whitespace-nowrap">
-            <span className="font-semibold tabular-nums text-ink">{session.durationLabelPl}</span>
-          </span>
-          {!session.isManual && <WorkoutCompletionCounts counts={session} />}
-          {session.isManual && <span className="text-crimson-ink">{manualWorkoutLabels.edit}</span>}
-          {session.hasPendingWrites && <span className="text-muted">{workoutDataLabels.pending}</span>}
-          {session.rpe !== null ? (
-            <span className="whitespace-nowrap">
-              RPE <span className="font-semibold tabular-nums text-ink">{session.rpe}</span>
-            </span>
-          ) : null}
-          {session.averageRatingLabel ? (
-            <span className="whitespace-nowrap">
-              Śr.{' '}
-              <span className="font-semibold tabular-nums text-ink">{session.averageRatingLabel}</span>
-              <span className="text-muted">/5</span>
-            </span>
-          ) : null}
-        </div>
+export function RecentSessionCard({ session }: { session: HomeRecentSession }) {
+  const path = session.editPath ?? routes.workoutReport(session.id)
+  return <section aria-label={labels.last} className="home-recent-session">
+    <div className="min-w-0 flex-1">
+      <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted">
+        <h2>{labels.last}: {session.dateLabelPl}</h2>
+        <Link to={routes.progressHistory} className="inline-flex min-h-touch items-center text-[11px] font-bold text-crimson-ink">{labels.history} ›</Link>
       </div>
-      {!session.isManual && <div className="h-0.5 bg-elevated" aria-hidden="true">
-        <div
-          className="h-full bg-crimson transition-all"
-          style={{ width: `${session.exerciseCompletionPercent}%` }}
-        />
-      </div>}
-    </Link>
-  )
+      <Link to={path} state={session.isManual ? { returnTo: routes.home } : undefined} className="flex min-h-touch flex-col justify-center">
+        <h3 className="break-words text-[13px] font-bold">{session.name}</h3>
+        <p className="text-xs font-bold tabular-nums">{session.durationLabelPl}{session.rpe !== null && <> · <span className="rpe-badge">RPE {session.rpe}</span></>}</p>
+      </Link>
+      {session.hasPendingWrites && <p role="status" className="text-xs text-muted">{workoutDataLabels.pending}</p>}
+      {session.rpe === null && <Link to={`${routes.workoutFeedback(session.id)}?rpe=1`} className={homeSecondaryButton}>{labels.fillRpe}</Link>}
+    </div>
+    <span className={`home-session-status ${session.status === 'completed' ? 'is-done' : 'is-partial'}`}>{workoutPlayerLabels.sessionStatus[session.status]}</span>
+  </section>
 }

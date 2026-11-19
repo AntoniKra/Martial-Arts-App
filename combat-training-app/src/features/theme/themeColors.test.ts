@@ -116,7 +116,7 @@ describe.each(['dark', 'light'] as const)('%s theme colours', (mode) => {
       return value
     }
     const stops = css.match(/--app-home-grad-primary: ([^;]+);/)?.[1].match(/#[a-f0-9]{6}/gi)
-    expect(stops).toHaveLength(2)
+    expect(stops).toHaveLength(3)
     const backgrounds = [token('primary-pressed')]
     for (let index = 1; index < stops!.length; index++) {
       for (let step = 0; step <= 100; step++) backgrounds.push(blend(stops![index], stops![index - 1], step / 100))
@@ -124,7 +124,8 @@ describe.each(['dark', 'light'] as const)('%s theme colours', (mode) => {
     for (const background of backgrounds) {
       expect(contrast(token('primary-ink'), background)).toBeGreaterThanOrEqual(4.5)
       expect(contrast(token('primary-muted'), background)).toBeGreaterThanOrEqual(4.5)
-      expect(contrast(getToken(mode, 'ember'), blend(getToken(mode, 'ember'), background, 0.15))).toBeGreaterThanOrEqual(3)
+      // A places the icon directly on the gradient, without its former tinted box.
+      expect(contrast(getToken(mode, 'ember'), background)).toBeGreaterThanOrEqual(3)
     }
   })
 
