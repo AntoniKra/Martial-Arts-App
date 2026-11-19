@@ -23,18 +23,15 @@ interface HomeViewProps {
   rpeReminder?: ReactNode
   wellbeing?: ReactNode
   empty?: boolean
-  timerLabel: string
-  disciplineTag?: string
   introReady?: boolean
 }
 
 export function HomeView({ today, featuredPlanLoadState, recentSessionsLoadState, onRetryLoadFeaturedPlan, onRetryLoadRecentSessions,
-  primary, overdue, weekPlan, rpeReminder, wellbeing, empty, timerLabel, disciplineTag, introReady = true }: HomeViewProps) {
+  primary, overdue, weekPlan, rpeReminder, wellbeing, empty, introReady = true }: HomeViewProps) {
   const introRef = useHomeIntro(introReady)
   return <div ref={introRef} className="home-view flex-1">
     <div className="home-content mx-auto flex w-full max-w-lg flex-col gap-3.5 px-4 pb-4 pt-14 md:max-w-2xl md:pb-6 md:pt-2">
       <ScreenHeader variant="home" title={labels.heading} />
-      {disciplineTag && <p className="home-discipline-tag">{disciplineTag}</p>}
       {empty ? <section aria-label={labels.quickStart} className="storm-card home-main-card">
         <StormDecoration />
         <div className="space-y-3">
@@ -48,7 +45,7 @@ export function HomeView({ today, featuredPlanLoadState, recentSessionsLoadState
           <Link to={routes.newManualWorkout} state={{ returnTo: routes.home }} className="home-secondary-action"><span className="home-tile-icon"><HomeActionIcon kind="entry" /></span>{labels.firstClub}</Link>
         </div>
       </section> : <>
-        {primary ?? <HomeQuickStart today={today} state={featuredPlanLoadState} timerLabel={timerLabel} onRetry={onRetryLoadFeaturedPlan} />}
+        {primary ?? <HomeQuickStart today={today} state={featuredPlanLoadState} onRetry={onRetryLoadFeaturedPlan} />}
         {overdue}
         {weekPlan}
         {recentSessionsLoadState.status === 'loading' ? <p role="status" className="text-sm text-muted">{labels.loadingSessions}</p>

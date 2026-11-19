@@ -11,7 +11,7 @@ import { workoutSession } from '@/test/workoutSessionBuilders'
 
 function renderHome(recentSessionsLoadState: RecentWorkoutSessionsLoadState): string {
   return renderToStaticMarkup(createElement(MemoryRouter, null, createElement(HomeView, {
-    today: '2026-11-17', timerLabel: '3 × 3:00',
+    today: '2026-11-17',
     featuredPlanLoadState: { status: 'success', plan: null },
     recentSessionsLoadState,
     onRetryLoadFeaturedPlan: () => {},

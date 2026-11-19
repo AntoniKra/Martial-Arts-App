@@ -9,7 +9,7 @@ import { StormDecoration } from './StormDecoration'
 import { HomeParameterChip } from './HomeParameterChip'
 import { homePrimaryButton, homeSecondaryButton } from './HomeScheduleCards'
 
-export function HomeQuickStart({ state, today, timerLabel, onRetry }: { state: FeaturedWorkoutPlanLoadState; today: string; timerLabel: string; onRetry: () => void }) {
+export function HomeQuickStart({ state, today, onRetry }: { state: FeaturedWorkoutPlanLoadState; today: string; onRetry: () => void }) {
   const descriptionId = useId()
   const plan = state.status === 'success' ? state.plan : null
   return <section aria-label={labels.quickStart} className="storm-card home-main-card">
@@ -33,8 +33,8 @@ export function HomeQuickStart({ state, today, timerLabel, onRetry }: { state: F
       <span id={descriptionId} className="sr-only">{plan ? labels.discipline(plan.disciplineKey) : labels.emptyHint}</span>
       {state.status === 'success' && <Link aria-describedby={descriptionId} to={plan ? routes.workoutActive(plan.id) : routes.newWorkout} className={homePrimaryButton}><HomeActionIcon kind="start" />{plan ? labels.startPlan : labels.createPlan}</Link>}
       <div className="home-action-tiles">
-        <Link to={routes.quickTimer} className="home-secondary-action"><span className="home-tile-icon"><HomeActionIcon kind="timer" /></span><span>{labels.timer}<span className="block text-[11px] font-medium tabular-nums text-muted">{timerLabel}</span></span></Link>
-        <Link to={routes.newManualWorkout} state={{ returnTo: routes.home }} className="home-secondary-action"><span className="home-tile-icon"><HomeActionIcon kind="entry" /></span><span>{labels.clubWorkout}<span className="block text-[11px] font-medium text-muted">{labels.afterClass}</span></span></Link>
+        <Link to={routes.quickTimer} className="home-secondary-action"><span className="home-tile-icon"><HomeActionIcon kind="timer" /></span><span>{labels.timer}</span></Link>
+        <Link to={routes.newManualWorkout} state={{ returnTo: routes.home }} className="home-secondary-action"><span className="home-tile-icon"><HomeActionIcon kind="entry" /></span><span>{labels.clubWorkout}</span></Link>
       </div>
     </div>
   </section>

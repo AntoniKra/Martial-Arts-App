@@ -180,7 +180,6 @@
 }
 
 .home-view { --app-surface: var(--app-home-surface); }
-.home-discipline-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--app-crimson-ink); text-transform: uppercase; }
 .home-view .storm-card {
   border-color: var(--app-home-card-border);
   box-shadow: 0 0 16px var(--app-home-card-light), inset 0 0 12px var(--app-home-card-inset);

@@ -1,5 +1,5 @@
 import { formatPolishCount } from '@/domain/language/polishPlural'
-import { formatEstimatedDuration, formatSecondsAsClock } from '@/domain/time/formatDuration'
+import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { calculateWorkoutPlanSummary, type WorkoutPlanCalculable } from './workoutCalculations'
 
 /** Display parameters derived from the definition; the saved plan stays unchanged. */
@@ -14,7 +14,7 @@ export function workoutParameterChips(plan: WorkoutPlanCalculable): string[] {
   const roundLabel = formatPolishCount(summary.plannedRoundCount, 'runda', 'rundy', 'rund')
   const chips = rounds.length ? [durations.size === 1
     ? `${roundLabel} × ${duration % 60 === 0 ? `${duration / 60} min` : formatSecondsAsClock(duration)}`
-    : `${roundLabel} · ${formatEstimatedDuration(summary.estimatedTotalSeconds)}`] : []
+    : roundLabel] : []
   if (rests.size === 1) chips.push(`Przerwa ${[...rests][0]} s`)
   return chips
 }

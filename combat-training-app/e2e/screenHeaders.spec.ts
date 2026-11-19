@@ -38,7 +38,7 @@ for (const theme of ['dark', 'light'] as const) {
       await accessible(page)
     }
     await app.open('/')
-    await page.getByRole('link', { name: 'Stoper 3 × 3:00', exact: true }).click()
+    await page.getByRole('link', { name: 'Stoper', exact: true }).click()
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Szybki stoper')
     await expect(back(page)).toHaveCSS('width', '44px')
     await accessible(page)

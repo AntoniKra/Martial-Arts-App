@@ -9,7 +9,7 @@ describe('workout parameter chips', () => {
   })
   it('uses the complete estimate for unequal rounds and omits unequal rests', () => {
     const plan = workoutPlan([block('a', [roundsExercise('a', 3, 180, 60), roundsExercise('b', 6, 120, 30), continuousExercise('c', 300), workoutBreak('rest', 150)])])
-    expect(workoutParameterChips(plan)).toEqual(['9 rund · 33:00'])
+    expect(workoutParameterChips(plan)).toEqual(['9 rund'])
   })
   it('formats seconds without inventing a between-round break for a single round', () => {
     expect(workoutParameterChips(workoutPlan([block('a', [roundsExercise('a', 1, 90, 60)])]))).toEqual(['1 runda × 1:30'])

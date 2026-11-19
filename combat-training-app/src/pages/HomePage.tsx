@@ -18,9 +18,6 @@ import { HomeQuickStart } from '@/features/home/components/HomeQuickStart'
 import { HomeWeekCard } from '@/features/home/components/HomeWeekCard'
 import { homeLabels } from '@/features/home/homeLabels'
 import { calculateWeekPlanProgress } from '@/domain/week-plan/weekPlanProgress'
-import { createQuickTimerStorage } from '@/infrastructure/storage/quickTimerStorage'
-import { defaultQuickTimerDraft } from '@/domain/quick-timer/quickTimer'
-import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { scheduleLabels } from '@/features/week-plan/scheduleLabels'
 import { selectWeekPlan } from '@/application/week-plan/selectWeekPlan'
 
@@ -37,14 +34,8 @@ export function HomePage() {
   const featuredPlanLoadState = plans.status === 'ready'
     ? { status: 'success' as const, plan: latest ? mapWorkoutPlanToFeaturedPlan(latest) : null }
     : plans.status === 'loading' ? { status: 'loading' as const } : { status: 'error' as const, message: workoutDataLabels.plansLoadError }
-  const timer = uid ? createQuickTimerStorage(uid).read() : defaultQuickTimerDraft()
-  const timerLabel = `${timer.roundCount} × ${formatSecondsAsClock(timer.roundDurationSeconds)}`
-  const quickStart = <HomeQuickStart today={today} state={featuredPlanLoadState} timerLabel={timerLabel} onRetry={retry} />
+  const quickStart = <HomeQuickStart today={today} state={featuredPlanLoadState} onRetry={retry} />
   const progress = calculateWeekPlanProgress(plan.weekStart, plan, sessions.items)
-  const disciplines = [...new Set((plan.schedule ?? []).flatMap((item) => item.kind === 'club' ? [item.disciplineKey]
-    : item.kind === 'own' && item.workoutPlanId ? plans.items.filter((candidate) => candidate.id === item.workoutPlanId).map((candidate) => candidate.disciplineKey) : []))]
-  if (!disciplines.length && latest) disciplines.push(latest.disciplineKey)
-  const disciplineTag = `${disciplines.length ? `${disciplines.map(homeLabels.discipline).join(' / ')} · ` : ''}${homeLabels.season(today.slice(0, 4))}`
   const empty = ready && sessionsReady && plans.status === 'ready' && plans.complete && !plans.invalidDocumentIds.length
     && !plans.items.length && !sessions.items.length && !plan.items.length && !plan.schedule?.length && !plan.targetCount
     && !recurringWeeks.items[0]?.items.length && !weekPlans.items.some((week) => week.items.length || week.schedule?.length)
@@ -52,7 +43,7 @@ export function HomePage() {
     <WorkoutDataWarning />
     <HomeView
       introReady={ready && sessionsReady && plans.status === 'ready'}
-      disciplineTag={disciplineTag} today={today} empty={empty} timerLabel={timerLabel}
+      today={today} empty={empty}
       primary={schedule ? <HomeTodayCards key={plan.weekStart} plan={plan} schedule={schedule} today={today} fallback={quickStart} /> : <>
         {quickStart}
         {!ready ? selected.status !== 'ready' ? <WeekPlanDataMessage status={selected.status} /> : <div role="status" className="text-sm text-muted">
