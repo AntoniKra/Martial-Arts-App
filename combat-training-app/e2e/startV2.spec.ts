@@ -205,6 +205,13 @@ for (const theme of ['dark', 'light'] as const) {
     // Owner review of #205: quick start tiles and the card badge stay on one line on narrow phones.
     await page.setViewportSize({ width: 360, height: 800 })
     await expectSingleLineLabels(quick.locator('.home-plan-badge, .home-action-tiles a > span:last-child'))
+    await expect(quick.locator('.home-card-date-short')).toBeVisible()
+    await expect(quick.locator('.home-tile-icon').first()).toBeHidden()
+    await expectSingleLineLabels(quick.locator('.home-card-date-short'))
+    await page.setViewportSize({ width: 390, height: 844 })
+    await expect(quick.locator('.home-card-date-full')).toHaveCSS('position', 'static')
+    await expect(quick.locator('.home-card-date-short')).toBeHidden()
+    await expect(quick.locator('.home-tile-icon').first()).toBeVisible()
   })
 }
 

@@ -247,10 +247,14 @@
 .home-empty-card .home-workout-sub { max-width: 270px; margin-top: 4px; line-height: 1.35; }
 .home-empty-card .home-primary-action, .home-empty-card .home-secondary-action,
 .todo-club-item .home-secondary-action, .todo-item-top .home-card-date { white-space: nowrap; }
-/* Narrow phones: every Start tile (quick start, today card, empty Start) keeps its label on one line. */
-@media (max-width: 390px) {
-  .home-view .home-secondary-action { gap: 6px; padding-inline: 8px; font-size: 11.5px; }
-  .home-view .home-tile-icon { width: 28px; height: 28px; }
+.home-card-date-short { display: none; }
+/* Narrow phones (owner's option 1, 19.11): tiles drop their icon box so labels stay on one line,
+   and the card date switches to its short form; the full date stays available to screen readers. */
+@media (max-width: 389px) {
+  .home-view .home-tile-icon { display: none; }
+  .home-view .home-secondary-action { justify-content: center; text-align: center; }
+  .home-card-date-short { display: inline; }
+  .home-card-date-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 
 .home-neutral-badge { padding: 3px 8px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-elevated); color: var(--app-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; }

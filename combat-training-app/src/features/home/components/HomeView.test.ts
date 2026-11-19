@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import { HomeView } from '@/features/home/components/HomeView'
-import { homeCardDate } from '@/features/home/homeLabels'
+import { homeCardDate, homeCardDateShort } from '@/features/home/homeLabels'
 import { mapWorkoutSessionToHomeRecentSession } from '@/features/home/mappers/workoutSessionToHomeRecentSession'
 import type { RecentWorkoutSessionsLoadState } from '@/features/home/types/homeView.types'
 import { workoutSession } from '@/test/workoutSessionBuilders'
@@ -31,6 +31,8 @@ describe('home recent sessions', () => {
   it('formats the today card label for club and own workouts', () => {
     expect(homeCardDate('2026-11-19')).toBe('Dziś · czwartek, 19 listopada')
     expect(homeCardDate('2026-11-01')).toBe('Dziś · niedziela, 1 listopada')
+    expect(homeCardDateShort('2026-11-19')).toBe('Dziś · czw, 19 lis')
+    expect(homeCardDateShort('2026-01-05')).toBe('Dziś · pon, 5 sty')
   })
   it('announces session loading', () => {
     const html = renderHome({ status: 'loading' })

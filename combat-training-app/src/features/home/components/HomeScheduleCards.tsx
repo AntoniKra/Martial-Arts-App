@@ -1,4 +1,5 @@
 import { useId, useState, type ReactNode } from 'react'
+import { HomeCardDate } from './HomeCardDate'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
@@ -9,7 +10,7 @@ import type { ScheduledWeekItem, WeekPlan } from '@/domain/week-plan/weekPlan.ty
 import { manualPartsLabel } from '@/features/manual-workout/manualWorkoutLabels'
 import { activityTitle, scheduleLabels, weekdays } from '@/features/week-plan/scheduleLabels'
 import { useScheduledWeekActions } from '@/features/week-plan/useScheduledWeekActions'
-import { homeCardDate, homeLabels as labels } from '../homeLabels'
+import { homeLabels as labels } from '../homeLabels'
 import { StormDecoration } from './StormDecoration'
 import { ScheduleStatusBadge } from '@/features/week-plan/ScheduleStatusBadge'
 import { HomeActionIcon } from './HomeActionIcon'
@@ -55,7 +56,7 @@ export function HomeTodayCards({ plan, schedule, today, fallback }: { plan: Week
       return <section key={item.id} aria-label={`${labels.today} · ${labels.discipline(item.disciplineKey)} · ${item.startTime}`} className="storm-card home-main-card">
         <StormDecoration />
         <div className="home-card-meta">
-          <p className="home-card-date">{homeCardDate(today)}</p>
+          <HomeCardDate date={today} />
           <span className="home-plan-badge">{labels.discipline(item.disciplineKey)} · {labels.club}</span>
         </div>
         <div>

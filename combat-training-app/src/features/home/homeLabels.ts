@@ -53,3 +53,10 @@ export const homeLabels = {
 export function homeCardDate(date: string) {
   return `Dziś · ${new Intl.DateTimeFormat('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(calendarDate(date))}`
 }
+
+/** Narrow phones (below 390 px): one-line form chosen by the owner, e.g. "Dziś · czw, 19 lis". */
+export function homeCardDateShort(date: string) {
+  const day = calendarDate(date)
+  const weekday = new Intl.DateTimeFormat('pl-PL', { weekday: 'short', timeZone: 'UTC' }).format(day).replace('.', '')
+  return `Dziś · ${weekday}, ${new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(day)}`
+}
