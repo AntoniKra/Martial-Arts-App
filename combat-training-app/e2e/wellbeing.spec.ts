@@ -1,9 +1,9 @@
 import AxeBuilder from '@axe-core/playwright'
 import { readFile } from 'node:fs/promises'
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { test, expect, openProfile, expandProfileSection } from './fixtures'
 import { shiftCalendarDate } from '../src/domain/week-plan/weekCalendar'
-import type { WellbeingEntry } from '../src/domain/wellbeing/wellbeing'
+import { WELLBEING_FIELDS, type WellbeingEntry, type WellbeingField } from '../src/domain/wellbeing/wellbeing'
 import { wellbeingQuestions } from '../src/features/wellbeing/wellbeingLabels'
 import { sessionStep, workoutSession } from '../src/test/workoutSessionBuilders'
 import type { ManualWorkoutSession, QuickTimerWorkoutSession } from '../src/domain/workout-session/workoutSession.types'
@@ -13,6 +13,14 @@ test.use({ screenshot: 'off', trace: 'off' })
 const today = '2026-11-14', instant = `${today}T09:00:00.000Z`
 const card = (page: Page) => page.getByRole('region', { name: 'Jak się dziś czujesz?', exact: true })
 const toggle = (page: Page) => card(page).getByRole('button', { name: /^Jak się dziś czujesz\?/ })
+const wizard = (page: Page) => page.getByRole('form', { name: 'Samopoczucie', exact: true })
+const next = (form: Locator) => form.getByRole('button', { name: 'Dalej', exact: true })
+const back = (form: Locator) => form.getByRole('button', { name: 'Wstecz', exact: true })
+const save = (form: Locator) => form.getByRole('button', { name: 'Zapisz samopoczucie', exact: true })
+const note = (form: Locator) => form.getByRole('textbox', { name: 'Coś nietypowego? (opcjonalnie)', exact: true })
+const answerGroup = (form: Locator, field: WellbeingField) => form.getByRole('radiogroup', { name: wellbeingQuestions[field].question, exact: true })
+const answerName = (field: WellbeingField, score: number) => `${score} · ${wellbeingQuestions[field].options[score - 1]}`
+const answerTile = (group: Locator, score: number) => group.locator('label').nth(score - 1)
 const progress = (page: Page) => page.getByRole('region', { name: 'Samopoczucie', exact: true })
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true }).getByRole('link', { name, exact: true })
 function entry(offset: number, patch: Partial<WellbeingEntry> = {}): WellbeingEntry {
@@ -32,10 +40,10 @@ async function grant(page: Page) {
   await expect(page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
 }
 async function answer(page: Page, value = 3) {
-  for (const question of Object.values(wellbeingQuestions)) {
-    const slider = page.getByRole('slider', { name: question.question, exact: true })
-    await slider.press('Home')
-    for (let step = 1; step < value; step++) await slider.press('ArrowRight')
+  const form = wizard(page)
+  for (const field of WELLBEING_FIELDS) {
+    await answerTile(answerGroup(form, field), value).click()
+    await next(form).click()
   }
 }
 async function accessible(page: Page) {
@@ -53,14 +61,15 @@ test.describe('cached startup', () => {
     try {
       await app.open('/')
       await toggle(page).click()
-      await expect(card(page).getByRole('button', { name: 'Zapisz', exact: true })).toBeVisible()
+      await answer(page)
+      await expect(save(wizard(page))).toBeVisible()
       await card(page).getByRole('button', { name: 'Nie dziś', exact: true }).click()
       await app.open('/'); await expect(card(page)).toHaveCount(0)
       await page.clock.setFixedTime(new Date('2026-11-15T09:00:00.000Z'))
       await page.evaluate(() => window.dispatchEvent(new Event('focus')))
       await toggle(page).click()
       await answer(page)
-      await card(page).getByRole('button', { name: 'Zapisz', exact: true }).click()
+      await save(wizard(page)).click()
       await expect(card(page)).toHaveCount(0)
       await expect(page.getByText('Samopoczucie: Czeka na wysłanie', { exact: true })).toBeVisible()
       await nav(page, 'Postęp').click()
@@ -68,7 +77,7 @@ test.describe('cached startup', () => {
       await expect(progress(page).getByRole('alert')).toContainText('niepełne')
       await expect(progress(page).getByRole('img')).toHaveCount(0)
     } finally { await context.setOffline(false) }
-    await expect.poll(() => app.readWellbeing()).toMatchObject([{ date: '2026-11-15', sleep: 3, energy: 3 }])
+    await expect.poll(() => app.readWellbeing()).toMatchObject([{ date: '2026-11-15', sleep: 3, energy: 3, note: null }])
   })
 })
 
@@ -85,19 +94,18 @@ test('@issue204 separate consent, collapsed home card, offline daily entry, prog
   await expect(toggle(page)).toHaveAttribute('aria-controls', /.+/)
   await expect(toggle(page)).toContainText('4 pytania · ok. 30 s')
   await expect(toggle(page).locator('.icon-box-5a')).toHaveCSS('width', '36px')
-  await expect(card(page).getByRole('slider')).toHaveCount(0)
+  await expect(wizard(page)).toHaveCount(0)
   await toggle(page).press('Enter')
   await expect(toggle(page)).toHaveAttribute('aria-expanded', 'true')
-  await expect(card(page).getByRole('slider')).toHaveCount(4)
-  for (const slider of await card(page).getByRole('slider').all()) {
-    await expect(slider).toHaveAttribute('aria-valuetext', 'Nie wybrano odpowiedzi')
-  }
-  await card(page).getByRole('button', { name: 'Zapisz', exact: true }).click()
-  await expect(card(page).getByRole('alert')).toContainText('Odpowiedz na wszystkie')
+  await expect(wizard(page).getByRole('radiogroup')).toHaveCount(1)
+  await expect(wizard(page).getByRole('radio', { checked: true })).toHaveCount(0)
+  await expect(next(wizard(page))).toBeDisabled()
+  await expect(next(wizard(page))).toHaveAccessibleDescription('Wybierz odpowiedź, aby przejść dalej.')
+  await expect(save(wizard(page))).toHaveCount(0)
   await answer(page)
   await page.getByRole('textbox', { name: 'Coś nietypowego? (opcjonalnie)', exact: true }).fill('=1+1')
   await toggle(page).click()
-  await expect(card(page).getByRole('slider')).toHaveCount(0)
+  await expect(wizard(page)).toHaveCount(0)
   await toggle(page).click()
   await expect(page.getByRole('textbox', { name: 'Coś nietypowego? (opcjonalnie)', exact: true })).toHaveValue('=1+1')
   for (const theme of ['dark', 'light'] as const) {
@@ -105,7 +113,7 @@ test('@issue204 separate consent, collapsed home card, offline daily entry, prog
     await accessible(page)
   }
   await context.setOffline(true)
-  await card(page).getByRole('button', { name: 'Zapisz', exact: true }).click()
+  await save(wizard(page)).click()
   await expect(card(page)).toHaveCount(0)
   await expect(page.getByRole('status').filter({ hasText: 'Samopoczucie: Czeka na wysłanie' })).toBeVisible()
   await openProfile(page)
@@ -125,7 +133,7 @@ test('@issue204 separate consent, collapsed home card, offline daily entry, prog
   await nav(page, 'Profil').click()
   await expandProfileSection(page, 'Samopoczucie')
   await page.getByRole('button', { name: 'Popraw dzisiejszy wpis', exact: true }).click()
-  await answer(page, 4); await page.getByRole('button', { name: 'Zapisz', exact: true }).click()
+  await answer(page, 4); await save(wizard(page)).click()
   await expect.poll(() => app.readWellbeing()).toMatchObject([{ sleep: 4 }])
   const originalCreated = (await app.readWellbeing())[0] as WellbeingEntry
   expect(originalCreated.createdAt).toBe(instant)
@@ -169,6 +177,8 @@ test('@issue204 separate consent, collapsed home card, offline daily entry, prog
 test('Not today persists on this device for the day and returns on the next calendar day', async ({ app, page }) => {
   await app.open('/profile'); await grant(page); await nav(page, 'Start').click()
   await toggle(page).click()
+  // Skipping the day must not require answering the questionnaire first (step 1, nothing chosen).
+  await expect(wizard(page).getByRole('button', { name: 'Dalej', exact: true })).toHaveAttribute('aria-disabled', 'true')
   await card(page).getByRole('button', { name: 'Nie dziś', exact: true }).click()
   await expect(card(page)).toHaveCount(0)
   await app.open('/'); await expect(card(page)).toHaveCount(0)
@@ -179,74 +189,112 @@ test('Not today persists on this device for the day and returns on the next cale
 })
 
 for (const method of ['touch', 'keyboard'] as const) {
-  test(`wellbeing sliders save the same values by ${method} and reopen in Profile`, async ({ app, page, context }) => {
-    await page.setViewportSize({ width: 320, height: 800 })
-    await app.open('/profile'); await grant(page)
-    const profile = await app.readProfile()
-    await nav(page, 'Start').click()
-    await toggle(page).click()
-    const form = card(page).getByRole('form', { name: 'Samopoczucie', exact: true })
-    await expect(form.getByText('—', { exact: true })).toHaveCount(4)
-    const values = { sleep: 1, energy: 4, soreness: 2, stress: 5 }
-    const touch = method === 'touch' ? await context.newCDPSession(page) : null
-    for (const field of ['sleep', 'energy', 'soreness', 'stress'] as const) {
-      const question = wellbeingQuestions[field], value = values[field]
-      const slider = form.getByRole('slider', { name: question.question, exact: true })
-      await expect(slider).toHaveAttribute('aria-valuemin', '1')
-      await expect(slider).toHaveAttribute('aria-valuemax', '5')
-      await expect(slider).toHaveAttribute('aria-valuetext', 'Nie wybrano odpowiedzi')
-      await expect(slider.locator(':scope > span')).toHaveCount(5)
-      await slider.evaluate((element) => element.scrollIntoView({ block: 'center' }))
-      const bounds = await slider.boundingBox()
-      if (!bounds) throw new Error('Wellbeing slider is not visible')
-      expect(bounds.height).toBeGreaterThanOrEqual(44)
-      expect((bounds.width - 12) / 5).toBeGreaterThanOrEqual(44)
-      if (touch) {
-        const y = bounds.y + bounds.height / 2
-        await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: bounds.x + bounds.width * (value === 1 ? 0.9 : 0.1), y }] })
-        await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: bounds.x + bounds.width * (value - 0.5) / 5, y }] })
-        await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
-      } else {
-        await slider.press('Home'); await slider.press('ArrowDown')
-        await expect(slider).toHaveAttribute('aria-valuenow', '1')
-        await slider.press('End'); await slider.press('ArrowUp')
-        await expect(slider).toHaveAttribute('aria-valuenow', '5')
-        await slider.press('Home')
-        for (let step = 1; step < value; step++) await slider.press('ArrowRight')
-        await expect(slider).toBeFocused()
+  test.describe(`wizard input by ${method}`, () => {
+    test.use({ hasTouch: method === 'touch' })
+
+    test('keeps answers when navigating and restores the saved entry in Profile', { tag: '@wellbeing-wizard' }, async ({ app, page }) => {
+      await page.setViewportSize({ width: 360, height: 800 })
+      await app.open('/profile'); await grant(page)
+      const profile = await app.readProfile()
+      await nav(page, 'Start').click()
+      await toggle(page).click()
+      const form = wizard(page)
+      const bar = form.getByRole('progressbar', { name: 'Postęp kwestionariusza:' })
+      const values = { sleep: 1, energy: 4, soreness: 2, stress: 5 }
+      const checkProgress = async (count: number) => {
+        await expect(bar).toHaveAttribute('aria-valuenow', String(count))
+        await expect(bar).toHaveAttribute('aria-valuetext', `${count} z 4 odpowiedzi`)
+        await expect(form.locator('.layout-c-progress-meta')).toContainText(`${count} z 4 odpowiedzi`)
       }
-      await expect(slider).toHaveAttribute('aria-valuenow', String(value))
-      await expect(slider).toHaveAttribute('aria-valuetext', question.options[value - 1])
-      const selected = form.getByText(`${value} · ${question.options[value - 1]}`, { exact: true }).and(form.locator('p'))
-      await expect(selected).toBeVisible()
-      await expect(selected).toHaveCSS('white-space', 'nowrap')
-      const colors = await slider.evaluate((element) => Array.from(element.children, (segment) => getComputedStyle(segment).backgroundColor))
-      expect(colors).toHaveLength(5)
-      await expect.poll(() => slider.evaluate((element, count) => Array.from(element.children).slice(0, count).map((segment) => getComputedStyle(segment).backgroundColor), value)).toEqual(Array<string>(value).fill(colors[0]))
-      if (value < 5) expect(colors[value]).not.toBe(colors[0])
-    }
-    await touch?.detach()
-    await form.getByRole('textbox').fill('Po spacerze')
-    const saveBounds = await form.getByRole('button', { name: 'Zapisz', exact: true }).boundingBox()
-    const skipBounds = await form.getByRole('button', { name: 'Nie dziś', exact: true }).boundingBox()
-    if (!saveBounds || !skipBounds) throw new Error('Wellbeing actions are not visible')
-    expect(saveBounds.y).toBe(skipBounds.y)
-    for (const theme of ['dark', 'light'] as const) { await app.setTheme(theme); await accessible(page) }
-    await form.getByRole('button', { name: 'Zapisz', exact: true }).click()
-    await expect(card(page)).toHaveCount(0)
-    await expect.poll(() => app.readWellbeing()).toMatchObject([{ ...values, date: today, note: 'Po spacerze', questionsVersion: 1 }])
-    expect(await app.readProfile()).toEqual(profile)
-    await nav(page, 'Profil').click(); await expandProfileSection(page, 'Samopoczucie')
-    await page.getByRole('button', { name: 'Popraw dzisiejszy wpis', exact: true }).click()
-    for (const field of ['sleep', 'energy', 'soreness', 'stress'] as const) {
-      const question = wellbeingQuestions[field]
-      await expect(page.getByRole('slider', { name: question.question, exact: true })).toHaveAttribute('aria-valuenow', String(values[field]))
-      await expect(page.getByRole('slider', { name: question.question, exact: true })).toHaveAttribute('aria-valuetext', question.options[values[field] - 1])
-    }
-    await accessible(page)
-    await page.getByRole('button', { name: 'Anuluj', exact: true }).click()
-    await expect(page.getByRole('slider')).toHaveCount(0)
-    await expect.poll(() => app.readWellbeing()).toMatchObject([{ ...values, note: 'Po spacerze' }])
+
+      await expect(bar).toHaveAttribute('aria-valuemin', '0')
+      await expect(bar).toHaveAttribute('aria-valuemax', '4')
+      await checkProgress(0)
+      await expect(form.getByText('Nie wybrano odpowiedzi')).toBeVisible()
+      await expect(back(form)).toBeDisabled()
+      await expect(note(form)).toHaveCount(0)
+      if (method === 'keyboard') await toggle(page).focus()
+      for (const [index, field] of WELLBEING_FIELDS.entries()) {
+        const group = answerGroup(form, field), score = values[field]
+        const radio = (value: number) => group.getByRole('radio', { name: answerName(field, value), exact: true })
+        await expect(form.getByRole('radiogroup')).toHaveCount(1)
+        await expect(group.getByRole('radio')).toHaveCount(5)
+        await expect(next(form)).toBeDisabled()
+        const tile = answerTile(group, score)
+        expect((await tile.boundingBox())!.width).toBeGreaterThanOrEqual(44)
+        expect((await tile.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+        if (method === 'touch') {
+          await tile.tap()
+        } else {
+          await page.keyboard.press('Tab')
+          await expect(radio(1)).toBeFocused()
+          await page.keyboard.press('Space')
+          for (let value = 1; value < score; value++) await page.keyboard.press('ArrowRight')
+          await expect(radio(score)).toBeFocused()
+        }
+        await expect(radio(score)).toBeChecked()
+        await expect(group.locator('.is-selected')).toHaveCount(1)
+        await expect(group.locator('.is-selected svg')).toHaveCSS('height', '10px')
+        await expect(form.locator('.scale-1a-selected-banner')).toHaveText(answerName(field, score))
+        await checkProgress(index + 1)
+        const lineCounts = await form.locator('.scale-1a-meta-row span, .scale-1a-selected-banner span, .layout-c-progress-meta span')
+          .evaluateAll((elements) => elements.map((element) => {
+            const text = document.createRange()
+            text.selectNodeContents(element)
+            const rects = Array.from(text.getClientRects())
+            return new Set(rects.map(({ top }) => Math.round(top))).size
+          }))
+        expect(lineCounts).toEqual([1, 1, 1, 1, 1, 1])
+        if (index === 0) {
+          for (const theme of ['dark', 'light'] as const) { await app.setTheme(theme); await accessible(page) }
+        }
+        if (method === 'keyboard') {
+          await page.keyboard.press('Tab')
+          if (index > 0) {
+            await expect(back(form)).toBeFocused()
+            await page.keyboard.press('Tab')
+          }
+          await expect(next(form)).toBeFocused()
+          await page.keyboard.press('Enter')
+        } else {
+          await next(form).tap()
+        }
+        const nextField = WELLBEING_FIELDS[index + 1]
+        await expect(form.getByRole('heading', { name: nextField ? wellbeingQuestions[nextField].question : 'Coś nietypowego? (opcjonalnie)', exact: true })).toBeFocused()
+      }
+
+      await expect(next(form)).toHaveCount(0)
+      await expect(note(form)).toHaveValue('')
+      await expect(note(form)).toHaveAttribute('maxlength', '300')
+      await note(form).fill('Po spacerze')
+      await expect(form.getByText('11 / 300', { exact: true })).toBeVisible()
+      await back(form).click()
+      await expect(form.getByRole('heading', { name: wellbeingQuestions.stress.question, exact: true })).toBeFocused()
+      await expect(answerGroup(form, 'stress').getByRole('radio', { name: answerName('stress', 5), exact: true })).toBeChecked()
+      await checkProgress(4)
+      await next(form).click()
+      await expect(note(form)).toHaveValue('Po spacerze')
+      const submit = save(form)
+      const skip = form.getByRole('button', { name: 'Nie dziś', exact: true })
+      expect((await submit.boundingBox())!.y).toBeLessThan((await skip.boundingBox())!.y)
+      await submit.click()
+      await expect(card(page)).toHaveCount(0)
+      await expect.poll(() => app.readWellbeing()).toMatchObject([{ ...values, date: today, note: 'Po spacerze', questionsVersion: 1 }])
+      expect(await app.readProfile()).toEqual(profile)
+
+      await nav(page, 'Profil').click(); await expandProfileSection(page, 'Samopoczucie')
+      await page.getByRole('button', { name: 'Popraw dzisiejszy wpis', exact: true }).click()
+      await checkProgress(4)
+      for (const field of WELLBEING_FIELDS) {
+        await expect(answerGroup(form, field).getByRole('radio', { name: answerName(field, values[field]), exact: true })).toBeChecked()
+        await next(form).click()
+      }
+      await expect(note(form)).toHaveValue('Po spacerze')
+      await accessible(page)
+      await form.getByRole('button', { name: 'Anuluj', exact: true }).click()
+      await expect(form).toHaveCount(0)
+      await expect.poll(() => app.readWellbeing()).toMatchObject([{ ...values, note: 'Po spacerze' }])
+    })
   })
 }
 

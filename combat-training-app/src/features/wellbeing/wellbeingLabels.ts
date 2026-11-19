@@ -1,9 +1,14 @@
 import type { WellbeingCategory, WellbeingField } from '@/domain/wellbeing/wellbeing'
 
 export const wellbeingLabels = {
-  title: 'Samopoczucie', save: 'Zapisz', skip: 'Nie dziś',
+  title: 'Samopoczucie', save: 'Zapisz samopoczucie', skip: 'Nie dziś',
+  previous: 'Wstecz', next: 'Dalej', cancel: 'Anuluj',
+  nextDisabled: 'Wybierz odpowiedź, aby przejść dalej.',
+  progress: 'Postęp kwestionariusza:',
+  progressValue: (answered: number, total: number) => `${answered} z ${total} odpowiedzi`,
   noSelection: 'Nie wybrano odpowiedzi',
   note: 'Coś nietypowego? (opcjonalnie)', noteHint: 'Do 300 znaków. Notatka nie jest analizowana.',
+  noteExample: 'np. gorszy sen przez podróż, zakwasy po siłowni...',
   invalid: 'Odpowiedz na wszystkie cztery pytania (1–5). Notatka może mieć do 300 znaków.',
   failed: 'Nie udało się zapisać samopoczucia. Ponów odczyt i spróbuj jeszcze raz.',
   enable: 'Włącz Samopoczucie', enabled: 'Samopoczucie włączone', edit: 'Popraw dzisiejszy wpis',

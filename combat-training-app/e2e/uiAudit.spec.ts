@@ -1,5 +1,5 @@
 import { block, roundsExercise, workoutPlan } from '../src/test/workoutBuilders'
-import { test, expect } from './fixtures'
+import { expandProfileSection, test, expect } from './fixtures'
 
 for (const theme of ['dark', 'light'] as const) {
   test(`verifies audited cards, touch targets and no-work headings in ${theme} theme`, async ({ app, page }, testInfo) => {
@@ -112,5 +112,41 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.getByRole('heading', { name: 'Nie zapisano treningu', exact: true })).toBeVisible()
     await expect(page.getByText('Trening niezapisany', { exact: true })).toBeVisible()
     await screenshot('no-work')
+
+    await app.open('/profile')
+    await expandProfileSection(page, 'Samopoczucie')
+    await page.getByRole('link', { name: 'Włącz Samopoczucie', exact: true }).click()
+    await page.getByRole('switch', { name: 'Mam ukończone 18 lat.' }).check()
+    await page.getByRole('switch', { name: /^Wyrażam wyraźną zgodę/ }).check()
+    await page.getByRole('button', { name: 'Włącz Samopoczucie', exact: true }).click()
+    await expect.poll(async () => (await app.readProfile())?.wellbeingConsent).toMatchObject({ adultConfirmed: true })
+    await app.open('/')
+    await page.getByRole('button', { name: /^Jak się dziś czujesz\?/ }).click()
+    const wellbeing = page.getByRole('form', { name: 'Samopoczucie', exact: true })
+    const wellbeingProgress = wellbeing.getByRole('progressbar')
+    await expect(wellbeingProgress).toHaveCSS('height', '4px')
+    for (let step = 1; step <= 4; step += 1) {
+      const tile = wellbeing.getByRole('radiogroup').locator('label').first()
+      await expect(tile).toHaveCSS('height', '44px')
+      await tile.click()
+      await expect(wellbeingProgress).toHaveAttribute('aria-valuenow', String(step))
+      await wellbeing.getByRole('button', { name: 'Dalej', exact: true }).click()
+    }
+    const wellbeingNote = wellbeing.getByRole('textbox')
+    await expect(wellbeingNote).toHaveCSS('min-height', '56px')
+    await expect(wellbeingNote).toHaveCSS('font-size', '16px')
+    const wellbeingSave = wellbeing.getByRole('button', { name: 'Zapisz samopoczucie', exact: true })
+    await expect(wellbeingSave).toHaveCSS('min-height', '52px')
+    await expect(wellbeingSave).toHaveCSS('border-top-width', '1px')
+    await expect(wellbeingSave).toHaveCSS('color', 'rgb(255, 255, 255)')
+    expect(await wellbeingSave.evaluate((element) => getComputedStyle(element).backgroundImage))
+      .toContain(theme === 'dark' ? 'rgb(88, 8, 20)' : 'rgb(138, 12, 32)')
+    const lines = await wellbeingSave.evaluate((element) => {
+      const text = document.createRange()
+      text.selectNode(element.lastChild!)
+      return text.getClientRects().length
+    })
+    expect(lines).toBe(1)
+    await expect(wellbeing.getByRole('button', { name: 'Nie dziś', exact: true })).toHaveCSS('min-height', '44px')
   })
 }
