@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import type { HomeRecentSession } from '../types/homeView.types'
 import { homeLabels as labels } from '../homeLabels'
-import { homeSecondaryButton } from './HomeScheduleCards'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 
@@ -19,7 +18,6 @@ export function RecentSessionCard({ session }: { session: HomeRecentSession }) {
         <div className="break-words text-xs font-bold tabular-nums"><h3 className="inline">{session.name}</h3> · {session.durationLabelPl}{session.rpe !== null && <> · <span className="rpe-badge">RPE {session.rpe}</span></>}</div>
       </Link>
       {session.hasPendingWrites && <p role="status" className="text-xs text-muted">{workoutDataLabels.pending}</p>}
-      {session.rpe === null && <Link to={`${routes.workoutFeedback(session.id)}?rpe=1`} className={homeSecondaryButton}>{labels.fillRpe}</Link>}
     </div>
     <span className={`home-session-status ${session.status === 'completed' ? 'is-done' : 'is-partial'}`}>{workoutPlayerLabels.sessionStatus[session.status]}</span>
   </section>

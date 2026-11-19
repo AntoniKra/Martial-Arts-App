@@ -96,7 +96,10 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/')
     const recent = page.getByRole('region', { name: 'Ostatnia sesja', exact: true })
     await expect(recent.getByRole('link').filter({ has: page.getByRole('heading', { name: plan.nameSnapshot, exact: true }) })).toHaveAttribute('href', /\/report$/)
-    await expect(recent.getByRole('link', { name: 'Uzupełnij RPE', exact: true })).toBeVisible()
+    await expect(recent.locator('a[href$="?rpe=1"]')).toHaveCount(0)
+    const todo = page.getByRole('region', { name: 'Do uzupełnienia', exact: true })
+    await expect(todo).toContainText('1 zadanie')
+    await expect(todo.getByRole('link', { name: /^Oceń trening \(RPE\)/ })).toHaveAttribute('href', /\/feedback\?rpe=1$/)
     await recent.scrollIntoViewIfNeeded()
     await screenshot('recent-session')
 

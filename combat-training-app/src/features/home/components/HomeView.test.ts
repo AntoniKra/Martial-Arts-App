@@ -51,7 +51,7 @@ describe('home recent sessions', () => {
     expect(html).toContain('Spróbuj ponownie')
   })
 
-  it('shows only the last saved session and links to its missing RPE', () => {
+  it('shows only the last saved session and leaves the RPE action to the task card', () => {
     const html = renderHome({
       status: 'success',
       sessions: [mapWorkoutSessionToHomeRecentSession(workoutSession({ workoutPlanNameSnapshot: 'Saved session' })),
@@ -60,8 +60,8 @@ describe('home recent sessions', () => {
     expect(html).toContain('Saved session')
     expect(html).toContain('/workouts/session-1/report')
     expect(html).not.toContain('Older session')
-    expect(html).toContain('/workout-sessions/session-1/feedback?rpe=1')
-    expect(html).toContain('Uzupełnij RPE')
+    expect(html).not.toContain('/workout-sessions/session-1/feedback?rpe=1')
+    expect(html).not.toContain('RPE')
     expect(html).not.toContain('Śr.')
   })
   it('shows a recorded RPE of zero without a completion counter', () => {

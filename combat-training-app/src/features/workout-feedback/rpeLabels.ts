@@ -28,5 +28,4 @@ export const rpeLabels = {
   saved: (value: number) => `Zapisano RPE ${value}`,
   saveError: 'Nie udało się zapisać RPE. Spróbuj ponownie.',
   skipError: 'Nie udało się zapamiętać pominięcia na tym urządzeniu. Spróbuj ponownie.',
-  reminder: (plan: string, day: string) => `Uzupełnij RPE: ${plan}, ${day}`,
 } as const

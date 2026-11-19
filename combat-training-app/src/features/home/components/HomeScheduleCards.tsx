@@ -9,7 +9,7 @@ import type { ScheduledWeekItem, WeekPlan } from '@/domain/week-plan/weekPlan.ty
 import { manualPartsLabel } from '@/features/manual-workout/manualWorkoutLabels'
 import { activityTitle, scheduleLabels, weekdays } from '@/features/week-plan/scheduleLabels'
 import { useScheduledWeekActions } from '@/features/week-plan/useScheduledWeekActions'
-import { homeCardDate, homeLabels as labels, homeShortDate } from '../homeLabels'
+import { homeCardDate, homeLabels as labels } from '../homeLabels'
 import { StormDecoration } from './StormDecoration'
 import { ScheduleStatusBadge } from '@/features/week-plan/ScheduleStatusBadge'
 import { HomeActionIcon } from './HomeActionIcon'
@@ -18,7 +18,6 @@ import { HomeParameterChip } from './HomeParameterChip'
 type Schedule = ReturnType<typeof selectHomeSchedule>
 export const homeSecondaryButton = 'inline-flex min-h-touch items-center justify-center border border-bd bg-elevated px-3.5 text-[13px] font-semibold text-ink hover:bg-bd disabled:opacity-40'
 export const homePrimaryButton = 'home-primary-action'
-export const homeSectionLabel = 'text-[11px] font-semibold uppercase tracking-[0.14em] text-muted'
 export const homeInlineLink = 'inline-flex min-h-touch items-center text-[13px] text-crimson-ink '
 
 export function HomeTodayActions({ item, actions, moving, onMoving }: {
@@ -79,24 +78,6 @@ export function HomeTodayCards({ plan, schedule, today, fallback }: { plan: Week
 
       </section>
     }) : fallback}
-    <ActionFeedback actions={actions} />
-  </>
-}
-
-export function HomeOverdueWeek({ plan, entries, today }: { plan: WeekPlan; entries: Schedule['overdue']; today: string }) {
-  const actions = useScheduledWeekActions(plan, true)
-  return <>
-    {entries.map(({ item, date }) => {
-      const prefill = clubWorkoutPrefill(plan.weekStart, item, today)
-      if (!prefill || !date) return null
-      return <div key={item.id} className="space-y-2.5">
-        <p className="text-[15px]"><strong>{homeShortDate(date)} · {activityTitle(item)} ({scheduleLabels.kinds.club})</strong> — {labels.missing}</p>
-        <div className="flex flex-wrap gap-2">
-          <Link to={routes.newManualWorkout} state={{ weekEntry: prefill, returnTo: routes.home }} className={homeSecondaryButton}>{labels.write}</Link>
-          <button type="button" disabled={actions.busy} className={homeSecondaryButton} onClick={() => { void actions.toggleOmitted(item) }}>{scheduleLabels.omit}</button>
-        </div>
-      </div>
-    })}
     <ActionFeedback actions={actions} />
   </>
 }

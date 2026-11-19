@@ -55,6 +55,17 @@ test('compares three previous weeks across sources, preserves missing load and f
   await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   await expect(table.getByRole('columnheader').nth(1)).toHaveText('Ten tydzień')
   await expect(table.getByRole('cell')).toHaveText(['2', '1,0', '90 min', '50 min', '90 j.u.', '180 j.u.'])
+
+  await app.open('/')
+  const homeWeek = page.getByRole('region', { name: 'Ten tydzień', exact: true })
+  const setGoal = homeWeek.locator('.home-week-tracker').getByRole('link', { name: 'Bez celu · Ustal cel tygodnia', exact: true })
+  await expect(setGoal).toHaveCSS('min-height', '44px')
+  await expect(homeWeek.getByRole('progressbar')).toHaveCount(0)
+  await expect(homeWeek.getByRole('link', { name: 'Plan tygodnia →', exact: true })).toBeVisible()
+  await setGoal.click()
+  await expect(page).toHaveURL(`/progress/week/${weekStart}`)
+  await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
+  await expect(table.getByRole('cell').first()).toHaveText('1')
 })
 
 test('explains the three-week requirement for a new account and hides comparison for incomplete history', async ({ app, page }) => {
