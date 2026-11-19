@@ -29,12 +29,12 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
           active ? 'text-crimson-ink' : 'text-faint hover:text-muted',
         ].join(' ')}
       >
-        <span className="relative -mt-6 flex size-[50px] items-center justify-center">
+        <span className="relative -mt-[26px] flex size-[50px] items-center justify-center">
           <span aria-hidden="true" className="new-workout-diamond" />
           <span className="relative text-on-accent [&>svg]:size-6">{icon}</span>
         </span>
-        {/* Sits 2 px lower than the other labels so it clears the diamond. */}
-        <span className="relative top-0.5 font-display text-[9px] font-semibold uppercase tracking-[0.1em]">{item.label}</span>
+        {/* Sits 4 px lower than the other labels so it clears the diamond. */}
+        <span className="relative top-1 font-display text-[9px] font-semibold uppercase tracking-[0.1em]">{item.label}</span>
         {active ? (
           <span
             aria-hidden="true"

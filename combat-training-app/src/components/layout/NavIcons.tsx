@@ -54,7 +54,8 @@ export function NavPlanIcon({ className, size = 20 }: NavIconProps) {
 
 export function NavProgressIcon({ className, size = 20 }: NavIconProps) {
   return <NavIconBase className={className} size={size}>
-    <path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" /><path d="M4 20h16" />
+    {/* Axis plus three bars that stop above it, so the strokes never merge at 20 px. */}
+    <path d="M4 4v15a1 1 0 0 0 1 1h15" /><path d="M9 16v-4" /><path d="M14 16V7" /><path d="M19 16v-7" />
   </NavIconBase>
 }
 

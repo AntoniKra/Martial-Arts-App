@@ -42,7 +42,7 @@ Aktualne wartości obu motywów są w `src/styles/index.css`. `src/features/them
 
 ## Menu główne (#198)
 
-Na telefonie i komputerze kolejność to **Start · Plan · Trening (+) · Postęp · Profil**. Wygląd paska, rombu, etykiet i wskaźnika aktywności pozostaje bez zmian; jedynie etykieta „Trening” pod rombem leży 2 px niżej niż pozostałe. Start zachowuje dotychczasowy domek; Plan, Postęp i Profil używają konturowych ikon z zatwierdzonej makiety `design-lab/start-v2/final-approval.html` (gałąź `design/antigravity-lab`).
+Na telefonie i komputerze kolejność to **Start · Plan · Trening (+) · Postęp · Profil**. Wygląd paska, rombu, etykiet i wskaźnika aktywności pozostaje bez zmian; jedynie etykieta „Trening” pod rombem leży 4 px niżej niż pozostałe, a romb 2 px wyżej (poprawka właściciela 19.11). Start zachowuje dotychczasowy domek; Plan, Postęp i Profil używają konturowych ikon z zatwierdzonej makiety `design-lab/start-v2/final-approval.html` (gałąź `design/antigravity-lab`).
 
 Plan otwiera bieżący Plan tygodnia (`/progress/week`); datowane adresy `/progress/week/:weekStart` nadal działają i zaznaczają Plan. Postęp ma segmenty **Wykresy / Historia**; Historia (`/progress?tab=history`) zachowuje dziennik tygodniowy, wyszukiwanie i filtr tygodnia. Stary adres `/workouts?tab=history` przekierowuje z zachowaniem parametrów i fragmentu.
 
