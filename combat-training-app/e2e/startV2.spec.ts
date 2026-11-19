@@ -25,6 +25,8 @@ test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(ins
 
 for (const theme of ['dark', 'light'] as const) {
   test(`mockup A: card parameters, exact CSS, single timer row and unchanged Progress in ${theme}`, async ({ app, page }) => {
+    // Mockup A is a phone layout; its exact values (min-height 360 px and others) apply below md.
+    await page.setViewportSize({ width: 390, height: 844 })
     await app.open('/workouts'); await app.setTheme(theme)
     await app.seedPlan({ ...plan, blocks: [block('rounds', [roundsExercise('rounds', 6, 180, 60)])] })
     await app.seedWeekPlan(week([{ ...club, day: 3, clubName: 'Klub testowy' }, own]))

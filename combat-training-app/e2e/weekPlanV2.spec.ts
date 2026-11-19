@@ -85,7 +85,7 @@ test('repeats Sunday immediately, propagates edits and removals offline, and sho
   await expect.poll(async () => (await app.readRecurringWeek())?.items[0]).toMatchObject({ startTime: '11:00' })
   await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Start', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Dziś · Muay Thai · 11:00', exact: true })).toBeVisible()
-  await page.getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
+  await page.getByRole('link', { name: 'Plan tygodnia →', exact: true }).click()
   await page.getByRole('button', { name: /^Stały tydzień/ }).click()
   await page.getByRole('button', { name: 'Opcje: Muay Thai', exact: true }).click()
   await page.getByRole('button', { name: 'Usuń', exact: true }).click()

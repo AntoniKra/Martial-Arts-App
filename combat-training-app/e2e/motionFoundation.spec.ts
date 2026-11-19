@@ -135,7 +135,7 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     await expect(page.getByRole('heading', { name: 'Zacznij swój pierwszy trening', exact: true })).toBeVisible()
     const start = page.getByRole('link', { name: 'Utwórz plan', exact: true })
     await start.hover(); await page.mouse.down()
-    await expect(start).toHaveCSS('transform', reducedMotion === 'reduce' ? 'none' : 'matrix(0.98, 0, 0, 0.98, 0, 0)')
+    await expect(start).toHaveCSS('transform', reducedMotion === 'reduce' ? 'none' : 'matrix(0.985, 0, 0, 0.985, 0, 0)')
     await page.mouse.move(0, 0); await page.mouse.up()
   })
 }
