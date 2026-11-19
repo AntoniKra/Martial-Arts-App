@@ -29,7 +29,7 @@ function DailyCard({ uid, today }: { uid: string; today: string }) {
         <HomeQuickLinkContent icon="heart" title={homeLabels.wellbeing} subtitle={homeLabels.wellbeingHint} />
       </button>
     </h2>
-    <div id={panelId} hidden={!expanded} className="mt-2 border border-bd bg-surface p-4">
+    <div id={panelId} hidden={!expanded} className="mt-2 border border-bd bg-surface p-4 has-[>.wellbeing-form-body]:p-3.5">
       {withdrawalPending ? <p role="status" className="text-sm text-muted">{labels.withdrawalPending}</p> : wellbeing.status !== 'ready' || wellbeing.invalidDocumentIds.length ? <WellbeingDataState loading={wellbeing.status === 'loading'} retry={retryWellbeing} /> :
         <WellbeingForm date={today} onSave={(value) => wellbeingRepository.save(value)}
           onSkip={() => { wellbeingDismissalStorage(uid).dismiss(today); setDismissed(true) }} />}

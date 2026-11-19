@@ -35,8 +35,14 @@ describe('motion foundation', () => {
     })
   })
 
-  it('never animates layout, shadows or filters, and uses only transform/opacity keyframes', () => {
+  it('allows width only for the wellbeing progress indicator (#206) and uses only transform/opacity keyframes', () => {
     css.walkDecls(/^transition/, (declaration) => {
+      const rule = declaration.parent
+      if (rule?.type === 'rule' && rule.selector === '.wellbeing-form-body .layout-c-fill') {
+        expect(declaration.value).toBe('width calc(var(--motion-fast) * 2) ease')
+        expect(rule.parent).toMatchObject({ type: 'atrule', name: 'media', params: '(prefers-reduced-motion: no-preference)' })
+        return
+      }
       expect(declaration.value).not.toMatch(/\b(all|width|height|top|left|padding|flex-grow|box-shadow|filter)\b/)
     })
     css.walkAtRules('keyframes', (animation) => {

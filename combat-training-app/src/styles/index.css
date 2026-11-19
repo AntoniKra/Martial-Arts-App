@@ -290,6 +290,229 @@
 .quick-link-sub-5a { margin-top: 1px; color: var(--app-muted); font-size: 11px; }
 .wellbeing-home-toggle .icon-box-5a { background: color-mix(in srgb, var(--app-crimson) 14%, transparent); }
 .wellbeing-home-toggle[aria-expanded='true'] .quick-link-chevron { transform: rotate(90deg); }
+
+.wellbeing-form-body {
+  --wellbeing-selection-bg: linear-gradient(135deg, color-mix(in srgb, var(--app-crimson) 45%, transparent), color-mix(in srgb, #750a1a 60%, transparent));
+  --wellbeing-selection-edge: var(--app-crimson-hi);
+  --wellbeing-selection-ink: var(--app-home-primary-ink);
+  --wellbeing-selection-glow: color-mix(in srgb, var(--app-crimson) 25%, transparent);
+  --wellbeing-save-bg: var(--app-home-grad-primary);
+  --wellbeing-save-edge: var(--app-home-primary-edge);
+  --wellbeing-save-shadow: 0 4px 16px var(--app-home-primary-light), 0 0 12px var(--app-home-primary-glow);
+  --wellbeing-save-check: var(--app-home-primary-ink);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+:root[data-theme='light'] .wellbeing-form-body {
+  --app-grad-primary: linear-gradient(120deg, var(--app-crimson-ink) 0%, var(--app-crimson) 55%, #c24b10 100%);
+  --app-grad-accent: linear-gradient(90deg, var(--app-crimson-ink) 0%, #c24b10 100%);
+  --wellbeing-selection-bg: linear-gradient(135deg, color-mix(in srgb, var(--app-crimson) 20%, transparent), color-mix(in srgb, var(--app-crimson) 35%, transparent));
+  --wellbeing-selection-edge: var(--app-crimson);
+  --wellbeing-selection-ink: var(--app-ink);
+  --wellbeing-selection-glow: rgb(193 18 47 / 25%);
+  --wellbeing-save-bg: linear-gradient(135deg, #8a0c20 0%, #aa1028 55%, var(--app-crimson) 100%);
+  --wellbeing-save-edge: rgb(194 75 16 / 85%);
+  --wellbeing-save-shadow: 0 4px 14px rgb(138 12 32 / 25%);
+  --wellbeing-save-check: #ffd8c7;
+}
+
+.wellbeing-form-body .layout-c-progress-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--app-elevated);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+}
+.wellbeing-form-body .layout-c-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.wellbeing-form-body .layout-c-progress-meta span:first-child { color: var(--app-ink); }
+.wellbeing-form-body .layout-c-progress-meta span:last-child { color: var(--app-crimson-ink); }
+.wellbeing-form-body .layout-c-track {
+  height: 4px;
+  background: var(--app-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.wellbeing-form-body .layout-c-fill {
+  height: 100%;
+  background: var(--app-grad-accent);
+  border-radius: 2px;
+}
+
+.wellbeing-form-body .question-card { display: flex; flex-direction: column; gap: 10px; }
+.wellbeing-form-body .question-header { display: flex; flex-direction: column; gap: 2px; }
+.wellbeing-form-body .question-cat-tag {
+  color: var(--app-crimson-ink);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.wellbeing-form-body .question-text { color: var(--app-ink); font-size: 13.5px; font-weight: 700; line-height: 1.35; }
+.wellbeing-form-body .scale-control-1a { display: flex; flex-direction: column; gap: 8px; }
+.wellbeing-form-body .scale-1a-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.wellbeing-form-body .scale-1a-option { position: relative; cursor: pointer; }
+.wellbeing-form-body .scale-1a-btn {
+  display: flex;
+  min-height: var(--app-touch-min);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: var(--app-elevated);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  transition: background-color calc(var(--motion-slow) / 2) ease, border-color calc(var(--motion-slow) / 2) ease;
+}
+.wellbeing-form-body .scale-1a-option input:focus-visible + .scale-1a-btn {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+.wellbeing-form-body .scale-1a-btn .btn-num { color: var(--app-muted); font-family: var(--font-display); font-size: 15px; font-weight: 800; }
+.wellbeing-form-body .scale-1a-btn.is-selected {
+  background: var(--wellbeing-selection-bg);
+  border: 2px solid var(--wellbeing-selection-edge);
+  box-shadow: 0 0 10px var(--wellbeing-selection-glow);
+  color: var(--app-home-primary-ink);
+}
+.wellbeing-form-body .scale-1a-btn.is-selected .btn-num { color: var(--wellbeing-selection-ink); }
+.wellbeing-form-body .scale-1a-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2px;
+  color: var(--app-muted);
+  font-size: 11px;
+}
+.wellbeing-form-body .scale-1a-meta-row span:last-child { text-align: right; }
+.wellbeing-form-body .scale-1a-selected-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--app-elevated);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  color: var(--app-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+.wellbeing-form-body .scale-1a-selected-num { color: var(--app-crimson-ink); font-family: var(--font-display); font-weight: 800; }
+
+.wellbeing-form-body .wizard-nav-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+.wellbeing-form-body .btn-wizard-prev, .wellbeing-form-body .btn-wizard-next {
+  display: flex;
+  min-height: var(--app-touch-min);
+  align-items: center;
+  border-radius: var(--app-radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wellbeing-form-body .btn-wizard-prev {
+  gap: 4px;
+  padding: 0 14px;
+  background: var(--app-elevated);
+  border: 1px solid var(--app-border);
+  color: var(--app-muted);
+  font-weight: 600;
+}
+.wellbeing-form-body .btn-wizard-next {
+  gap: 6px;
+  padding: 0 16px;
+  background: var(--app-grad-primary);
+  color: var(--app-home-primary-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.wellbeing-form-body .btn-wizard-prev:disabled,
+.wellbeing-form-body .btn-wizard-next:is(:disabled, [aria-disabled='true']),
+.wellbeing-form-body .btn-save-3a:disabled,
+.wellbeing-form-body .btn-skip-3a:disabled { opacity: 0.4; cursor: default; }
+
+.wellbeing-form-body .note-area-group { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.wellbeing-form-body .note-header-row { display: flex; justify-content: space-between; align-items: center; }
+.wellbeing-form-body .note-label { color: var(--app-ink); font-size: 12.5px; font-weight: 700; }
+.wellbeing-form-body .note-counter { font-variant-numeric: tabular-nums; }
+.wellbeing-form-body .note-counter, .wellbeing-form-body .note-hint { color: var(--app-muted); font-size: 11px; }
+.wellbeing-form-body .note-textarea {
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 10px;
+  background: var(--app-elevated);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  color: var(--app-ink);
+  font-size: 16px;
+  line-height: 1.4;
+  resize: none;
+  transition: border-color calc(var(--motion-slow) / 2) ease;
+}
+.wellbeing-form-body .note-textarea:focus { border-color: var(--app-focus-ring); }
+.wellbeing-form-body .note-textarea::placeholder { color: var(--app-muted); }
+
+.wellbeing-form-body .save-variant-3a { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 6px; }
+.wellbeing-form-body .btn-save-3a {
+  display: flex;
+  min-height: 52px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  background: var(--wellbeing-save-bg);
+  border: 1px solid var(--wellbeing-save-edge);
+  border-radius: var(--app-radius-sm);
+  color: var(--app-home-primary-ink);
+  box-shadow: var(--wellbeing-save-shadow);
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wellbeing-form-body .btn-save-3a svg { flex-shrink: 0; color: var(--wellbeing-save-check); }
+.wellbeing-form-body .btn-skip-3a {
+  display: inline-flex;
+  min-height: var(--app-touch-min);
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  color: var(--app-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color calc(var(--motion-slow) / 2) ease;
+}
+.wellbeing-form-body .btn-skip-3a:hover { color: var(--app-ink); text-decoration: underline; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .wellbeing-form-body .layout-c-fill { transition: width calc(var(--motion-fast) * 2) ease; }
+  .wellbeing-form-body .scale-1a-btn { transition: background-color calc(var(--motion-slow) / 2) ease, border-color calc(var(--motion-slow) / 2) ease, transform var(--motion-fast) ease; }
+  .wellbeing-form-body .scale-1a-option:active .scale-1a-btn { transform: scale(0.97); }
+  .wellbeing-form-body .btn-save-3a { transition: transform calc(var(--motion-slow) * 0.4) ease; }
+  .wellbeing-form-body .btn-save-3a:not(:disabled):active { transform: scale(0.985); }
+}
 .home-intro-spark { display: none; }
 
 @media (prefers-reduced-motion: no-preference) {
