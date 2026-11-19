@@ -1,0 +1,1854 @@
+<!doctype html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Start v2 · Karty Dodatkowe — Laboratorium Designu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================================
+       TOKENS & THEMING (ADR 0019 & docs/design-system.md)
+       ========================================================================= */
+    :root,
+    :root[data-theme='dark'] {
+      color-scheme: dark;
+      --app-bg: #0b0b0d;
+      --app-surface: #161618;
+      --app-elevated: #1d1d20;
+      --app-border: #2a2a2e;
+      --app-border-subtle: #222226;
+      --app-ink: #f4f4f1;
+      --app-muted: #a7a7aa;
+      --app-faint: #85858a;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #d91535;
+      --app-crimson-ink: #ef5d6e;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #f0753a;
+      --app-success: #3fb56b;
+      --app-success-ink: #8fd8a8;
+      --app-missed: #4a4a4f;
+      --app-nav: #111113;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #ef5d6e;
+
+      --app-grad-primary: linear-gradient(135deg, rgb(88, 8, 20) 0%, rgb(117, 10, 26) 55%, rgb(136, 12, 30) 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #f0753a 100%);
+      --app-grad-plus: linear-gradient(150deg, #e0263f 0%, #b8102a 55%, #8e0b20 100%);
+      --app-card-border-today: 1px solid rgba(193, 18, 47, 0.45);
+      --app-card-glow-today: rgba(193, 18, 47, 0.14) 0px 0px 16px 0px, rgba(193, 18, 47, 0.05) 0px 0px 12px 0px inset;
+    }
+
+    :root[data-theme='light'] {
+      color-scheme: light;
+      --app-bg: #f1f1ef;
+      --app-surface: #ffffff;
+      --app-elevated: #e8e8e5;
+      --app-border: #c9c9c5;
+      --app-border-subtle: #ddddd9;
+      --app-ink: #111113;
+      --app-muted: #5f5f63;
+      --app-faint: #66666a;
+      --app-crimson: #b5122b;
+      --app-crimson-hi: #c1122f;
+      --app-crimson-ink: #a01027;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #9a370e;
+      --app-success: #286243;
+      --app-success-ink: #286243;
+      --app-missed: #c9c9c5;
+      --app-nav: #ffffff;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #b5122b;
+
+      --app-grad-primary: linear-gradient(135deg, #880816 0%, #a01027 55%, #b5122b 100%);
+      --app-grad-accent: linear-gradient(90deg, #a01027 0%, #c24b10 100%);
+      --app-grad-plus: linear-gradient(150deg, #c1122f 0%, #a01027 55%, #7a0c1d 100%);
+      --app-card-border-today: 1px solid rgba(193, 18, 47, 0.45);
+      --app-card-glow-today: rgba(193, 18, 47, 0.14) 0px 0px 16px 0px, rgba(193, 18, 47, 0.05) 0px 0px 12px 0px inset;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: #060608;
+      color: var(--app-ink);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0 60px;
+      overflow-x: hidden;
+    }
+
+    /* TOP MASTER BAR & SELECTION LIST */
+    .master-header {
+      width: 100%;
+      background: #101014;
+      border-bottom: 1px solid #232328;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .master-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .master-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: #f4f4f1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.01em;
+    }
+    .master-badge {
+      background: rgba(240, 117, 58, 0.15);
+      border: 1px solid rgba(240, 117, 58, 0.4);
+      color: #f0753a;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 3px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Wybór zbiorczy właściciela */
+    .decision-string-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #18181d;
+      border: 1px solid #2e2e36;
+      border-radius: 6px;
+      padding: 6px 14px;
+    }
+    .decision-label {
+      font-size: 11px;
+      color: #8e8e93;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .decision-val {
+      font-family: 'Archivo', monospace;
+      font-size: 14px;
+      font-weight: 800;
+      color: #ef5d6e;
+      letter-spacing: 0.04em;
+    }
+    .btn-copy {
+      background: #25252c;
+      border: 1px solid #3a3a44;
+      color: #f4f4f1;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 150ms ease;
+    }
+    .btn-copy:hover {
+      background: #32323c;
+      border-color: #555562;
+    }
+
+    /* Pigułki kart na górze */
+    .cards-quick-pills {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding-top: 2px;
+    }
+    .card-pill-group {
+      display: inline-flex;
+      align-items: center;
+      background: #18181c;
+      border: 1px solid #282830;
+      border-radius: 5px;
+      overflow: hidden;
+      font-size: 11px;
+    }
+    .card-pill-title {
+      padding: 4px 8px;
+      font-weight: 700;
+      color: #a7a7aa;
+      background: #121216;
+      border-right: 1px solid #282830;
+    }
+    .pill-btn {
+      padding: 4px 8px;
+      border: none;
+      background: transparent;
+      color: #7b7b82;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 120ms ease;
+    }
+    .pill-btn:hover {
+      color: #f4f4f1;
+      background: #222228;
+    }
+    .pill-btn.active {
+      background: #c1122f;
+      color: #ffffff;
+      font-weight: 800;
+    }
+    .pill-btn.pill-hide {
+      color: #55555c;
+    }
+    .pill-btn.pill-hide.active {
+      background: #2b2b34;
+      color: #a7a7aa;
+    }
+
+    /* PRZEŁĄCZNIK MOTYWU */
+    .theme-switch {
+      display: inline-flex;
+      background: #18181c;
+      border: 1px solid #2e2e36;
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .theme-btn {
+      height: 28px;
+      padding: 0 10px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: #8e8e93;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 120ms ease;
+    }
+    .theme-btn.active {
+      background: #2a2a34;
+      color: #f4f4f1;
+      font-weight: 700;
+    }
+
+    /* GŁÓWNY UKŁAD LABORATORIUM: LEWO TELEFON, PRAWO PANEL */
+    .lab-layout {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 36px;
+      max-width: 1280px;
+      width: 100%;
+      margin: 24px auto 0;
+      padding: 0 16px;
+    }
+
+    /* RAMKA TELEFONU 390x844 */
+    .phone-wrapper {
+      position: sticky;
+      top: 130px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .phone-container {
+      width: 390px;
+      height: 844px;
+      background: var(--app-bg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border-radius: 36px;
+      border: 8px solid #1c1c20;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 0 1px #2a2a30;
+      user-select: none;
+      transition: background-color 200ms ease;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 125px;
+      height: 24px;
+      background: #1c1c20;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      z-index: 50;
+      pointer-events: none;
+    }
+    .status-bar {
+      height: 48px;
+      padding: 14px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--app-ink);
+      z-index: 45;
+      flex-shrink: 0;
+    }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+
+    /* TREŚĆ EKRANU START */
+    .screen-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 8px 16px 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: none;
+      position: relative;
+      z-index: 10;
+    }
+    .screen-content::-webkit-scrollbar { display: none; }
+
+    /* WSPÓLNE STYLE KART (Zgodne z start-final.html) */
+    .app-card {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 180ms ease;
+    }
+    .app-card-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .app-card-heading {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .app-card-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--app-crimson-ink);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: var(--app-touch-min);
+    }
+    .app-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--app-crimson-ink);
+    }
+    .app-subtext {
+      font-size: 13px;
+      color: var(--app-muted);
+      line-height: 1.4;
+    }
+
+    /* KAFELKI AKCJI 2B (min-height >= 44px) */
+    .btn-tile-2b {
+      min-height: 48px;
+      padding: 0 12px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      text-decoration: none;
+      transition: all 140ms ease;
+      width: 100%;
+    }
+    .btn-tile-2b:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--app-faint);
+    }
+    .btn-tile-2b:active {
+      transform: scale(0.99);
+    }
+    .tile-icon-box {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--app-border);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--app-crimson-ink);
+    }
+    .btn-tile-secondary {
+      min-height: 44px;
+      padding: 0 12px;
+      background: transparent;
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 140ms ease;
+    }
+    .btn-tile-secondary:hover {
+      color: var(--app-ink);
+      border-color: var(--app-faint);
+    }
+
+    /* STATUS BADGES (Nigdy samym kolorem) */
+    .status-tag {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 7px;
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .tag-pending {
+      background: rgba(240, 117, 58, 0.12);
+      border: 1px solid rgba(240, 117, 58, 0.35);
+      color: var(--app-ember-ink);
+    }
+    .tag-missed {
+      background: rgba(167, 167, 170, 0.12);
+      border: 1px solid rgba(167, 167, 170, 0.35);
+      color: var(--app-muted);
+    }
+    .tag-done {
+      background: rgba(63, 181, 107, 0.14);
+      border: 1px solid rgba(63, 181, 107, 0.35);
+      color: var(--app-success-ink);
+    }
+    .tag-alert {
+      background: rgba(193, 18, 47, 0.12);
+      border: 1px solid rgba(193, 18, 47, 0.35);
+      color: var(--app-crimson-ink);
+    }
+
+    /* KARTA GŁÓWNA DZIŚ (Zgodna z 1B-1 & 2B-2) */
+    .card-today-approved {
+      background: var(--app-surface);
+      border: var(--app-card-border-today);
+      box-shadow: var(--app-card-glow-today);
+      border-radius: var(--app-radius-sm);
+      padding: 16px 14px 14px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+    .today-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .today-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.44px;
+      padding: 3px 8px;
+      border-radius: var(--app-radius-sm);
+      background: rgba(240, 117, 58, 0.1);
+      border: 1px solid rgba(240, 117, 58, 0.35);
+      color: var(--app-ember-ink);
+    }
+    .today-workout-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.32px;
+      color: var(--app-ink);
+    }
+    .today-chips-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .param-chip {
+      height: 28px;
+      padding: 0 8px;
+      border-radius: var(--app-radius-sm);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--app-border);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--app-ink);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-main-primary {
+      min-height: 54px;
+      border-radius: var(--app-radius-sm);
+      background: var(--app-grad-primary);
+      border: 1px solid rgba(240, 117, 58, 0.85);
+      box-shadow: rgba(117, 10, 26, 0.4) 0px 4px 16px 0px, rgba(240, 117, 58, 0.25) 0px 0px 12px 0px, rgba(240, 117, 58, 0.15) 0px 0px 0px 1px inset;
+      color: #fff;
+      font-family: 'Archivo', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .today-sub-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* KARTA TEN TYDZIEŃ */
+    .card-week-tracker {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .week-days-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .week-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-muted);
+    }
+    .week-col .col-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      order: 0;
+    }
+    .week-col .col-name { order: 1; }
+    .week-col .col-mark {
+      width: 14px;
+      height: 2px;
+      border-radius: 1px;
+      order: 2;
+    }
+    .week-col.is-today .col-dot {
+      border: 2px dashed var(--app-crimson-ink);
+    }
+    .week-col.is-today .col-mark {
+      background: var(--app-crimson-ink);
+    }
+    .col-dot.is-done {
+      background: var(--app-grad-accent);
+      color: #fff;
+    }
+    .col-dot.is-planned {
+      border: 1px solid var(--app-border);
+      background: var(--app-elevated);
+    }
+    .col-dot.is-missed {
+      background: var(--app-border);
+      color: var(--app-muted);
+    }
+
+    /* DOLNA NAWIGACJA (NAV-A) */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: var(--app-nav);
+      border-top: 1px solid var(--app-border);
+      display: grid;
+      grid-template-columns: 1fr 1fr auto 1fr 1fr;
+      align-items: center;
+      padding: 0 4px 6px;
+      z-index: 40;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--app-muted);
+      font-size: 10px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .nav-item.active { color: var(--app-crimson-ink); }
+    .nav-item svg { width: 20px; height: 20px; stroke-width: 2; }
+    .nav-diamond-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: -24px;
+      cursor: pointer;
+    }
+    .nav-diamond {
+      width: 48px;
+      height: 48px;
+      background: var(--app-grad-plus);
+      transform: rotate(45deg);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 4px rgba(240, 117, 58, 0.55);
+    }
+    .nav-diamond svg {
+      transform: rotate(-45deg);
+      color: #fff;
+      width: 22px;
+      height: 22px;
+    }
+    .nav-diamond-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--app-muted);
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* =========================================================================
+       PRAWA STRONA: PANEL KONTROLNY LABORATORIUM
+       ========================================================================= */
+    .control-panel {
+      flex: 1;
+      min-width: 320px;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .panel-section {
+      background: #111115;
+      border: 1px solid #24242c;
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid #22222a;
+      padding-bottom: 10px;
+    }
+    .section-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: #f4f4f1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-desc {
+      font-size: 12px;
+      color: #8e8e93;
+      line-height: 1.45;
+    }
+    .variant-selector-row {
+      display: flex;
+      gap: 8px;
+    }
+    .variant-btn {
+      flex: 1;
+      min-height: 38px;
+      padding: 6px 10px;
+      background: #1a1a22;
+      border: 1px solid #2e2e3a;
+      border-radius: 5px;
+      color: #a7a7aa;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      transition: all 140ms ease;
+    }
+    .variant-btn span.v-code { font-family: 'Archivo', monospace; font-size: 13px; font-weight: 900; }
+    .variant-btn span.v-label { font-size: 10px; font-weight: 500; opacity: 0.8; }
+    .variant-btn:hover {
+      background: #23232e;
+      border-color: #4a4a58;
+      color: #f4f4f1;
+    }
+    .variant-btn.active {
+      background: #c1122f;
+      border-color: #f0753a;
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(193, 18, 47, 0.4);
+    }
+    .variant-details-card {
+      background: #0b0b0e;
+      border: 1px solid #1f1f26;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #a7a7aa;
+      line-height: 1.4;
+    }
+    .variant-details-card strong { color: #f4f4f1; }
+
+    /* UKŁADY DLA POSZCZEGÓLNYCH KART I WARIANTÓW */
+    /* 1. KARTA RPE */
+    .rpe-card-1a {
+      border-left: 3px solid var(--app-crimson-ink);
+    }
+    .rpe-card-1b .rpe-chips-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .rpe-micro-btn {
+      min-height: 44px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 120ms ease;
+    }
+    .rpe-micro-btn:hover { border-color: var(--app-crimson-ink); }
+    .rpe-micro-btn span.sub { font-size: 8px; color: var(--app-muted); font-weight: 500; }
+
+    /* 2. KARTA OVERDUE */
+    .overdue-cal-badge {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .overdue-cal-badge span { color: var(--app-crimson-ink); font-size: 9px; }
+    .overdue-cal-badge b { font-family: 'Archivo', sans-serif; font-size: 15px; color: var(--app-ink); line-height: 1; }
+
+    /* 4. KARTA SAMOPOCZUCIE */
+    .wellbeing-grid-4b {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .wb-question-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 6px 10px;
+      min-height: 44px;
+    }
+    .wb-q-label { font-size: 12px; font-weight: 600; color: var(--app-ink); }
+    .wb-scale-mini { display: flex; gap: 4px; }
+    .wb-scale-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 3px;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      color: var(--app-muted);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .wb-scale-dot.selected {
+      background: var(--app-crimson-ink);
+      border-color: var(--app-crimson-ink);
+      color: #fff;
+    }
+
+    /* 5. PUSTY START */
+    .empty-start-box {
+      background: var(--app-surface);
+      border: var(--app-card-border-today);
+      box-shadow: var(--app-card-glow-today);
+      border-radius: var(--app-radius-sm);
+      padding: 22px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MASTER HEADER WITH DECISION STRIP -->
+  <header class="master-header">
+    <div class="master-row">
+      <div class="master-title">
+        <span>Laboratorium Designu: Karty Dodatkowe Startu</span>
+        <span class="master-badge">Start v2 Extras</span>
+      </div>
+
+      <div class="decision-string-box">
+        <span class="decision-label">Twój wybór:</span>
+        <span id="decisionString" class="decision-val">1A · 2A · 3A · 4A · 5A</span>
+        <button id="btnCopyVerdict" class="btn-copy" type="button" title="Skopiuj werdykt do schowka">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Kopiuj
+        </button>
+      </div>
+
+      <div class="theme-switch">
+        <button id="btnThemeDark" class="theme-btn active" type="button">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          Ciemny
+        </button>
+        <button id="btnThemeLight" class="theme-btn" type="button">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          Jasny
+        </button>
+      </div>
+    </div>
+
+    <!-- QUICK PILLS BAR -->
+    <div class="cards-quick-pills">
+      <div class="card-pill-group">
+        <span class="card-pill-title">1 RPE</span>
+        <button class="pill-btn active" data-card="1" data-v="A">A</button>
+        <button class="pill-btn" data-card="1" data-v="B">B</button>
+        <button class="pill-btn" data-card="1" data-v="C">C</button>
+        <button class="pill-btn pill-hide" data-card="1" data-v="OFF" title="Ukryj tę kartę w podglądzie">Ukryj</button>
+      </div>
+
+      <div class="card-pill-group">
+        <span class="card-pill-title">2 Zaległy (Overdue)</span>
+        <button class="pill-btn active" data-card="2" data-v="A">A</button>
+        <button class="pill-btn" data-card="2" data-v="B">B</button>
+        <button class="pill-btn" data-card="2" data-v="C">C</button>
+        <button class="pill-btn pill-hide" data-card="2" data-v="OFF">Ukryj</button>
+      </div>
+
+      <div class="card-pill-group">
+        <span class="card-pill-title">3 Cel tygodnia</span>
+        <button class="pill-btn active" data-card="3" data-v="A">A (Bez celu)</button>
+        <button class="pill-btn" data-card="3" data-v="B">B</button>
+        <button class="pill-btn" data-card="3" data-v="C">C</button>
+        <button class="pill-btn pill-hide" data-card="3" data-v="SET" title="Pokaż standardowy stan z celem">Z celem</button>
+      </div>
+
+      <div class="card-pill-group">
+        <span class="card-pill-title">4 Samopoczucie</span>
+        <button class="pill-btn active" data-card="4" data-v="A">A</button>
+        <button class="pill-btn" data-card="4" data-v="B">B</button>
+        <button class="pill-btn" data-card="4" data-v="C">C</button>
+        <button class="pill-btn pill-hide" data-card="4" data-v="OFF">Ukryj</button>
+      </div>
+
+      <div class="card-pill-group">
+        <span class="card-pill-title">5 Pusty Start</span>
+        <button class="pill-btn active" data-card="5" data-v="A">A</button>
+        <button class="pill-btn" data-card="5" data-v="B">B</button>
+        <button class="pill-btn" data-card="5" data-v="C">C</button>
+        <button class="pill-btn pill-hide active" data-card="5" data-v="OFF" title="Przełącz między pełnym Startem a pustym stanem">Pełny Start</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN DUAL-COLUMN LAB CONTAINER -->
+  <main class="lab-layout">
+
+    <!-- LEWA KOLUMNA: PODGLĄD TELEFONU 390x844 -->
+    <div class="phone-wrapper">
+      <div id="phoneFrame" class="phone-container">
+        <div class="phone-notch"></div>
+
+        <!-- STATUS BAR -->
+        <div class="status-bar">
+          <span>09:41</span>
+          <div class="status-icons">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 17h20v2H2zm1.15-4.05L4 11.97c3.96-3.04 9.06-3.04 13.02 0l.85.98-1.5 1.76-.84-.98c-3.13-2.4-7.17-2.4-10.3 0l-.85.98z"/></svg>
+            <svg width="18" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/><rect x="3" y="8" width="14" height="8" rx="1"/><rect x="20" y="9" width="2" height="6" rx="1"/></svg>
+          </div>
+        </div>
+
+        <!-- SCROLLABLE SCREEN CONTENT -->
+        <div id="screenContent" class="screen-content">
+
+          <!-- WIDOK PEŁNY (DOMYŚLNY) -->
+          <div id="viewNormalStart" style="display:flex; flex-direction:column; gap:12px;">
+
+            <!-- KARTA DZIŚ (ZATWIERDZONA: 1B-1 & 2B-2) -->
+            <section class="card-today-approved" aria-label="Dziś">
+              <div class="today-meta-row">
+                <span class="app-eyebrow">DZIŚ · CZWARTEK, 19 LISTOPADA</span>
+                <span class="today-badge">KICKBOXING · KLUB</span>
+              </div>
+              <div>
+                <h2 class="today-workout-title">Kickboxing</h2>
+                <p class="app-subtext" style="margin-top:2px;">Zwykle: technika i sparing zadaniowy</p>
+              </div>
+              <div class="today-chips-row">
+                <div class="param-chip">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  18:00–19:30
+                </div>
+                <div class="param-chip">Klub pokazowy</div>
+              </div>
+              <button class="btn-main-primary" type="button">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0753a" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                WPISZ TRENING PO ZAJĘCIACH
+              </button>
+              <div class="today-sub-actions">
+                <button class="btn-tile-2b" type="button" style="justify-content:center;">
+                  <span class="tile-icon-box">✕</span>
+                  Nie byłem
+                </button>
+                <button class="btn-tile-2b" type="button" style="justify-content:center;">
+                  <span class="tile-icon-box">📅</span>
+                  Przenieś dzień
+                </button>
+              </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- SLOT KARTY 1: RPE REMINDER -->
+            <!-- ============================================================= -->
+            <div id="slotCard1"></div>
+
+            <!-- ============================================================= -->
+            <!-- SLOT KARTY 2: OVERDUE / CZY TRENING SIĘ ODBYŁ -->
+            <!-- ============================================================= -->
+            <div id="slotCard2"></div>
+
+            <!-- ============================================================= -->
+            <!-- SLOT KARTY 3: TEN TYDZIEŃ (STAN Z CELEM LUB BEZ CELU 3A/3B/3C) -->
+            <!-- ============================================================= -->
+            <div id="slotCard3"></div>
+
+            <!-- KARTA NASTĘPNY TRENING (4A - ZATWIERDZONA) -->
+            <section class="app-card" style="padding:10px 12px; flex-direction:row; align-items:center; gap:12px;" aria-label="Następny">
+              <div class="overdue-cal-badge">
+                <span>PIĄ</span>
+                <b>20</b>
+              </div>
+              <div style="flex:1; min-width:0;">
+                <p style="font-size:14px; font-weight:700; color:var(--app-ink);">Boks — tarcze i siła</p>
+                <p style="font-size:12px; color:var(--app-muted);">Jutro · Trening klubowy</p>
+              </div>
+              <span style="color:var(--app-muted); font-size:14px;">›</span>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- SLOT KARTY 4: SAMOPOCZUCIE (WELLBEING) -->
+            <!-- ============================================================= -->
+            <div id="slotCard4"></div>
+
+            <!-- KARTA STOPER I INNE PLANY (5A - ZATWIERDZONA) -->
+            <section class="app-card" style="padding:12px 14px; flex-direction:row; align-items:center; gap:12px; min-height:44px;">
+              <div style="width:36px; height:36px; border-radius:4px; background:rgba(193, 18, 47, 0.14); color:var(--app-crimson-ink); display:flex; align-items:center; justify-content:center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4M9 2h6"/></svg>
+              </div>
+              <div style="flex:1; min-width:0;">
+                <p style="font-size:14px; font-weight:700; color:var(--app-ink);">Stoper i inne plany</p>
+                <p style="font-size:12px; color:var(--app-muted);">6 × 3:00 · Przerwa 60 s</p>
+              </div>
+              <span style="color:var(--app-muted); font-size:14px;">›</span>
+            </section>
+
+            <!-- KARTA OSTATNIA SESJA (5A - 74px) -->
+            <section class="app-card" style="padding:12px 14px; flex-direction:row; align-items:center; justify-content:space-between; min-height:74px;">
+              <div style="min-width:0; flex:1;">
+                <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--app-muted);">
+                  <span>Ostatnia sesja: 13 lis</span>
+                  <a href="#history" style="color:var(--app-crimson-ink); font-weight:700; text-decoration:none;">Historia ›</a>
+                </div>
+                <p style="font-size:13px; font-weight:700; color:var(--app-ink); margin-top:2px;">
+                  Muay Thai · Technika i klincz · 90 min · RPE 8
+                </p>
+              </div>
+              <span class="status-tag tag-done">UKOŃCZONY</span>
+            </section>
+
+          </div>
+
+          <!-- WIDOK PUSTEGO STARTU (DLA KARTY 5) -->
+          <div id="viewEmptyStart" style="display:none; flex-direction:column; gap:14px;">
+            <div id="slotCard5"></div>
+          </div>
+
+        </div>
+
+        <!-- DOLNA NAWIGACJA (NAV-A) -->
+        <nav class="bottom-nav">
+          <a class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>Start</span>
+          </a>
+          <a class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Plan</span>
+          </a>
+          <div class="nav-diamond-wrap">
+            <div class="nav-diamond">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+            <span class="nav-diamond-label">Trening</span>
+          </div>
+          <a class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <span>Postęp</span>
+          </a>
+          <a class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Profil</span>
+          </a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- PRAWA KOLUMNA: PANEL KONTROLNY DLA WŁAŚCICIELA -->
+    <div class="control-panel">
+
+      <!-- SEKCJA 1: RPE REMINDER -->
+      <section class="panel-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="status-tag tag-alert">KARTA 1</span>
+            <span>Uzupełnij RPE (RpeReminder)</span>
+          </div>
+          <div class="variant-selector-row">
+            <button class="variant-btn active" data-card="1" data-v="A">
+              <span class="v-code">1A</span>
+              <span class="v-label">Baner akcent</span>
+            </button>
+            <button class="variant-btn" data-card="1" data-v="B">
+              <span class="v-code">1B</span>
+              <span class="v-label">Szybka mikro-skala</span>
+            </button>
+            <button class="variant-btn" data-card="1" data-v="C">
+              <span class="v-code">1C</span>
+              <span class="v-label">Zwarty pasek</span>
+            </button>
+            <button class="variant-btn pill-hide" data-card="1" data-v="OFF">
+              <span class="v-code">✕</span>
+              <span class="v-label">Ukryj</span>
+            </button>
+          </div>
+        </div>
+        <p class="section-desc">
+          <strong>Kiedy się pojawia:</strong> Gdy sesja treningowa z ostatnich godzin nie ma jeszcze oceny RPE (np. minęło 10 minut od gongu lub odłożono ocenę). Prawdziwy tekst: <code>Uzupełnij RPE: {plan}, {dzień}</code>.
+        </p>
+        <div id="descCard1" class="variant-details-card">
+          <!-- Dynamic description -->
+        </div>
+      </section>
+
+      <!-- SEKCJA 2: OVERDUE / CZY TRENING SIĘ ODBYŁ -->
+      <section class="panel-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="status-tag tag-pending">KARTA 2</span>
+            <span>Zaległy trening klubowy (Do uzupełnienia)</span>
+          </div>
+          <div class="variant-selector-row">
+            <button class="variant-btn active" data-card="2" data-v="A">
+              <span class="v-code">2A</span>
+              <span class="v-label">Dwa kafelki 2B</span>
+            </button>
+            <button class="variant-btn" data-card="2" data-v="B">
+              <span class="v-code">2B</span>
+              <span class="v-label">Format kalendarza</span>
+            </button>
+            <button class="variant-btn" data-card="2" data-v="C">
+              <span class="v-code">2C</span>
+              <span class="v-label">Zwarty pasek</span>
+            </button>
+            <button class="variant-btn pill-hide" data-card="2" data-v="OFF">
+              <span class="v-code">✕</span>
+              <span class="v-label">Ukryj</span>
+            </button>
+          </div>
+        </div>
+        <p class="section-desc">
+          <strong>Kiedy się pojawia:</strong> Gdy w bieżącym tygodniu minął dzień z zaplanowanym treningiem klubowym, ale nie wpisano sesji ani nie odznaczono nieobecności. Prawdziwe teksty: <code>DO UZUPEŁNIENIA</code>, <code>wt. 17.11 · Boks (klub) — nie wpisano</code>.
+        </p>
+        <div id="descCard2" class="variant-details-card">
+          <!-- Dynamic description -->
+        </div>
+      </section>
+
+      <!-- SEKCJA 3: TYDZIEŃ BEZ USTALONEGO CELU -->
+      <section class="panel-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="status-tag tag-missed">KARTA 3</span>
+            <span>Ten tydzień: Stan bez ustalonego celu</span>
+          </div>
+          <div class="variant-selector-row">
+            <button class="variant-btn active" data-card="3" data-v="A">
+              <span class="v-code">3A</span>
+              <span class="v-label">Kafelek zachęty 2B</span>
+            </button>
+            <button class="variant-btn" data-card="3" data-v="B">
+              <span class="v-code">3B</span>
+              <span class="v-label">Obrysowany tor</span>
+            </button>
+            <button class="variant-btn" data-card="3" data-v="C">
+              <span class="v-code">3C</span>
+              <span class="v-label">Szybki selektor</span>
+            </button>
+            <button class="variant-btn pill-hide" data-card="3" data-v="SET">
+              <span class="v-code">✓</span>
+              <span class="v-label">Z celem</span>
+            </button>
+          </div>
+        </div>
+        <p class="section-desc">
+          <strong>Kiedy się pojawia:</strong> Użytkownik korzysta z planu tygodnia, ale nie ustawił celu liczbowego (np. 3 lub 4 treningi). W kodzie: <code>!progress.hasGoal</code>. Prawdziwe teksty: <code>0 treningów · 0 min</code>, <code>Nie ustalono celu. Ustal cel tygodnia</code>.
+        </p>
+        <div id="descCard3" class="variant-details-card">
+          <!-- Dynamic description -->
+        </div>
+      </section>
+
+      <!-- SEKCJA 4: SAMOPOCZUCIE (WELLBEING) -->
+      <section class="panel-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="status-tag tag-done">KARTA 4</span>
+            <span>Samopoczucie (Wellbeing check-in)</span>
+          </div>
+          <div class="variant-selector-row">
+            <button class="variant-btn active" data-card="4" data-v="A">
+              <span class="v-code">4A</span>
+              <span class="v-label">Zwinięty check-in</span>
+            </button>
+            <button class="variant-btn" data-card="4" data-v="B">
+              <span class="v-code">4B</span>
+              <span class="v-label">Kompaktowe suwaki</span>
+            </button>
+            <button class="variant-btn" data-card="4" data-v="C">
+              <span class="v-code">4C</span>
+              <span class="v-label">Kafle gotowości</span>
+            </button>
+            <button class="variant-btn pill-hide" data-card="4" data-v="OFF">
+              <span class="v-code">✕</span>
+              <span class="v-label">Ukryj</span>
+            </button>
+          </div>
+        </div>
+        <p class="section-desc">
+          <strong>Kiedy się pojawia:</strong> Raz dziennie dla zawodnika z włączonym modułem Samopoczucie w Profilu, dopóki nie zapisano lub nie odrzucono ankiety. Prawdziwy tekst: <code>Jak się dziś czujesz?</code>, 4 pytania (sen, wypoczęcie, mięśnie, stres).
+        </p>
+        <div id="descCard4" class="variant-details-card">
+          <!-- Dynamic description -->
+        </div>
+      </section>
+
+      <!-- SEKCJA 5: PUSTY START -->
+      <section class="panel-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="status-tag tag-alert">KARTA 5</span>
+            <span>Pusty Start (Nowy zawodnik / empty state)</span>
+          </div>
+          <div class="variant-selector-row">
+            <button class="variant-btn active" data-card="5" data-v="A">
+              <span class="v-code">5A</span>
+              <span class="v-label">Styl 1B-1 (2 ścieżki)</span>
+            </button>
+            <button class="variant-btn" data-card="5" data-v="B">
+              <span class="v-code">5B</span>
+              <span class="v-label">Kroki startowe</span>
+            </button>
+            <button class="variant-btn" data-card="5" data-v="C">
+              <span class="v-code">5C</span>
+              <span class="v-label">Szybki stoper + klub</span>
+            </button>
+            <button class="variant-btn pill-hide active" data-card="5" data-v="OFF">
+              <span class="v-code">✕</span>
+              <span class="v-label">Pełny Start</span>
+            </button>
+          </div>
+        </div>
+        <p class="section-desc">
+          <strong>Kiedy się pojawia:</strong> Gdy nowe konto nie ma jeszcze żadnych planów, stałych pozycji w tygodniu ani zapisanych treningów (<code>empty = true</code> w <code>HomePage.tsx</code>). Prawdziwy tekst: <code>Zacznij swój pierwszy trening</code>, <code>Utwórz własny plan lub wpisz trening po zajęciach w klubie.</code>
+        </p>
+        <div id="descCard5" class="variant-details-card">
+          <!-- Dynamic description -->
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- JAVASCRIPT LOGIC & TEMPLATES -->
+  <script>
+    // State of selected variants
+    const state = {
+      card1: 'A',
+      card2: 'A',
+      card3: 'A',
+      card4: 'A',
+      card5: 'OFF', // When not OFF, replaces normal start with Empty Start
+      theme: 'dark'
+    };
+
+    // Card Templates
+    const templates = {
+      // 1. RPE REMINDER
+      card1: {
+        A: `
+          <section class="app-card rpe-card-1a" aria-label="Przypomnienie RPE">
+            <div class="app-card-title-row">
+              <span class="app-eyebrow" style="color:var(--app-ember-ink);">DO UZUPEŁNIENIA · RPE</span>
+              <span class="status-tag tag-pending">Minęło 15 min</span>
+            </div>
+            <div>
+              <h3 style="font-size:15px; font-weight:700; color:var(--app-ink);">Boks — technika i siła</h3>
+              <p class="app-subtext">Poniedziałek, 16 listopada · 90 min</p>
+            </div>
+            <button class="btn-tile-2b" type="button">
+              <span class="tile-icon-box" style="color:var(--app-ember-ink);">⏱</span>
+              <span style="flex:1;">Oceń zmęczenie (RPE 0–10)</span>
+              <span style="color:var(--app-muted);">›</span>
+            </button>
+          </section>
+        `,
+        B: `
+          <section class="app-card" aria-label="Przypomnienie RPE">
+            <div class="app-card-title-row">
+              <span class="app-eyebrow">RPE · ZMĘCZENIE CAŁYM TRENINGIEM</span>
+              <a href="#dismiss" class="btn-tile-secondary" style="border:none; padding:0; min-height:auto;">Pomiń</a>
+            </div>
+            <div>
+              <h3 style="font-size:14px; font-weight:700; color:var(--app-ink);">Jak ciężki był cały trening?</h3>
+              <p style="font-size:11px; color:var(--app-muted);">Boks — technika i siła · pon, 16 lis</p>
+            </div>
+            <div class="rpe-chips-grid">
+              <button class="rpe-micro-btn" type="button">2<span class="sub">Lekko</span></button>
+              <button class="rpe-micro-btn" type="button">4<span class="sub">Umiark.</span></button>
+              <button class="rpe-micro-btn" type="button" style="border-color:var(--app-ember-ink); color:var(--app-ember-ink);">6<span class="sub">Dość ciężko</span></button>
+              <button class="rpe-micro-btn" type="button">8<span class="sub">B. ciężko</span></button>
+              <button class="rpe-micro-btn" type="button">10<span class="sub">Maks.</span></button>
+            </div>
+            <button class="btn-tile-2b" type="button" style="justify-content:center; margin-top:4px;">
+              <span>Zapisz ocenę RPE 6</span>
+            </button>
+          </section>
+        `,
+        C: `
+          <section class="app-card" style="padding:10px 12px; flex-direction:row; align-items:center; gap:12px; border-left:3px solid var(--app-ember-ink);" aria-label="Przypomnienie RPE">
+            <div style="width:36px; height:36px; border-radius:4px; background:rgba(240, 117, 58, 0.12); color:var(--app-ember-ink); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div style="flex:1; min-width:0;">
+              <p style="font-size:13px; font-weight:700; color:var(--app-ink);">Uzupełnij RPE: Boks</p>
+              <p style="font-size:11px; color:var(--app-muted);">Poniedziałek, 16 lis · 90 min</p>
+            </div>
+            <button class="btn-tile-2b" type="button" style="width:auto; padding:0 12px; min-height:44px;">
+              Oceń ›
+            </button>
+          </section>
+        `,
+        OFF: ''
+      },
+
+      // 2. OVERDUE WORKOUT
+      card2: {
+        A: `
+          <section class="app-card" aria-label="Do uzupełnienia">
+            <div class="app-card-title-row">
+              <span class="app-eyebrow" style="color:var(--app-muted);">DO UZUPEŁNIENIA</span>
+              <span class="status-tag tag-missed">– NIE WPISANO</span>
+            </div>
+            <div>
+              <h3 style="font-size:15px; font-weight:800; color:var(--app-ink);">Czy trening się odbył?</h3>
+              <p class="app-subtext">Wtorek, 17 listopada · 18:00–19:30 · Boks (Klub pokazowy)</p>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <button class="btn-tile-2b" type="button" style="justify-content:center;">
+                <span class="tile-icon-box" style="color:var(--app-crimson-ink);">✍</span>
+                Wpisz trening
+              </button>
+              <button class="btn-tile-2b" type="button" style="justify-content:center;">
+                <span class="tile-icon-box">✕</span>
+                Nie byłem
+              </button>
+            </div>
+          </section>
+        `,
+        B: `
+          <section class="app-card" style="padding:10px 12px; flex-direction:row; align-items:center; gap:12px; border-left:3px solid var(--app-border);" aria-label="Do uzupełnienia">
+            <div class="overdue-cal-badge">
+              <span>WT</span>
+              <b>17</b>
+            </div>
+            <div style="flex:1; min-width:0;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <p style="font-size:13px; font-weight:700; color:var(--app-ink);">Boks · Klub</p>
+                <span class="status-tag tag-missed" style="font-size:9px; padding:1px 4px;">Zaległy</span>
+              </div>
+              <p style="font-size:11px; color:var(--app-muted);">18:00–19:30 — nie wpisano</p>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-tile-2b" type="button" style="width:auto; padding:0 12px; min-height:44px;">
+                Wpisz ›
+              </button>
+              <button class="btn-tile-secondary" type="button" title="Nie byłem" style="width:44px; padding:0;">
+                ✕
+              </button>
+            </div>
+          </section>
+        `,
+        C: `
+          <section class="app-card" style="padding:10px 14px; background:var(--app-elevated); border:1px solid var(--app-border);" aria-label="Do uzupełnienia">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="color:var(--app-muted); font-size:14px;">⚠️</span>
+                <div>
+                  <p style="font-size:12px; font-weight:700; color:var(--app-ink);">wt. 17.11 · Boks (klub) — nie wpisano</p>
+                </div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-tile-2b" type="button" style="width:auto; min-height:40px; padding:0 10px; font-size:12px;">
+                  Wpisz
+                </button>
+                <button class="btn-tile-secondary" type="button" style="min-height:40px; padding:0 8px; font-size:12px;">
+                  Nie byłem
+                </button>
+              </div>
+            </div>
+          </section>
+        `,
+        OFF: ''
+      },
+
+      // 3. HOME WEEK CARD (BEZ CELU 3A/3B/3C LUB Z CELEM 'SET')
+      card3: {
+        A: `
+          <section class="card-week-tracker" aria-label="Ten tydzień">
+            <div class="app-card-title-row">
+              <h2 class="app-card-heading">Ten tydzień</h2>
+              <a href="#weekplan" class="app-card-link">Plan tygodnia ›</a>
+            </div>
+            <div class="week-days-row">
+              <div class="week-col"><div class="col-dot is-missed"></div><span class="col-name">Pn</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-missed"></div><span class="col-name">Wt</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-done">✓</div><span class="col-name">Śr</span><div class="col-mark"></div></div>
+              <div class="week-col is-today"><div class="col-dot"></div><span class="col-name">Czw</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-planned"></div><span class="col-name">Pt</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-planned"></div><span class="col-name">Sb</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot"></div><span class="col-name">Nd</span><div class="col-mark"></div></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--app-muted);">
+              <span>1 trening · 90 min</span>
+              <span class="status-tag tag-missed">Cel: Nie ustalono</span>
+            </div>
+            <button class="btn-tile-2b" type="button" style="margin-top:2px;">
+              <span class="tile-icon-box" style="color:var(--app-ember-ink);">🎯</span>
+              <div style="flex:1; text-align:left;">
+                <p style="font-size:13px; font-weight:700;">Ustal cel tygodnia</p>
+                <p style="font-size:11px; color:var(--app-muted); font-weight:400;">Śledź postęp (np. 3 lub 4 treningi w tygodniu)</p>
+              </div>
+              <span style="color:var(--app-crimson-ink);">›</span>
+            </button>
+          </section>
+        `,
+        B: `
+          <section class="card-week-tracker" aria-label="Ten tydzień">
+            <div class="app-card-title-row">
+              <h2 class="app-card-heading">Ten tydzień</h2>
+              <a href="#weekplan" class="app-card-link">Plan tygodnia ›</a>
+            </div>
+            <div class="week-days-row">
+              <div class="week-col"><div class="col-dot is-missed"></div><span class="col-name">Pn</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-missed"></div><span class="col-name">Wt</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-done">✓</div><span class="col-name">Śr</span><div class="col-mark"></div></div>
+              <div class="week-col is-today"><div class="col-dot"></div><span class="col-name">Czw</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-planned"></div><span class="col-name">Pt</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-planned"></div><span class="col-name">Sb</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot"></div><span class="col-name">Nd</span><div class="col-mark"></div></div>
+            </div>
+            <!-- Wykropkowany ghost progress bar -->
+            <div style="height:8px; border:1px dashed var(--app-border); border-radius:3px; background:transparent; display:flex; align-items:center; justify-content:center;">
+              <span style="font-size:9px; color:var(--app-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">Brak celu liczbowego</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--app-muted);">
+              <span>1 trening · 90 min</span>
+              <a href="#setGoal" class="app-card-link" style="min-height:auto;">+ Ustal cel tygodnia ›</a>
+            </div>
+          </section>
+        `,
+        C: `
+          <section class="card-week-tracker" aria-label="Ten tydzień">
+            <div class="app-card-title-row">
+              <h2 class="app-card-heading">Ten tydzień</h2>
+              <a href="#weekplan" class="app-card-link">Plan tygodnia ›</a>
+            </div>
+            <div class="week-days-row">
+              <div class="week-col"><div class="col-dot is-missed"></div><span class="col-name">Pn</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-missed"></div><span class="col-name">Wt</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-done">✓</div><span class="col-name">Śr</span><div class="col-mark"></div></div>
+              <div class="week-col is-today"><div class="col-dot"></div><span class="col-name">Czw</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-planned"></div><span class="col-name">Pt</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-planned"></div><span class="col-name">Sb</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot"></div><span class="col-name">Nd</span><div class="col-mark"></div></div>
+            </div>
+            <div style="background:var(--app-elevated); border:1px solid var(--app-border); border-radius:4px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+              <div>
+                <p style="font-size:12px; font-weight:700; color:var(--app-ink);">Ustal cel na ten tydzień:</p>
+                <p style="font-size:10px; color:var(--app-muted);">Szybki wybór liczby treningów</p>
+              </div>
+              <div style="display:flex; gap:4px;">
+                <button class="btn-tile-secondary" type="button" style="width:36px; padding:0; min-height:36px; font-weight:700;">3</button>
+                <button class="btn-tile-secondary" type="button" style="width:36px; padding:0; min-height:36px; font-weight:700; border-color:var(--app-crimson-ink); color:var(--app-crimson-ink);">4</button>
+                <button class="btn-tile-secondary" type="button" style="width:36px; padding:0; min-height:36px; font-weight:700;">5</button>
+              </div>
+            </div>
+          </section>
+        `,
+        SET: `
+          <!-- STAN STANDARDOWY Z CELEM -->
+          <section class="card-week-tracker" aria-label="Ten tydzień">
+            <div class="app-card-title-row">
+              <h2 class="app-card-heading">Ten tydzień</h2>
+              <a href="#weekplan" class="app-card-link">Plan tygodnia ›</a>
+            </div>
+            <div class="week-days-row">
+              <div class="week-col"><div class="col-dot is-missed"></div><span class="col-name">Pn</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-missed"></div><span class="col-name">Wt</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-done">✓</div><span class="col-name">Śr</span><div class="col-mark"></div></div>
+              <div class="week-col is-today"><div class="col-dot"></div><span class="col-name">Czw</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-planned"></div><span class="col-name">Pt</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot is-planned"></div><span class="col-name">Sb</span><div class="col-mark"></div></div>
+              <div class="week-col"><div class="col-dot"></div><span class="col-name">Nd</span><div class="col-mark"></div></div>
+            </div>
+            <div style="height:6px; border-radius:3px; background:var(--app-border); overflow:hidden;">
+              <div style="width:50%; height:100%; border-radius:3px; background:var(--app-grad-accent);"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--app-muted);">
+              <span>2 z 4 treningów · 180 min</span>
+              <span>jeszcze: piątek, Boks</span>
+            </div>
+          </section>
+        `
+      },
+
+      // 4. SAMOPOCZUCIE (WELLBEING)
+      card4: {
+        A: `
+          <section class="app-card" aria-label="Samopoczucie">
+            <div class="app-card-title-row">
+              <span class="app-eyebrow">SAMOPOCZUCIE · DZIŚ</span>
+              <span class="status-tag tag-done">Poranny check-in</span>
+            </div>
+            <div>
+              <h3 style="font-size:16px; font-weight:800; color:var(--app-ink);">Jak się dziś czujesz?</h3>
+              <p class="app-subtext">4 pytania o sen, wypoczęcie, bolesność mięśni i stres.</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-tile-2b" type="button" style="flex:1;">
+                <span class="tile-icon-box" style="color:var(--app-success-ink);">❤️</span>
+                <span>Wypełnij check-in (1 min)</span>
+                <span style="color:var(--app-muted);">›</span>
+              </button>
+              <button class="btn-tile-secondary" type="button" style="min-height:48px;">
+                Nie dziś
+              </button>
+            </div>
+          </section>
+        `,
+        B: `
+          <section class="app-card" aria-label="Samopoczucie">
+            <div class="app-card-title-row">
+              <span class="app-eyebrow">SAMOPOCZUCIE · JAK SIĘ DZIŚ CZUJESZ?</span>
+              <span style="font-size:11px; color:var(--app-muted);">Skala 1–5</span>
+            </div>
+            <div class="wellbeing-grid-4b">
+              <div class="wb-question-row">
+                <span class="wb-q-label">Sen ostatniej nocy</span>
+                <div class="wb-scale-mini">
+                  <div class="wb-scale-dot">1</div>
+                  <div class="wb-scale-dot">2</div>
+                  <div class="wb-scale-dot">3</div>
+                  <div class="wb-scale-dot selected">4</div>
+                  <div class="wb-scale-dot">5</div>
+                </div>
+              </div>
+              <div class="wb-question-row">
+                <span class="wb-q-label">Wypoczęcie / energia</span>
+                <div class="wb-scale-mini">
+                  <div class="wb-scale-dot">1</div>
+                  <div class="wb-scale-dot">2</div>
+                  <div class="wb-scale-dot selected">3</div>
+                  <div class="wb-scale-dot">4</div>
+                  <div class="wb-scale-dot">5</div>
+                </div>
+              </div>
+              <div class="wb-question-row">
+                <span class="wb-q-label">Bolesność mięśni</span>
+                <div class="wb-scale-mini">
+                  <div class="wb-scale-dot">1</div>
+                  <div class="wb-scale-dot selected">2</div>
+                  <div class="wb-scale-dot">3</div>
+                  <div class="wb-scale-dot">4</div>
+                  <div class="wb-scale-dot">5</div>
+                </div>
+              </div>
+              <div class="wb-question-row">
+                <span class="wb-q-label">Poziom stresu</span>
+                <div class="wb-scale-mini">
+                  <div class="wb-scale-dot selected">1</div>
+                  <div class="wb-scale-dot">2</div>
+                  <div class="wb-scale-dot">3</div>
+                  <div class="wb-scale-dot">4</div>
+                  <div class="wb-scale-dot">5</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:2px;">
+              <button class="btn-tile-2b" type="button" style="justify-content:center; flex:1;">
+                Zapisz samopoczucie
+              </button>
+              <button class="btn-tile-secondary" type="button">
+                Nie dziś
+              </button>
+            </div>
+          </section>
+        `,
+        C: `
+          <section class="app-card" style="padding:10px 12px; flex-direction:row; align-items:center; gap:12px; border-left:3px solid var(--app-success-ink);" aria-label="Samopoczucie">
+            <div style="width:36px; height:36px; border-radius:4px; background:rgba(63, 181, 107, 0.12); color:var(--app-success-ink); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div style="flex:1; min-width:0;">
+              <p style="font-size:13px; font-weight:700; color:var(--app-ink);">Jak się dziś czujesz?</p>
+              <p style="font-size:11px; color:var(--app-muted);">Porównaj z własną normą z 28 dni</p>
+            </div>
+            <button class="btn-tile-2b" type="button" style="width:auto; padding:0 12px; min-height:44px;">
+              Wpisz ›
+            </button>
+          </section>
+        `,
+        OFF: ''
+      },
+
+      // 5. PUSTY START (EMPTY STATE)
+      card5: {
+        A: `
+          <section class="empty-start-box">
+            <div>
+              <span class="app-eyebrow">WITAJ W APLIKACJI</span>
+              <h2 style="font-family:'Archivo', sans-serif; font-size:26px; font-weight:900; line-height:1.1; margin-top:6px; color:var(--app-ink);">
+                Zacznij swój pierwszy trening
+              </h2>
+              <p class="app-subtext" style="margin-top:6px;">
+                Utwórz własny plan lub wpisz trening po zajęciach w klubie.
+              </p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <button class="btn-tile-2b" type="button" style="min-height:56px;">
+                <span class="tile-icon-box" style="width:38px; height:38px; color:var(--app-crimson-ink);">🥊</span>
+                <div style="flex:1; text-align:left;">
+                  <p style="font-size:14px; font-weight:800;">Wpisz trening z klubu</p>
+                  <p style="font-size:11px; color:var(--app-muted); font-weight:400;">Boks, Kickboxing, Muay Thai po zajęciach</p>
+                </div>
+                <span style="color:var(--app-muted);">›</span>
+              </button>
+              <button class="btn-tile-2b" type="button" style="min-height:56px;">
+                <span class="tile-icon-box" style="width:38px; height:38px; color:var(--app-ember-ink);">⏱</span>
+                <div style="flex:1; text-align:left;">
+                  <p style="font-size:14px; font-weight:800;">Utwórz plan treningowy</p>
+                  <p style="font-size:11px; color:var(--app-muted); font-weight:400;">Rundy, ćwiczenia i odtwarzacz ze stoperem</p>
+                </div>
+                <span style="color:var(--app-muted);">›</span>
+              </button>
+            </div>
+            <div style="border-top:1px solid var(--app-border); padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:12px; color:var(--app-muted);">Masz mało czasu?</span>
+              <a href="#quickTimer" class="app-card-link">Szybki stoper rundowy ›</a>
+            </div>
+          </section>
+        `,
+        B: `
+          <section class="empty-start-box">
+            <span class="app-eyebrow">PIERWSZE KROKI</span>
+            <h2 style="font-family:'Archivo', sans-serif; font-size:24px; font-weight:900; color:var(--app-ink);">
+              Rozpocznij ewidencję treningów
+            </h2>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; gap:12px; align-items:flex-start; background:var(--app-elevated); padding:12px; border-radius:4px; border:1px solid var(--app-border);">
+                <span style="width:26px; height:26px; border-radius:50%; background:var(--app-crimson-ink); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0;">1</span>
+                <div>
+                  <p style="font-size:13px; font-weight:700; color:var(--app-ink);">Zaplanuj stałe zajęcia w tygodniu</p>
+                  <p style="font-size:11px; color:var(--app-muted);">Ustaw dni i godziny zajęć klubowych, a aplikacja sama przygotuje wpisy.</p>
+                </div>
+              </div>
+              <div style="display:flex; gap:12px; align-items:flex-start; background:var(--app-elevated); padding:12px; border-radius:4px; border:1px solid var(--app-border);">
+                <span style="width:26px; height:26px; border-radius:50%; background:var(--app-ember-ink); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0;">2</span>
+                <div>
+                  <p style="font-size:13px; font-weight:700; color:var(--app-ink);">Zbuduj własny zestaw rund</p>
+                  <p style="font-size:11px; color:var(--app-muted);">Ułóż kombinacje uderzeń, pracę na worku i ćwiczenia siłowe.</p>
+                </div>
+              </div>
+            </div>
+            <button class="btn-tile-2b" type="button" style="justify-content:center; min-height:48px;">
+              Przejdź do Planu tygodnia ›
+            </button>
+          </section>
+        `,
+        C: `
+          <section class="empty-start-box">
+            <div>
+              <span class="app-eyebrow">SZYBKI START</span>
+              <h2 style="font-family:'Archivo', sans-serif; font-size:24px; font-weight:900; color:var(--app-ink);">
+                Gotowy do treningu?
+              </h2>
+            </div>
+            <!-- Duża kasetka szybkiego stopera -->
+            <div style="background:var(--app-elevated); border:1px solid var(--app-border); border-radius:4px; padding:16px; text-align:center;">
+              <p style="font-size:11px; color:var(--app-muted); text-transform:uppercase; font-weight:700;">Stoper rundowy</p>
+              <p style="font-family:'Archivo', monospace; font-size:32px; font-weight:900; color:var(--app-ink); margin:4px 0;">3 × 3:00</p>
+              <p style="font-size:12px; color:var(--app-muted);">Przerwa 60 s</p>
+              <button class="btn-tile-2b" type="button" style="justify-content:center; margin-top:12px;">
+                Rozpocznij stoper ›
+              </button>
+            </div>
+            <button class="btn-tile-secondary" type="button" style="min-height:44px;">
+              Lub wpisz odbyty trening z klubu ›
+            </button>
+          </section>
+        `,
+        OFF: ''
+      }
+    };
+
+    // Descriptions for panel
+    const descriptions = {
+      card1: {
+        A: '<strong>Wariant 1A (Baner akcentowy):</strong> Elegancka karta o tle <code>--app-surface</code> z lewą krawędzią w akcencie karmazynu/żaru. Czytelny nagłówek z czasem od zakończenia, nazwa treningu i szeroki kafelek 2B prowadzący do formularza RPE.',
+        B: '<strong>Wariant 1B (Bezpośrednia mikro-skala):</strong> Pozwala ocenić trening jednym stuknięciem bezpośrednio z poziomu Startu, bez otwierania osobnego widoku. 5 wygodnych przycisków 44 px z kotwicami słownymi.',
+        C: '<strong>Wariant 1C (Zwarty pasek alertu):</strong> Minimalistyczny baner jednoliniowy (podobny do karty 4A „Następny”), nie powiększa ekranu Startu i zawiera bezpośredni przycisk dotykowy 44 px <code>Oceń ›</code>.'
+      },
+      card2: {
+        A: '<strong>Wariant 2A (Pytanie + dwa kafelki 2B):</strong> Najbardziej intuicyjny dla zawodnika: czytelne pytanie <em>„Czy trening się odbył?”</em> oraz 2 równe kafelki 2B: <code>Wpisz trening</code> i <code>Nie byłem</code>.',
+        B: '<strong>Wariant 2B (Format kalendarzyka):</strong> Spójny z kartą „Następny trening” (4A): kafelek z dniem tygodnia i numerem po lewej, treść pośrodku oraz przycisk <code>Wpisz ›</code> i krzyżyk <code>✕</code> po prawej.',
+        C: '<strong>Wariant 2C (Zwarty pasek informacyjny):</strong> Pasek z ostrzeżeniem i miniaturowymi przyciskami 40 px, zajmujący minimum przestrzeni pod kartą główną.'
+      },
+      card3: {
+        A: '<strong>Wariant 3A (Kafelek zachęty 2B):</strong> Zamiast pustego paska postępu wyświetla dedykowany kafelek w stylu 2B z ikoną tarczy 🎯, wyjaśniający korzyść z ustalenia celu i odsyłający do konfiguracji.',
+        B: '<strong>Wariant 3B (Obrysowany pusty tor - ghost track):</strong> Wykropkowany obrys paska postępu z czytelnym napisem <code>Brak celu liczbowego</code> i linkiem tekstowym <code>+ Ustal cel tygodnia ›</code>.',
+        C: '<strong>Wariant 3C (Szybki selektor bezpośredni):</strong> Zawiera 3 najczęstsze propozycje celów (3, 4, 5 treningów), umożliwiając ustawienie celu jednym tapnięciem bez wchodzenia do edytora.'
+      },
+      card4: {
+        A: '<strong>Wariant 4A (Zwinięte zaproszenie):</strong> Czysty, nieprzytłaczający baner z pytaniem <em>„Jak się dziś czujesz?”</em>, przyciskiem <code>Wypełnij check-in (1 min) ›</code> i akcją <code>Nie dziś</code>.',
+        B: '<strong>Wariant 4B (Kompaktowe suwaki na Starcie):</strong> Pełne 4 pytania (sen, energia, mięśnie, stres) dostępne bezpośrednio na Starcie w formie zwartych rzędów z dotykiem 44 px.',
+        C: '<strong>Wariant 4C (Karta pigułkowa / stan gotowości):</strong> Dyskretny pasek z ikoną serca i nawiązaniem do normy z 28 dni, idealny dla zawodników ceniących zwięzłość.'
+      },
+      card5: {
+        A: '<strong>Wariant 5A (Styl 1B-1 z 2 ścieżkami wyboru):</strong> Pełna karta powitalna z subtelną ramką karmazynową 1B-1, rozdzielająca zawodników klubowych (zajęcia grupowe) od trenujących samodzielnie.',
+        B: '<strong>Wariant 5B (2 ponumerowane kroki startowe):</strong> Edukacyjny przewodnik po aplikacji w 2 krokach: 1. Stały tydzień, 2. Rundy i ćwiczenia.',
+        C: '<strong>Wariant 5C (Zorientowany na stoper i klub):</strong> Pozwala natychmiast uruchomić stoper rundowy 3×3 min lub zalogować pierwszy trening klubowy.'
+      }
+    };
+
+    // Render cards into slots
+    function render() {
+      // Slot 1: RPE
+      const el1 = document.getElementById('slotCard1');
+      if (el1) el1.innerHTML = templates.card1[state.card1] || '';
+
+      // Slot 2: Overdue
+      const el2 = document.getElementById('slotCard2');
+      if (el2) el2.innerHTML = templates.card2[state.card2] || '';
+
+      // Slot 3: Week Card
+      const el3 = document.getElementById('slotCard3');
+      if (el3) el3.innerHTML = templates.card3[state.card3] || templates.card3.A;
+
+      // Slot 4: Wellbeing
+      const el4 = document.getElementById('slotCard4');
+      if (el4) el4.innerHTML = templates.card4[state.card4] || '';
+
+      // Slot 5: Empty Start
+      const el5 = document.getElementById('slotCard5');
+      if (el5) el5.innerHTML = templates.card5[state.card5] || '';
+
+      // Switch view: Normal Start vs Empty Start
+      const normalView = document.getElementById('viewNormalStart');
+      const emptyView = document.getElementById('viewEmptyStart');
+      if (state.card5 !== 'OFF') {
+        if (normalView) normalView.style.display = 'none';
+        if (emptyView) emptyView.style.display = 'flex';
+      } else {
+        if (normalView) normalView.style.display = 'flex';
+        if (emptyView) emptyView.style.display = 'none';
+      }
+
+      // Update descriptions
+      for (let i = 1; i <= 5; i++) {
+        const descEl = document.getElementById(`descCard${i}`);
+        const currentV = state[`card${i}`];
+        if (descEl) {
+          if (currentV === 'OFF') {
+            descEl.innerHTML = '<em>Karta jest obecnie ukryta w podglądzie.</em>';
+          } else if (currentV === 'SET') {
+            descEl.innerHTML = '<em>Wyświetlany jest standardowy stan karty z ustalonym celem (pasek postępu).</em>';
+          } else if (descriptions[`card${i}`] && descriptions[`card${i}`][currentV]) {
+            descEl.innerHTML = descriptions[`card${i}`][currentV];
+          }
+        }
+      }
+
+      // Update Decision String
+      const d1 = state.card1;
+      const d2 = state.card2;
+      const d3 = state.card3;
+      const d4 = state.card4;
+      const d5 = state.card5 === 'OFF' ? 'Normalny' : `5${state.card5}`;
+      const decStr = `1${d1} · 2${d2} · 3${d3} · 4${d4} · ${d5}`;
+      const decEl = document.getElementById('decisionString');
+      if (decEl) decEl.textContent = decStr;
+
+      // Sync active state on buttons & quick pills
+      document.querySelectorAll('[data-card]').forEach(btn => {
+        const cardId = btn.getAttribute('data-card');
+        const v = btn.getAttribute('data-v');
+        if (state[`card${cardId}`] === v) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    // Attach listeners
+    document.querySelectorAll('[data-card]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cardId = btn.getAttribute('data-card');
+        const v = btn.getAttribute('data-v');
+        state[`card${cardId}`] = v;
+        render();
+      });
+    });
+
+    // Theme toggle
+    const btnDark = document.getElementById('btnThemeDark');
+    const btnLight = document.getElementById('btnThemeLight');
+    btnDark.addEventListener('click', () => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      btnDark.classList.add('active');
+      btnLight.classList.remove('active');
+      state.theme = 'dark';
+    });
+    btnLight.addEventListener('click', () => {
+      document.documentElement.setAttribute('data-theme', 'light');
+      btnLight.classList.add('active');
+      btnDark.classList.remove('active');
+      state.theme = 'light';
+    });
+
+    // Copy Verdict button
+    const btnCopy = document.getElementById('btnCopyVerdict');
+    btnCopy.addEventListener('click', () => {
+      const text = document.getElementById('decisionString').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btnCopy.innerHTML;
+        btnCopy.innerHTML = '✓ Skopiowano!';
+        setTimeout(() => { btnCopy.innerHTML = orig; }, 1800);
+      });
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
