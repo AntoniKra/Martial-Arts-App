@@ -1,0 +1,1758 @@
+<!doctype html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start v2 · Karty dodatkowe (Iteracja 2) · Laboratorium Designu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================================
+       TOKENS & THEMING (ADR 0019 & docs/design-system.md)
+       ========================================================================= */
+    :root,
+    :root[data-theme='dark'] {
+      color-scheme: dark;
+      --app-bg: #0b0b0d;
+      --app-surface: #161618;
+      --app-elevated: #1d1d20;
+      --app-border: #2a2a2e;
+      --app-ink: #f4f4f1;
+      --app-muted: #a7a7aa;
+      --app-faint: #85858a;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #d91535;
+      --app-crimson-ink: #ef5d6e;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #f0753a;
+      --app-success: #3fb56b;
+      --app-success-ink: #8fd8a8;
+      --app-missed: #4a4a4f;
+      --app-nav: #111113;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #ef5d6e;
+
+      --app-grad-primary: linear-gradient(120deg, #b8102a 0%, #d4152f 55%, #c8341a 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #f0753a 100%);
+      --app-grad-plus: linear-gradient(150deg, #e0263f 0%, #b8102a 55%, #8e0b20 100%);
+      --app-grad-bar-current: linear-gradient(180deg, #f0753a 0%, #d4152f 16%, #9e0d24 100%);
+    }
+
+    :root[data-theme='light'] {
+      color-scheme: light;
+      --app-bg: #f1f1ef;
+      --app-surface: #ffffff;
+      --app-elevated: #e8e8e5;
+      --app-border: #c9c9c5;
+      --app-ink: #111113;
+      --app-muted: #5f5f63;
+      --app-faint: #66666a;
+      --app-crimson: #b5122b;
+      --app-crimson-hi: #c1122f;
+      --app-crimson-ink: #a01027;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #9a370e;
+      --app-success: #286243;
+      --app-success-ink: #286243;
+      --app-missed: #c9c9c5;
+      --app-nav: #ffffff;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #b5122b;
+
+      --app-grad-primary: linear-gradient(120deg, #a01027 0%, #b5122b 55%, #c24b10 100%);
+      --app-grad-accent: linear-gradient(90deg, #a01027 0%, #c24b10 100%);
+      --app-grad-plus: linear-gradient(150deg, #c1122f 0%, #a01027 55%, #7a0c1d 100%);
+      --app-grad-bar-current: linear-gradient(180deg, #c24b10 0%, #b5122b 16%, #7a0c1d 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: #08080a;
+      color: var(--app-ink);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    /* =========================================================================
+       LAB TOP CONTROL BAR
+       ========================================================================= */
+    .lab-header {
+      background: #111114;
+      border-bottom: 1px solid #222226;
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .lab-title-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .lab-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: #f4f4f1;
+      letter-spacing: -0.01em;
+    }
+    .lab-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 3px;
+      background: rgba(193, 18, 47, 0.15);
+      border: 1px solid rgba(193, 18, 47, 0.4);
+      color: var(--app-crimson-ink);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .lab-controls {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #a7a7aa;
+    }
+    .ctrl-group-label {
+      font-weight: 600;
+      margin-right: 2px;
+    }
+    .ctrl-btn-group {
+      display: inline-flex;
+      background: #1c1c20;
+      border: 1px solid #2e2e33;
+      border-radius: 4px;
+      padding: 2px;
+    }
+    .ctrl-btn {
+      background: transparent;
+      border: none;
+      color: #a7a7aa;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .ctrl-btn.is-active {
+      background: #2a2a30;
+      color: #f4f4f1;
+      font-weight: 700;
+    }
+
+    /* =========================================================================
+       STAGE WRAPPER (3 PHONES SIDE-BY-SIDE)
+       ========================================================================= */
+    .stage-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 32px;
+      padding: 28px 24px 60px;
+      min-width: 1280px;
+      margin: 0 auto;
+    }
+    .phone-column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+    .phone-label-card {
+      width: 390px;
+      background: #141416;
+      border: 1px solid #26262a;
+      border-radius: 4px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .phone-tag {
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #f4f4f1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .phone-tag-letter {
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      background: var(--app-grad-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .phone-desc {
+      font-size: 11px;
+      color: #85858a;
+    }
+
+    /* =========================================================================
+       PHONE CONTAINER (390 x 844)
+       ========================================================================= */
+    .phone-container {
+      width: 390px;
+      height: 844px;
+      background: var(--app-bg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px #222226;
+      user-select: none;
+      transition: background-color 200ms ease;
+    }
+
+    /* Notch */
+    .phone-notch {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #000000;
+      border-radius: 16px;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 48px;
+      padding: 14px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--app-ink);
+      z-index: 45;
+      flex-shrink: 0;
+    }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+
+    /* Top Bar */
+    .app-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 16px 6px;
+      min-height: 34px;
+      z-index: 20;
+      position: relative;
+    }
+    .topbar-discipline-tag {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--app-crimson-ink);
+      text-transform: uppercase;
+    }
+
+    /* Scrollable Content */
+    .screen-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 6px 16px 86px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: none;
+      position: relative;
+      z-index: 10;
+    }
+    .screen-content::-webkit-scrollbar { display: none; }
+
+    /* =========================================================================
+       CARD DZIŚ (1B-1 + 2B-2) — SKOPIOWANE 1:1 ZE START-FINAL.HTML
+       ========================================================================= */
+    .card-today {
+      background: var(--app-surface);
+      border: 1px solid rgba(193, 18, 47, 0.45);
+      box-shadow: 0 0 16px rgba(193, 18, 47, 0.14), inset 0 0 12px rgba(193, 18, 47, 0.05);
+      border-radius: var(--app-radius-sm);
+      padding: 18px 16px 16px;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 356px;
+      transition: border-color 200ms ease, box-shadow 200ms ease;
+    }
+    .card-today::after {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 10%, var(--app-crimson) 70%, var(--app-crimson-ink) 100%);
+      pointer-events: none;
+      z-index: 3;
+    }
+    .card-today .storm-svg-layer {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      z-index: -1;
+      width: 320px;
+      height: 310px;
+      pointer-events: none;
+      transform: translateZ(0);
+      opacity: 0.65;
+    }
+    .card-today .storm-svg-dimmed {
+      opacity: 0.35;
+    }
+
+    .today-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--app-crimson-ink);
+      white-space: nowrap;
+    }
+    .neutral-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--app-muted);
+      border: 1px solid var(--app-border);
+      background: var(--app-elevated);
+      padding: 3px 8px;
+      border-radius: var(--app-radius-sm);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .plan-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-ember);
+      border: 1px solid rgba(240, 117, 58, 0.35);
+      background: rgba(240, 117, 58, 0.1);
+      padding: 3px 8px;
+      border-radius: var(--app-radius-sm);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    :root[data-theme='light'] .plan-badge {
+      color: #9a370e;
+      border-color: rgba(154, 55, 14, 0.35);
+      background: rgba(154, 55, 14, 0.08);
+    }
+
+    .workout-name {
+      font-family: 'Archivo', sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: var(--app-ink);
+    }
+    .workout-sub {
+      font-size: 13px;
+      line-height: 1.35;
+      color: var(--app-muted);
+      max-width: 260px;
+    }
+
+    .param-chips {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+      flex-wrap: wrap;
+    }
+    .param-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--app-ink);
+      white-space: nowrap;
+    }
+    :root[data-theme='light'] .param-chip {
+      background: rgba(0, 0, 0, 0.03);
+    }
+    .param-chip svg { color: var(--app-crimson-ink); }
+
+    /* Obszar akcji 2B */
+    .actions-container {
+      margin-top: auto;
+      padding-top: 8px;
+    }
+    .variant-2b {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Przycisk 2B-2 — JEDYNA czerwona akcja główna */
+    .btn-main-2b {
+      min-height: 56px;
+      width: 100%;
+      border-radius: var(--app-radius-sm);
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 16px;
+      position: relative;
+      border: 1px solid rgba(240, 117, 58, 0.85);
+      background: linear-gradient(135deg, #580814 0%, #750a1a 55%, #880c1e 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(117, 10, 26, 0.4), 0 0 12px rgba(240, 117, 58, 0.25), inset 0 0 0 1px rgba(240, 117, 58, 0.15);
+      transition: transform 120ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+      white-space: nowrap;
+    }
+    .btn-main-2b svg {
+      color: var(--app-ember);
+      flex-shrink: 0;
+    }
+    .btn-main-2b:active {
+      transform: scale(0.985);
+      background: #460610;
+      border-color: #f0753a;
+      box-shadow: 0 2px 8px rgba(240, 117, 58, 0.4);
+    }
+    :root[data-theme='light'] .btn-main-2b {
+      background: linear-gradient(135deg, #8a0c20 0%, #aa1028 55%, #b5122b 100%);
+      border-color: rgba(194, 75, 16, 0.85);
+      box-shadow: 0 4px 14px rgba(138, 12, 32, 0.25);
+    }
+    :root[data-theme='light'] .btn-main-2b svg {
+      color: #ffd8c7;
+    }
+
+    /* Kafelki 2B — dopasowane do 390px i 360px bez łamania tekstu */
+    .tiles-row-2b {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .btn-tile-2b {
+      min-height: 52px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease;
+    }
+    .btn-tile-2b:hover {
+      border-color: var(--app-crimson-ink);
+    }
+    .btn-tile-2b:active {
+      transform: scale(0.98);
+      background: var(--app-border);
+    }
+    .tile-icon-2b {
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--app-border);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--app-muted);
+    }
+    :root[data-theme='light'] .tile-icon-2b {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    /* =========================================================================
+       KARTA 1: „DO UZUPEŁNIENIA” (JEDNA WSPÓLNA KARTA DLA ZALEGŁEGO I RPE)
+       ========================================================================= */
+    .todo-section-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .todo-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2px;
+    }
+    .card-todo-unified {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 200ms ease;
+    }
+    .card-todo-unified:focus-within {
+      border-color: rgba(239, 93, 110, 0.4);
+    }
+
+    .todo-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    .todo-item-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--app-ink);
+      line-height: 1.2;
+    }
+
+    /* Divider & Expander dla drugiego zadania (RPE) */
+    .todo-expander-divider {
+      height: 1px;
+      background: var(--app-border);
+      margin: 2px 0;
+    }
+    .todo-expander-btn {
+      min-height: 40px;
+      background: transparent;
+      border: none;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      color: var(--app-ink);
+      font-family: inherit;
+    }
+    .todo-expander-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .todo-more-pill {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: rgba(193, 18, 47, 0.12);
+      border: 1px solid rgba(193, 18, 47, 0.35);
+      color: var(--app-crimson-ink);
+      padding: 2px 6px;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+    .todo-expander-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--app-muted);
+    }
+    .todo-expander-arrow {
+      color: var(--app-muted);
+      transition: transform 200ms ease;
+    }
+    .todo-expanded-box {
+      margin-top: 2px;
+    }
+
+    /* =========================================================================
+       KARTA 2: „TEN TYDZIEŃ” (WZORZEC 3A Z LINIJKĄ „BEZ CELU” LUB Z CELEM)
+       ========================================================================= */
+    .card-week {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .week-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .week-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .week-dots-bar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .week-day-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-muted);
+    }
+    .week-day-col.is-today { color: var(--app-ink); }
+    .dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .d-done { background: var(--app-grad-primary); color: #fff; }
+    .d-miss { background: var(--app-missed); color: #d8d8da; }
+    .d-free { border: 2px solid var(--app-success); background: rgba(63, 181, 107, 0.12); }
+    .d-plan { border: 2px dashed var(--app-crimson-ink); color: transparent; }
+    .today-underline {
+      width: 16px;
+      height: 2px;
+      border-radius: 1px;
+      background: transparent;
+    }
+    .week-day-col.is-today .today-underline { background: var(--app-crimson-ink); }
+
+    .progress-track {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--app-border);
+      overflow: hidden;
+      width: 100%;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 50%;
+      background: var(--app-grad-accent);
+      border-radius: 3px;
+    }
+    .week-stats-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--app-muted);
+    }
+    .week-stats-row b { color: var(--app-ink); font-weight: 700; }
+
+    /* Pojedyncza linijka braku celu — Touch Target 44 px, link crimson-ink */
+    .week-no-goal-row {
+      border-top: 1px solid var(--app-border);
+      padding-top: 4px;
+      display: flex;
+      align-items: center;
+    }
+    .no-goal-link {
+      min-height: var(--app-touch-min);
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--app-crimson-ink);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: opacity 150ms ease;
+    }
+    .no-goal-link:hover { text-decoration: underline; }
+    .no-goal-link:active { opacity: 0.8; }
+    .no-goal-link-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    /* =========================================================================
+       WZORZEC 5A: WIERSZ SKRÓTU (36px box + tytuł + podtytuł + ›)
+       ========================================================================= */
+    .quick-link-row-5a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--app-border);
+      background: var(--app-surface);
+      border-radius: var(--app-radius-sm);
+      cursor: pointer;
+      transition: background-color 150ms ease, border-color 150ms ease;
+      min-height: var(--app-touch-min);
+      text-decoration: none;
+      color: inherit;
+    }
+    .quick-link-row-5a:hover {
+      border-color: rgba(239, 93, 110, 0.4);
+    }
+    .quick-link-row-5a:active {
+      background: var(--app-elevated);
+      border-color: var(--app-crimson-ink);
+    }
+    .icon-box-5a {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--app-radius-sm);
+      background: rgba(193, 18, 47, 0.12);
+      border: 1px solid rgba(193, 18, 47, 0.3);
+      color: var(--app-crimson-ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    :root[data-theme='light'] .icon-box-5a {
+      background: rgba(181, 18, 43, 0.08);
+      border-color: rgba(181, 18, 43, 0.25);
+    }
+    .quick-link-content-5a {
+      flex: 1;
+      min-width: 0;
+    }
+    .quick-link-title-5a {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--app-ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .quick-link-sub-5a {
+      font-size: 11px;
+      color: var(--app-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+    .quick-link-chevron {
+      color: var(--app-muted);
+      flex-shrink: 0;
+    }
+
+    /* Karta ostatniej sesji (5A) */
+    .last-session-card-5a {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      cursor: pointer;
+      min-height: var(--app-touch-min);
+    }
+    .last-session-left b {
+      display: block;
+      font-size: 13px;
+      color: var(--app-ink);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Karta Następny trening (4A) */
+    .next-banner-4a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+    }
+    .calendar-badge-4a {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--app-radius-sm);
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .calendar-badge-4a span {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--app-crimson-ink);
+      letter-spacing: 0.05em;
+    }
+    .calendar-badge-4a b {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      margin-top: 1px;
+    }
+    .next-info-4a { flex: 1; min-width: 0; }
+    .next-title-4a { font-size: 13px; font-weight: 700; color: var(--app-ink); }
+    .next-sub-4a { font-size: 11px; color: var(--app-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* =========================================================================
+       DOLNE MENU (NAV-A) — ODTWORZONE 1:1 ZE START-FINAL.HTML
+       ========================================================================= */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: var(--app-nav);
+      border-top: 1px solid var(--app-border);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      z-index: 40;
+      padding-bottom: 8px;
+      transition: background-color 200ms ease, border-color 200ms ease;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--app-muted);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      height: 100%;
+      position: relative;
+    }
+    .nav-item.is-active { color: var(--app-ink); }
+    .nav-item.is-active::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 20%;
+      right: 20%;
+      height: 2px;
+      background: var(--app-grad-accent);
+    }
+    .nav-item.is-active svg { color: var(--app-crimson-ink); }
+
+    /* Romb „+” obniżony (6A-1) */
+    .variant-6a1 {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    .nav-diamond-6a1 {
+      position: absolute;
+      top: -9px;
+      width: 36px;
+      height: 36px;
+      transform: rotate(45deg);
+      background: var(--app-grad-plus);
+      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 4px color-mix(in srgb, var(--app-ember) 55%, transparent);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease;
+    }
+    .nav-diamond-6a1::after {
+      content: '';
+      position: absolute;
+      inset: -6px; /* Cel dotyku 48x48 px */
+    }
+    .nav-diamond-6a1:active {
+      transform: rotate(45deg) scale(0.92);
+      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 5px rgba(240, 117, 58, 0.85);
+    }
+    .nav-diamond-6a1 svg {
+      transform: rotate(-45deg);
+      color: var(--app-on-accent);
+    }
+    .nav-plus-label-6a1 {
+      margin-top: 32px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--app-muted);
+    }
+
+    /* Toast Feedback */
+    .toast-feedback {
+      position: absolute;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1d1d20;
+      border: 1px solid var(--app-crimson);
+      color: #f4f4f1;
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 90;
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    .toast-feedback.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================================
+       LAB HEADER CONTROLS
+       ========================================================================= -->
+  <header class="lab-header">
+    <div class="lab-title-area">
+      <h1 class="lab-title">Laboratorium Designu: Karty Dodatkowe Startu</h1>
+      <span class="lab-badge">Iteracja 2 · Zatwierdzone wzorce</span>
+    </div>
+
+    <div class="lab-controls">
+      <!-- Przełącznik motywu -->
+      <div class="ctrl-group">
+        <span class="ctrl-group-label">Motyw:</span>
+        <div class="ctrl-btn-group">
+          <button id="btnThemeDark" class="ctrl-btn is-active" type="button" onclick="setTheme('dark')">Ciemny</button>
+          <button id="btnThemeLight" class="ctrl-btn" type="button" onclick="setTheme('light')">Jasny</button>
+        </div>
+      </div>
+
+      <!-- Przełącznik wariantu karty „Do uzupełnienia” na telefonie (a) -->
+      <div class="ctrl-group">
+        <span class="ctrl-group-label">Karta „Do uzupełnienia” (a):</span>
+        <div class="ctrl-btn-group">
+          <button id="btnVarA" class="ctrl-btn is-active" type="button" onclick="setTodoVariant('A')">Wariant A (z nagłówkiem)</button>
+          <button id="btnVarB" class="ctrl-btn" type="button" onclick="setTodoVariant('B')">Wariant B (bez nagłówka)</button>
+        </div>
+      </div>
+
+      <!-- Przełącznik rozwinięcia RPE -->
+      <div class="ctrl-group">
+        <span class="ctrl-group-label">RPE w karcie:</span>
+        <div class="ctrl-btn-group">
+          <button id="btnRpeToggle" class="ctrl-btn is-active" type="button" onclick="toggleRpeState()">Rozwiń / Zwiń</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       STAGE: 3 TELEFONY 390x844 OBOK SIEBIE
+       ========================================================================= -->
+  <main class="stage-wrapper">
+
+    <!-- =======================================================================
+         TELEFON (a): DZIEŃ KLUBOWY + DO UZUPEŁNIENIA + SAMOPOCZUCIE
+         ======================================================================= -->
+    <div class="phone-column">
+      <div class="phone-label-card">
+        <div class="phone-tag">
+          <span class="phone-tag-letter">a</span>
+          <span>Dzień klubowy</span>
+        </div>
+        <span class="phone-desc">Zaległy trening · RPE · Samopoczucie</span>
+      </div>
+
+      <div class="phone-container" id="phoneA">
+        <div class="phone-notch"></div>
+
+        <!-- Status Bar -->
+        <header class="status-bar" aria-hidden="true">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+            <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+            <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+        </header>
+
+        <!-- Pasek górny dyscypliny -->
+        <header class="app-topbar">
+          <span class="topbar-discipline-tag">KICKBOXING / BOKS · SEZON 2026</span>
+        </header>
+
+        <!-- Toast feedback na telefonie A -->
+        <div class="toast-feedback" id="toastA" role="status">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--app-ember)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="toastTextA">Akcja wykonana</span>
+        </div>
+
+        <!-- Zawartość ekranu Start (a) -->
+        <div class="screen-content">
+
+          <!-- KARTA DZIŚ (SKOPIOWANA 1:1 ZE START-FINAL.HTML: 1B-1 + 2B-2) -->
+          <section class="card-today" data-variant-1="1B-1" aria-labelledby="todayHeadingA">
+            <!-- SVG Burzy 1:1 -->
+            <svg class="storm-svg-layer" viewBox="0 0 320 310" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="stormGradA" x1="50" y1="20" x2="280" y2="280" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#f0753a" stop-opacity="0.9"/>
+                  <stop offset="45%" stop-color="#c1122f" stop-opacity="0.6"/>
+                  <stop offset="100%" stop-color="#161618" stop-opacity="0"/>
+                </linearGradient>
+                <filter id="glowA" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="6" result="blur"/>
+                  <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+              </defs>
+              <path d="M190 10 L130 115 L175 115 L105 235 L215 130 L165 130 L220 10 Z" fill="url(#stormGradA)" filter="url(#glowA)"/>
+              <path d="M225 35 L178 120 L212 120 L155 210 L240 130 L205 130 L248 35 Z" fill="#f0753a" opacity="0.3"/>
+              <circle cx="215" cy="50" r="1.5" fill="#f0753a" opacity="0.8"/>
+              <circle cx="120" cy="180" r="1" fill="#ef5d6e" opacity="0.7"/>
+              <circle cx="160" cy="90" r="2" fill="#fff" opacity="0.4"/>
+            </svg>
+
+            <div class="today-meta">
+              <span class="eyebrow">DZIŚ · ŚRODA, 18 LISTOPADA</span>
+              <span class="plan-badge">Klub · 18:00</span>
+            </div>
+
+            <div>
+              <h2 class="workout-name" id="todayHeadingA">Kickboxing</h2>
+              <p class="workout-sub">Zwykle: technika i sparing zadaniowy</p>
+            </div>
+
+            <div class="param-chips">
+              <span class="param-chip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                90 min
+              </span>
+              <span class="param-chip">Klub pokazowy</span>
+            </div>
+
+            <div class="actions-container">
+              <div class="variant-2b" data-color="2B-2">
+                <!-- JEDYNA czerwona akcja główna na ekranie -->
+                <button class="btn-main-2b" data-color="2B-2" type="button" onclick="triggerToast('a', 'Wpisz trening po zajęciach')">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                  </svg>
+                  <span>WPISZ TRENING PO ZAJĘCIACH</span>
+                </button>
+                <div class="tiles-row-2b">
+                  <button class="btn-tile-2b" type="button" onclick="triggerToast('a', 'Oznaczono: Nie byłem na treningu')">
+                    <span class="tile-icon-2b">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </span>
+                    <span>Nie byłem</span>
+                  </button>
+                  <button class="btn-tile-2b" type="button" onclick="triggerToast('a', 'Otwarto: Przenieś dzień')">
+                    <span class="tile-icon-2b">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </span>
+                    <span>Przenieś dzień</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- KARTA „DO UZUPEŁNIENIA” — JEDNA WSPÓLNA DLA ZALEGŁEGO TRENINGU I RPE -->
+          <section class="todo-section-container">
+            <!-- Nagłówek sekcji dla Wariantu A (ukrywany w Wariancie B) -->
+            <div class="todo-section-header" id="todoHeaderWrap">
+              <span class="eyebrow">DO UZUPEŁNIENIA</span>
+              <span class="neutral-badge">2 zadania</span>
+            </div>
+
+            <div class="card-todo-unified" id="cardTodoUnified">
+              <!-- Element 1: Zaległy trening klubowy -->
+              <div class="todo-item-top">
+                <span class="eyebrow" style="font-size: 11px;">ZALEGŁY TRENING</span>
+                <span class="neutral-badge">wt 17.11 · Boks · klub</span>
+              </div>
+
+              <h3 class="todo-item-title">Czy trening się odbył?</h3>
+
+              <!-- 2 kafelki 2B: Wpisz / Nie byłem (nie łamią się przy 390px ani 360px) -->
+              <div class="tiles-row-2b">
+                <button class="btn-tile-2b" type="button" onclick="triggerToast('a', 'Wpisz zaległy trening (wtorek)')">
+                  <span class="tile-icon-2b">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </span>
+                  <span>Wpisz</span>
+                </button>
+                <button class="btn-tile-2b" type="button" onclick="triggerToast('a', 'Oznaczono: Nie byłem (wtorek)')">
+                  <span class="tile-icon-2b">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </span>
+                  <span>Nie byłem</span>
+                </button>
+              </div>
+
+              <!-- Element 2: Drugie zadanie jako „+1 więcej ›” (wiersz 5A: RPE) -->
+              <div class="todo-expander-divider"></div>
+
+              <button class="todo-expander-btn" id="btnExpanderA" type="button" onclick="toggleRpeState()">
+                <div class="todo-expander-left">
+                  <span class="todo-more-pill">+1 WIĘCEJ</span>
+                  <span class="todo-expander-label">Ocena RPE sesji</span>
+                </div>
+                <svg id="arrowExpanderA" class="todo-expander-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+
+              <div class="todo-expanded-box" id="rpeBoxA">
+                <!-- Wiersz 5A RPE -->
+                <div class="quick-link-row-5a" onclick="triggerToast('a', 'Otwarto formularz oceny RPE (Boks)')">
+                  <div class="icon-box-5a">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </div>
+                  <div class="quick-link-content-5a">
+                    <div class="quick-link-title-5a">Oceń trening (RPE)</div>
+                    <div class="quick-link-sub-5a">Boks — technika i siła · pon 16.11</div>
+                  </div>
+                  <svg class="quick-link-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- KARTA „TEN TYDZIEŃ” (3A z celem) -->
+          <section class="card-week">
+            <div class="week-head">
+              <h3 class="week-title">Ten tydzień</h3>
+              <span class="neutral-badge">Cel: 2 / 4</span>
+            </div>
+            <div class="week-dots-bar">
+              <div class="week-day-col">
+                <span class="dot d-done">✓</span>
+                <span>Pn</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col">
+                <span class="dot d-miss">✕</span>
+                <span>Wt</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col is-today">
+                <span class="dot d-plan"></span>
+                <span>Śr</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col">
+                <span class="dot d-plan"></span>
+                <span>Czw</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col">
+                <span class="dot"></span>
+                <span>Pt</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col">
+                <span class="dot"></span>
+                <span>Sob</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col">
+                <span class="dot"></span>
+                <span>Nd</span>
+                <div class="today-underline"></div>
+              </div>
+            </div>
+            <div class="progress-track"><div class="progress-fill" style="width: 50%;"></div></div>
+            <div class="week-stats-row">
+              <span>Wykonano: <b>2 treningi</b> (120 min)</span>
+              <span>Zostało: <b>2</b></span>
+            </div>
+          </section>
+
+          <!-- SAMOPOCZUCIE — ZWINIĘTY WIERSZ 5A (Liniowa ikona serca, brak skal na Starcie) -->
+          <section>
+            <div class="quick-link-row-5a" onclick="triggerToast('a', 'Otwarto ankietę samopoczucia')">
+              <div class="icon-box-5a">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+              <div class="quick-link-content-5a">
+                <div class="quick-link-title-5a">Jak się dziś czujesz?</div>
+                <div class="quick-link-sub-5a">4 pytania · ok. 30 s</div>
+              </div>
+              <svg class="quick-link-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </section>
+
+          <!-- OSTATNIA SESJA (5A) -->
+          <section>
+            <div class="last-session-card-5a" onclick="triggerToast('a', 'Otwarto podgląd sesji: Boks Technika A')">
+              <div class="last-session-left">
+                <span style="color:var(--app-muted); font-size:11px;">Ostatnia sesja: Poniedziałek, 16 lis</span>
+                <b>Boks Technika A · 6 rund · RPE 7/10</b>
+              </div>
+              <span class="neutral-badge">ZALICZONY</span>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- DOLNE MENU (NAV-A) 1:1 -->
+        <nav class="bottom-nav" aria-label="Główna nawigacja">
+          <button class="nav-item is-active" type="button" onclick="triggerToast('a', 'Start')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>Start</span>
+          </button>
+          <button class="nav-item" type="button" onclick="triggerToast('a', 'Plan')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Plan</span>
+          </button>
+          <div class="variant-6a1">
+            <button class="nav-diamond-6a1" type="button" aria-label="Szybki trening" onclick="triggerToast('a', 'Nowy trening (+)')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <span class="nav-plus-label-6a1">Trening</span>
+          </div>
+          <button class="nav-item" type="button" onclick="triggerToast('a', 'Postęp')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <span>Postęp</span>
+          </button>
+          <button class="nav-item" type="button" onclick="triggerToast('a', 'Profil')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Profil</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         TELEFON (b): TYDZIEŃ BEZ CELU
+         ======================================================================= -->
+    <div class="phone-column">
+      <div class="phone-label-card">
+        <div class="phone-tag">
+          <span class="phone-tag-letter">b</span>
+          <span>Tydzień bez celu</span>
+        </div>
+        <span class="phone-desc">Linijka w karcie „Ten tydzień” · Touch 44px</span>
+      </div>
+
+      <div class="phone-container" id="phoneB">
+        <div class="phone-notch"></div>
+
+        <!-- Status Bar -->
+        <header class="status-bar" aria-hidden="true">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+            <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+            <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+        </header>
+
+        <!-- Pasek górny dyscypliny -->
+        <header class="app-topbar">
+          <span class="topbar-discipline-tag">BOKS / KICKBOXING · SEZON 2026</span>
+        </header>
+
+        <!-- Toast feedback na telefonie B -->
+        <div class="toast-feedback" id="toastB" role="status">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--app-ember)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="toastTextB">Akcja wykonana</span>
+        </div>
+
+        <!-- Zawartość ekranu Start (b) -->
+        <div class="screen-content">
+
+          <!-- KARTA DZIŚ (ODPOCZYNEK Z SZYBKIM STARTEM LUB STANDARDOWY TRENING WŁASNY) -->
+          <section class="card-today" data-variant-1="1B-1" aria-labelledby="todayHeadingB">
+            <svg class="storm-svg-layer" viewBox="0 0 320 310" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="stormGradB" x1="50" y1="20" x2="280" y2="280" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#f0753a" stop-opacity="0.9"/>
+                  <stop offset="45%" stop-color="#c1122f" stop-opacity="0.6"/>
+                  <stop offset="100%" stop-color="#161618" stop-opacity="0"/>
+                </linearGradient>
+                <filter id="glowB" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="6" result="blur"/>
+                  <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+              </defs>
+              <path d="M190 10 L130 115 L175 115 L105 235 L215 130 L165 130 L220 10 Z" fill="url(#stormGradB)" filter="url(#glowB)"/>
+              <path d="M225 35 L178 120 L212 120 L155 210 L240 130 L205 130 L248 35 Z" fill="#f0753a" opacity="0.3"/>
+              <circle cx="215" cy="50" r="1.5" fill="#f0753a" opacity="0.8"/>
+              <circle cx="120" cy="180" r="1" fill="#ef5d6e" opacity="0.7"/>
+              <circle cx="160" cy="90" r="2" fill="#fff" opacity="0.4"/>
+            </svg>
+
+            <div class="today-meta">
+              <span class="eyebrow">DZIŚ · ŚRODA, 18 LISTOPADA</span>
+              <span class="neutral-badge">Dzień wolny</span>
+            </div>
+
+            <div>
+              <h2 class="workout-name" id="todayHeadingB">Regeneracja</h2>
+              <p class="workout-sub">Brak zaplanowanych jednostek. Możesz zrobić mobility lub szybki stoper.</p>
+            </div>
+
+            <div class="param-chips">
+              <span class="param-chip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Odpoczynek
+              </span>
+              <span class="param-chip">Aktywna odnowa</span>
+            </div>
+
+            <div class="actions-container">
+              <div class="variant-2b" data-color="2B-2">
+                <!-- JEDYNA czerwona akcja główna na ekranie -->
+                <button class="btn-main-2b" data-color="2B-2" type="button" onclick="triggerToast('b', 'Uruchamianie szybkiego treningu...')">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                  <span>SZYBKI TRENING ZE STOPEREM</span>
+                </button>
+                <div class="tiles-row-2b">
+                  <button class="btn-tile-2b" type="button" onclick="triggerToast('b', 'Otwarto: Wpisz trening klubowy')">
+                    <span class="tile-icon-2b">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </span>
+                    <span>Wpisz z sali</span>
+                  </button>
+                  <button class="btn-tile-2b" type="button" onclick="triggerToast('b', 'Otwarto: Biblioteka ćwiczeń')">
+                    <span class="tile-icon-2b">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </span>
+                    <span>Przenieś dzień</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- KARTA „TEN TYDZIEŃ” — STAN BEZ CELU: JEDNA LINIJKA POD KROPKAMI -->
+          <section class="card-week">
+            <div class="week-head">
+              <h3 class="week-title">Ten tydzień</h3>
+              <span class="neutral-badge">0 / —</span>
+            </div>
+
+            <!-- Kropki dni tygodnia (7 dni) -->
+            <div class="week-dots-bar">
+              <div class="week-day-col">
+                <span class="dot d-miss">✕</span>
+                <span>Pn</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col">
+                <span class="dot d-free"></span>
+                <span>Wt</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col is-today">
+                <span class="dot d-plan"></span>
+                <span>Śr</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col">
+                <span class="dot d-plan"></span>
+                <span>Czw</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col">
+                <span class="dot"></span>
+                <span>Pt</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col">
+                <span class="dot"></span>
+                <span>Sob</span>
+                <div class="today-underline"></div>
+              </div>
+              <div class="week-day-col">
+                <span class="dot"></span>
+                <span>Nd</span>
+                <div class="today-underline"></div>
+              </div>
+            </div>
+
+            <!-- JEDNA linijka pod kropkami: „Bez celu · Ustal cel tygodnia →” (Touch target 44px) -->
+            <div class="week-no-goal-row">
+              <a href="#ustal-cel" class="no-goal-link" onclick="event.preventDefault(); triggerToast('b', 'Otwieranie wyboru celu tygodnia...')">
+                <div class="no-goal-link-left">
+                  <span>Bez celu · Ustal cel tygodnia</span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </a>
+            </div>
+          </section>
+
+          <!-- NASTĘPNY TRENING (4A) -->
+          <section>
+            <div class="next-banner-4a" onclick="triggerToast('b', 'Szczegóły: Boks Siła B (Czwartek)')" style="cursor:pointer;">
+              <div class="calendar-badge-4a">
+                <span>CZW</span>
+                <b>19</b>
+              </div>
+              <div class="next-info-4a">
+                <div class="next-title-4a">Następny: Boks Siła B</div>
+                <div class="next-sub-4a">Czwartek · 6 rund walki z cieniem i worek</div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--app-muted)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </section>
+
+          <!-- SAMOPOCZUCIE — ZWINIĘTY WIERSZ 5A -->
+          <section>
+            <div class="quick-link-row-5a" onclick="triggerToast('b', 'Otwarto ankietę samopoczucia')">
+              <div class="icon-box-5a">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+              <div class="quick-link-content-5a">
+                <div class="quick-link-title-5a">Jak się dziś czujesz?</div>
+                <div class="quick-link-sub-5a">4 pytania · ok. 30 s</div>
+              </div>
+              <svg class="quick-link-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </section>
+
+          <!-- STOPER I INNE PLANY (5A) -->
+          <section>
+            <div class="quick-link-row-5a" onclick="triggerToast('b', 'Uruchamianie Stopera rundowego...')">
+              <div class="icon-box-5a">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <div class="quick-link-content-5a">
+                <div class="quick-link-title-5a">Stoper i inne plany</div>
+                <div class="quick-link-sub-5a">Interwały, runda wolna lub biblioteka ćwiczeń</div>
+              </div>
+              <svg class="quick-link-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- DOLNE MENU (NAV-A) 1:1 -->
+        <nav class="bottom-nav" aria-label="Główna nawigacja">
+          <button class="nav-item is-active" type="button" onclick="triggerToast('b', 'Start')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>Start</span>
+          </button>
+          <button class="nav-item" type="button" onclick="triggerToast('b', 'Plan')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Plan</span>
+          </button>
+          <div class="variant-6a1">
+            <button class="nav-diamond-6a1" type="button" aria-label="Szybki trening" onclick="triggerToast('b', 'Nowy trening (+)')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <span class="nav-plus-label-6a1">Trening</span>
+          </div>
+          <button class="nav-item" type="button" onclick="triggerToast('b', 'Postęp')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <span>Postęp</span>
+          </button>
+          <button class="nav-item" type="button" onclick="triggerToast('b', 'Profil')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Profil</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         TELEFON (c): PUSTY START
+         ======================================================================= -->
+    <div class="phone-column">
+      <div class="phone-label-card">
+        <div class="phone-tag">
+          <span class="phone-tag-letter">c</span>
+          <span>Pusty Start</span>
+        </div>
+        <span class="phone-desc">Styl 1B-1 · Przygaszona burza · 1 główna akcja</span>
+      </div>
+
+      <div class="phone-container" id="phoneC">
+        <div class="phone-notch"></div>
+
+        <!-- Status Bar -->
+        <header class="status-bar" aria-hidden="true">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+            <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+            <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+        </header>
+
+        <!-- Pasek górny dyscypliny -->
+        <header class="app-topbar">
+          <span class="topbar-discipline-tag">SPORTY WALKI · NOWY PROFIL</span>
+        </header>
+
+        <!-- Toast feedback na telefonie C -->
+        <div class="toast-feedback" id="toastC" role="status">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--app-ember)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="toastTextC">Akcja wykonana</span>
+        </div>
+
+        <!-- Zawartość ekranu Start (c) -->
+        <div class="screen-content">
+
+          <!-- KARTA PUSTY START W STYLU 1B-1 (Subtelna czerwona ramka, przygaszona burza) -->
+          <section class="card-today" data-variant-1="1B-1" style="min-height: 330px;" aria-labelledby="todayHeadingC">
+            <!-- Przygaszona burza SVG -->
+            <svg class="storm-svg-layer storm-svg-dimmed" viewBox="0 0 320 310" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="stormGradC" x1="50" y1="20" x2="280" y2="280" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#f0753a" stop-opacity="0.6"/>
+                  <stop offset="45%" stop-color="#c1122f" stop-opacity="0.35"/>
+                  <stop offset="100%" stop-color="#161618" stop-opacity="0"/>
+                </linearGradient>
+                <filter id="glowC" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="6" result="blur"/>
+                  <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+              </defs>
+              <path d="M190 10 L130 115 L175 115 L105 235 L215 130 L165 130 L220 10 Z" fill="url(#stormGradC)" filter="url(#glowC)"/>
+              <path d="M225 35 L178 120 L212 120 L155 210 L240 130 L205 130 L248 35 Z" fill="#f0753a" opacity="0.2"/>
+            </svg>
+
+            <div class="today-meta">
+              <span class="eyebrow">PIERWSZY KROK</span>
+              <span class="neutral-badge">Nowy profil</span>
+            </div>
+
+            <div>
+              <h2 class="workout-name" id="todayHeadingC" style="font-size: 26px; line-height: 1.12;">Zacznij swój pierwszy trening</h2>
+              <p class="workout-sub" style="max-width: 270px; margin-top: 4px;">Utwórz plan treningowy lub wpisz trening po zajęciach w klubie.</p>
+            </div>
+
+            <div class="actions-container">
+              <div class="variant-2b" data-color="2B-2">
+                <!-- JEDYNY główny przycisk „Utwórz plan” w stylu 2B-2 -->
+                <button class="btn-main-2b" data-color="2B-2" type="button" onclick="triggerToast('c', 'Tworzenie nowego planu treningowego...')">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  <span>UTWÓRZ PLAN</span>
+                </button>
+
+                <!-- 2 kafelki 2B pod spodem: „Stoper” / „Trening w klubie” (nie łamią się) -->
+                <div class="tiles-row-2b">
+                  <button class="btn-tile-2b" type="button" onclick="triggerToast('c', 'Uruchamianie Stopera rundowego...')">
+                    <span class="tile-icon-2b">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="13" r="8"/><path d="M12 9v4M9 2h6"/>
+                      </svg>
+                    </span>
+                    <span>Stoper</span>
+                  </button>
+                  <button class="btn-tile-2b" type="button" onclick="triggerToast('c', 'Wpisywanie treningu po zajęciach w klubie...')">
+                    <span class="tile-icon-2b">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                    </span>
+                    <span>Trening w klubie</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- BAZA ĆWICZEŃ I KOMBINACJI (WIERSZ 5A) -->
+          <section>
+            <div class="quick-link-row-5a" onclick="triggerToast('c', 'Otwarto: Biblioteka ćwiczeń i kombinacji')">
+              <div class="icon-box-5a">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+              </div>
+              <div class="quick-link-content-5a">
+                <div class="quick-link-title-5a">Baza ćwiczeń i kombinacji</div>
+                <div class="quick-link-sub-5a">Przeglądaj techniki boksu i kickboxingu</div>
+              </div>
+              <svg class="quick-link-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </section>
+
+          <!-- SAMOPOCZUCIE (WIERSZ 5A) -->
+          <section>
+            <div class="quick-link-row-5a" onclick="triggerToast('c', 'Otwarto ankietę samopoczucia')">
+              <div class="icon-box-5a">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+              <div class="quick-link-content-5a">
+                <div class="quick-link-title-5a">Jak się dziś czujesz?</div>
+                <div class="quick-link-sub-5a">4 pytania · ok. 30 s</div>
+              </div>
+              <svg class="quick-link-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- DOLNE MENU (NAV-A) 1:1 -->
+        <nav class="bottom-nav" aria-label="Główna nawigacja">
+          <button class="nav-item is-active" type="button" onclick="triggerToast('c', 'Start')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>Start</span>
+          </button>
+          <button class="nav-item" type="button" onclick="triggerToast('c', 'Plan')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Plan</span>
+          </button>
+          <div class="variant-6a1">
+            <button class="nav-diamond-6a1" type="button" aria-label="Szybki trening" onclick="triggerToast('c', 'Nowy trening (+)')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <span class="nav-plus-label-6a1">Trening</span>
+          </div>
+          <button class="nav-item" type="button" onclick="triggerToast('c', 'Postęp')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <span>Postęp</span>
+          </button>
+          <button class="nav-item" type="button" onclick="triggerToast('c', 'Profil')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Profil</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // Motyw Ciemny / Jasny
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('btnThemeDark').classList.toggle('is-active', theme === 'dark');
+      document.getElementById('btnThemeLight').classList.toggle('is-active', theme === 'light');
+    }
+
+    // Wariant A (z nagłówkiem sekcji) vs B (bez nagłówka sekcji)
+    function setTodoVariant(variant) {
+      const headerWrap = document.getElementById('todoHeaderWrap');
+      const btnA = document.getElementById('btnVarA');
+      const btnB = document.getElementById('btnVarB');
+      if (variant === 'A') {
+        headerWrap.style.display = 'flex';
+        btnA.classList.add('is-active');
+        btnB.classList.remove('is-active');
+      } else {
+        headerWrap.style.display = 'none';
+        btnA.classList.remove('is-active');
+        btnB.classList.add('is-active');
+      }
+    }
+
+    // Rozwiń / Zwiń RPE w karcie „Do uzupełnienia”
+    let isRpeExpanded = true;
+    function toggleRpeState() {
+      isRpeExpanded = !isRpeExpanded;
+      const rpeBox = document.getElementById('rpeBoxA');
+      const arrow = document.getElementById('arrowExpanderA');
+      const btnToggle = document.getElementById('btnRpeToggle');
+
+      if (isRpeExpanded) {
+        rpeBox.style.display = 'block';
+        arrow.style.transform = 'rotate(0deg)';
+        btnToggle.classList.add('is-active');
+      } else {
+        rpeBox.style.display = 'none';
+        arrow.style.transform = 'rotate(-90deg)';
+        btnToggle.classList.remove('is-active');
+      }
+    }
+
+    // Toast Feedback dla każdego telefonu
+    const toastTimers = {};
+    function triggerToast(phoneId, message) {
+      const toastEl = document.getElementById('toast' + phoneId.toUpperCase());
+      const textEl = document.getElementById('toastText' + phoneId.toUpperCase());
+      if (!toastEl || !textEl) return;
+
+      textEl.textContent = message;
+      toastEl.classList.add('is-visible');
+
+      if (toastTimers[phoneId]) clearTimeout(toastTimers[phoneId]);
+      toastTimers[phoneId] = setTimeout(() => {
+        toastEl.classList.remove('is-visible');
+      }, 2400);
+    }
+  </script>
+</body>
+</html>
