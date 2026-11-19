@@ -56,7 +56,7 @@ export function HomeTodayCards({ plan, schedule, today, fallback }: { plan: Week
       return <section key={item.id} aria-label={`${labels.today} · ${labels.discipline(item.disciplineKey)} · ${item.startTime}`} className="storm-card home-main-card">
         <StormDecoration />
         <div className="home-card-meta">
-          <p className="home-card-date">{homeCardDate(today, 'club')}</p>
+          <p className="home-card-date">{homeCardDate(today)}</p>
           <span className="home-plan-badge">{labels.discipline(item.disciplineKey)} · {labels.club}</span>
         </div>
         <div>

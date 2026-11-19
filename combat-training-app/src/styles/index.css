@@ -217,6 +217,9 @@
 .home-week-tracker { display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
 .home-week-day { gap: 6px; text-transform: none; letter-spacing: normal; }
 .home-week-day .week-day-dot { width: 26px; height: 26px; border-radius: 50%; }
+/* Mockup A order: dot, day name, today mark (DOM keeps the name first for reading order). */
+.home-week-day > span:first-child { order: 1; }
+.home-week-day > span:last-child { order: 2; }
 .home-week-day .week-day-dot.is-done { color: var(--app-home-primary-ink); }
 .home-week-stats { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px; font-size: 13px; color: var(--app-muted); }
 .home-week-stats b { font-weight: 700; color: var(--app-ink); }
@@ -229,7 +232,7 @@
 .home-other-icon { display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--app-radius-sm); background: var(--app-home-card-light); color: var(--app-crimson-ink); }
 .home-other-icon svg { width: 20px; height: 20px; }
 .home-recent-session { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); font-size: 12px; }
-.home-session-status { padding: 3px 6px; border-radius: 3px; font-weight: 700; }
+.home-session-status { padding: 3px 6px; border-radius: 3px; font-weight: 700; text-transform: uppercase; }
 .home-session-status.is-done { background: var(--app-home-success-bg); border: 1px solid var(--app-home-success-border); color: var(--app-success-ink); }
 .home-session-status.is-partial { border: 1px solid var(--app-border); color: var(--app-muted); }
 .home-recent-session .rpe-badge { background: transparent; color: inherit; }
