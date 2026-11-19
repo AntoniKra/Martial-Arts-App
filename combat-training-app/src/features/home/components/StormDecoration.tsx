@@ -1,26 +1,24 @@
 import { useId } from 'react'
 
 export function StormDecoration() {
-  const gradient = useId()
-  return <><span className="home-intro-spark" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg></span><svg aria-hidden="true" focusable="false" className="storm-decoration" viewBox="0 0 358 340" fill="var(--app-ember)">
-    <defs><linearGradient id={gradient} x1="1" y1="0" x2="0" y2="1">
-      <stop offset="0" stopColor="var(--app-ember)" stopOpacity=".95" />
-      <stop offset=".35" stopColor="var(--app-storm-mid)" stopOpacity=".75" />
-      <stop offset=".8" stopColor="var(--app-storm-end)" stopOpacity="0" />
-    </linearGradient></defs>
-    <path fill={`url(#${gradient})`} d="M276 0 L228 104 L258 104 L200 214 L226 214 L184 318 L290 168 L258 168 L312 74 L282 74 L340 0 Z" />
-    <path opacity=".55" d="M300 0 L262 82 L284 82 L250 150 L318 46 L296 46 L322 0 Z" />
-    <g fill="none" stroke="var(--app-ember)">
-      <polyline points="258,168 296,196 312,236 340,258" strokeWidth="2" opacity=".7" />
-      <polyline points="296,196 286,226" strokeWidth="1.5" opacity=".55" />
-      <polyline points="312,74 336,98 350,134" strokeWidth="1.5" opacity=".6" />
-      <polyline points="228,104 214,82 196,76" strokeWidth="1.5" opacity=".45" />
-    </g>
-    <path opacity=".9" d="M352 120 L336 150 L346 150 L326 196 L358 140 L348 140 L358 120 Z" />
-    <rect x="240" y="132" width="6" height="6" opacity=".9" transform="rotate(45 243 135)" />
-    <rect x="300" y="128" width="4" height="4" opacity=".7" transform="rotate(45 302 130)" />
-    <rect x="330" y="56" width="5" height="5" opacity=".8" transform="rotate(45 332.5 58.5)" />
-    <rect x="214" y="248" width="5" height="5" opacity=".6" transform="rotate(45 216.5 250.5)" />
-    <rect x="268" y="22" width="4" height="4" opacity=".7" transform="rotate(45 270 24)" />
-  </svg></>
+  const gradient = useId(), glow = useId()
+  return <><span className="home-intro-spark" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg></span>
+    <svg aria-hidden="true" focusable="false" className="storm-decoration" viewBox="0 0 320 310" fill="none">
+      <defs>
+        <linearGradient id={gradient} x1="50" y1="20" x2="280" y2="280" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="var(--app-ember)" stopOpacity="0.9" />
+          <stop offset="45%" stopColor="var(--app-home-storm-crimson)" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="var(--app-home-surface)" stopOpacity="0" />
+        </linearGradient>
+        <filter id={glow} x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="6" result="blur" /><feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+      <path d="M190 10 L130 115 L175 115 L105 235 L215 130 L165 130 L220 10 Z" fill={`url(#${gradient})`} filter={`url(#${glow})`} />
+      <path d="M225 35 L178 120 L212 120 L155 210 L240 130 L205 130 L248 35 Z" fill="var(--app-ember)" opacity="0.3" />
+      <circle cx="215" cy="50" r="1.5" fill="var(--app-ember)" opacity="0.8" />
+      <circle cx="120" cy="180" r="1" fill="var(--app-home-storm-spark)" opacity="0.7" />
+      <circle cx="160" cy="90" r="2" fill="var(--app-home-primary-ink)" opacity="0.4" />
+    </svg>
+  </>
 }

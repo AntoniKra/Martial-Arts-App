@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { HomeActionIcon } from './HomeActionIcon'
@@ -5,29 +6,36 @@ import { formatPolishCount } from '@/domain/language/polishPlural'
 import type { FeaturedWorkoutPlanLoadState } from '../types/homeView.types'
 import { homeCardDate, homeLabels as labels } from '../homeLabels'
 import { StormDecoration } from './StormDecoration'
-import { homePrimaryButton, homeSecondaryButton, homeSectionLabel } from './HomeScheduleCards'
+import { HomeParameterChip } from './HomeParameterChip'
+import { homePrimaryButton, homeSecondaryButton } from './HomeScheduleCards'
 
-export function HomeQuickStart({ state, today, timerLabel, onRetry }: { state: FeaturedWorkoutPlanLoadState; today: string; timerLabel: string; onRetry: () => void }) {
+export function HomeQuickStart({ state, today, onRetry }: { state: FeaturedWorkoutPlanLoadState; today: string; onRetry: () => void }) {
+  const descriptionId = useId()
   const plan = state.status === 'success' ? state.plan : null
-  return <section aria-label={labels.quickStart} className="storm-card flex flex-col">
+  return <section aria-label={labels.quickStart} className="storm-card home-main-card">
     <StormDecoration />
-    {/* Reserve the same reachable primary-action position as the today card. */}
-    <div className="flex min-h-[366px] flex-col gap-2 px-4 pb-3 pt-[18px] md:min-h-0">
-      <p className={`${homeSectionLabel} text-crimson-ink`}>{homeCardDate(today)}</p>
-      <h2 className={homeSectionLabel}>{labels.quickStart}</h2>
-      {plan ? <>
-        <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-crimson-ink">{labels.discipline(plan.disciplineKey)} · {labels.activePlan}</p>
-        <h3 className="storm-copy break-words font-display text-[30px] font-extrabold leading-[1.05]">{plan.name}</h3>
-        <p className="storm-copy text-sm tabular-nums text-muted">{formatPolishCount(plan.blockCount, 'blok', 'bloki', 'bloków')} · {formatPolishCount(plan.roundCount, 'runda', 'rundy', 'rund')} · {plan.estimatedDurationLabelPl}</p>
-      </> : state.status === 'loading' ? <p role="status" className="text-sm text-muted">{labels.loadingPlan}</p>
-        : state.status === 'error' ? <div role="alert" className="text-sm text-muted"><p>{state.message}</p><button type="button" onClick={onRetry} className={homeSecondaryButton}>{labels.retry}</button></div>
-          : <p className="text-sm text-muted">{labels.emptyHint}</p>}
+    <div className="home-card-meta">
+      <p className="home-card-date">{homeCardDate(today)}</p>
+      {plan && <span className="home-plan-badge">{labels.activePlan}</span>}
     </div>
-    {state.status === 'success' && <Link to={plan ? routes.workoutActive(plan.id) : routes.newWorkout} className={`${homePrimaryButton} mx-4`}><span className="home-primary-icon"><HomeActionIcon kind="start" /></span>{plan ? labels.startPlan : labels.createPlan}</Link>}
-    <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-2">
-      <Link to={routes.quickTimer} className={`${homeSecondaryButton} min-h-[52px] flex-col gap-0.5 py-2 text-center text-sm`}>{labels.timer}<span className="text-xs font-medium tabular-nums text-muted">{timerLabel}</span></Link>
-      <Link to={routes.newManualWorkout} state={{ returnTo: routes.home }} className={`${homeSecondaryButton} min-h-[52px] flex-col gap-0.5 py-2 text-center text-sm`}>{labels.clubWorkout}<span className="text-xs font-medium text-muted">{labels.afterClass}</span></Link>
+    <div>
+      <h2 className="home-workout-name">{plan ? plan.name : labels.quickStart}</h2>
+      {plan && <p className="home-workout-sub">{labels.discipline(plan.disciplineKey)}</p>}
     </div>
-    <Link to={routes.workouts} className="flex min-h-touch items-center justify-between border-t border-bd px-4 py-3.5 text-sm text-muted">{labels.allPlans}<span aria-hidden="true">›</span></Link>
+    {plan ? <div className="home-param-chips">
+        {plan.parameterChips.map((chip, index) => <HomeParameterChip key={chip} kind={index === 0 ? 'rounds' : 'rest'}>{chip}</HomeParameterChip>)}
+        <HomeParameterChip kind="clock">{plan.estimatedDurationLabelPl}</HomeParameterChip>
+        <HomeParameterChip kind="blocks">{formatPolishCount(plan.blockCount, 'blok', 'bloki', 'bloków')}</HomeParameterChip>
+    </div> : state.status === 'loading' ? <p role="status" className="text-sm text-muted">{labels.loadingPlan}</p>
+      : state.status === 'error' ? <div role="alert" className="text-sm text-muted"><p>{state.message}</p><button type="button" onClick={onRetry} className={homeSecondaryButton}>{labels.retry}</button></div>
+        : <p className="home-workout-sub">{labels.emptyHint}</p>}
+    <div className="home-card-actions">
+      <span id={descriptionId} className="sr-only">{plan ? labels.discipline(plan.disciplineKey) : labels.emptyHint}</span>
+      {state.status === 'success' && <Link aria-describedby={descriptionId} to={plan ? routes.workoutActive(plan.id) : routes.newWorkout} className={homePrimaryButton}><HomeActionIcon kind="start" />{plan ? labels.startPlan : labels.createPlan}</Link>}
+      <div className="home-action-tiles">
+        <Link to={routes.quickTimer} className="home-secondary-action"><span className="home-tile-icon"><HomeActionIcon kind="timer" /></span><span>{labels.timer}</span></Link>
+        <Link to={routes.newManualWorkout} state={{ returnTo: routes.home }} className="home-secondary-action"><span className="home-tile-icon"><HomeActionIcon kind="entry" /></span><span>{labels.clubWorkout}</span></Link>
+      </div>
+    </div>
   </section>
 }

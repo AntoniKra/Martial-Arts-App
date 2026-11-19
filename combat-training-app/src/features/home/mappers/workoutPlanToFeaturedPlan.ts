@@ -2,6 +2,7 @@ import { calculateWorkoutPlanSummary } from '@/domain/workout/workoutCalculation
 import { formatEstimatedDuration } from '@/domain/time/formatDuration'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { HomeFeaturedPlan } from '@/features/home/types/homeView.types'
+import { workoutParameterChips } from '@/domain/workout/workoutParameterChips'
 
 export function mapWorkoutPlanToFeaturedPlan(plan: WorkoutPlan): HomeFeaturedPlan {
   const summary = calculateWorkoutPlanSummary(plan)
@@ -15,5 +16,6 @@ export function mapWorkoutPlanToFeaturedPlan(plan: WorkoutPlan): HomeFeaturedPla
     exerciseCount: summary.exerciseCount,
     roundCount: summary.plannedRoundCount,
     estimatedDurationLabelPl: formatEstimatedDuration(summary.estimatedTotalSeconds),
+    parameterChips: workoutParameterChips(plan),
   }
 }

@@ -18,12 +18,17 @@ export const homeLabels = {
   entryHint: (discipline: string, minutes: string) => `Data, ${discipline.toLocaleLowerCase('pl')}${minutes ? `, ${minutes} min` : ''} i części są już wpisane — dodajesz RPE i notatkę.`,
   usual: (parts: string) => `Zwykle: ${parts}`, noParts: 'Wybierzesz części przy wpisie po zajęciach.',
   later: 'W tym tygodniu jeszcze', otherPlans: 'Stoper i inne plany', allPlans: 'Wszystkie plany i nowy plan',
-  startPlan: 'Rozpocznij plan', timer: 'Stoper', clubWorkout: 'Trening w klubie', afterClass: 'wpisz po zajęciach',
+  startPlan: 'Rozpocznij plan', timer: 'Stoper', clubWorkout: 'Trening w klubie',
   createPlan: 'Utwórz plan', firstClub: 'Wpisz trening z klubu', empty: 'Zacznij swój pierwszy trening',
   emptyHint: 'Utwórz własny plan lub wpisz trening po zajęciach w klubie.',
   overdue: 'Do uzupełnienia', missing: 'nie wpisano', write: 'Wpisz',
   week: 'Ten tydzień', weekPlan: 'Plan tygodnia', days: 'Dni tygodnia',
   next: 'Następny', flexible: 'W dowolny dzień tego tygodnia',
+  flexibleAction: 'Wykonaj w dowolny dzień',
+  otherPlansHint: 'Interwały, runda wolna lub biblioteka ćwiczeń',
+  timerRounds: 'Stoper rund',
+  completed: 'Ukończone:', progress: 'Postęp:',
+  units: (count: number) => formatPolishCount(count, 'jednostki', 'jednostek', 'jednostek'),
   workouts: (count: number) => formatPolishCount(count, 'trening', 'treningi', 'treningów'),
   goal: (count: number, total: number) => `${count} z ${total}`,
   noGoal: 'Nie ustalono celu.', setGoal: 'Ustal cel tygodnia',
@@ -36,7 +41,6 @@ export const homeLabels = {
   discipline: getDisciplineLabelPl,
 } as const
 
-export function homeCardDate(date: string, kind: 'club' | 'own' = 'own') {
-  const short = new Intl.DateTimeFormat('pl-PL', { weekday: 'short', timeZone: 'UTC' }).format(calendarDate(date)).replace('.', '')
-  return `Dziś, ${short} ${date.slice(8)}.${date.slice(5, 7)} · ${kind === 'club' ? 'klub' : 'trening własny'}`
+export function homeCardDate(date: string) {
+  return `Dziś · ${new Intl.DateTimeFormat('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(calendarDate(date))}`
 }
