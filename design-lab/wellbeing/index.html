@@ -1,0 +1,2387 @@
+<!doctype html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formularz Samopoczucia „Jak się dziś czujesz?” · Laboratorium Designu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================================
+       TOKENS & THEMING (ADR 0019 & docs/design-system.md)
+       ========================================================================= */
+    :root,
+    :root[data-theme='dark'] {
+      color-scheme: dark;
+      --app-bg: #0b0b0d;
+      --app-surface: #161618;
+      --app-elevated: #1d1d20;
+      --app-border: #2a2a2e;
+      --app-ink: #f4f4f1;
+      --app-muted: #a7a7aa;
+      --app-faint: #85858a;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #d91535;
+      --app-crimson-ink: #ef5d6e;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #f0753a;
+      --app-success: #3fb56b;
+      --app-success-ink: #8fd8a8;
+      --app-missed: #4a4a4f;
+      --app-nav: #111113;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #ef5d6e;
+
+      --app-grad-primary: linear-gradient(120deg, #b8102a 0%, #d4152f 55%, #c8341a 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #f0753a 100%);
+      --app-grad-plus: linear-gradient(150deg, #e0263f 0%, #b8102a 55%, #8e0b20 100%);
+      --app-grad-bar-current: linear-gradient(180deg, #f0753a 0%, #d4152f 16%, #9e0d24 100%);
+    }
+
+    :root[data-theme='light'] {
+      color-scheme: light;
+      --app-bg: #f1f1ef;
+      --app-surface: #ffffff;
+      --app-elevated: #e8e8e5;
+      --app-border: #c9c9c5;
+      --app-ink: #111113;
+      --app-muted: #5f5f63;
+      --app-faint: #66666a;
+      --app-crimson: #b5122b;
+      --app-crimson-hi: #c1122f;
+      --app-crimson-ink: #a01027;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #9a370e;
+      --app-success: #286243;
+      --app-success-ink: #286243;
+      --app-missed: #c9c9c5;
+      --app-nav: #ffffff;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #b5122b;
+
+      --app-grad-primary: linear-gradient(120deg, #a01027 0%, #b5122b 55%, #c24b10 100%);
+      --app-grad-accent: linear-gradient(90deg, #a01027 0%, #c24b10 100%);
+      --app-grad-plus: linear-gradient(150deg, #c1122f 0%, #a01027 55%, #7a0c1d 100%);
+      --app-grad-bar-current: linear-gradient(180deg, #c24b10 0%, #b5122b 16%, #7a0c1d 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: #08080a;
+      color: var(--app-ink);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    /* =========================================================================
+       LAB HEADER & VARIANT CONTROLS
+       ========================================================================= */
+    .lab-header {
+      background: #111114;
+      border-bottom: 1px solid #222226;
+      padding: 14px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .lab-header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .lab-title-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .lab-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: #f4f4f1;
+      letter-spacing: -0.01em;
+    }
+    .lab-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 3px;
+      background: rgba(193, 18, 47, 0.15);
+      border: 1px solid rgba(193, 18, 47, 0.4);
+      color: var(--app-crimson-ink);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .lab-theme-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Wymiary wariantów: 1 Skala A/B/C, 2 Układ A/B/C, 3 Zapis A/B/C */
+    .lab-variants-list {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      background: #17171b;
+      border: 1px solid #28282e;
+      border-radius: 4px;
+      padding: 8px 14px;
+    }
+    .var-dim-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dim-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      background: rgba(193, 18, 47, 0.2);
+      border: 1px solid rgba(193, 18, 47, 0.4);
+      color: var(--app-crimson-ink);
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dim-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #d8d8da;
+      margin-right: 2px;
+    }
+    .ctrl-pill-group {
+      display: inline-flex;
+      background: #0f0f12;
+      border: 1px solid #2c2c32;
+      border-radius: 4px;
+      padding: 2px;
+    }
+    .ctrl-pill {
+      background: transparent;
+      border: none;
+      color: #9c9ca0;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 3px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .ctrl-pill:hover {
+      color: #f4f4f1;
+    }
+    .ctrl-pill.is-active {
+      background: #2a2a30;
+      color: #f4f4f1;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
+    .ctrl-pill.is-active-crimson {
+      background: rgba(193, 18, 47, 0.35);
+      border: 1px solid rgba(239, 93, 110, 0.5);
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .lab-dim-divider {
+      width: 1px;
+      height: 20px;
+      background: #2c2c32;
+    }
+
+    /* =========================================================================
+       STAGE WRAPPER (PHONE + SIDE CONSISTENCY PANEL)
+       ========================================================================= */
+    .stage-layout {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 36px;
+      padding: 24px 20px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* =========================================================================
+       PHONE CONTAINER (390 x 844)
+       ========================================================================= */
+    .phone-container {
+      width: 390px;
+      height: 844px;
+      background: var(--app-bg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px #222226;
+      user-select: none;
+      transition: background-color 200ms ease;
+      flex-shrink: 0;
+    }
+
+    /* Notch */
+    .phone-notch {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #000000;
+      border-radius: 16px;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 48px;
+      padding: 14px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--app-ink);
+      z-index: 45;
+      flex-shrink: 0;
+    }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+
+    /* Top Bar */
+    .app-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 16px 6px;
+      min-height: 34px;
+      z-index: 20;
+      position: relative;
+    }
+    .topbar-discipline-tag {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--app-crimson-ink);
+      text-transform: uppercase;
+    }
+
+    /* Scrollable Content */
+    .screen-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 6px 16px 86px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: none;
+      position: relative;
+      z-index: 10;
+    }
+    .screen-content::-webkit-scrollbar { display: none; }
+
+    /* =========================================================================
+       CARD DZIŚ (1B-1 + 2B-2) — SKOPIOWANE 1:1 ZE START-FINAL.HTML
+       ========================================================================= */
+    .card-today {
+      background: var(--app-surface);
+      border: 1px solid rgba(193, 18, 47, 0.45);
+      box-shadow: 0 0 16px rgba(193, 18, 47, 0.14), inset 0 0 12px rgba(193, 18, 47, 0.05);
+      border-radius: var(--app-radius-sm);
+      padding: 18px 16px 16px;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 356px;
+      transition: border-color 200ms ease, box-shadow 200ms ease;
+    }
+    .card-today::after {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 10%, var(--app-crimson) 70%, var(--app-crimson-ink) 100%);
+      pointer-events: none;
+      z-index: 3;
+    }
+    .card-today .storm-svg-layer {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      z-index: -1;
+      width: 320px;
+      height: 310px;
+      pointer-events: none;
+      transform: translateZ(0);
+      opacity: 0.65;
+    }
+
+    .today-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--app-crimson-ink);
+      white-space: nowrap;
+    }
+    .neutral-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--app-muted);
+      border: 1px solid var(--app-border);
+      background: var(--app-elevated);
+      padding: 3px 8px;
+      border-radius: var(--app-radius-sm);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .plan-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-ember);
+      border: 1px solid rgba(240, 117, 58, 0.35);
+      background: rgba(240, 117, 58, 0.1);
+      padding: 3px 8px;
+      border-radius: var(--app-radius-sm);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    :root[data-theme='light'] .plan-badge {
+      color: #9a370e;
+      border-color: rgba(154, 55, 14, 0.35);
+      background: rgba(154, 55, 14, 0.08);
+    }
+
+    .workout-name {
+      font-family: 'Archivo', sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: var(--app-ink);
+    }
+    .workout-sub {
+      font-size: 13px;
+      line-height: 1.35;
+      color: var(--app-muted);
+      max-width: 260px;
+    }
+
+    .param-chips {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+      flex-wrap: wrap;
+    }
+    .param-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--app-ink);
+      white-space: nowrap;
+    }
+    :root[data-theme='light'] .param-chip { background: rgba(0, 0, 0, 0.03); }
+    .param-chip svg { color: var(--app-crimson-ink); }
+
+    /* Obszar akcji 2B */
+    .actions-container {
+      margin-top: auto;
+      padding-top: 8px;
+    }
+    .variant-2b {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-main-2b {
+      min-height: 56px;
+      width: 100%;
+      border-radius: var(--app-radius-sm);
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 16px;
+      position: relative;
+      border: 1px solid rgba(240, 117, 58, 0.85);
+      background: linear-gradient(135deg, #580814 0%, #750a1a 55%, #880c1e 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(117, 10, 26, 0.4), 0 0 12px rgba(240, 117, 58, 0.25), inset 0 0 0 1px rgba(240, 117, 58, 0.15);
+      transition: transform 120ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+      white-space: nowrap;
+    }
+    .btn-main-2b svg { color: var(--app-ember); flex-shrink: 0; }
+    .btn-main-2b:active {
+      transform: scale(0.985);
+      background: #460610;
+      border-color: #f0753a;
+      box-shadow: 0 2px 8px rgba(240, 117, 58, 0.4);
+    }
+    :root[data-theme='light'] .btn-main-2b {
+      background: linear-gradient(135deg, #8a0c20 0%, #aa1028 55%, #b5122b 100%);
+      border-color: rgba(194, 75, 16, 0.85);
+      box-shadow: 0 4px 14px rgba(138, 12, 32, 0.25);
+    }
+    :root[data-theme='light'] .btn-main-2b svg { color: #ffd8c7; }
+
+    .tiles-row-2b {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .btn-tile-2b {
+      min-height: 52px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease;
+    }
+    .btn-tile-2b:hover { border-color: var(--app-crimson-ink); }
+    .btn-tile-2b:active { transform: scale(0.98); background: var(--app-border); }
+    .tile-icon-2b {
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--app-border);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--app-muted);
+    }
+    :root[data-theme='light'] .tile-icon-2b { background: rgba(0, 0, 0, 0.04); }
+
+    /* =========================================================================
+       KARTA „TEN TYDZIEŃ” (3A z celem)
+       ========================================================================= */
+    .card-week {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .week-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .week-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .week-dots-bar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .week-day-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-muted);
+    }
+    .week-day-col.is-today { color: var(--app-ink); }
+    .dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .d-done { background: var(--app-grad-primary); color: #fff; }
+    .d-miss { background: var(--app-missed); color: #d8d8da; }
+    .d-free { border: 2px solid var(--app-success); background: rgba(63, 181, 107, 0.12); }
+    .d-plan { border: 2px dashed var(--app-crimson-ink); color: transparent; }
+    .today-underline {
+      width: 16px;
+      height: 2px;
+      border-radius: 1px;
+      background: transparent;
+    }
+    .week-day-col.is-today .today-underline { background: var(--app-crimson-ink); }
+    .progress-track {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--app-border);
+      overflow: hidden;
+      width: 100%;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 50%;
+      background: var(--app-grad-accent);
+      border-radius: 3px;
+    }
+    .week-stats-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--app-muted);
+    }
+    .week-stats-row b { color: var(--app-ink); font-weight: 700; }
+
+    /* =========================================================================
+       SEKCJA SAMOPOCZUCIE: WIERSZ 5A + ROZWINIĘTY FORMULARZ
+       ========================================================================= */
+    .wellbeing-card-container {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      overflow: hidden;
+      transition: border-color 200ms ease;
+    }
+    .wellbeing-card-container:focus-within {
+      border-color: rgba(239, 93, 110, 0.45);
+    }
+
+    /* Wiersz 5A (nagłówek sekcji) */
+    .wellbeing-header-5a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--app-surface);
+      cursor: pointer;
+      min-height: var(--app-touch-min);
+      border-bottom: 1px solid var(--app-border);
+      user-select: none;
+    }
+    .icon-box-5a {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--app-radius-sm);
+      background: rgba(193, 18, 47, 0.12);
+      border: 1px solid rgba(193, 18, 47, 0.3);
+      color: var(--app-crimson-ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    :root[data-theme='light'] .icon-box-5a {
+      background: rgba(181, 18, 43, 0.08);
+      border-color: rgba(181, 18, 43, 0.25);
+    }
+    .header-5a-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .header-5a-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--app-ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .header-5a-sub {
+      font-size: 11px;
+      color: var(--app-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+    .header-5a-arrow {
+      color: var(--app-crimson-ink);
+      flex-shrink: 0;
+      transform: rotate(90deg); /* Strzałka w dół dla stanu rozwiniętego */
+      transition: transform 200ms ease;
+    }
+
+    /* Form Body */
+    .wellbeing-form-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Pasek postępu dla Układu C (Lista z numerami i postępem „2 z 4”) */
+    .layout-c-progress-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 12px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+    }
+    .layout-c-progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+    .layout-c-progress-meta span:first-child { color: var(--app-ink); }
+    .layout-c-progress-meta span:last-child { color: var(--app-crimson-ink); }
+    .layout-c-track {
+      height: 4px;
+      background: var(--app-border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .layout-c-fill {
+      height: 100%;
+      background: var(--app-grad-accent);
+      border-radius: 2px;
+      transition: width 200ms ease;
+    }
+
+    /* Wizard bar dla Układu B (Krok po kroku z „1/4” i Dalej/Wstecz) */
+    .layout-b-wizard-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+    }
+    .wizard-step-badge {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: var(--app-crimson-ink);
+      text-transform: uppercase;
+    }
+    .wizard-step-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .wizard-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--app-border);
+      transition: background 150ms ease, transform 150ms ease;
+    }
+    .wizard-dot.is-active {
+      background: var(--app-crimson);
+      transform: scale(1.2);
+    }
+    .wizard-dot.is-done {
+      background: var(--app-ink);
+    }
+
+    /* Pojedyncze pytanie (field-card) */
+    .question-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .question-header {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .question-cat-tag {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--app-crimson-ink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .question-cat-tag .q-num-c {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 2px;
+      background: var(--app-border);
+      color: var(--app-ink);
+      font-size: 9px;
+      font-weight: 900;
+    }
+    .question-text {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--app-ink);
+      line-height: 1.35;
+    }
+
+    /* =========================================================================
+       KONTROLKA SKALI: WARIANT 1A (5 KWADRATÓW Z PODPISEM WYBRANEJ ODPOWIEDZI)
+       ========================================================================= */
+    .scale-control-1a {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .scale-1a-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .scale-1a-btn {
+      min-height: var(--app-touch-min); /* 44px */
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
+    }
+    .scale-1a-btn:active {
+      transform: scale(0.97);
+    }
+    .scale-1a-btn .btn-num {
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--app-muted);
+    }
+    .scale-1a-btn .btn-check {
+      display: none;
+      width: 10px;
+      height: 10px;
+      color: #ffffff;
+    }
+    /* Wybór nigdy samym kolorem: wyraźna podwójna obwódka, cyfra + wskaźnik */
+    .scale-1a-btn.is-selected {
+      background: linear-gradient(135deg, rgba(193, 18, 47, 0.45) 0%, rgba(117, 10, 26, 0.6) 100%);
+      border: 2px solid var(--app-crimson-hi);
+      box-shadow: 0 0 10px rgba(193, 18, 47, 0.25);
+    }
+    .scale-1a-btn.is-selected .btn-num {
+      color: #ffffff;
+    }
+    .scale-1a-btn.is-selected .btn-check {
+      display: block;
+    }
+    :root[data-theme='light'] .scale-1a-btn.is-selected {
+      background: linear-gradient(135deg, rgba(181, 18, 43, 0.2) 0%, rgba(181, 18, 43, 0.35) 100%);
+      border-color: var(--app-crimson);
+    }
+    :root[data-theme='light'] .scale-1a-btn.is-selected .btn-num {
+      color: var(--app-ink);
+    }
+    .scale-1a-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--app-muted);
+      padding: 0 2px;
+    }
+    .scale-1a-selected-banner {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .scale-1a-selected-num {
+      font-family: 'Archivo', sans-serif;
+      font-weight: 800;
+      color: var(--app-crimson-ink);
+    }
+    .scale-1a-selected-text {
+      color: var(--app-ink);
+    }
+
+    /* =========================================================================
+       KONTROLKA SKALI: WARIANT 1B (5 PIONOWYCH KAFLI Z CYFRĄ I ETYKIETĄ)
+       ========================================================================= */
+    .scale-control-1b {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .scale-1b-tile {
+      min-height: var(--app-touch-min); /* 44px */
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 12px;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
+    }
+    .scale-1b-tile:active {
+      transform: scale(0.985);
+    }
+    .scale-1b-num-box {
+      width: 26px;
+      height: 26px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--app-border);
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--app-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .scale-1b-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--app-ink);
+      flex: 1;
+      white-space: nowrap;
+    }
+    .scale-1b-radio {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--app-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .scale-1b-radio-inner {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: transparent;
+      transition: background 150ms ease;
+    }
+    .scale-1b-tile.is-selected {
+      background: linear-gradient(90deg, rgba(193, 18, 47, 0.18) 0%, var(--app-elevated) 100%);
+      border: 1.5px solid var(--app-crimson-hi);
+    }
+    .scale-1b-tile.is-selected .scale-1b-num-box {
+      background: var(--app-crimson);
+      border-color: var(--app-crimson-hi);
+      color: #ffffff;
+    }
+    .scale-1b-tile.is-selected .scale-1b-label {
+      font-weight: 700;
+      color: #ffffff;
+    }
+    :root[data-theme='light'] .scale-1b-tile.is-selected .scale-1b-label {
+      color: var(--app-ink);
+    }
+    .scale-1b-tile.is-selected .scale-1b-radio {
+      border-color: var(--app-crimson-hi);
+    }
+    .scale-1b-tile.is-selected .scale-1b-radio-inner {
+      background: var(--app-crimson-ink);
+    }
+
+    /* =========================================================================
+       KONTROLKA SKALI: WARIANT 1C (JEDEN PASEK SEGMENTOWY Z PODPISEM SKRAJNYCH)
+       ========================================================================= */
+    .scale-control-1c {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .scale-1c-track {
+      display: flex;
+      gap: 3px;
+      min-height: var(--app-touch-min); /* 44px */
+      touch-action: none;
+    }
+    .scale-1c-segment {
+      flex: 1;
+      min-width: 0;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--app-muted);
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+    .scale-1c-segment.is-filled {
+      background: color-mix(in srgb, var(--app-crimson) 22%, var(--app-surface));
+      border-color: rgba(193, 18, 47, 0.4);
+      color: var(--app-ink);
+    }
+    .scale-1c-segment.is-active {
+      background: var(--app-crimson);
+      border: 1.5px solid var(--app-ink);
+      color: #ffffff;
+      box-shadow: 0 0 8px rgba(193, 18, 47, 0.35);
+    }
+    .scale-1c-active-check {
+      font-size: 10px;
+      margin-left: 2px;
+    }
+    .scale-1c-selected-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .scale-1c-value-desc {
+      color: var(--app-ink);
+      font-weight: 700;
+    }
+    .scale-1c-anchors {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--app-muted);
+    }
+
+    /* Pole notatki: „Coś nietypowego? (opcjonalnie)” */
+    .note-area-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .note-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .note-label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+    .note-counter {
+      font-size: 11px;
+      color: var(--app-muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .note-textarea {
+      width: 100%;
+      min-height: 56px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 8px 10px;
+      color: var(--app-ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      line-height: 1.4;
+      resize: none;
+      outline: none;
+      transition: border-color 150ms ease;
+    }
+    .note-textarea:focus {
+      border-color: var(--app-focus-ring);
+    }
+    .note-hint {
+      font-size: 11px;
+      color: var(--app-muted);
+    }
+
+    /* =========================================================================
+       ZAPIS: WARIANTY 3A, 3B, 3C
+       ========================================================================= */
+    .save-area-container {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* 3A: Główny przycisk 2B-2 „Zapisz” + tekstowe „Nie dziś” */
+    .save-variant-3a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-save-3a {
+      min-height: 52px;
+      width: 100%;
+      border-radius: var(--app-radius-sm);
+      font-family: 'Archivo', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 16px;
+      border: 1px solid rgba(240, 117, 58, 0.85);
+      background: linear-gradient(135deg, #580814 0%, #750a1a 55%, #880c1e 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(117, 10, 26, 0.4), 0 0 12px rgba(240, 117, 58, 0.25);
+      transition: transform 120ms ease, box-shadow 150ms ease;
+      white-space: nowrap;
+    }
+    .btn-save-3a:active {
+      transform: scale(0.985);
+    }
+    .btn-skip-3a {
+      min-height: var(--app-touch-min); /* 44px */
+      background: transparent;
+      border: none;
+      color: var(--app-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      text-decoration: none;
+      transition: color 150ms ease;
+    }
+    .btn-skip-3a:hover {
+      color: var(--app-ink);
+      text-decoration: underline;
+    }
+
+    /* 3B: Dwa kafelki 2B */
+    .save-variant-3b {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .btn-save-tile-3b {
+      min-height: 52px;
+      background: linear-gradient(135deg, rgba(193, 18, 47, 0.25) 0%, var(--app-elevated) 100%);
+      border: 1px solid var(--app-crimson);
+      border-radius: var(--app-radius-sm);
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 120ms ease;
+    }
+    :root[data-theme='light'] .btn-save-tile-3b {
+      color: var(--app-ink);
+    }
+    .btn-save-tile-3b:active { transform: scale(0.98); }
+    .btn-skip-tile-3b {
+      min-height: 52px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 120ms ease;
+    }
+    .btn-skip-tile-3b:active { transform: scale(0.98); }
+
+    /* 3C: Pasek przyklejony u dołu nad menu */
+    .sticky-bar-3c {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 72px; /* Tuż nad menu dolnym */
+      background: var(--app-surface);
+      border-top: 1px solid var(--app-border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 35;
+      box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.45);
+    }
+    .btn-sticky-save {
+      flex: 1;
+      min-height: 44px;
+      border-radius: var(--app-radius-sm);
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #580814 0%, #750a1a 55%, #880c1e 100%);
+      border: 1px solid rgba(240, 117, 58, 0.85);
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-sticky-skip {
+      min-height: 44px;
+      background: transparent;
+      border: none;
+      color: var(--app-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 0 10px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Przyciski nawigacji Dalej / Wstecz dla Układu B */
+    .wizard-nav-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .btn-wizard-prev {
+      min-height: var(--app-touch-min); /* 44px */
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 0 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    .btn-wizard-prev:disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .btn-wizard-next {
+      min-height: var(--app-touch-min); /* 44px */
+      background: var(--app-grad-primary);
+      border: none;
+      border-radius: var(--app-radius-sm);
+      color: #ffffff;
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    /* Karta Następny i Ostatnia sesja (zgodnie ze Startem) */
+    .next-banner-4a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+    }
+    .calendar-badge-4a {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--app-radius-sm);
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .calendar-badge-4a span {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--app-crimson-ink);
+      letter-spacing: 0.05em;
+    }
+    .calendar-badge-4a b {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      margin-top: 1px;
+    }
+    .next-info-4a { flex: 1; min-width: 0; }
+    .next-title-4a { font-size: 13px; font-weight: 700; color: var(--app-ink); }
+    .next-sub-4a { font-size: 11px; color: var(--app-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .last-session-card-5a {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      min-height: var(--app-touch-min);
+    }
+    .last-session-left b {
+      display: block;
+      font-size: 13px;
+      color: var(--app-ink);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* =========================================================================
+       DOLNE MENU (NAV-A) 1:1
+       ========================================================================= */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: var(--app-nav);
+      border-top: 1px solid var(--app-border);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      z-index: 40;
+      padding-bottom: 8px;
+      transition: background-color 200ms ease, border-color 200ms ease;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--app-muted);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      height: 100%;
+      position: relative;
+    }
+    .nav-item.is-active { color: var(--app-ink); }
+    .nav-item.is-active::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 20%;
+      right: 20%;
+      height: 2px;
+      background: var(--app-grad-accent);
+    }
+    .nav-item.is-active svg { color: var(--app-crimson-ink); }
+
+    .variant-6a1 {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    .nav-diamond-6a1 {
+      position: absolute;
+      top: -9px;
+      width: 36px;
+      height: 36px;
+      transform: rotate(45deg);
+      background: var(--app-grad-plus);
+      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 4px color-mix(in srgb, var(--app-ember) 55%, transparent);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease;
+    }
+    .nav-diamond-6a1::after { content: ''; position: absolute; inset: -6px; }
+    .nav-diamond-6a1:active {
+      transform: rotate(45deg) scale(0.92);
+      box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 5px rgba(240, 117, 58, 0.85);
+    }
+    .nav-diamond-6a1 svg { transform: rotate(-45deg); color: var(--app-on-accent); }
+    .nav-plus-label-6a1 { margin-top: 32px; font-size: 10px; font-weight: 600; color: var(--app-muted); }
+
+    /* Toast */
+    .toast-feedback {
+      position: absolute;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1d1d20;
+      border: 1px solid var(--app-crimson);
+      color: #f4f4f1;
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 90;
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    .toast-feedback.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* =========================================================================
+       SIDE PANEL: SPÓJNOŚĆ ZE SKALĄ RPE (0–10) I DOKUMENTACJA
+       ========================================================================= */
+    .side-panel {
+      width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .rpe-preview-card {
+      background: #141417;
+      border: 1px solid #28282e;
+      border-radius: var(--app-radius-sm);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .rpe-card-badge {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--app-ember);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rpe-card-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: #f4f4f1;
+    }
+    .rpe-hero-box {
+      text-align: center;
+      padding: 12px 0 6px;
+    }
+    .rpe-hero-num {
+      font-family: 'Archivo', sans-serif;
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1;
+      color: #f4f4f1;
+      font-variant-numeric: tabular-nums;
+    }
+    .rpe-hero-desc {
+      margin-top: 6px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--app-crimson-ink);
+    }
+
+    /* RPE wariant 1A (kwadraty 0-10) */
+    .rpe-scale-1a-grid {
+      display: grid;
+      grid-template-columns: repeat(11, 1fr);
+      gap: 3px;
+    }
+    .rpe-1a-btn {
+      min-height: 38px;
+      background: #1c1c20;
+      border: 1px solid #2e2e33;
+      border-radius: 2px;
+      color: #9c9ca0;
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 120ms ease;
+    }
+    .rpe-1a-btn.is-selected {
+      background: var(--app-crimson);
+      border-color: #ffffff;
+      color: #ffffff;
+    }
+
+    /* RPE wariant 1C (SegmentedScale 0-10) */
+    .rpe-scale-1c-track {
+      display: flex;
+      gap: 2px;
+      height: 38px;
+    }
+    .rpe-1c-segment {
+      flex: 1;
+      background: #1c1c20;
+      border: 1px solid #2e2e33;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      color: #9c9ca0;
+    }
+    .rpe-1c-segment.is-filled {
+      background: rgba(193, 18, 47, 0.35);
+      border-color: rgba(239, 93, 110, 0.4);
+      color: #fff;
+    }
+    .rpe-1c-segment.is-active {
+      background: var(--app-crimson);
+      border-color: #fff;
+      color: #fff;
+    }
+
+    .rpe-anchors-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: #85858a;
+    }
+
+    .info-card {
+      background: #141417;
+      border: 1px solid #28282e;
+      border-radius: var(--app-radius-sm);
+      padding: 14px 16px;
+      font-size: 12px;
+      color: #a7a7aa;
+      line-height: 1.45;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .info-card h4 {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      color: #f4f4f1;
+    }
+    .info-badge-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .info-pill {
+      font-size: 10.5px;
+      font-weight: 600;
+      background: #1f1f24;
+      border: 1px solid #32323a;
+      padding: 2px 7px;
+      border-radius: 3px;
+      color: #d8d8da;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================================
+       LAB HEADER: 1 Skala A/B/C, 2 Układ A/B/C, 3 Zapis A/B/C
+       ========================================================================= -->
+  <header class="lab-header">
+    <div class="lab-header-top">
+      <div class="lab-title-area">
+        <h1 class="lab-title">Laboratorium Designu: Formularz Samopoczucia</h1>
+        <span class="lab-badge">Ekran Start (rozwinięty)</span>
+      </div>
+
+      <!-- Przełącznik motywu -->
+      <div class="lab-theme-controls">
+        <span style="font-size: 11.5px; color: #a7a7aa; font-weight: 600;">Motyw:</span>
+        <div class="ctrl-pill-group">
+          <button id="btnThemeDark" class="ctrl-pill is-active" type="button" onclick="setTheme('dark')">Ciemny</button>
+          <button id="btnThemeLight" class="ctrl-pill" type="button" onclick="setTheme('light')">Jasny</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wymagane zestawienie: 1 Skala A/B/C, 2 Układ A/B/C, 3 Zapis A/B/C -->
+    <nav class="lab-variants-list" aria-label="Warianty formularza">
+      <!-- 1. KONTROLKA SKALI -->
+      <div class="var-dim-group">
+        <span class="dim-num">1</span>
+        <span class="dim-label">Skala:</span>
+        <div class="ctrl-pill-group">
+          <button id="scaleBtnA" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setScaleVariant('A')">A · 5 kwadratów</button>
+          <button id="scaleBtnB" class="ctrl-pill" type="button" onclick="setScaleVariant('B')">B · 5 kafli pionowych</button>
+          <button id="scaleBtnC" class="ctrl-pill" type="button" onclick="setScaleVariant('C')">C · Pasek segmentowy</button>
+        </div>
+      </div>
+
+      <div class="lab-dim-divider"></div>
+
+      <!-- 2. UKŁAD -->
+      <div class="var-dim-group">
+        <span class="dim-num">2</span>
+        <span class="dim-label">Układ:</span>
+        <div class="ctrl-pill-group">
+          <button id="layoutBtnA" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setLayoutVariant('A')">A · Wszystkie 4 pytania</button>
+          <button id="layoutBtnB" class="ctrl-pill" type="button" onclick="setLayoutVariant('B')">B · Krok po kroku (1/4)</button>
+          <button id="layoutBtnC" class="ctrl-pill" type="button" onclick="setLayoutVariant('C')">C · Z numerami i postępem</button>
+        </div>
+      </div>
+
+      <div class="lab-dim-divider"></div>
+
+      <!-- 3. ZAPIS -->
+      <div class="var-dim-group">
+        <span class="dim-num">3</span>
+        <span class="dim-label">Zapis:</span>
+        <div class="ctrl-pill-group">
+          <button id="saveBtnA" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSaveVariant('A')">A · Główny 2B-2 + tekst</button>
+          <button id="saveBtnB" class="ctrl-pill" type="button" onclick="setSaveVariant('B')">B · Dwa kafelki 2B</button>
+          <button id="saveBtnC" class="ctrl-pill" type="button" onclick="setSaveVariant('C')">C · Pasek przyklejony</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- =========================================================================
+       MAIN STAGE: TELEFON 390x844 + PANEL SPÓJNOŚCI RPE
+       ========================================================================= -->
+  <main class="stage-layout">
+
+    <!-- TELEFON (390 x 844) -->
+    <div class="phone-container" id="phoneContainer">
+      <div class="phone-notch"></div>
+
+      <!-- Status Bar -->
+      <header class="status-bar" aria-hidden="true">
+        <span>9:41</span>
+        <div class="status-icons">
+          <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+          <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+      </header>
+
+      <!-- Pasek górny dyscypliny -->
+      <header class="app-topbar">
+        <span class="topbar-discipline-tag">KICKBOXING / BOKS · SEZON 2026</span>
+      </header>
+
+      <!-- Toast Feedback -->
+      <div class="toast-feedback" id="phoneToast" role="status">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--app-ember)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="phoneToastText">Akcja wykonana</span>
+      </div>
+
+      <!-- Zawartość ekranu Start z rozwiniętym formularzem -->
+      <div class="screen-content" id="screenContent">
+
+        <!-- KARTA DZIŚ (1B-1 + 2B-2) SKOPIOWANA 1:1 -->
+        <section class="card-today" data-variant-1="1B-1" aria-labelledby="todayHeading">
+          <svg class="storm-svg-layer" viewBox="0 0 320 310" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="stormGrad" x1="50" y1="20" x2="280" y2="280" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#f0753a" stop-opacity="0.9"/>
+                <stop offset="45%" stop-color="#c1122f" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#161618" stop-opacity="0"/>
+              </linearGradient>
+              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="6" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+            <path d="M190 10 L130 115 L175 115 L105 235 L215 130 L165 130 L220 10 Z" fill="url(#stormGrad)" filter="url(#glow)"/>
+            <path d="M225 35 L178 120 L212 120 L155 210 L240 130 L205 130 L248 35 Z" fill="#f0753a" opacity="0.3"/>
+            <circle cx="215" cy="50" r="1.5" fill="#f0753a" opacity="0.8"/>
+            <circle cx="120" cy="180" r="1" fill="#ef5d6e" opacity="0.7"/>
+            <circle cx="160" cy="90" r="2" fill="#fff" opacity="0.4"/>
+          </svg>
+
+          <div class="today-meta">
+            <span class="eyebrow">DZIŚ · ŚRODA, 18 LISTOPADA</span>
+            <span class="plan-badge">Klub · 18:00</span>
+          </div>
+
+          <div>
+            <h2 class="workout-name" id="todayHeading">Kickboxing</h2>
+            <p class="workout-sub">Zwykle: technika i sparing zadaniowy</p>
+          </div>
+
+          <div class="param-chips">
+            <span class="param-chip">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              90 min
+            </span>
+            <span class="param-chip">Klub pokazowy</span>
+          </div>
+
+          <div class="actions-container">
+            <div class="variant-2b" data-color="2B-2">
+              <button class="btn-main-2b" data-color="2B-2" type="button" onclick="showToast('Wpisz trening po zajęciach')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+                <span>WPISZ TRENING PO ZAJĘCIACH</span>
+              </button>
+              <div class="tiles-row-2b">
+                <button class="btn-tile-2b" type="button" onclick="showToast('Nie byłem')">
+                  <span class="tile-icon-2b">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </span>
+                  <span>Nie byłem</span>
+                </button>
+                <button class="btn-tile-2b" type="button" onclick="showToast('Przenieś dzień')">
+                  <span class="tile-icon-2b">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </span>
+                  <span>Przenieś dzień</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- KARTA „TEN TYDZIEŃ” (3A z celem) SKOPIOWANA 1:1 -->
+        <section class="card-week">
+          <div class="week-head">
+            <h3 class="week-title">Ten tydzień</h3>
+            <span class="neutral-badge">Cel: 2 / 4</span>
+          </div>
+          <div class="week-dots-bar">
+            <div class="week-day-col">
+              <span class="dot d-done">✓</span>
+              <span>Pn</span>
+              <div class="today-underline"></div>
+            </div>
+            <div class="week-day-col">
+              <span class="dot d-miss">✕</span>
+              <span>Wt</span>
+              <div class="today-underline"></div>
+            </div>
+            <div class="week-day-col is-today">
+              <span class="dot d-plan"></span>
+              <span>Śr</span>
+              <div class="today-underline"></div>
+            </div>
+            <div class="week-day-col">
+              <span class="dot d-plan"></span>
+              <span>Czw</span>
+              <div class="today-underline"></div>
+            </div>
+            <div class="week-day-col">
+              <span class="dot"></span>
+              <span>Pt</span>
+              <div class="today-underline"></div>
+            </div>
+            <div class="week-day-col">
+              <span class="dot"></span>
+              <span>Sob</span>
+              <div class="today-underline"></div>
+            </div>
+            <div class="week-day-col">
+              <span class="dot"></span>
+              <span>Nd</span>
+              <div class="today-underline"></div>
+            </div>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width: 50%;"></div></div>
+          <div class="week-stats-row">
+            <span>Wykonano: <b>2 treningi</b> (120 min)</span>
+            <span>Zostało: <b>2</b></span>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             SEKCJA: ROZWINIĘTY FORMULARZ SAMOPOCZUCIA POD WIERSZEM 5A
+             =================================================================== -->
+        <section class="wellbeing-card-container" id="wellbeingCardWrap" aria-labelledby="wbHeading">
+
+          <!-- Wiersz 5A: nagłówek rozwijalny -->
+          <div class="wellbeing-header-5a" onclick="showToast('Formularz samopoczucia (rozwinięty)')">
+            <div class="icon-box-5a">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </div>
+            <div class="header-5a-content">
+              <h3 class="header-5a-title" id="wbHeading">Jak się dziś czujesz?</h3>
+              <p class="header-5a-sub">4 pytania · ok. 30 s</p>
+            </div>
+            <svg class="header-5a-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+
+          <!-- Ciało formularza -->
+          <div class="wellbeing-form-body">
+
+            <!-- Wskaźnik postępu dla Układu C (Lista z numerami i postępem „2 z 4”) -->
+            <div class="layout-c-progress-bar-wrap" id="layoutCHeader" style="display: none;">
+              <div class="layout-c-progress-meta">
+                <span>Postęp kwestionariusza:</span>
+                <span id="layoutCText">4 z 4 odpowiedzi</span>
+              </div>
+              <div class="layout-c-track">
+                <div class="layout-c-fill" id="layoutCFill" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <!-- Wizard bar dla Układu B (Krok po kroku 1/4) -->
+            <div class="layout-b-wizard-nav" id="layoutBHeader" style="display: none;">
+              <span class="wizard-step-badge" id="wizardBadge">Pytanie 1 z 4 · Sen</span>
+              <div class="wizard-step-dots" id="wizardDots">
+                <span class="wizard-dot is-active"></span>
+                <span class="wizard-dot"></span>
+                <span class="wizard-dot"></span>
+                <span class="wizard-dot"></span>
+              </div>
+            </div>
+
+            <!-- KONTENER 4 PYTAŃ (renderowany dynamicznie wg Wariantu 1 i 2) -->
+            <div id="questionsContainer" style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Pytania będą wstrzykiwane przez JS na bazie aktywnej skali i układu -->
+            </div>
+
+            <!-- Nawigacja Dalej / Wstecz (tylko dla Układu B) -->
+            <div class="wizard-nav-buttons" id="wizardNavButtons" style="display: none;">
+              <button class="btn-wizard-prev" id="btnWizPrev" type="button" onclick="stepWizard(-1)" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                <span>Wstecz</span>
+              </button>
+              <button class="btn-wizard-next" id="btnWizNext" type="button" onclick="stepWizard(1)">
+                <span>Dalej</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+
+            <!-- POLE NOTATKI: „Coś nietypowego? (opcjonalnie)” -->
+            <div class="note-area-group" id="noteAreaGroup">
+              <div class="note-header-row">
+                <label for="wbNoteInput" class="note-label">Coś nietypowego? (opcjonalnie)</label>
+                <span class="note-counter" id="noteCharCounter">0 / 300</span>
+              </div>
+              <textarea id="wbNoteInput" class="note-textarea" maxlength="300" placeholder="np. gorszy sen przez podróż, zakwasy po siłowni..." oninput="handleNoteInput(event)"></textarea>
+              <p class="note-hint">Do 300 znaków. Notatka nie jest analizowana.</p>
+            </div>
+
+            <!-- OBSZAR ZAPISU (Wariant 3A / 3B w ciele karty; 3C jako sticky bar) -->
+            <div class="save-area-container" id="saveInlineContainer">
+              <!-- Wstrzykiwane przez setSaveVariant -->
+            </div>
+
+          </div>
+        </section>
+
+        <!-- KARTA NASTĘPNY TRENING (4A) -->
+        <section>
+          <div class="next-banner-4a" onclick="showToast('Szczegóły: Boks Siła B')" style="cursor: pointer;">
+            <div class="calendar-badge-4a">
+              <span>CZW</span>
+              <b>19</b>
+            </div>
+            <div class="next-info-4a">
+              <div class="next-title-4a">Następny: Boks Siła B</div>
+              <div class="next-sub-4a">Czwartek · 6 rund walki z cieniem i worek</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--app-muted)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </section>
+
+        <!-- KARTA OSTATNIA SESJA (5A) -->
+        <section>
+          <div class="last-session-card-5a" onclick="showToast('Ostatnia sesja')">
+            <div class="last-session-left">
+              <span style="color:var(--app-muted); font-size:11px;">Ostatnia sesja: Poniedziałek, 16 lis</span>
+              <b>Boks Technika A · 6 rund · RPE 7/10</b>
+            </div>
+            <span class="neutral-badge">ZALICZONY</span>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- PASEK PRZYKLEJONY DLA WARIANTU 3C (Sticky bar nad menu) -->
+      <div class="sticky-bar-3c" id="stickyBar3C" style="display: none;">
+        <button class="btn-sticky-save" type="button" onclick="handleSave()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>ZAPISZ SAMOPOCZUCIE</span>
+        </button>
+        <button class="btn-sticky-skip" type="button" onclick="handleSkip()">Nie dziś</button>
+      </div>
+
+      <!-- DOLNE MENU (NAV-A) 1:1 -->
+      <nav class="bottom-nav" aria-label="Główna nawigacja">
+        <button class="nav-item is-active" type="button" onclick="showToast('Start')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          <span>Start</span>
+        </button>
+        <button class="nav-item" type="button" onclick="showToast('Plan')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Plan</span>
+        </button>
+        <div class="variant-6a1">
+          <button class="nav-diamond-6a1" type="button" aria-label="Szybki trening" onclick="showToast('Nowy trening (+)')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <span class="nav-plus-label-6a1">Trening</span>
+        </div>
+        <button class="nav-item" type="button" onclick="showToast('Postęp')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Postęp</span>
+        </button>
+        <button class="nav-item" type="button" onclick="showToast('Profil')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Profil</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- PANEL BOCZNY: PODGLĄD SPÓJNOŚCI ZE SKALĄ RPE (0–10) I SPECYFIKACJA -->
+    <aside class="side-panel">
+
+      <!-- KARTA PODGLĄDU SKALI RPE W TYM SAMYM STYLU -->
+      <div class="rpe-preview-card">
+        <div class="rpe-card-badge">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Spójność systemowa · RPE (0–10)</span>
+        </div>
+
+        <h3 class="rpe-card-title">Ocena zmęczenia po treningu</h3>
+        <p style="font-size: 11.5px; color: #a7a7aa; line-height: 1.35;">Ta sama kontrolka zastosowana po treningu gwarantuje identyczny model mentalny dla zawodnika.</p>
+
+        <div class="rpe-hero-box">
+          <div class="rpe-hero-num" id="rpeHeroVal">7</div>
+          <div class="rpe-hero-desc" id="rpeHeroDesc">7 · Bardzo ciężko</div>
+        </div>
+
+        <!-- Dynamiczny podgląd RPE w wybranym stylu skali (A / B / C) -->
+        <div id="rpeControlPreviewContainer">
+          <!-- Wstrzykiwane przez JS -->
+        </div>
+
+        <div class="rpe-anchors-row">
+          <span>0 · odpoczynek</span>
+          <span>5 · ciężko</span>
+          <span>10 · maks.</span>
+        </div>
+
+        <button class="btn-main-2b" data-color="2B-2" style="min-height: 44px; font-size: 12px; margin-top: 4px;" type="button" onclick="showToast('RPE zapisane w podglądzie')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>ZAPISZ RPE 7</span>
+        </button>
+      </div>
+
+      <!-- SPECYFIKACJA UX & ZGODNOŚĆ Z REGULAMINEM -->
+      <div class="info-card">
+        <h4>Zasady projektowe i ergonomia:</h4>
+        <ul style="padding-left: 18px; display: flex; flex-direction: column; gap: 4px;">
+          <li><b>Pytania z literatury:</b> Kwestionariusz Hooper & Mackinnon — 4 pytania, 5 punktów, słowo w słowo ze słownika.</li>
+          <li><b>Dotyk ≥ 44 px:</b> Wszystkie segmenty, kwadraty i przyciski spełniają normę iOS/Android.</li>
+          <li><b>Wybór nie tylko kolorem:</b> Wyraźne obwódki, cyfra, znacznik ✓ oraz zmiana opisu słownego.</li>
+          <li><b>Brak łamania wierszy:</b> Zweryfikowane i przetestowane przy 390 px i 360 px.</li>
+          <li><b>Jeden kolor akcentu:</b> Karmazyn wiodący z żarem tylko na krawędzi przycisku głównego.</li>
+        </ul>
+        <div class="info-badge-list">
+          <span class="info-pill">Touch 44px</span>
+          <span class="info-pill">WCAG 2.1 AA</span>
+          <span class="info-pill">Brak poświaty</span>
+          <span class="info-pill">360px Safe</span>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- =========================================================================
+       SCRIPTY LOGIKI, STANU I INTERAKCJI
+       ========================================================================= -->
+  <script>
+    // DANE SŁOWNIKOWE (1:1 z wellbeingLabels.ts)
+    const WELLBEING_DATA = [
+      {
+        field: 'sleep',
+        cat: 'Sen',
+        question: 'Jak oceniasz jakość snu ostatniej nocy?',
+        options: ['bardzo zła', 'zła', 'przeciętna', 'dobra', 'bardzo dobra'],
+        defaultValue: 4
+      },
+      {
+        field: 'energy',
+        cat: 'Wypoczęcie',
+        question: 'Jak wypoczęty czujesz się teraz?',
+        options: ['skrajnie zmęczony', 'zmęczony', 'normalnie', 'wypoczęty', 'w pełni wypoczęty'],
+        defaultValue: 3
+      },
+      {
+        field: 'soreness',
+        cat: 'Mięśnie',
+        question: 'Jak odczuwasz teraz mięśnie (bolesność, sztywność)?',
+        options: ['silny ból', 'wyraźna bolesność', 'lekka bolesność', 'prawie nic', 'brak bolesności'],
+        defaultValue: 3
+      },
+      {
+        field: 'stress',
+        cat: 'Stres',
+        question: 'Jaki jest dziś Twój ogólny poziom stresu (trening, praca, życie)?',
+        options: ['bardzo wysoki', 'wysoki', 'umiarkowany', 'niski', 'bardzo niski'],
+        defaultValue: 2
+      }
+    ];
+
+    // DANE RPE (1:1 z rpeLabels.ts)
+    const RPE_DESCRIPTIONS = [
+      'Odpoczynek', 'Bardzo, bardzo lekko', 'Lekko', 'Umiarkowanie', 'Dość ciężko',
+      'Ciężko', 'Między ciężko a bardzo ciężko', 'Bardzo ciężko',
+      'Między bardzo ciężko a maksymalnie', 'Prawie maksymalnie', 'Maksymalnie'
+    ];
+
+    // STAN APLIKACJI
+    const state = {
+      theme: 'dark',
+      scaleVariant: 'A',   // A: 5 kwadratów, B: 5 pionowych kafli, C: pasek segmentowy
+      layoutVariant: 'A',  // A: wszystkie 4 pytania, B: 1 na raz (1/4), C: z numerami i postępem
+      saveVariant: 'A',    // A: 2B-2 + tekst, B: dwa kafelki 2B, C: sticky bar u dołu
+      answers: {
+        sleep: 4,
+        energy: 3,
+        soreness: 3,
+        stress: 2
+      },
+      wizardStep: 0,       // 0..3 dla pytań w Układzie B, 4 dla notatki
+      note: '',
+      rpeValue: 7
+    };
+
+    // MOTYW
+    function setTheme(theme) {
+      state.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('btnThemeDark').classList.toggle('is-active', theme === 'dark');
+      document.getElementById('btnThemeLight').classList.toggle('is-active', theme === 'light');
+    }
+
+    // WYBÓR WARIANTU SKALI (1)
+    function setScaleVariant(v) {
+      state.scaleVariant = v;
+      ['A', 'B', 'C'].forEach(item => {
+        const btn = document.getElementById('scaleBtn' + item);
+        btn.classList.toggle('is-active', item === v);
+        btn.classList.toggle('is-active-crimson', item === v);
+      });
+      renderQuestions();
+      renderRpePreview();
+    }
+
+    // WYBÓR WARIANTU UKŁADU (2)
+    function setLayoutVariant(v) {
+      state.layoutVariant = v;
+      ['A', 'B', 'C'].forEach(item => {
+        const btn = document.getElementById('layoutBtn' + item);
+        btn.classList.toggle('is-active', item === v);
+        btn.classList.toggle('is-active-crimson', item === v);
+      });
+
+      document.getElementById('layoutCHeader').style.display = (v === 'C') ? 'flex' : 'none';
+      document.getElementById('layoutBHeader').style.display = (v === 'B') ? 'flex' : 'none';
+      document.getElementById('wizardNavButtons').style.display = (v === 'B') ? 'flex' : 'none';
+
+      renderQuestions();
+      updateProgressC();
+      updateWizardB();
+    }
+
+    // WYBÓR WARIANTU ZAPISU (3)
+    function setSaveVariant(v) {
+      state.saveVariant = v;
+      ['A', 'B', 'C'].forEach(item => {
+        const btn = document.getElementById('saveBtn' + item);
+        btn.classList.toggle('is-active', item === v);
+        btn.classList.toggle('is-active-crimson', item === v);
+      });
+
+      const inlineContainer = document.getElementById('saveInlineContainer');
+      const stickyBar = document.getElementById('stickyBar3C');
+
+      if (v === 'C') {
+        inlineContainer.style.display = 'none';
+        stickyBar.style.display = 'flex';
+      } else {
+        stickyBar.style.display = 'none';
+        inlineContainer.style.display = 'flex';
+        renderInlineSaveArea();
+      }
+    }
+
+    // RENDEROWANIE OBSZARU ZAPISU (3A / 3B)
+    function renderInlineSaveArea() {
+      const container = document.getElementById('saveInlineContainer');
+      if (state.saveVariant === 'A') {
+        container.innerHTML = `
+          <div class="save-variant-3a">
+            <button class="btn-save-3a" type="button" onclick="handleSave()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>ZAPISZ SAMOPOCZUCIE</span>
+            </button>
+            <button class="btn-skip-3a" type="button" onclick="handleSkip()">Nie dziś</button>
+          </div>
+        `;
+      } else if (state.saveVariant === 'B') {
+        container.innerHTML = `
+          <div class="save-variant-3b">
+            <button class="btn-save-tile-3b" type="button" onclick="handleSave()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Zapisz</span>
+            </button>
+            <button class="btn-skip-tile-3b" type="button" onclick="handleSkip()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Nie dziś</span>
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // RENDEROWANIE PYTAŃ
+    function renderQuestions() {
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = '';
+
+      let itemsToRender = WELLBEING_DATA;
+      if (state.layoutVariant === 'B') {
+        // W układzie B pokazujemy tylko bieżący krok (0..3), chyba że jesteśmy na kroku 4 (notatka)
+        if (state.wizardStep < 4) {
+          itemsToRender = [WELLBEING_DATA[state.wizardStep]];
+        } else {
+          itemsToRender = []; // Pytania zrobione, widoczna tylko notatka i zapis
+        }
+      }
+
+      itemsToRender.forEach((item, index) => {
+        const val = state.answers[item.field];
+        const qCard = document.createElement('div');
+        qCard.className = 'question-card';
+
+        // Nagłówek pytania
+        let catPrefix = item.cat;
+        if (state.layoutVariant === 'C') {
+          catPrefix = `<span class="q-num-c">${index + 1}</span> ${item.cat}`;
+        }
+
+        let controlHtml = '';
+        if (state.scaleVariant === 'A') {
+          // Wariant 1A: 5 kwadratów z cyframi i podpisem
+          const selText = val ? item.options[val - 1] : 'Nie wybrano';
+          controlHtml = `
+            <div class="scale-control-1a">
+              <div class="scale-1a-grid" role="radiogroup" aria-label="${item.question}">
+                ${[1, 2, 3, 4, 5].map(num => `
+                  <button type="button" role="radio" aria-checked="${val === num}" class="scale-1a-btn ${val === num ? 'is-selected' : ''}" onclick="selectAnswer('${item.field}', ${num})">
+                    <span class="btn-num">${num}</span>
+                    <svg class="btn-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                `).join('')}
+              </div>
+              <div class="scale-1a-selected-banner">
+                <span class="scale-1a-selected-num">${val ? val : '—'}</span>
+                <span>·</span>
+                <span class="scale-1a-selected-text">${selText}</span>
+              </div>
+              <div class="scale-1a-meta-row">
+                <span>1 · ${item.options[0]}</span>
+                <span>5 · ${item.options[4]}</span>
+              </div>
+            </div>
+          `;
+        } else if (state.scaleVariant === 'B') {
+          // Wariant 1B: 5 pionowych kafli z cyfrą i etykietą
+          controlHtml = `
+            <div class="scale-control-1b" role="radiogroup" aria-label="${item.question}">
+              ${[1, 2, 3, 4, 5].map(num => `
+                <div class="scale-1b-tile ${val === num ? 'is-selected' : ''}" role="radio" aria-checked="${val === num}" onclick="selectAnswer('${item.field}', ${num})">
+                  <div class="scale-1b-num-box">${num}</div>
+                  <span class="scale-1b-label">${item.options[num - 1]}</span>
+                  <div class="scale-1b-radio">
+                    <div class="scale-1b-radio-inner"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        } else if (state.scaleVariant === 'C') {
+          // Wariant 1C: Jeden pasek segmentowy z podpisem skrajnych odpowiedzi
+          const selText = val ? `${val} · ${item.options[val - 1]}` : 'Nie wybrano';
+          controlHtml = `
+            <div class="scale-control-1c">
+              <div class="scale-1c-track" role="slider" aria-label="${item.question}" aria-valuemin="1" aria-valuemax="5" aria-valuenow="${val || 1}">
+                ${[1, 2, 3, 4, 5].map(num => `
+                  <div class="scale-1c-segment ${val && num <= val ? 'is-filled' : ''} ${val === num ? 'is-active' : ''}" onclick="selectAnswer('${item.field}', ${num})">
+                    <span>${num}</span>
+                    ${val === num ? '<span class="scale-1c-active-check">✓</span>' : ''}
+                  </div>
+                `).join('')}
+              </div>
+              <div class="scale-1c-selected-row">
+                <span style="color:var(--app-muted);">Wybrano:</span>
+                <span class="scale-1c-value-desc">${selText}</span>
+              </div>
+              <div class="scale-1c-anchors">
+                <span>1 · ${item.options[0]}</span>
+                <span>5 · ${item.options[4]}</span>
+              </div>
+            </div>
+          `;
+        }
+
+        qCard.innerHTML = `
+          <div class="question-header">
+            <span class="question-cat-tag">${catPrefix}</span>
+            <span class="question-text">${item.question}</span>
+          </div>
+          ${controlHtml}
+        `;
+        container.appendChild(qCard);
+      });
+    }
+
+    // ZMIANA ODPOWIEDZI
+    function selectAnswer(field, num) {
+      state.answers[field] = num;
+      renderQuestions();
+      updateProgressC();
+      showToast(`Wybrano: ${num}`);
+
+      // W układzie B automatycznie podświetlamy gotowość przejścia dalej
+      if (state.layoutVariant === 'B') {
+        document.getElementById('btnWizNext').classList.add('is-active-pulse');
+      }
+    }
+
+    // AKTUALIZACJA POSTĘPU DLA UKŁADU C
+    function updateProgressC() {
+      if (state.layoutVariant !== 'C') return;
+      const count = Object.values(state.answers).filter(v => v !== null).length;
+      document.getElementById('layoutCText').textContent = `${count} z 4 odpowiedzi`;
+      document.getElementById('layoutCFill').style.width = `${(count / 4) * 100}%`;
+    }
+
+    // KROK DLA UKŁADU B (Wizard 1/4)
+    function stepWizard(delta) {
+      state.wizardStep = Math.max(0, Math.min(4, state.wizardStep + delta));
+      updateWizardB();
+      renderQuestions();
+    }
+
+    function updateWizardB() {
+      if (state.layoutVariant !== 'B') return;
+      const step = state.wizardStep;
+      const badge = document.getElementById('wizardBadge');
+      const dots = document.getElementById('wizardDots');
+      const btnPrev = document.getElementById('btnWizPrev');
+      const btnNext = document.getElementById('btnWizNext');
+
+      btnPrev.disabled = (step === 0);
+
+      if (step < 4) {
+        badge.textContent = `Pytanie ${step + 1} z 4 · ${WELLBEING_DATA[step].cat}`;
+        btnNext.innerHTML = `<span>Dalej</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>`;
+      } else {
+        badge.textContent = `Podsumowanie · Notatka i Zapis`;
+        btnNext.innerHTML = `<span>Gotowe</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+      }
+
+      // Aktualizacja kropek
+      dots.innerHTML = [0, 1, 2, 3].map(i => {
+        let cls = 'wizard-dot';
+        if (i === step) cls += ' is-active';
+        else if (i < step) cls += ' is-done';
+        return `<span class="${cls}"></span>`;
+      }).join('');
+    }
+
+    // NOTATKA
+    function handleNoteInput(event) {
+      state.note = event.target.value;
+      document.getElementById('noteCharCounter').textContent = `${state.note.length} / 300`;
+    }
+
+    // RENDEROWANIE PODGLĄDU SKALI RPE (0–10)
+    function renderRpePreview() {
+      const container = document.getElementById('rpeControlPreviewContainer');
+      const val = state.rpeValue;
+      document.getElementById('rpeHeroVal').textContent = val;
+      document.getElementById('rpeHeroDesc').textContent = `${val} · ${RPE_DESCRIPTIONS[val]}`;
+
+      if (state.scaleVariant === 'A') {
+        // RPE w stylu A: 11 kwadratów
+        container.innerHTML = `
+          <div class="rpe-scale-1a-grid">
+            ${Array.from({ length: 11 }, (_, i) => `
+              <button type="button" class="rpe-1a-btn ${val === i ? 'is-selected' : ''}" onclick="selectRpe(${i})">${i}</button>
+            `).join('')}
+          </div>
+        `;
+      } else if (state.scaleVariant === 'B') {
+        // RPE w stylu B: kafelki skondensowane
+        container.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            ${[0, 3, 5, 7, 10].map(num => `
+              <div class="scale-1b-tile ${val === num ? 'is-selected' : ''}" style="min-height:38px; padding:0 10px;" onclick="selectRpe(${num})">
+                <div class="scale-1b-num-box" style="width:22px; height:22px; font-size:11px;">${num}</div>
+                <span class="scale-1b-label" style="font-size:11.5px;">${RPE_DESCRIPTIONS[num]}</span>
+                <span style="font-size:10px; color:var(--app-muted); font-weight:700;">${val === num ? '✓' : ''}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else if (state.scaleVariant === 'C') {
+        // RPE w stylu C: SegmentedScale 11 segmentów
+        container.innerHTML = `
+          <div class="rpe-scale-1c-track">
+            ${Array.from({ length: 11 }, (_, i) => `
+              <div class="rpe-1c-segment ${i <= val ? 'is-filled' : ''} ${i === val ? 'is-active' : ''}" onclick="selectRpe(${i})">
+                ${i}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+    }
+
+    function selectRpe(num) {
+      state.rpeValue = num;
+      renderRpePreview();
+    }
+
+    // AKCJE ZAPISU I POMINIĘCIA
+    function handleSave() {
+      showToast('Zapisano samopoczucie na dziś');
+    }
+    function handleSkip() {
+      showToast('Pominięto wpis na dziś (Nie dziś)');
+    }
+
+    // TOAST FEEDBACK
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toastEl = document.getElementById('phoneToast');
+      const textEl = document.getElementById('phoneToastText');
+      textEl.textContent = msg;
+      toastEl.classList.add('is-visible');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toastEl.classList.remove('is-visible');
+      }, 2200);
+    }
+
+    // INICJALIZACJA
+    document.addEventListener('DOMContentLoaded', () => {
+      renderQuestions();
+      renderInlineSaveArea();
+      renderRpePreview();
+    });
+  </script>
+</body>
+</html>
