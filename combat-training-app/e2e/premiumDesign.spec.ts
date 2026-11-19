@@ -16,11 +16,11 @@ async function accessible(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 }
 
-async function reachablePrimary(action: Locator) {
+async function reachablePrimary(action: Locator, cardMinHeight = 360) {
   await expect(action).toBeVisible()
   const bounds = await action.boundingBox()
   const card = action.locator('xpath=ancestor::section[1]')
-  await expect(card).toHaveCSS('min-height', '360px')
+  await expect(card).toHaveCSS('min-height', `${cardMinHeight}px`)
   const cardBounds = await card.boundingBox()
   expect(bounds!.y).toBeGreaterThan(cardBounds!.y)
   await expect(action).toHaveCSS('text-transform', 'uppercase')
@@ -37,10 +37,11 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/'); await app.setTheme(theme)
     await expect(page.getByRole('heading', { level: 1, name: 'Start', exact: true })).toHaveCount(1)
     await expect(page.getByRole('main')).toHaveCount(1)
-    await reachablePrimary(page.getByRole('link', { name: 'Utwórz plan', exact: true }))
-    await expect(page.locator('.storm-decoration')).toHaveCSS('pointer-events', 'none')
-    await expect(page.locator('.storm-decoration')).toHaveAttribute('aria-hidden', 'true')
-    await expect(page.locator('.storm-decoration')).toHaveCSS('opacity', '0.65')
+    const empty = page.getByRole('region', { name: 'Zacznij swój pierwszy trening', exact: true })
+    await reachablePrimary(empty.getByRole('link', { name: 'Utwórz plan', exact: true }), 330)
+    await expect(empty.locator('.storm-decoration')).toHaveCSS('pointer-events', 'none')
+    await expect(empty.locator('.storm-decoration')).toHaveAttribute('aria-hidden', 'true')
+    await expect(empty.locator('.storm-decoration')).toHaveCSS('opacity', '0.35')
     const navigation = page.getByRole('navigation', { name: 'Główna nawigacja', exact: true })
     const create = navigation.getByRole('button', { name: 'Trening', exact: true })
     const diamond = create.locator('.new-workout-diamond')
@@ -57,7 +58,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.seedPlan(plan)
     const quick = page.getByRole('region', { name: 'Szybki start', exact: true })
     await reachablePrimary(quick.getByRole('link', { name: 'Rozpocznij plan', exact: true }))
-    await expect(quick.locator('.storm-decoration')).toHaveCount(1)
+    await expect(quick.locator('.storm-decoration')).toHaveCSS('opacity', '0.65')
     await accessible(page)
 
     await app.seedWeekPlan(generateScheduledWeek(current, { id: 'default', items: [club, { ...club, id: 'past', day: 1 }, { ...club, id: 'next', day: 5 }], createdAt: instant, updatedAt: instant }, new Date(instant)))

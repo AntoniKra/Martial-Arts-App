@@ -177,6 +177,13 @@
   --app-home-badge-border: rgba(240,117,58,0.35);
   --app-home-success-bg: rgba(63,181,107,0.15);
   --app-home-success-border: rgba(63,181,107,0.35);
+  --app-home-extra-icon-bg: color-mix(in srgb, var(--app-crimson) 12%, transparent);
+  --app-home-extra-icon-border: color-mix(in srgb, var(--app-crimson) 30%, transparent);
+}
+
+:root[data-theme='light'] {
+  --app-home-extra-icon-bg: color-mix(in srgb, var(--app-crimson) 8%, transparent);
+  --app-home-extra-icon-border: color-mix(in srgb, var(--app-crimson) 25%, transparent);
 }
 
 .home-view { --app-surface: var(--app-home-surface); }
@@ -186,12 +193,12 @@
 }
 .home-view .storm-card::before { display: none; }
 .home-view .storm-card::after { background: linear-gradient(90deg, transparent 10%, var(--app-crimson) 70%, var(--app-crimson-ink) 100%); opacity: 1; z-index: 3; }
-.home-view .storm-decoration { top: -10px; right: -10px; width: 320px; height: 310px; opacity: 0.65; }
+.home-view .storm-decoration { top: -10px; right: -10px; width: 320px; height: 310px; opacity: var(--app-home-storm-rest-opacity, 0.65); }
 .home-main-card { display: flex; flex-direction: column; gap: 12px; min-height: 360px; padding: 18px 16px 16px; }
 @media (min-width: 768px) { .home-main-card { min-height: 0; } }
 .home-card-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .home-card-date { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--app-crimson-ink); }
-.home-plan-badge { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--app-home-badge-ink); border: 1px solid var(--app-home-badge-border); background: var(--app-home-badge-bg); padding: 3px 8px; border-radius: var(--app-radius-sm); }
+.home-plan-badge { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--app-home-badge-ink); border: 1px solid var(--app-home-badge-border); background: var(--app-home-badge-bg); padding: 3px 8px; border-radius: var(--app-radius-sm); white-space: nowrap; }
 .home-workout-name { font-family: var(--font-display); font-size: 32px; font-weight: 800; line-height: 1.05; letter-spacing: -0.01em; overflow-wrap: anywhere; }
 .home-workout-sub { font-size: 13px; line-height: 1.4; color: var(--app-muted); max-width: 250px; }
 .home-param-chips { display: flex; gap: 6px; margin-top: 2px; flex-wrap: wrap; }
@@ -235,9 +242,58 @@
 .home-session-status.is-done { background: var(--app-home-success-bg); border: 1px solid var(--app-home-success-border); color: var(--app-success-ink); }
 .home-session-status.is-partial { border: 1px solid var(--app-border); color: var(--app-muted); }
 .home-recent-session .rpe-badge { background: transparent; color: inherit; }
+.home-empty-card { --app-home-storm-rest-opacity: 0.35; min-height: 330px; }
+.home-empty-card .home-workout-name { font-size: 26px; line-height: 1.12; }
+.home-empty-card .home-workout-sub { max-width: 270px; margin-top: 4px; line-height: 1.35; }
+.home-empty-card .home-primary-action, .home-empty-card .home-secondary-action,
+.todo-club-item .home-secondary-action, .todo-item-top .home-card-date { white-space: nowrap; }
+.home-card-date-short { display: none; }
+/* Narrow phones (owner's option 1, 19.11): tiles drop their icon box so labels stay on one line,
+   and the card date switches to its short form; the full date stays available to screen readers. */
+@media (max-width: 389px) {
+  .home-view .home-tile-icon { display: none; }
+  .home-view .home-secondary-action { justify-content: center; text-align: center; }
+  .home-card-date-short { display: inline; }
+  .home-card-date-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+.home-neutral-badge { padding: 3px 8px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-elevated); color: var(--app-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; }
+.todo-section-container { display: flex; flex-direction: column; gap: 6px; }
+.todo-section-header { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
+.card-todo-unified { display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); transition: border-color calc(var(--motion-fast) * 2) ease; }
+.card-todo-unified:focus-within { border-color: color-mix(in srgb, var(--app-crimson-ink) 40%, transparent); }
+.todo-club-item, .todo-expanded-box { display: flex; flex-direction: column; gap: 12px; }
+.todo-item-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.todo-item-top .home-neutral-badge { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.todo-item-title { font-family: var(--font-display); font-size: 15px; font-weight: 800; line-height: 1.2; }
+.todo-expander-divider { height: 1px; margin: 2px 0; background: var(--app-border); }
+.todo-expander-btn { display: flex; min-height: var(--app-touch-min); align-items: center; justify-content: space-between; gap: 6px; background: transparent; color: var(--app-ink); font-family: inherit; text-align: left; cursor: pointer; }
+.todo-expander-left { display: flex; align-items: center; gap: 8px; }
+.todo-more-pill { padding: 2px 6px; border: 1px solid color-mix(in srgb, var(--app-home-storm-crimson) 35%, transparent); border-radius: 2px; background: color-mix(in srgb, var(--app-home-storm-crimson) 12%, transparent); color: var(--app-crimson-ink); font-size: 10px; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
+.todo-expander-label { color: var(--app-muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.todo-expander-arrow, .quick-link-chevron { width: 16px; height: 16px; flex-shrink: 0; color: var(--app-muted); }
+.todo-expander-btn[aria-expanded='true'] .todo-expander-arrow { transform: rotate(180deg); }
+.todo-expanded-box { margin-top: 2px; }
+
+.week-no-goal-row { display: flex; align-items: center; padding-top: 4px; border-top: 1px solid var(--app-border); }
+.no-goal-link { display: inline-flex; min-height: var(--app-touch-min); width: 100%; align-items: center; justify-content: space-between; gap: 6px; color: var(--app-crimson-ink); font-size: 13px; font-weight: 600; white-space: nowrap; transition: opacity calc(var(--motion-slow) / 2) ease; }
+.no-goal-link:hover { text-decoration: underline; }
+.no-goal-link:active { opacity: 0.8; }
+
+.quick-link-row-5a { display: flex; min-height: var(--app-touch-min); width: 100%; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: inherit; text-align: left; cursor: pointer; transition: background-color calc(var(--motion-slow) / 2) ease, border-color calc(var(--motion-slow) / 2) ease; }
+.quick-link-row-5a:hover { border-color: color-mix(in srgb, var(--app-home-storm-spark) 40%, transparent); }
+.quick-link-row-5a:active { background: var(--app-elevated); border-color: var(--app-crimson-ink); }
+.icon-box-5a { display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border: 1px solid var(--app-home-extra-icon-border); border-radius: var(--app-radius-sm); background: var(--app-home-extra-icon-bg); color: var(--app-crimson-ink); }
+.quick-link-content-5a { flex: 1; min-width: 0; }
+.quick-link-title-5a, .quick-link-sub-5a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.quick-link-title-5a { color: var(--app-ink); font-family: var(--font-display); font-size: 13px; font-weight: 700; }
+.quick-link-sub-5a { margin-top: 1px; color: var(--app-muted); font-size: 11px; }
+.wellbeing-home-toggle .icon-box-5a { background: color-mix(in srgb, var(--app-crimson) 14%, transparent); }
+.wellbeing-home-toggle[aria-expanded='true'] .quick-link-chevron { transform: rotate(90deg); }
 .home-intro-spark { display: none; }
 
 @media (prefers-reduced-motion: no-preference) {
+  .todo-expander-arrow, .wellbeing-home-toggle .quick-link-chevron { transition: transform calc(var(--motion-fast) * 2) ease; }
   .home-primary-action, .home-secondary-action {
     transition: transform var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
   }
@@ -269,9 +325,9 @@
     100% { transform: translate(0,0) rotate(45deg) scale(0); opacity: 0; }
   }
   @keyframes home-intro-storm {
-    0%, 60% { opacity: 0.65; }
+    0%, 60% { opacity: var(--app-home-storm-rest-opacity, 0.65); }
     70% { opacity: 0.15; }
-    85%, 100% { opacity: 0.65; }
+    85%, 100% { opacity: var(--app-home-storm-rest-opacity, 0.65); }
   }
 }
 

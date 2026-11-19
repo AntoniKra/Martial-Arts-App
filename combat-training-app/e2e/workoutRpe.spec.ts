@@ -54,7 +54,7 @@ test('opens RPE at ten minutes and persists six with the response timestamp', as
   await expect.poll(async () => (await app.readSessions())[0]?.rpeRecordedAt).toBe(responseTime)
   expect((await app.readSessions())[0].rpe).toBe(6)
   await page.getByRole('link', { name: 'Start', exact: true }).click()
-  await expect(page.getByRole('link', { name: /^Uzupełnij RPE:/ })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Do uzupełnienia', exact: true })).toHaveCount(0)
 })
 
 test('rates early without losing the summary draft and queues RPE offline', async ({ app, page, context }) => {
@@ -103,7 +103,8 @@ test('reminds at home, opens RPE directly, and persists a device dismissal witho
   }
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
   await page.getByRole('link', { name: 'Start', exact: true }).click()
-  const reminder = page.getByRole('link', { name: /^Uzupełnij RPE: Technika po treningu,/ })
+  const todo = page.getByRole('region', { name: 'Do uzupełnienia', exact: true })
+  const reminder = todo.getByRole('link', { name: /^Oceń trening \(RPE\) Technika po treningu · / })
   await expect(reminder).toBeVisible()
   for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
@@ -128,9 +129,9 @@ test('reminds at home, opens RPE directly, and persists a device dismissal witho
   }
   await page.getByRole('button', { name: 'Pomiń', exact: true }).click()
   await page.getByRole('link', { name: 'Start', exact: true }).click()
-  await expect(reminder).toHaveCount(0)
+  await expect(todo).toHaveCount(0)
   await app.open('/')
-  await expect(reminder).toHaveCount(0)
+  await expect(todo).toHaveCount(0)
   expect((await app.readSessions())[0]).toMatchObject({ rpe: null, rpeRecordedAt: null })
   // Dismissing the reminder never prevents rating from the history summary.
   await app.open(summaryPath)

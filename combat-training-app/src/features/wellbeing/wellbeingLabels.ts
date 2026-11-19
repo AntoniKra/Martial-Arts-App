@@ -1,7 +1,7 @@
 import type { WellbeingCategory, WellbeingField } from '@/domain/wellbeing/wellbeing'
 
 export const wellbeingLabels = {
-  title: 'Samopoczucie', prompt: 'Jak się dziś czujesz?', save: 'Zapisz', skip: 'Nie dziś',
+  title: 'Samopoczucie', save: 'Zapisz', skip: 'Nie dziś',
   noSelection: 'Nie wybrano odpowiedzi',
   note: 'Coś nietypowego? (opcjonalnie)', noteHint: 'Do 300 znaków. Notatka nie jest analizowana.',
   invalid: 'Odpowiedz na wszystkie cztery pytania (1–5). Notatka może mieć do 300 znaków.',

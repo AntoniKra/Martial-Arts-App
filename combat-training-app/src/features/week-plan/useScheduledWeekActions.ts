@@ -13,12 +13,12 @@ export function useScheduledWeekActions(plan: WeekPlan, canEdit: boolean) {
   const [saved, setSaved] = useState(false)
   const [undo, setUndo] = useState<{ before: ScheduledWeekItem[]; after: string } | null>(null)
 
-  async function save(schedule: ScheduledWeekItem[], targetCount = plan.targetCount ?? 0) {
+  async function save(schedule: ScheduledWeekItem[], targetCount = plan.targetCount ?? 0, source = plan) {
     if (busy || !canEdit) return false
     if (schedule.length > WEEK_PLAN_ITEM_LIMIT) { setError(weekPlanLabels.limit); return false }
     setBusy(true); setError(null); setSaved(false)
     try {
-      await weekPlanRepository.save(changeScheduledWeek(plan, schedule, targetCount, new Date()))
+      await weekPlanRepository.save(changeScheduledWeek(source, schedule, targetCount, new Date()))
       setSaved(true)
       return true
     } catch { setError(weekPlanLabels.failed); return false } finally { setBusy(false) }
@@ -28,8 +28,9 @@ export function useScheduledWeekActions(plan: WeekPlan, canEdit: boolean) {
     const next = before.map((entry) => entry.id === item.id ? { ...entry, id: crypto.randomUUID(), day } : entry)
     if (await save(next)) setUndo({ before, after: JSON.stringify(next) })
   }
-  function toggleOmitted(item: ScheduledWeekItem) {
-    return save((plan.schedule ?? []).map((entry) => entry.id === item.id ? { ...entry, id: crypto.randomUUID(), omitted: !entry.omitted } : entry))
+  function toggleOmitted(item: ScheduledWeekItem, source = plan) {
+    return save((source.schedule ?? []).map((entry) => entry.id === item.id ? { ...entry, id: crypto.randomUUID(), omitted: !entry.omitted } : entry),
+      source.targetCount ?? 0, source)
   }
   async function undoMove() {
     if (!undo) return

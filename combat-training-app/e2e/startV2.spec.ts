@@ -1,12 +1,12 @@
 import { selectRpe } from './rpeSlider'
 import AxeBuilder from '@axe-core/playwright'
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { test, expect } from './fixtures'
 import { generateScheduledWeek } from '../src/domain/week-plan/scheduledWeek'
 import type { WeekActivity } from '../src/domain/week-plan/weekPlan.types'
 import { block, continuousExercise, roundsExercise, workoutPlan } from '../src/test/workoutBuilders'
 import { manualWorkoutSession } from '../src/test/manualWorkoutBuilder'
-import { workoutSession } from '../src/test/workoutSessionBuilders'
+import { sessionStep, workoutSession } from '../src/test/workoutSessionBuilders'
 import { HOME_INTRO_SESSION_KEY } from '../src/features/home/homeIntro'
 
 test.use({ screenshot: 'off', trace: 'off', serviceWorkers: 'allow' })
@@ -20,6 +20,16 @@ const week = (items: WeekActivity[], start = weekStart) => generateScheduledWeek
 const todayCard = (page: Page) => page.getByRole('region', { name: 'Dziś · Muay Thai · 19:00', exact: true })
 const weekCard = (page: Page) => page.getByRole('region', { name: 'Ten tydzień', exact: true })
 const form = (page: Page) => page.getByRole('form', { name: 'Trening spoza aplikacji', exact: true })
+
+async function expectSingleLineLabels(labels: Locator) {
+  await labels.first().page().evaluate(() => document.fonts.ready)
+  expect(await labels.evaluateAll((elements) => elements.map((element) => {
+    const range = document.createRange()
+    range.selectNodeContents(element)
+    const rects = range.getClientRects()
+    return rects.length === 1 && rects[0].right <= element.parentElement!.getBoundingClientRect().right
+  }))).toEqual(Array<boolean>(await labels.count()).fill(true))
+}
 
 test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(instant)) })
 
@@ -192,6 +202,16 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(quick.getByRole('link', { name: /^Trening w klubie/ })).toHaveAttribute('href', '/workout-sessions/new')
     await expect(page.getByRole('img', { name: 'środa: wolne, dziś', exact: true })).toBeVisible()
     await accessible(page)
+    // Owner review of #205: quick start tiles and the card badge stay on one line on narrow phones.
+    await page.setViewportSize({ width: 360, height: 800 })
+    await expectSingleLineLabels(quick.locator('.home-plan-badge, .home-action-tiles a > span:last-child'))
+    await expect(quick.locator('.home-card-date-short')).toBeVisible()
+    await expect(quick.locator('.home-tile-icon').first()).toBeHidden()
+    await expectSingleLineLabels(quick.locator('.home-card-date-short'))
+    await page.setViewportSize({ width: 390, height: 844 })
+    await expect(quick.locator('.home-card-date-full')).toHaveCSS('position', 'static')
+    await expect(quick.locator('.home-card-date-short')).toBeHidden()
+    await expect(quick.locator('.home-tile-icon').first()).toBeVisible()
   })
 }
 
@@ -205,6 +225,56 @@ test('omits a missed class from the previous week and removes the reminder witho
   await expect.poll(async () => (await app.readWeekPlans()).find((plan) => plan.weekStart === '2026-11-09')?.schedule?.[0].omitted).toBe(true)
   expect(await app.readSessions()).toHaveLength(0)
 })
+
+for (const theme of ['dark', 'light'] as const) {
+  test(`@issue204 shows the oldest club first and discloses other tasks in ${theme}`, async ({ app, page }) => {
+    await page.setViewportSize({ width: 360, height: 800 })
+    await app.open('/')
+    await app.setTheme(theme)
+    await app.seedWeekPlan(week([club], '2026-11-09'))
+    await app.seedWeekPlan(week([{ ...club, disciplineKey: 'k1', day: 0 }]))
+    const completedAt = '2026-11-16T20:00:00.000Z'
+    const session = workoutSession({ workoutPlanNameSnapshot: 'Boks — technika i siła', stepResults: [sessionStep()],
+      workoutDate: '2026-11-16', startedAt: '2026-11-16T19:00:00.000Z', completedAt, createdAt: completedAt, updatedAt: completedAt })
+    await app.seedSession(session)
+
+    const todo = page.getByRole('region', { name: 'Do uzupełnienia', exact: true })
+    const expander = todo.getByRole('button', { name: /^\+2 więcej Pozostałe zadania$/i })
+    const rate = todo.getByRole('link', { name: /^Oceń trening \(RPE\)/ })
+    const write = todo.getByRole('link', { name: 'Wpisz', exact: true })
+    await expect(todo.locator('.todo-section-header .home-neutral-badge')).toHaveText('3 zadania')
+    await expect(todo.getByText('wt 10.11 · Muay Thai · klub', { exact: true })).toBeVisible()
+    await expect(expander).toHaveAttribute('aria-expanded', 'false')
+    await expect(expander).toHaveCSS('min-height', '44px')
+    await expect(expander).toHaveAttribute('aria-controls', /.+/)
+    await expect(rate).toHaveCount(0)
+    await expect(write).toHaveCount(1)
+    await expectSingleLineLabels(todo.locator('.home-neutral-badge:visible, .todo-more-pill, .home-secondary-action:visible > span:last-child'))
+    await accessible(page)
+    await expander.click()
+    await expect(expander).toHaveAttribute('aria-expanded', 'true')
+    await expect(todo.getByText('pon 16.11 · K-1 · klub', { exact: true })).toBeVisible()
+    await expect(rate).toHaveAttribute('href', `/workout-sessions/${session.id}/feedback?rpe=1`)
+    await expect(rate).toContainText('Boks — technika i siła · pon 16.11')
+    await accessible(page)
+    await expander.click()
+
+    await write.click()
+    await expect(form(page).getByLabel('Data', { exact: true })).toHaveValue('2026-11-10')
+    await expect(form(page).getByRole('radio', { name: 'Muay Thai', exact: true })).toBeChecked()
+    await expect(form(page).getByRole('radio', { name: '90 min', exact: true })).toBeChecked()
+    await expect(form(page).getByRole('checkbox', { checked: true })).toHaveCount(3)
+    await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
+    await expect(page).toHaveURL('/')
+    await todo.getByRole('button', { name: 'Nie byłem', exact: true }).click()
+    await expect.poll(async () => (await app.readWeekPlans()).find((plan) => plan.weekStart === '2026-11-09')?.schedule?.[0].omitted).toBe(true)
+    const singleRemaining = todo.getByRole('button', { name: /^\+1 więcej Ocena RPE sesji$/i })
+    await expect(singleRemaining).toHaveAttribute('aria-expanded', 'false')
+    await singleRemaining.click()
+    await rate.click()
+    await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toBeVisible()
+  })
+}
 
 test('moves only this week with undo and consciously skips today from home', async ({ app, page }) => {
   await app.open('/'); await app.seedWeekPlan(week([club]))
@@ -297,15 +367,35 @@ for (const theme of ['dark', 'light'] as const) {
   }
 }
 
-test('keeps one empty-account card with two working entry points', async ({ app, page }) => {
-  await app.open('/')
-  await expect(page.getByRole('region')).toHaveCount(1)
-  await expect(page.getByRole('link', { name: 'Utwórz plan', exact: true })).toHaveAttribute('href', '/workouts/new')
-  await page.getByRole('link', { name: 'Wpisz trening z klubu', exact: true }).click()
-  await expect(form(page)).toBeVisible()
-  await expect(form(page).getByRole('checkbox', { checked: true })).toHaveCount(0)
-  await expect(form(page).getByRole('slider', { name: 'RPE od 0 do 10' })).toHaveAttribute('aria-valuetext', 'Nie wybrano RPE')
-})
+for (const theme of ['dark', 'light'] as const) {
+  test(`@issue204 renders the empty Start and library entry in ${theme}`, async ({ app, page }) => {
+    await app.open('/')
+    await app.setTheme(theme)
+    const empty = page.getByRole('region', { name: 'Zacznij swój pierwszy trening', exact: true })
+    const library = page.getByRole('link', { name: /^Baza ćwiczeń i kombinacji/ })
+    await expect(empty).toContainText('Pierwszy krok')
+    await expect(empty).toContainText('Nowy profil')
+    await expect(empty).toHaveCSS('min-height', '330px')
+    await expect(empty.getByRole('heading')).toHaveCSS('font-size', '26px')
+    await expect(empty.locator('.storm-decoration')).toHaveCSS('opacity', '0.35')
+    await expect(empty.getByRole('link', { name: 'Utwórz plan', exact: true })).toHaveAttribute('href', '/workouts/new')
+    await expect(empty.getByRole('link', { name: 'Stoper', exact: true })).toHaveAttribute('href', '/quick-timer')
+    await expect(library).toHaveAttribute('href', '/exercises')
+    await expect(page.getByRole('region')).toHaveCount(1)
+    for (const width of [360, 390]) {
+      await page.setViewportSize({ width, height: width === 360 ? 800 : 844 })
+      await expectSingleLineLabels(empty.locator('.home-neutral-badge, .home-action-tiles a > span:last-child, .home-primary-action > span'))
+      await accessible(page)
+    }
+    await library.click()
+    await expect(page).toHaveURL('/exercises')
+    await app.open('/')
+    await empty.getByRole('link', { name: 'Trening w klubie', exact: true }).click()
+    await expect(form(page)).toBeVisible()
+    await expect(form(page).getByRole('checkbox', { checked: true })).toHaveCount(0)
+    await expect(form(page).getByRole('slider', { name: 'RPE od 0 do 10' })).toHaveAttribute('aria-valuetext', 'Nie wybrano RPE')
+  })
+}
 
 test('does not overwrite a corrupt week or invent progress and recovers after a valid snapshot', async ({ app, page }) => {
   await app.open('/'); await app.seedInvalidWeekPlan(weekStart)

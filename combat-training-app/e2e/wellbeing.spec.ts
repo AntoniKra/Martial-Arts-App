@@ -12,6 +12,7 @@ import { workoutSessionDocumentSchema } from '../src/infrastructure/firebase/wor
 test.use({ screenshot: 'off', trace: 'off' })
 const today = '2026-11-14', instant = `${today}T09:00:00.000Z`
 const card = (page: Page) => page.getByRole('region', { name: 'Jak się dziś czujesz?', exact: true })
+const toggle = (page: Page) => card(page).getByRole('button', { name: /^Jak się dziś czujesz\?/ })
 const progress = (page: Page) => page.getByRole('region', { name: 'Samopoczucie', exact: true })
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true }).getByRole('link', { name, exact: true })
 function entry(offset: number, patch: Partial<WellbeingEntry> = {}): WellbeingEntry {
@@ -51,12 +52,13 @@ test.describe('cached startup', () => {
     await context.setOffline(true)
     try {
       await app.open('/')
+      await toggle(page).click()
       await expect(card(page).getByRole('button', { name: 'Zapisz', exact: true })).toBeVisible()
       await card(page).getByRole('button', { name: 'Nie dziś', exact: true }).click()
       await app.open('/'); await expect(card(page)).toHaveCount(0)
       await page.clock.setFixedTime(new Date('2026-11-15T09:00:00.000Z'))
       await page.evaluate(() => window.dispatchEvent(new Event('focus')))
-      await expect(card(page)).toBeVisible()
+      await toggle(page).click()
       await answer(page)
       await card(page).getByRole('button', { name: 'Zapisz', exact: true }).click()
       await expect(card(page)).toHaveCount(0)
@@ -70,13 +72,22 @@ test.describe('cached startup', () => {
   })
 })
 
-test('separate consent, offline daily entry, progress, same-day edit and deletion on withdrawal', async ({ app, page, context }) => {
+test('@issue204 separate consent, collapsed home card, offline daily entry, progress, same-day edit and withdrawal', async ({ app, page, context }) => {
   await app.open()
   await expect(card(page)).toHaveCount(0)
   await nav(page, 'Postęp').click(); await expect(progress(page)).toHaveCount(0)
   await nav(page, 'Profil').click(); await grant(page)
   expect((await app.readProfile())?.healthDataConsent).toBeNull()
   await nav(page, 'Start').click(); await expect(card(page)).toBeVisible()
+  await expect(page.getByRole('link', { name: /^Baza ćwiczeń i kombinacji/ })
+    .locator('xpath=following-sibling::*[1]')).toHaveAccessibleName('Jak się dziś czujesz?')
+  await expect(toggle(page)).toHaveAttribute('aria-expanded', 'false')
+  await expect(toggle(page)).toHaveAttribute('aria-controls', /.+/)
+  await expect(toggle(page)).toContainText('4 pytania · ok. 30 s')
+  await expect(toggle(page).locator('.icon-box-5a')).toHaveCSS('width', '36px')
+  await expect(card(page).getByRole('slider')).toHaveCount(0)
+  await toggle(page).press('Enter')
+  await expect(toggle(page)).toHaveAttribute('aria-expanded', 'true')
   await expect(card(page).getByRole('slider')).toHaveCount(4)
   for (const slider of await card(page).getByRole('slider').all()) {
     await expect(slider).toHaveAttribute('aria-valuetext', 'Nie wybrano odpowiedzi')
@@ -85,7 +96,14 @@ test('separate consent, offline daily entry, progress, same-day edit and deletio
   await expect(card(page).getByRole('alert')).toContainText('Odpowiedz na wszystkie')
   await answer(page)
   await page.getByRole('textbox', { name: 'Coś nietypowego? (opcjonalnie)', exact: true }).fill('=1+1')
-  await accessible(page)
+  await toggle(page).click()
+  await expect(card(page).getByRole('slider')).toHaveCount(0)
+  await toggle(page).click()
+  await expect(page.getByRole('textbox', { name: 'Coś nietypowego? (opcjonalnie)', exact: true })).toHaveValue('=1+1')
+  for (const theme of ['dark', 'light'] as const) {
+    await app.setTheme(theme)
+    await accessible(page)
+  }
   await context.setOffline(true)
   await card(page).getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect(card(page)).toHaveCount(0)
@@ -150,6 +168,7 @@ test('separate consent, offline daily entry, progress, same-day edit and deletio
 
 test('Not today persists on this device for the day and returns on the next calendar day', async ({ app, page }) => {
   await app.open('/profile'); await grant(page); await nav(page, 'Start').click()
+  await toggle(page).click()
   await card(page).getByRole('button', { name: 'Nie dziś', exact: true }).click()
   await expect(card(page)).toHaveCount(0)
   await app.open('/'); await expect(card(page)).toHaveCount(0)
@@ -165,6 +184,7 @@ for (const method of ['touch', 'keyboard'] as const) {
     await app.open('/profile'); await grant(page)
     const profile = await app.readProfile()
     await nav(page, 'Start').click()
+    await toggle(page).click()
     const form = card(page).getByRole('form', { name: 'Samopoczucie', exact: true })
     await expect(form.getByText('—', { exact: true })).toHaveCount(4)
     const values = { sleep: 1, energy: 4, soreness: 2, stress: 5 }
@@ -176,7 +196,7 @@ for (const method of ['touch', 'keyboard'] as const) {
       await expect(slider).toHaveAttribute('aria-valuemax', '5')
       await expect(slider).toHaveAttribute('aria-valuetext', 'Nie wybrano odpowiedzi')
       await expect(slider.locator(':scope > span')).toHaveCount(5)
-      await slider.scrollIntoViewIfNeeded()
+      await slider.evaluate((element) => element.scrollIntoView({ block: 'center' }))
       const bounds = await slider.boundingBox()
       if (!bounds) throw new Error('Wellbeing slider is not visible')
       expect(bounds.height).toBeGreaterThanOrEqual(44)

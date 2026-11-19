@@ -9,7 +9,7 @@ import { manualWorkoutSession } from '@/test/manualWorkoutBuilder'
 import { HomeWeekCard, HomeWeekStats } from './HomeWeekCard'
 
 describe('Start weekly statistics', () => {
-  it('keeps the workout count without inventing a goal denominator or percentage when no goal exists', () => {
+  it('offers a link inside the tracker instead of progress statistics when no goal exists', () => {
     const today = '2026-11-17', weekStart = '2026-11-16'
     const plan = generateScheduledWeek(weekStart, undefined, new Date(`${today}T12:00:00Z`))
     const sessions = [manualWorkoutSession({ workoutDate: today })]
@@ -17,11 +17,11 @@ describe('Start weekly statistics', () => {
       today, weekStart, progress: calculateWeekPlanProgress(weekStart, plan, sessions, today),
       schedule: selectHomeSchedule(plan, [plan], sessions, today),
     })))
-    expect(html).toContain('1 trening')
+    expect(html).not.toContain('1 trening')
     expect(html).not.toContain('1 z 0')
     expect(html).not.toContain('Postęp:')
     expect(html).not.toContain('role="progressbar"')
-    expect(html).toContain('Nie ustalono celu.')
+    expect(html).toMatch(/<div class="week-no-goal-row"><a[^>]+href="\/progress\/week\/2026-11-16"[^>]*>Bez celu · Ustal cel tygodnia/)
   })
   it.each([[0, 'jednostek'], [1, 'jednostki'], [2, 'jednostek'], [5, 'jednostek']] as const)('formats a goal of %s without minutes or remaining counts', (total, noun) => {
     const text = renderToStaticMarkup(createElement(HomeWeekStats, { completed: 0, total, percentage: 0 })).replace(/<[^>]+>/g, '')

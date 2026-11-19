@@ -34,10 +34,13 @@ export function HomeWeekCard({ weekStart, schedule, progress, today }: {
             state={weekDayState({ done: day.done, planned: day.planned, missed: day.omitted || day.planned && day.date < today })} />
         </li>)}
       </ol>
-      {progress.hasGoal && <div role="progressbar" aria-label={labels.week} aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.completed}
-        aria-valuetext={labels.goal(progress.goalCount, progress.total)} className="h-1.5 overflow-hidden rounded-[3px] bg-bd"><div className="accent-fill h-full rounded-[3px]" style={{ width: `${progress.percentage}%` }} /></div>}
-      {progress.hasGoal ? <HomeWeekStats completed={progress.goalCount} total={progress.total} percentage={progress.percentage ?? 0} />
-        : <p className="text-[13px] tabular-nums text-muted">{labels.workouts(progress.workoutCount)}</p>}
+      {progress.hasGoal ? <>
+        <div role="progressbar" aria-label={labels.week} aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.completed}
+          aria-valuetext={labels.goal(progress.goalCount, progress.total)} className="h-1.5 overflow-hidden rounded-[3px] bg-bd"><div className="accent-fill h-full rounded-[3px]" style={{ width: `${progress.percentage}%` }} /></div>
+        <HomeWeekStats completed={progress.goalCount} total={progress.total} percentage={progress.percentage ?? 0} />
+      </> : <div className="week-no-goal-row">
+        <Link to={routes.weekPlan(weekStart)} className="no-goal-link">{labels.setGoal}<HomeActionIcon kind="arrow" className="size-4 shrink-0" strokeWidth={2} /></Link>
+      </div>}
     </div>
     {cards.next && <Link to={dayPath(cards.next.date)} className="home-next-workout">
       <span className="home-next-date" aria-hidden="true"><span>{new Intl.DateTimeFormat('pl-PL', { weekday: 'short', timeZone: 'UTC' }).format(new Date(`${cards.next.date}T12:00:00Z`)).replace('.', '').toLocaleUpperCase('pl')}</span><b>{Number(cards.next.date?.slice(8))}</b></span>
@@ -49,7 +52,6 @@ export function HomeWeekCard({ weekStart, schedule, progress, today }: {
         <span className="min-w-0 break-words">+ {labels.flexibleAction}: {activityTitle(item)}</span><span aria-hidden="true">›</span>
       </Link>)}
     </section>}
-    {!progress.hasGoal && <p className="text-sm text-muted"><span>{labels.noGoal}</span> <Link to={routes.weekPlan(weekStart)} className={homeInlineLink}>{labels.setGoal}</Link></p>}
     <Link to={routes.workouts} className="home-other-plans">
       <span aria-hidden="true" className="home-other-icon"><HomeActionIcon kind="timer" /></span>
       <span className="min-w-0 flex-1"><span className="block font-display text-sm font-bold">{labels.otherPlans}</span><span className="block text-[11px] text-muted">{labels.otherPlansHint}</span></span><span aria-hidden="true" className="text-muted">›</span>

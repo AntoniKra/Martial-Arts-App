@@ -6,14 +6,14 @@ import { mapWorkoutSessionToHomeRecentSession } from '@/features/home/mappers/wo
 import { selectLatestWorkoutPlan } from '@/features/home/utils/selectLatestWorkoutPlan'
 import { selectRecentWorkoutSessions } from '@/features/home/utils/selectRecentWorkoutSessions'
 import { WorkoutDataWarning } from '@/features/workouts/components/WorkoutDataWarning'
-import { RpeReminder } from '@/features/home/components/RpeReminder'
+import { HomeTodoCard } from '@/features/home/components/HomeTodoCard'
 import { useAuth } from '@/features/auth/authContext'
 import { WeekPlanDataMessage } from '@/features/week-plan/WeekPlanSummary'
 import { lazy, Suspense } from 'react'
 import { hasWellbeingConsent } from '@/domain/wellbeing/wellbeingConsent'
 import { useProfileToday } from '@/features/profile/useProfileToday'
 import { useHomeSchedule } from '@/features/home/useHomeSchedule'
-import { HomeTodayCards, HomeOverdueWeek, HomePendingWeek, homeSectionLabel, homeSecondaryButton } from '@/features/home/components/HomeScheduleCards'
+import { HomeTodayCards, HomePendingWeek, homeSecondaryButton } from '@/features/home/components/HomeScheduleCards'
 import { HomeQuickStart } from '@/features/home/components/HomeQuickStart'
 import { HomeWeekCard } from '@/features/home/components/HomeWeekCard'
 import { homeLabels } from '@/features/home/homeLabels'
@@ -51,14 +51,11 @@ export function HomePage() {
           <button type="button" className={homeSecondaryButton} onClick={retryRecurringWeeks}>{homeLabels.retry}</button>
         </div> : !sessionsReady && <div role="status" className="text-sm text-muted"><p>{sessions.status === 'loading' ? homeLabels.loadingSessions : workoutDataLabels.historyLoadError}</p><button type="button" className={homeSecondaryButton} onClick={retrySessions}>{homeLabels.retry}</button></div>}
       </>}
-      overdue={schedule && !!schedule.overdue.length && <section aria-label={homeLabels.overdue} className="flex flex-col gap-2.5 border border-bd px-4 py-3.5">
-        <h2 className={homeSectionLabel}>{homeLabels.overdue}</h2>
-        {[plan, ...weekPlans.items.filter((week) => week.weekStart !== plan.weekStart)].map((week) => <HomeOverdueWeek key={week.weekStart} plan={week} entries={schedule.overdue.filter((entry) => entry.weekStart === week.weekStart)} today={today} />)}
-      </section>}
+      todo={<HomeTodoCard key={uid} uid={uid} sessions={sessions.status === 'ready' ? sessions.items : undefined}
+        overdue={schedule?.overdue ?? []} plan={plan} otherWeeks={weekPlans.items} today={today} />}
       wellbeing={uid && profile.status === 'ready' && hasWellbeingConsent(profile.items[0]) ? <Suspense fallback={null}><WellbeingHomeCard key={uid} uid={uid} /></Suspense> : null}
       weekPlan={schedule && <><HomeWeekCard today={today} weekStart={plan.weekStart} schedule={schedule} progress={progress} /><HomePendingWeek />
         {generationError && <div role="alert" className="text-sm text-crimson-ink"><p>{scheduleLabels.failed}</p><button type="button" className={homeSecondaryButton} onClick={retryGeneration}>{homeLabels.retry}</button></div>}</>}
-      rpeReminder={uid && sessions.status === 'ready' ? <RpeReminder key={uid} uid={uid} sessions={sessions.items} /> : null}
       featuredPlanLoadState={featuredPlanLoadState}
       recentSessionsLoadState={sessions.status === 'ready'
         ? { status: 'success', sessions: selectRecentWorkoutSessions(sessions.items).map((session) => mapWorkoutSessionToHomeRecentSession(session, sessions.pendingIds.has(session.id))) }
