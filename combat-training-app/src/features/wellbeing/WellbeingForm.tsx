@@ -101,6 +101,8 @@ export function WellbeingForm({ date, entry, onSave, onClose, onSkip }: {
         {value === null && <span id={`${id}-next-hint`} className="sr-only">{labels.nextDisabled}</span>}
       </>}
     </div>
+    {/* "Nie dziś" skips the whole day, so it must not require answering the four questions first. */}
+    {question && onSkip && <button type="button" disabled={busy} className="btn-skip-3a self-center" onClick={onSkip}>{labels.skip}</button>}
     {error && <p role="alert" className="text-sm">{error}</p>}
     {!question && <div className="save-variant-3a">
       <button type="submit" disabled={busy} className="btn-save-3a"><Check size={16} />{labels.save}</button>

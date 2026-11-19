@@ -177,7 +177,8 @@ test('@issue204 separate consent, collapsed home card, offline daily entry, prog
 test('Not today persists on this device for the day and returns on the next calendar day', async ({ app, page }) => {
   await app.open('/profile'); await grant(page); await nav(page, 'Start').click()
   await toggle(page).click()
-  await answer(page)
+  // Skipping the day must not require answering the questionnaire first (step 1, nothing chosen).
+  await expect(wizard(page).getByRole('button', { name: 'Dalej', exact: true })).toHaveAttribute('aria-disabled', 'true')
   await card(page).getByRole('button', { name: 'Nie dziś', exact: true }).click()
   await expect(card(page)).toHaveCount(0)
   await app.open('/'); await expect(card(page)).toHaveCount(0)
