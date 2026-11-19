@@ -76,3 +76,24 @@ Pomiary wykonano bezpośrednio przez DevTools (`window.getComputedStyle`). Defin
 ## Podsumowanie i werdykt
 
 Implementacja w PR #202 odwzorowuje zatwierdzoną makietę A z niemal laboratoryjną precyzją. Zidentyfikowane 3 różnice wymiarowe (3–6 px) wynikają wyłącznie z systemowej normalizacji `line-height` w frameworku Tailwind CSS i nie wpływają negatywnie na odbiór wizualny. PR spełnia warunki scalenia pod kątem zgodności z designem.
+
+---
+
+## Po poprawkach 501f4f8
+
+Weryfikacja zmian wprowadzonych w commicie `501f4f8` (zestawienia [1-trening-ciemny-obok-siebie.png](file:///c:/dev/Martial-Arts-App/qa-reports/start-v2-pr202/1-trening-ciemny-obok-siebie.png), [1-trening-jasny-obok-siebie.png](file:///c:/dev/Martial-Arts-App/qa-reports/start-v2-pr202/1-trening-jasny-obok-siebie.png) oraz [3-przewiniecie-ciemny-obok-siebie.png](file:///c:/dev/Martial-Arts-App/qa-reports/start-v2-pr202/3-przewiniecie-ciemny-obok-siebie.png) zostały zaktualizowane):
+
+1. **Układ w sekcji „Ten tydzień” (kółko nad nazwą dnia, kreska „dziś” pod nazwą):**
+   - **Zgodne.**
+   - Wartość z DevTools: kółko statusu (`.week-day-dot`) ma `order: 0`, nazwa dnia ma `order: 1`, wskaźnik bieżącego dnia ma `order: 2`. Wizualny układ kolumny flex: kółko u góry, nazwa dnia pośrodku, kreska pod nazwą.
+
+2. **Wysokość karty „Ostatnia sesja” oraz wielkie litery plakietki:**
+   - **Zgodne.**
+   - Wysokość w makiecie A: `74px` (`height: 74px`, DevTools Computed).
+   - Wysokość w aplikacji: `74px` (`height: 74px`, DevTools Computed / BoundingRect 74 px).
+   - Plakietka statusu (`.home-session-status`): `text-transform: uppercase`, wartość renderowana: `UKOŃCZONY` (w makiecie: `ZALICZONY`).
+
+3. **Data na karcie „Dziś” („DZIŚ · CZWARTEK, 19 LISTOPADA”):**
+   - **Zgodne.**
+   - Wartość w DOM: `Dziś · czwartek, 19 listopada`, `text-transform: uppercase`, wartość renderowana: `DZIŚ · CZWARTEK, 19 LISTOPADA`.
+
