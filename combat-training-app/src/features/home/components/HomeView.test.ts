@@ -24,13 +24,13 @@ describe('home recent sessions', () => {
     const html = renderHome({ status: 'success', sessions: [] })
     expect(html).toContain('<h1 class="sr-only">Start</h1>')
     expect(html).toContain('storm-decoration')
-    expect(html).toContain('Dziś, wt 17.11 · trening własny')
+    expect(html).toContain('Dziś · wtorek, 17 listopada')
     expect(html).not.toContain('Gotowy do treningu?')
   })
 
   it('formats the today card label for club and own workouts', () => {
-    expect(homeCardDate('2026-11-19', 'club')).toBe('Dziś, czw 19.11 · klub')
-    expect(homeCardDate('2026-11-19')).toBe('Dziś, czw 19.11 · trening własny')
+    expect(homeCardDate('2026-11-19')).toBe('Dziś · czwartek, 19 listopada')
+    expect(homeCardDate('2026-11-01')).toBe('Dziś · niedziela, 1 listopada')
   })
   it('announces session loading', () => {
     const html = renderHome({ status: 'loading' })

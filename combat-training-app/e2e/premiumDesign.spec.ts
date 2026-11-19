@@ -63,7 +63,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.seedWeekPlan(generateScheduledWeek(current, { id: 'default', items: [club, { ...club, id: 'past', day: 1 }, { ...club, id: 'next', day: 5 }], createdAt: instant, updatedAt: instant }, new Date(instant)))
     await app.seedSession(manualWorkoutSession({ id: 'monday', workoutDate: '2026-11-16', rpe: 7 }))
     const today = page.getByRole('region', { name: 'Dziś · Muay Thai · 19:00', exact: true })
-    await expect(today).toContainText('Dziś, czw 19.11 · klub')
+    await expect(today).toContainText('Dziś · czwartek, 19 listopada')
     await reachablePrimary(today.getByRole('link', { name: 'Wpisz trening po zajęciach', exact: true }))
     const week = page.getByRole('region', { name: 'Ten tydzień', exact: true })
     await expect(week.getByRole('img')).toHaveCount(7)

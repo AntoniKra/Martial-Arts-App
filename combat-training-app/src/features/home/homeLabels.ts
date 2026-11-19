@@ -42,7 +42,6 @@ export const homeLabels = {
   discipline: getDisciplineLabelPl,
 } as const
 
-export function homeCardDate(date: string, kind: 'club' | 'own' = 'own') {
-  const short = new Intl.DateTimeFormat('pl-PL', { weekday: 'short', timeZone: 'UTC' }).format(calendarDate(date)).replace('.', '')
-  return `Dziś, ${short} ${date.slice(8)}.${date.slice(5, 7)} · ${kind === 'club' ? 'klub' : 'trening własny'}`
+export function homeCardDate(date: string) {
+  return `Dziś · ${new Intl.DateTimeFormat('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(calendarDate(date))}`
 }
