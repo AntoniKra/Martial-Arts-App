@@ -202,6 +202,9 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(quick.getByRole('link', { name: /^Trening w klubie/ })).toHaveAttribute('href', '/workout-sessions/new')
     await expect(page.getByRole('img', { name: 'środa: wolne, dziś', exact: true })).toBeVisible()
     await accessible(page)
+    // Owner review of #205: quick start tiles and the card badge stay on one line on narrow phones.
+    await page.setViewportSize({ width: 360, height: 800 })
+    await expectSingleLineLabels(quick.locator('.home-plan-badge, .home-action-tiles a > span:last-child'))
   })
 }
 
