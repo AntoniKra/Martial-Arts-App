@@ -10,6 +10,7 @@ export interface HomeFeaturedPlan {
   exerciseCount: number
   roundCount: number
   estimatedDurationLabelPl: string
+  parameterChips: string[]
 }
 
 export interface HomeRecentSession {

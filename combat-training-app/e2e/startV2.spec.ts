@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test'
 import { test, expect } from './fixtures'
 import { generateScheduledWeek } from '../src/domain/week-plan/scheduledWeek'
 import type { WeekActivity } from '../src/domain/week-plan/weekPlan.types'
-import { block, continuousExercise, workoutPlan } from '../src/test/workoutBuilders'
+import { block, continuousExercise, roundsExercise, workoutPlan } from '../src/test/workoutBuilders'
 import { manualWorkoutSession } from '../src/test/manualWorkoutBuilder'
 import { workoutSession } from '../src/test/workoutSessionBuilders'
 import { HOME_INTRO_SESSION_KEY } from '../src/features/home/homeIntro'
@@ -23,13 +23,85 @@ const form = (page: Page) => page.getByRole('form', { name: 'Trening spoza aplik
 
 test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(instant)) })
 
+for (const theme of ['dark', 'light'] as const) {
+  test(`mockup A: card parameters, exact CSS, single timer row and unchanged Progress in ${theme}`, async ({ app, page }) => {
+    // Mockup A is a phone layout; its exact values (min-height 360 px and others) apply below md.
+    await page.setViewportSize({ width: 390, height: 844 })
+    await app.open('/workouts'); await app.setTheme(theme)
+    await app.seedPlan({ ...plan, blocks: [block('rounds', [roundsExercise('rounds', 6, 180, 60)])] })
+    await app.seedWeekPlan(week([{ ...club, day: 3, clubName: 'Klub testowy' }, own]))
+    await app.open('/')
+    const quick = page.getByRole('region', { name: 'Szybki start', exact: true })
+    await expect(quick.locator('.home-plan-badge')).toHaveText('Aktywny plan')
+    await expect(quick.locator('.home-plan-badge')).toHaveCSS('color', theme === 'dark' ? 'rgb(240, 117, 58)' : 'rgb(154, 55, 14)')
+    await expect(quick.locator('.home-plan-badge')).toHaveCSS('border-top-color', 'rgba(240, 117, 58, 0.35)')
+    await expect(quick.locator('.home-plan-badge')).toHaveCSS('background-color', 'rgba(240, 117, 58, 0.1)')
+    await expect(quick.locator('.home-param-chip')).toHaveText(['6 rund × 3 min', 'Przerwa 60 s', '23:00', '1 blok'])
+    await expect(page.locator('.home-discipline-tag')).toHaveCount(0)
+    const action = quick.getByRole('link', { name: 'Rozpocznij plan', exact: true })
+    await expect(action).toHaveCSS('min-height', '56px')
+    await expect(action).toHaveCSS('text-transform', 'uppercase')
+    await expect(action).toHaveCSS('justify-content', 'center')
+    await expect(action).toHaveCSS('font-size', '14px')
+    await expect(action).toHaveCSS('letter-spacing', '0.84px')
+    await expect(action).toHaveCSS('background-image', 'linear-gradient(135deg, rgb(88, 8, 20) 0%, rgb(117, 10, 26) 55%, rgb(136, 12, 30) 100%)')
+    await expect(quick).toHaveCSS('min-height', '360px')
+    await expect(quick).toHaveCSS('padding', '18px 16px 16px')
+    await expect(quick.locator('.storm-decoration')).toHaveCSS('opacity', '0.65')
+    await expect(quick.locator('.storm-decoration')).toHaveCSS('width', '320px')
+    await expect(action).toHaveAttribute('aria-describedby', /.+/)
+    // The weekly snapshot can remount Quick Start; resolve its current id in one DOM read.
+    await expect.poll(() => action.evaluate((element) => document.getElementById(element.getAttribute('aria-describedby') ?? '')?.className)).toBe('sr-only')
+    await expect(action).toHaveAccessibleDescription('Boks')
+    await expect(weekCard(page).getByRole('img').first()).toHaveCSS('border-radius', '50%')
+    await expect(weekCard(page).getByRole('img').first()).toHaveCSS('width', '26px')
+    await expect(weekCard(page).getByText('So', { exact: true })).toHaveCSS('text-transform', 'none')
+    const timerRow = page.locator('.home-other-plans')
+    await expect(timerRow).toHaveCount(1)
+    await expect(timerRow).toHaveAttribute('href', '/workouts')
+    await expect(timerRow.locator('a')).toHaveCount(0)
+    await timerRow.click()
+    await page.getByRole('link', { name: 'Stoper rund', exact: true }).click()
+    await expect(page).toHaveURL('/quick-timer')
+    await app.open('/')
+    await app.seedSession(manualWorkoutSession({ workoutDate: '2026-11-16', category: 'bag', parts: ['bag'], rpe: 0 }))
+    const done = weekCard(page).getByRole('img', { name: 'poniedziałek: wykonany', exact: true })
+    await expect(done).toHaveText('✓')
+    await expect(page.locator('.home-session-status')).toContainText('Ukończony')
+    await expect(page.locator('.home-recent-session .rpe-badge')).toHaveText('RPE 0')
+    await accessible(page)
+    await app.open('/progress')
+    const progressDot = page.getByRole('img', { name: 'poniedziałek: wykonany', exact: true })
+    await expect(progressDot).toHaveCSS('border-radius', '50%')
+    await expect(progressDot).toHaveCSS('width', '26px')
+    await expect(progressDot.locator('svg')).toHaveCount(1)
+    await expect(page.locator('.home-week-day')).toHaveCount(0)
+    await accessible(page)
+  })
+
+  test(`mockup A: club title, time and optional club chip in ${theme}`, async ({ app, page }) => {
+    await app.open('/'); await app.setTheme(theme)
+    await app.seedWeekPlan(week([{ ...club, clubName: 'Klub testowy' }]))
+    const card = todayCard(page)
+    await expect(card.getByRole('heading', { level: 2 })).toHaveText('Muay Thai')
+    await expect(card.locator('.home-plan-badge')).toHaveText('Muay Thai · Klub')
+    await expect(card.locator('.home-param-chip')).toHaveText(['19:00–20:30', 'Klub testowy'])
+    await expect(card.locator('.storm-decoration')).toHaveCSS('opacity', '0.65')
+    await expect(card.getByRole('link', { name: 'Wpisz trening po zajęciach', exact: true })).toHaveCSS('height', '56px')
+    await accessible(page)
+    await app.seedWeekPlan(week([club]))
+    await expect(card.locator('.home-param-chip')).toHaveText(['19:00–20:30'])
+    await accessible(page)
+  })
+}
+
 test('review regression: legacy exact-plan credits agree on Start, Progress and the migrated week', async ({ app, page }) => {
   await app.open('/')
   await app.seedWeekPlan({ weekStart, items: [{ id: 'legacy', kind: 'plan', workoutPlanId: 'deleted-plan', planNameSnapshot: 'Plan historyczny' }],
     createdAt: new Date(instant).toISOString(), updatedAt: new Date(instant).toISOString(), editedAfterWeekEnd: false })
   await app.seedSession(manualWorkoutSession({ workoutDate: '2026-11-17', category: 'bag', parts: ['bag'] }))
-  await expect(weekCard(page)).toContainText('0 z 1 treningów')
-  await weekCard(page).getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
+  await expect(weekCard(page)).toContainText('Ukończone: 0 z 1 jednostki')
+  await weekCard(page).getByRole('link', { name: 'Plan tygodnia →', exact: true }).click()
   await expect(page.getByText('0 z 1 treningów', { exact: true })).toBeVisible()
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
   await expect(page.locator('.status-badge').filter({ hasText: /^Plan$/ })).toBeVisible()
@@ -46,7 +118,7 @@ test('review regression: legacy exact-plan credits agree on Start, Progress and 
   await expect(page.getByText('✓ Zaliczone', { exact: true })).toHaveCount(1)
   await expect(page.getByText('1 z 2 treningów', { exact: true })).toBeVisible()
   await app.open('/')
-  await expect(weekCard(page)).toContainText('1 z 2 treningów')
+  await expect(weekCard(page)).toContainText('Ukończone: 1 z 2 jednostek')
   await app.open('/progress')
   // Progress C (#180) shows completed vs planned workouts in the first tile instead of the old summary line.
   await expect(page.getByLabel('Ten tydzień w liczbach', { exact: true })).toContainText('1 / 2')
@@ -68,11 +140,12 @@ for (const theme of ['dark', 'light'] as const) {
     await page.evaluate(() => document.fonts.ready)
     const action = await entry.boundingBox()
     expect(action!.height).toBeGreaterThanOrEqual(56)
-    expect(action!.y + action!.height / 2).toBeGreaterThanOrEqual(422)
+    await expect(entry).toHaveCSS('text-transform', 'uppercase')
+    expect(action!.y).toBeGreaterThan((await todayCard(page).boundingBox())!.y)
     expect(action!.y + action!.height).toBeLessThan(844 - 72)
-    await expect(todayCard(page).getByRole('link', { name: 'Start', exact: true })).toHaveAttribute('href', '/workouts/bag/active')
-    await expect(weekCard(page).getByRole('link', { name: 'Stoper', exact: true })).toHaveAttribute('href', '/quick-timer')
-    await expect(weekCard(page)).toContainText('0 z 2 treningów · 0 min')
+    await expect(weekCard(page).getByRole('link', { name: '+ Wykonaj w dowolny dzień: Worek', exact: true })).toHaveAttribute('href', `/progress/week/${weekStart}#flexible-workouts`)
+    await expect(weekCard(page).getByRole('link', { name: /^Stoper i inne plany/ })).toHaveAttribute('href', '/workouts')
+    await expect(weekCard(page)).toContainText('Ukończone: 0 z 2 jednostek')
     await expect(page.getByRole('img', { name: 'wtorek: zaplanowany, dziś', exact: true })).toBeVisible()
     for (const width of [320, 360, 390]) {
       await page.setViewportSize({ width, height: 844 })
@@ -99,7 +172,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page).toHaveURL('/')
     await expect(todayCard(page)).toContainText('✓ Zaliczone')
     await expect(todayCard(page).getByRole('link', { name: 'Wpisz trening po zajęciach', exact: true })).toHaveCount(0)
-    await expect(weekCard(page)).toContainText('1 z 2 treningów · 90 min')
+    await expect(weekCard(page)).toContainText('Ukończone: 1 z 2 jednostek')
     const lastSession = page.getByRole('region', { name: 'Ostatnia sesja', exact: true })
     await expect(lastSession).toContainText('90 min')
     await expect(lastSession.locator('.rpe-badge')).toHaveText('RPE 7')
@@ -112,10 +185,10 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/workouts'); await app.setTheme(theme); await app.seedPlan(plan)
     await app.seedWeekPlan(week([{ ...club, day: 3 }, { id: 'rest', kind: 'rest', day: 2 }, own]))
     await app.open('/')
-    await expect(page.getByText('Dziś odpoczynek · następny: czw., muay thai 19:00', { exact: true })).toBeVisible()
+    await expect(page.locator('.home-next-workout')).toContainText('Następny: Muay Thai')
     const quick = page.getByRole('region', { name: 'Szybki start', exact: true })
     await expect(quick.getByRole('link', { name: 'Rozpocznij plan', exact: true })).toHaveAttribute('href', '/workouts/bag/active')
-    await expect(quick.getByRole('link', { name: 'Stoper 3 × 3:00', exact: true })).toHaveAttribute('href', '/quick-timer')
+    await expect(quick.getByRole('link', { name: 'Stoper', exact: true })).toHaveAttribute('href', '/quick-timer')
     await expect(quick.getByRole('link', { name: /^Trening w klubie/ })).toHaveAttribute('href', '/workout-sessions/new')
     await expect(page.getByRole('img', { name: 'środa: wolne, dziś', exact: true })).toBeVisible()
     await accessible(page)
@@ -139,10 +212,10 @@ test('moves only this week with undo and consciously skips today from home', asy
   await todayCard(page).getByRole('button', { name: 'Przenieś dzień', exact: true }).click()
   await todayCard(page).getByRole('combobox', { name: 'Przenieś na…', exact: true }).selectOption('3')
   await expect(todayCard(page)).toHaveCount(0)
-  await expect(page.getByText('Dziś odpoczynek · następny: czw., muay thai 19:00', { exact: true })).toBeVisible()
+  await expect(page.locator('.home-next-workout')).toContainText('Następny: Muay Thai')
   // The move must reach the emulator before the week is re-seeded, or the late write overwrites the seed.
   await expect.poll(async () => (await app.readWeekPlans()).find((plan) => plan.weekStart === weekStart)?.schedule?.[0]).toMatchObject({ day: 3 })
-  await weekCard(page).getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
+  await weekCard(page).getByRole('link', { name: 'Plan tygodnia →', exact: true }).click()
   await expect(page.getByRole('listitem', { name: 'Czwartek 2026-11-19', exact: true })).toContainText('Muay Thai')
   await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Start', exact: true }).click()
   // Returning mounts the same weekly actions; undo is local to that mounted view.
@@ -158,7 +231,7 @@ test('moves only this week with undo and consciously skips today from home', asy
   await expect(todayCard(page)).toHaveCount(0)
   await expect(page.getByRole('img', { name: 'wtorek: nie byłem, dziś', exact: true })).toBeVisible()
   await expect.poll(async () => (await app.readWeekPlans()).find((plan) => plan.weekStart === weekStart)?.schedule?.[0]).toMatchObject({ day: 1, omitted: true })
-  await weekCard(page).getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
+  await weekCard(page).getByRole('link', { name: 'Plan tygodnia →', exact: true }).click()
   await expect(page.getByRole('listitem', { name: 'Wtorek 2026-11-17', exact: true })).toContainText('– Nie byłem')
   expect(await app.readRecurringWeek()).toBeUndefined()
 })
@@ -243,7 +316,7 @@ test('does not overwrite a corrupt week or invent progress and recovers after a 
   await expect(page.getByRole('alert')).toBeVisible()
   await app.seedWeekPlan(week([club]))
   await expect(todayCard(page)).toBeVisible()
-  await expect(weekCard(page)).toContainText('0 z 1 treningów')
+  await expect(weekCard(page)).toContainText('Ukończone: 0 z 1 jednostki')
 })
 
 test('creates the current snapshot from existing recurring classes when home is first opened', async ({ app, page }) => {

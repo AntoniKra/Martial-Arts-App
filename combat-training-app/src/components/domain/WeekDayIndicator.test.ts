@@ -5,6 +5,18 @@ import { WeekDayIndicator } from './WeekDayIndicator'
 import { weekDayState, type WeekDayState } from './weekDayPresentation'
 
 describe('week day presentation', () => {
+  it('uses the Start-only variant and checkmark while preserving the Progress variant', () => {
+    const props = { state: 'done' as const, name: 'Sobota', short: 'So', today: true }
+    const home = renderToStaticMarkup(createElement(WeekDayIndicator, { ...props, variant: 'home' }))
+    const progress = renderToStaticMarkup(createElement(WeekDayIndicator, props))
+    expect(home).toContain('home-week-day')
+    expect(home).toContain('aria-hidden="true">✓</span>')
+    expect(home).toContain('sobota: wykonany, dziś')
+    expect(home).not.toContain('motion-status-change')
+    expect(progress).not.toContain('home-week-day')
+    expect(progress).toContain('<svg')
+    expect(progress).toContain('sobota: wykonany, dziś')
+  })
   it.each([
     [{ done: true, planned: true, missed: true }, 'done'],
     [{ done: false, planned: true, missed: true }, 'missed'],
