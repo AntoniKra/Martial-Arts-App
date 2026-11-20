@@ -359,7 +359,7 @@
     }
 
     /* =========================================================================
-       NAGŁÓWEK EKRANU (Trening ukończony, data, zapisane w dzienniku)
+       NAGŁÓWEK EKRANU (Trening ukończony, data, nazwa planu)
        ========================================================================= */
     .summary-header-block {
       display: flex;
@@ -394,6 +394,16 @@
       background: rgba(63, 181, 107, 0.15);
       border: 1px solid rgba(63, 181, 107, 0.35);
       color: var(--app-success-ink);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .session-plan-name {
+      font-family: var(--app-font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+      letter-spacing: -0.01em;
+      margin-top: 1px;
     }
     .summary-header-sub {
       font-family: var(--app-font-ui);
@@ -531,6 +541,8 @@
       letter-spacing: 0.04em;
       padding: 2px 6px;
       border-radius: var(--app-radius-xs);
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .rpe-badge-countdown {
       background: rgba(240, 117, 58, 0.15);
@@ -733,11 +745,6 @@
     }
     .rpe-saved-left {
       display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .rpe-saved-main-row {
-      display: flex;
       align-items: center;
       gap: 8px;
     }
@@ -756,12 +763,6 @@
       font-size: 16px;
       font-weight: 800;
       color: var(--app-ink);
-    }
-    .rpe-saved-load-calc {
-      font-family: var(--app-font-ui);
-      font-size: 11.5px;
-      color: var(--app-muted);
-      font-variant-numeric: tabular-nums;
     }
     .btn-rpe-edit {
       font-family: var(--app-font-display);
@@ -869,7 +870,7 @@
     .rpe-saved-a2-card {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       background: var(--app-elevated);
       border: 1px solid var(--app-border);
       border-radius: var(--app-radius-sm);
@@ -1045,6 +1046,40 @@
       line-height: 1.25;
       letter-spacing: -0.01em;
     }
+
+    /* Box Celu */
+    .b1-criterion-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-xs);
+      padding: 6px 10px;
+      min-height: 36px;
+    }
+    .b1-criterion-tag {
+      font-family: var(--app-font-display);
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 6px;
+      border-radius: var(--app-radius-xs);
+      background: rgba(184, 16, 42, 0.2);
+      border: 1px solid rgba(184, 16, 42, 0.45);
+      color: var(--app-crimson-ink);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .b1-criterion-text {
+      font-family: var(--app-font-ui);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--app-ink);
+      line-height: 1.35;
+    }
+
     .b1-goal-cue-box {
       background: var(--app-elevated);
       border: 1px solid var(--app-border);
@@ -1203,6 +1238,11 @@
       display: flex;
       align-items: center;
     }
+    .b1-level-prefix {
+      white-space: nowrap;
+      font-weight: 800;
+      font-family: var(--app-font-display);
+    }
     .b1-scale-actions-row {
       display: flex;
       justify-content: space-between;
@@ -1314,6 +1354,18 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--app-muted);
+    }
+    .b2-criterion-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--app-font-ui);
+      font-size: 12px;
+      color: var(--app-ink);
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-xs);
+      padding: 6px 10px;
     }
     .b2-accent-cue-panel {
       border-left: 3px solid var(--app-crimson-ink);
@@ -1704,7 +1756,7 @@
           </div>
 
           <div class="summary-screen-content">
-            <!-- Nagłówek ekranu -->
+            <!-- Nagłówek ekranu: przywrócona nazwa planu "Boks: siła i technika" -->
             <div class="summary-header-block">
               <div class="summary-header-top-row">
                 <h2 class="summary-page-title">Trening ukończony</h2>
@@ -1713,10 +1765,11 @@
                   Zapisane
                 </span>
               </div>
+              <h3 class="session-plan-name">Boks: siła i technika</h3>
               <p class="summary-header-sub">Zapisane w dzienniku. Oceny dopiszą się do wpisu.</p>
             </div>
 
-            <!-- SEKCJA 1: 1B Karta Hero z czasem pracy (POPRAWKA: bez "z 48:15 łącznego") -->
+            <!-- SEKCJA 1: 1B Karta Hero z czasem pracy (bez "z 48:15 łącznego") -->
             <section class="session-card-1b" aria-label="Podsumowanie czasu sesji">
               <div class="hero-time-box">
                 <span class="hero-eyebrow">
@@ -1741,22 +1794,110 @@
               </div>
             </section>
 
-            <!-- SEKCJA 2: Karta RPE w stanie 2A (Odliczanie 10 minut) -->
+            <!-- SEKCJA 2: Karta RPE w telefonie 1 (Odliczanie 10 min -> otwarcie skali) -->
             <section class="rpe-container-card" aria-label="Ocena zmęczenia RPE">
-              <div class="rpe-card-header">
-                <span class="rpe-card-title">RPE · zmęczenie całym treningiem</span>
-                <span class="rpe-card-badge rpe-badge-countdown">Odliczanie</span>
-              </div>
-              <div class="rpe-countdown-box">
-                <div class="countdown-display-row">
-                  <span class="countdown-caption">Zapytamy za</span>
-                  <span class="countdown-digits">09:42</span>
+              <!-- Stan odliczania -->
+              <div id="p1-rpe-countdown-wrap">
+                <div class="rpe-card-header">
+                  <span class="rpe-card-title">RPE · zmęczenie całym treningiem</span>
+                  <span class="rpe-card-badge rpe-badge-countdown">Odliczanie</span>
                 </div>
-                <button type="button" class="btn-rpe-now" onclick="alert('W aplikacji: otwiera wybraną skalę RPE 0–10.')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  Oceń teraz
-                </button>
-                <p class="rpe-quiet-note">Ocena ok. 10 minut po treningu jest pewniejsza. Gong da znać.</p>
+                <div class="rpe-countdown-box">
+                  <div class="countdown-display-row">
+                    <span class="countdown-caption">Zapytamy za</span>
+                    <span class="countdown-digits">09:42</span>
+                  </div>
+                  <button type="button" class="btn-rpe-now" onclick="openRpeSelection('p1')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Oceń teraz
+                  </button>
+                  <p class="rpe-quiet-note">Ocena ok. 10 minut po treningu jest pewniejsza. Gong da znać.</p>
+                </div>
+              </div>
+
+              <!-- Stan wyboru w Phone 1 po kliknięciu "Oceń teraz" -->
+              <div id="p1-rpe-active-wrap" style="display: none; flex-direction: column; gap: 10px;">
+                <div class="rpe-card-header">
+                  <span class="rpe-card-title">RPE · zmęczenie całym treningiem</span>
+                  <span class="rpe-card-badge rpe-badge-active">Wybór 0–10</span>
+                </div>
+
+                <!-- A1 w Phone 1 -->
+                <div class="rpe-a1-matrix rpe-view-a1">
+                  <div>
+                    <h4 class="foster-question-title">Jak ciężki był cały trening?</h4>
+                    <p class="foster-question-help">Pomyśl o całym treningu, od rozgrzewki do ostatniej rundy.</p>
+                  </div>
+                  <div class="rpe-a1-grid" role="radiogroup" aria-label="Skala Fostera 0–10">
+                    <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(0, event, 'p1')"><span class="rpe-num">0</span></button>
+                    <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(1, event, 'p1')"><span class="rpe-num">1</span></button>
+                    <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(2, event, 'p1')"><span class="rpe-num">2</span></button>
+                    <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(3, event, 'p1')"><span class="rpe-num">3</span></button>
+                    <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(4, event, 'p1')"><span class="rpe-num">4</span></button>
+                    <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(5, event, 'p1')"><span class="rpe-num">5</span></button>
+                    <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(6, event, 'p1')"><span class="rpe-num">6</span></button>
+                    <button type="button" class="rpe-a1-btn is-selected" onclick="selectRpeA1(7, event, 'p1')"><span class="rpe-num">7</span></button>
+                    <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(8, event, 'p1')"><span class="rpe-num">8</span></button>
+                    <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(9, event, 'p1')"><span class="rpe-num">9</span></button>
+                    <button type="button" class="rpe-a1-btn" style="grid-column: span 2;" onclick="selectRpeA1(10, event, 'p1')"><span class="rpe-num">10 · Maks</span></button>
+                  </div>
+                  <div class="rpe-a1-banner">
+                    <span id="p1-rpe-a1-num" class="rpe-a1-banner-badge">7</span>
+                    <span id="p1-rpe-a1-text" class="rpe-a1-banner-text">Bardzo ciężko</span>
+                  </div>
+                  <div class="rpe-a1-anchors-row">
+                    <span>0 Odpoczynek</span>
+                    <span>5 Ciężko</span>
+                    <span>10 Maksymalnie</span>
+                  </div>
+                </div>
+
+                <!-- A2 w Phone 1 -->
+                <div class="rpe-a2-telemetry rpe-view-a2">
+                  <div class="rpe-a2-gauge-center">
+                    <span id="p1-a2-big-num" class="rpe-a2-big-num">7</span>
+                    <span id="p1-a2-big-desc" class="rpe-a2-big-desc">Bardzo ciężko</span>
+                  </div>
+                  <div id="p1-a2-segments" class="rpe-a2-segments-bar">
+                    <div class="rpe-a2-seg is-filled"></div>
+                    <div class="rpe-a2-seg is-filled"></div>
+                    <div class="rpe-a2-seg is-filled"></div>
+                    <div class="rpe-a2-seg is-filled"></div>
+                    <div class="rpe-a2-seg is-filled"></div>
+                    <div class="rpe-a2-seg is-filled"></div>
+                    <div class="rpe-a2-seg is-filled"></div>
+                    <div class="rpe-a2-seg is-current"></div>
+                    <div class="rpe-a2-seg"></div>
+                    <div class="rpe-a2-seg"></div>
+                    <div class="rpe-a2-seg"></div>
+                  </div>
+                  <div class="rpe-a2-stepper-row">
+                    <button type="button" class="btn-a2-step" aria-label="Zmniejsz RPE" onclick="stepRpeA2(-1, 'p1')">−</button>
+                    <span class="rpe-a2-range-label">0 Odpoczynek ··· 10 Maksimum</span>
+                    <button type="button" class="btn-a2-step" aria-label="Zwiększ RPE" onclick="stepRpeA2(1, 'p1')">+</button>
+                  </div>
+                </div>
+
+                <!-- A3 w Phone 1 -->
+                <div class="rpe-a3-zones rpe-view-a3">
+                  <div class="rpe-a3-zone-row" onclick="selectZoneA3(this, 1)">
+                    <div class="rpe-a3-zone-header"><span>Strefa 1 · Regeneracja (0–2)</span><span class="zone-tag">Łatwo</span></div>
+                  </div>
+                  <div class="rpe-a3-zone-row" onclick="selectZoneA3(this, 2)">
+                    <div class="rpe-a3-zone-header"><span>Strefa 2 · Tlenowa (3–4)</span><span class="zone-tag">Umiarkowanie</span></div>
+                  </div>
+                  <div class="rpe-a3-zone-row is-active" onclick="selectZoneA3(this, 3)">
+                    <div class="rpe-a3-zone-header"><span>Strefa 3 · Wysiłek twardy (5–7)</span><span class="zone-tag">Ciężko</span></div>
+                    <div class="rpe-a3-zone-items">
+                      <button type="button" class="rpe-a3-item-btn" onclick="selectItemA3(this, 5, event)"><span class="item-num">5</span><span>5 · Ciężko</span></button>
+                      <button type="button" class="rpe-a3-item-btn" onclick="selectItemA3(this, 6, event)"><span class="item-num">6</span><span>6 · Między ciężko a bardzo ciężko</span></button>
+                      <button type="button" class="rpe-a3-item-btn is-selected" onclick="selectItemA3(this, 7, event)"><span class="item-num">7</span><span>7 · Bardzo ciężko</span></button>
+                    </div>
+                  </div>
+                  <div class="rpe-a3-zone-row" onclick="selectZoneA3(this, 4)">
+                    <div class="rpe-a3-zone-header"><span>Strefa 4 · Maksymalna (8–10)</span><span class="zone-tag">Maksimum</span></div>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -1767,9 +1908,15 @@
                 <div class="b1-header-row">
                   <div>
                     <span class="b1-tag-discipline">Boks · Tarcze</span>
-                    <h3 class="b1-element-title">Ręka wraca do brody przed następnym ciosem</h3>
+                    <h4 class="b1-element-title">Lewy prosty, powrót do gardy</h4>
                   </div>
                   <span class="b1-status-pill">Ostatnio 4/5 · 14.11</span>
+                </div>
+
+                <!-- Cel -->
+                <div class="b1-criterion-box">
+                  <span class="b1-criterion-tag">Cel</span>
+                  <p class="b1-criterion-text">Ręka wraca do brody przed następnym ciosem</p>
                 </div>
 
                 <div class="b1-goal-cue-box">
@@ -1832,7 +1979,11 @@
                   <span>Boks · Cel główny</span>
                   <span>Ostatnio: 4/5 (14.11)</span>
                 </div>
-                <h3 class="b1-element-title">Ręka wraca do brody przed następnym ciosem</h3>
+                <h4 class="b1-element-title">Lewy prosty, powrót do gardy</h4>
+                <div class="b2-criterion-line">
+                  <span class="b1-criterion-tag">Cel</span>
+                  <span class="b1-criterion-text">Ręka wraca do brody przed następnym ciosem</span>
+                </div>
                 <div class="b2-accent-cue-panel">
                   <div class="b1-cue-item b1-error"><strong>BŁĄD:</strong> po jabie opuszczam łokieć</div>
                   <div class="b1-cue-item b1-tip"><strong>WSKAZÓWKA:</strong> łokieć przy żebrach, powrót po tej samej linii</div>
@@ -1868,7 +2019,11 @@
                   <span class="b3-pill" style="color: var(--app-ember-ink); border-color: rgba(240,117,58,0.4);">Boks · Tarcze</span>
                   <span class="b3-pill">Ostatnio: 4/5 (14.11)</span>
                 </div>
-                <h3 class="b1-element-title">Ręka wraca do brody przed następnym ciosem</h3>
+                <h4 class="b1-element-title">Lewy prosty, powrót do gardy</h4>
+                <div class="b1-criterion-box" style="margin-bottom: 2px;">
+                  <span class="b1-criterion-tag">Cel</span>
+                  <p class="b1-criterion-text">Ręka wraca do brody przed następnym ciosem</p>
+                </div>
                 <div class="b3-coach-tiles-grid">
                   <div class="b3-coach-tile error-tile">
                     <span class="b3-tile-eyebrow">Błąd</span>
@@ -1971,7 +2126,7 @@
           </div>
 
           <div class="summary-screen-content">
-            <!-- Nagłówek ekranu -->
+            <!-- Nagłówek ekranu: przywrócona nazwa planu "Boks: siła i technika" -->
             <div class="summary-header-block">
               <div class="summary-header-top-row">
                 <h2 class="summary-page-title">Trening ukończony</h2>
@@ -1980,6 +2135,7 @@
                   Zapisane
                 </span>
               </div>
+              <h3 class="session-plan-name">Boks: siła i technika</h3>
               <p class="summary-header-sub">Zapisane w dzienniku. Oceny dopiszą się do wpisu.</p>
             </div>
 
@@ -2023,17 +2179,17 @@
                 </div>
 
                 <div class="rpe-a1-grid" role="radiogroup" aria-label="Skala Fostera 0–10">
-                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(0, event)"><span class="rpe-num">0</span></button>
-                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(1, event)"><span class="rpe-num">1</span></button>
-                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(2, event)"><span class="rpe-num">2</span></button>
-                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(3, event)"><span class="rpe-num">3</span></button>
-                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(4, event)"><span class="rpe-num">4</span></button>
-                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(5, event)"><span class="rpe-num">5</span></button>
-                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(6, event)"><span class="rpe-num">6</span></button>
-                  <button type="button" class="rpe-a1-btn is-selected" onclick="selectRpeA1(7, event)"><span class="rpe-num">7</span></button>
-                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(8, event)"><span class="rpe-num">8</span></button>
-                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(9, event)"><span class="rpe-num">9</span></button>
-                  <button type="button" class="rpe-a1-btn" style="grid-column: span 2;" onclick="selectRpeA1(10, event)"><span class="rpe-num">10 · Maks</span></button>
+                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(0, event, 'p2')"><span class="rpe-num">0</span></button>
+                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(1, event, 'p2')"><span class="rpe-num">1</span></button>
+                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(2, event, 'p2')"><span class="rpe-num">2</span></button>
+                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(3, event, 'p2')"><span class="rpe-num">3</span></button>
+                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(4, event, 'p2')"><span class="rpe-num">4</span></button>
+                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(5, event, 'p2')"><span class="rpe-num">5</span></button>
+                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(6, event, 'p2')"><span class="rpe-num">6</span></button>
+                  <button type="button" class="rpe-a1-btn is-selected" onclick="selectRpeA1(7, event, 'p2')"><span class="rpe-num">7</span></button>
+                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(8, event, 'p2')"><span class="rpe-num">8</span></button>
+                  <button type="button" class="rpe-a1-btn" onclick="selectRpeA1(9, event, 'p2')"><span class="rpe-num">9</span></button>
+                  <button type="button" class="rpe-a1-btn" style="grid-column: span 2;" onclick="selectRpeA1(10, event, 'p2')"><span class="rpe-num">10 · Maks</span></button>
                 </div>
 
                 <div class="rpe-a1-banner">
@@ -2047,7 +2203,7 @@
                   <span>10 Maksymalnie</span>
                 </div>
 
-                <button type="button" class="btn-confirm-rpe" onclick="alert('RPE 7 zapisane!')">
+                <button type="button" class="btn-confirm-rpe" onclick="alert('RPE 7 zatwierdzone!')">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                   Zatwierdź RPE: 7
                 </button>
@@ -2080,9 +2236,9 @@
                 </div>
 
                 <div class="rpe-a2-stepper-row">
-                  <button type="button" class="btn-a2-step" aria-label="Zmniejsz RPE" onclick="stepRpeA2(-1)">−</button>
+                  <button type="button" class="btn-a2-step" aria-label="Zmniejsz RPE" onclick="stepRpeA2(-1, 'p2')">−</button>
                   <span class="rpe-a2-range-label">0 Odpoczynek ··· 10 Maksimum</span>
-                  <button type="button" class="btn-a2-step" aria-label="Zwiększ RPE" onclick="stepRpeA2(1)">+</button>
+                  <button type="button" class="btn-a2-step" aria-label="Zwiększ RPE" onclick="stepRpeA2(1, 'p2')">+</button>
                 </div>
 
                 <button type="button" class="btn-confirm-rpe" onclick="alert('RPE 7 zapisane!')">
@@ -2099,46 +2255,24 @@
                 </div>
 
                 <div class="rpe-a3-zone-row" onclick="selectZoneA3(this, 1)">
-                  <div class="rpe-a3-zone-header">
-                    <span>Strefa 1 · Regeneracja (0–2)</span>
-                    <span class="zone-tag">Łatwo</span>
-                  </div>
+                  <div class="rpe-a3-zone-header"><span>Strefa 1 · Regeneracja (0–2)</span><span class="zone-tag">Łatwo</span></div>
                 </div>
 
                 <div class="rpe-a3-zone-row" onclick="selectZoneA3(this, 2)">
-                  <div class="rpe-a3-zone-header">
-                    <span>Strefa 2 · Tlenowa (3–4)</span>
-                    <span class="zone-tag">Umiarkowanie</span>
-                  </div>
+                  <div class="rpe-a3-zone-header"><span>Strefa 2 · Tlenowa (3–4)</span><span class="zone-tag">Umiarkowanie</span></div>
                 </div>
 
                 <div class="rpe-a3-zone-row is-active" onclick="selectZoneA3(this, 3)">
-                  <div class="rpe-a3-zone-header">
-                    <span>Strefa 3 · Wysiłek twardy (5–7)</span>
-                    <span class="zone-tag">Ciężko</span>
-                  </div>
+                  <div class="rpe-a3-zone-header"><span>Strefa 3 · Wysiłek twardy (5–7)</span><span class="zone-tag">Ciężko</span></div>
                   <div class="rpe-a3-zone-items">
-                    <button type="button" class="rpe-a3-item-btn" onclick="selectItemA3(this, 5, event)">
-                      <span class="item-num">5</span>
-                      <span>5 · Ciężko</span>
-                    </button>
-                    <button type="button" class="rpe-a3-item-btn" onclick="selectItemA3(this, 6, event)">
-                      <span class="item-num">6</span>
-                      <span>6 · Między ciężko a bardzo ciężko</span>
-                    </button>
-                    <button type="button" class="rpe-a3-item-btn is-selected" onclick="selectItemA3(this, 7, event)">
-                      <span class="item-num">7</span>
-                      <span>7 · Bardzo ciężko</span>
-                      <svg style="margin-left:auto;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                    </button>
+                    <button type="button" class="rpe-a3-item-btn" onclick="selectItemA3(this, 5, event)"><span class="item-num">5</span><span>5 · Ciężko</span></button>
+                    <button type="button" class="rpe-a3-item-btn" onclick="selectItemA3(this, 6, event)"><span class="item-num">6</span><span>6 · Między ciężko a bardzo ciężko</span></button>
+                    <button type="button" class="rpe-a3-item-btn is-selected" onclick="selectItemA3(this, 7, event)"><span class="item-num">7</span><span>7 · Bardzo ciężko</span></button>
                   </div>
                 </div>
 
                 <div class="rpe-a3-zone-row" onclick="selectZoneA3(this, 4)">
-                  <div class="rpe-a3-zone-header">
-                    <span>Strefa 4 · Maksymalna (8–10)</span>
-                    <span class="zone-tag">Maksimum</span>
-                  </div>
+                  <div class="rpe-a3-zone-header"><span>Strefa 4 · Maksymalna (8–10)</span><span class="zone-tag">Maksimum</span></div>
                 </div>
 
                 <button type="button" class="btn-confirm-rpe" onclick="alert('RPE 7 zapisane!')">
@@ -2155,9 +2289,15 @@
                 <div class="b1-header-row">
                   <div>
                     <span class="b1-tag-discipline">Boks · Tarcze</span>
-                    <h3 class="b1-element-title">Ręka wraca do brody przed następnym ciosem</h3>
+                    <h4 class="b1-element-title">Lewy prosty, powrót do gardy</h4>
                   </div>
                   <span class="b1-status-pill">Ostatnio 4/5 · 14.11</span>
+                </div>
+
+                <!-- Cel -->
+                <div class="b1-criterion-box">
+                  <span class="b1-criterion-tag">Cel</span>
+                  <p class="b1-criterion-text">Ręka wraca do brody przed następnym ciosem</p>
                 </div>
 
                 <div class="b1-goal-cue-box">
@@ -2191,7 +2331,7 @@
                     <button type="button" class="btn-skill-sq" onclick="selectSkillLevel('p2', 5)"><span class="sq-num">5</span></button>
                   </div>
                   <div id="p2-b1-banner" class="b1-level-banner">
-                    <strong>Poziom 4:</strong>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.
+                    <span class="b1-level-prefix">Poziom 4:</span>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.
                   </div>
                   <div class="b1-scale-actions-row">
                     <button type="button" class="btn-inline-text" onclick="setSkillSpecial('p2', 'unrated')">Nie umiem ocenić</button>
@@ -2223,7 +2363,11 @@
                   <span>Boks · Cel główny</span>
                   <span>Ostatnio: 4/5 (14.11)</span>
                 </div>
-                <h3 class="b1-element-title">Ręka wraca do brody przed następnym ciosem</h3>
+                <h4 class="b1-element-title">Lewy prosty, powrót do gardy</h4>
+                <div class="b2-criterion-line">
+                  <span class="b1-criterion-tag">Cel</span>
+                  <span class="b1-criterion-text">Ręka wraca do brody przed następnym ciosem</span>
+                </div>
                 <div class="b2-accent-cue-panel">
                   <div class="b1-cue-item b1-error"><strong>BŁĄD:</strong> po jabie opuszczam łokieć</div>
                   <div class="b1-cue-item b1-tip"><strong>WSKAZÓWKA:</strong> łokieć przy żebrach, powrót po tej samej linii</div>
@@ -2245,7 +2389,7 @@
                     <button type="button" class="btn-skill-sq is-selected" onclick="selectSkillLevel('p2', 4)"><span class="last-indicator">ostatnio</span><span class="sq-num">4</span></button>
                     <button type="button" class="btn-skill-sq" onclick="selectSkillLevel('p2', 5)"><span class="sq-num">5</span></button>
                   </div>
-                  <div class="b1-level-banner"><strong>Poziom 4:</strong>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.</div>
+                  <div class="b1-level-banner"><span class="b1-level-prefix">Poziom 4:</span>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.</div>
                 </div>
                 <button type="button" class="btn-toggle-note-form" onclick="toggleNoteDrawer('p2')">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2259,7 +2403,11 @@
                   <span class="b3-pill" style="color: var(--app-ember-ink); border-color: rgba(240,117,58,0.4);">Boks · Tarcze</span>
                   <span class="b3-pill">Ostatnio: 4/5 (14.11)</span>
                 </div>
-                <h3 class="b1-element-title">Ręka wraca do brody przed następnym ciosem</h3>
+                <h4 class="b1-element-title">Lewy prosty, powrót do gardy</h4>
+                <div class="b1-criterion-box" style="margin-bottom: 2px;">
+                  <span class="b1-criterion-tag">Cel</span>
+                  <p class="b1-criterion-text">Ręka wraca do brody przed następnym ciosem</p>
+                </div>
                 <div class="b3-coach-tiles-grid">
                   <div class="b3-coach-tile error-tile">
                     <span class="b3-tile-eyebrow">Błąd</span>
@@ -2290,7 +2438,7 @@
                     <button type="button" class="btn-skill-sq is-selected" onclick="selectSkillLevel('p2', 4)"><span class="last-indicator">ostatnio</span><span class="sq-num">4</span></button>
                     <button type="button" class="btn-skill-sq" onclick="selectSkillLevel('p2', 5)"><span class="sq-num">5</span></button>
                   </div>
-                  <div class="b1-level-banner"><strong>Poziom 4:</strong>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.</div>
+                  <div class="b1-level-banner"><span class="b1-level-prefix">Poziom 4:</span>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.</div>
                 </div>
                 <button type="button" class="btn-toggle-note-form" onclick="toggleNoteDrawer('p2')">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2353,7 +2501,7 @@
       <div class="phone-column">
         <div class="phone-header-meta">
           <div class="phone-state-badge state-3">(3) RPE ZAPISANE · ROZWINIĘTA NOTATKA BŁĄD/WSKAZÓWKA</div>
-          <p class="phone-state-desc">Zapisane RPE 7 (336 AU) · Cel 4/5 · Rozwinięty formularz nowej wskazówki na przyszłość</p>
+          <p class="phone-state-desc">Zapisane RPE 7 · Cel 4/5 · Rozwinięty formularz nowej wskazówki na przyszłość</p>
         </div>
 
         <div id="phone3" class="phone-device var-a1 var-b1">
@@ -2368,7 +2516,7 @@
           </div>
 
           <div class="summary-screen-content">
-            <!-- Nagłówek ekranu -->
+            <!-- Nagłówek ekranu: przywrócona nazwa planu "Boks: siła i technika" -->
             <div class="summary-header-block">
               <div class="summary-header-top-row">
                 <h2 class="summary-page-title">Trening ukończony</h2>
@@ -2377,6 +2525,7 @@
                   Zapisane
                 </span>
               </div>
+              <h3 class="session-plan-name">Boks: siła i technika</h3>
               <p class="summary-header-sub">Zapisane w dzienniku. Oceny dopiszą się do wpisu.</p>
             </div>
 
@@ -2405,7 +2554,7 @@
               </div>
             </section>
 
-            <!-- SEKCJA 2: Karta RPE w stanie ZAPISANYM (A1 / A2 / A3) -->
+            <!-- SEKCJA 2: Karta RPE w stanie ZAPISANYM (A1 / A2 / A3) - USUNIĘTO OBICIĄŻENIE AU -->
             <section class="rpe-container-card" aria-label="Ocena zmęczenia RPE">
               <div class="rpe-card-header">
                 <span class="rpe-card-title">RPE · zmęczenie całym treningiem</span>
@@ -2415,20 +2564,17 @@
               <!-- Wariant A1 po zapisie: Zwinięty moduł RPE -->
               <div class="rpe-saved-a1-card rpe-view-a1">
                 <div class="rpe-saved-left">
-                  <div class="rpe-saved-main-row">
-                    <span class="rpe-saved-badge">RPE 7</span>
-                    <span class="rpe-saved-text">Bardzo ciężko</span>
-                  </div>
-                  <span class="rpe-saved-load-calc">Obciążenie: 48 min × 7 = 336 AU</span>
+                  <span class="rpe-saved-badge">RPE 7</span>
+                  <span class="rpe-saved-text">Bardzo ciężko</span>
                 </div>
-                <button type="button" class="btn-rpe-edit" onclick="alert('W aplikacji: ponowne otwarcie wyboru RPE.')">Zmień</button>
+                <button type="button" class="btn-rpe-edit" onclick="openRpeSelection('p3')">Zmień</button>
               </div>
 
               <!-- Wariant A2 po zapisie: Telemetryczny zablokowany pasek -->
               <div class="rpe-saved-a2-card rpe-view-a2">
                 <div class="rpe-saved-a2-top">
                   <span class="rpe-saved-a2-title">RPE 7 · BARDZO CIĘŻKO</span>
-                  <button type="button" class="btn-rpe-edit" onclick="alert('W aplikacji: ponowne otwarcie wyboru RPE.')">Zmień</button>
+                  <button type="button" class="btn-rpe-edit" onclick="openRpeSelection('p3')">Zmień</button>
                 </div>
                 <div class="rpe-a2-segments-bar">
                   <div class="rpe-a2-seg is-filled"></div>
@@ -2443,19 +2589,15 @@
                   <div class="rpe-a2-seg"></div>
                   <div class="rpe-a2-seg"></div>
                 </div>
-                <span class="rpe-saved-load-calc">Sesja 48 min · Obciążenie 336 AU</span>
               </div>
 
               <!-- Wariant A3 po zapisie: Karta Strefy -->
               <div class="rpe-saved-a3-card rpe-view-a3">
                 <div class="rpe-saved-left">
-                  <div class="rpe-saved-main-row">
-                    <span class="rpe-saved-badge" style="background: var(--app-crimson);">STREFA 3 · RPE 7</span>
-                    <span class="rpe-saved-text">Bardzo ciężko</span>
-                  </div>
-                  <span class="rpe-saved-load-calc">Obciążenie: 336 AU (48 min)</span>
+                  <span class="rpe-saved-badge" style="background: var(--app-crimson);">STREFA 3 · RPE 7</span>
+                  <span class="rpe-saved-text">Bardzo ciężko</span>
                 </div>
-                <button type="button" class="btn-rpe-edit" onclick="alert('W aplikacji: ponowne otwarcie wyboru RPE.')">Zmień</button>
+                <button type="button" class="btn-rpe-edit" onclick="openRpeSelection('p3')">Zmień</button>
               </div>
             </section>
 
@@ -2466,9 +2608,15 @@
                 <div class="b1-header-row">
                   <div>
                     <span class="b1-tag-discipline">Boks · Tarcze</span>
-                    <h3 class="b1-element-title">Ręka wraca do brody przed następnym ciosem</h3>
+                    <h4 class="b1-element-title">Lewy prosty, powrót do gardy</h4>
                   </div>
                   <span class="b1-status-pill">Ostatnio 4/5 · 14.11</span>
+                </div>
+
+                <!-- Cel -->
+                <div class="b1-criterion-box">
+                  <span class="b1-criterion-tag">Cel</span>
+                  <p class="b1-criterion-text">Ręka wraca do brody przed następnym ciosem</p>
                 </div>
 
                 <div class="b1-goal-cue-box">
@@ -2498,7 +2646,7 @@
                     <button type="button" class="btn-skill-sq is-selected" onclick="selectSkillLevel('p3', 4)"><span class="last-indicator">ostatnio</span><span class="sq-num">4</span></button>
                     <button type="button" class="btn-skill-sq" onclick="selectSkillLevel('p3', 5)"><span class="sq-num">5</span></button>
                   </div>
-                  <div id="p3-b1-banner" class="b1-level-banner"><strong>Poziom 4:</strong>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.</div>
+                  <div id="p3-b1-banner" class="b1-level-banner"><span class="b1-level-prefix">Poziom 4:</span>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.</div>
                   <div class="b1-scale-actions-row">
                     <button type="button" class="btn-inline-text" onclick="setSkillSpecial('p3', 'unrated')">Nie umiem ocenić</button>
                     <button type="button" class="btn-inline-text danger" onclick="setSkillSpecial('p3', 'clear')">Wyczyść ocenę</button>
@@ -2526,7 +2674,11 @@
                   <span>Boks · Cel główny</span>
                   <span>Ostatnio: 4/5 (14.11)</span>
                 </div>
-                <h3 class="b1-element-title">Ręka wraca do brody przed następnym ciosem</h3>
+                <h4 class="b1-element-title">Lewy prosty, powrót do gardy</h4>
+                <div class="b2-criterion-line">
+                  <span class="b1-criterion-tag">Cel</span>
+                  <span class="b1-criterion-text">Ręka wraca do brody przed następnym ciosem</span>
+                </div>
                 <div class="b2-accent-cue-panel">
                   <div class="b1-cue-item b1-error"><strong>BŁĄD:</strong> po jabie opuszczam łokieć</div>
                   <div class="b1-cue-item b1-tip"><strong>WSKAZÓWKA:</strong> łokieć przy żebrach, powrót po tej samej linii</div>
@@ -2548,7 +2700,7 @@
                     <button type="button" class="btn-skill-sq is-selected" onclick="selectSkillLevel('p3', 4)"><span class="last-indicator">ostatnio</span><span class="sq-num">4</span></button>
                     <button type="button" class="btn-skill-sq" onclick="selectSkillLevel('p3', 5)"><span class="sq-num">5</span></button>
                   </div>
-                  <div class="b1-level-banner"><strong>Poziom 4:</strong>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.</div>
+                  <div class="b1-level-banner"><span class="b1-level-prefix">Poziom 4:</span>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.</div>
                 </div>
                 <div class="note-expanded-drawer">
                   <span class="note-drawer-title">Notatka: jeden błąd i jedna wskazówka</span>
@@ -2570,7 +2722,11 @@
                   <span class="b3-pill" style="color: var(--app-ember-ink); border-color: rgba(240,117,58,0.4);">Boks · Tarcze</span>
                   <span class="b3-pill">Ostatnio: 4/5 (14.11)</span>
                 </div>
-                <h3 class="b1-element-title">Ręka wraca do brody przed następnym ciosem</h3>
+                <h4 class="b1-element-title">Lewy prosty, powrót do gardy</h4>
+                <div class="b1-criterion-box" style="margin-bottom: 2px;">
+                  <span class="b1-criterion-tag">Cel</span>
+                  <p class="b1-criterion-text">Ręka wraca do brody przed następnym ciosem</p>
+                </div>
                 <div class="b3-coach-tiles-grid">
                   <div class="b3-coach-tile error-tile">
                     <span class="b3-tile-eyebrow">Błąd</span>
@@ -2601,7 +2757,7 @@
                     <button type="button" class="btn-skill-sq is-selected" onclick="selectSkillLevel('p3', 4)"><span class="last-indicator">ostatnio</span><span class="sq-num">4</span></button>
                     <button type="button" class="btn-skill-sq" onclick="selectSkillLevel('p3', 5)"><span class="sq-num">5</span></button>
                   </div>
-                  <div class="b1-level-banner"><strong>Poziom 4:</strong>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.</div>
+                  <div class="b1-level-banner"><span class="b1-level-prefix">Poziom 4:</span>&nbsp;Zwykle się udaje, błąd sam łapię i poprawiam.</div>
                 </div>
                 <div class="note-expanded-drawer">
                   <span class="note-drawer-title">Notatka: jeden błąd i jedna wskazówka</span>
@@ -2649,7 +2805,7 @@
                       <button type="button" class="btn-skill-sq"><span class="sq-num">5</span></button>
                     </div>
                     <div class="b1-level-banner" style="margin-top: 4px;">
-                      <strong>Poziom 4:</strong>&nbsp;Dobrze i powtarzalnie.
+                      <span class="b1-level-prefix">Poziom 4:</span>&nbsp;Dobrze i powtarzalnie.
                     </div>
                   </div>
                 </div>
@@ -2691,16 +2847,16 @@
     };
 
     const SKILL_LEVEL_DESCRIPTIONS = {
-      1: 'Poziom 1: Nie udaje się nawet w prostej próbie.',
-      2: 'Poziom 2: Udaje się czasem, zwykle przerywam, żeby poprawić.',
-      3: 'Poziom 3: Udaje się, gdy świadomie pilnuję wskazówki.',
-      4: 'Poziom 4: Zwykle się udaje, błąd sam łapię i poprawiam.',
-      5: 'Poziom 5: Udaje się bez myślenia o wskazówce.'
+      1: 'Nie udaje się nawet w prostej próbie.',
+      2: 'Udaje się czasem, zwykle przerywam, żeby poprawić.',
+      3: 'Udaje się, gdy świadomie pilnuję wskazówki.',
+      4: 'Zwykle się udaje, błąd sam łapię i poprawiam.',
+      5: 'Udaje się bez myślenia o wskazówce.'
     };
 
     let currentVarA = 'a1';
     let currentVarB = 'b1';
-    let currentRpeValA2 = 7;
+    let currentRpeValA2 = { p1: 7, p2: 7, p3: 7 };
 
     function setViewportWidth(w) {
       document.querySelectorAll('.phone-device').forEach(el => {
@@ -2772,33 +2928,47 @@
       document.getElementById('btnPreset3').classList.toggle('is-active-crimson', isP3);
     }
 
+    // Otwarcie wyboru RPE w Phone 1
+    function openRpeSelection(phoneId) {
+      const cd = document.getElementById(phoneId + '-rpe-countdown-wrap');
+      const act = document.getElementById(phoneId + '-rpe-active-wrap');
+      if (cd && act) {
+        cd.style.display = 'none';
+        act.style.display = 'flex';
+      }
+    }
+
     // Interakcja A1: Matryca 0–10
-    function selectRpeA1(num, evt) {
-      const bannerNum = document.getElementById('p2-rpe-a1-num');
-      const bannerText = document.getElementById('p2-rpe-a1-text');
+    function selectRpeA1(num, evt, phoneId) {
+      const pid = phoneId || 'p2';
+      const bannerNum = document.getElementById(pid + '-rpe-a1-num');
+      const bannerText = document.getElementById(pid + '-rpe-a1-text');
       if (bannerNum) bannerNum.textContent = num;
       if (bannerText) bannerText.textContent = FOSTER_DESCRIPTIONS[num] || '';
       
-      const p2 = document.getElementById('phone2');
-      if (p2) {
-        p2.querySelectorAll('.rpe-a1-btn').forEach(btn => btn.classList.remove('is-selected'));
+      const phoneEl = document.getElementById(pid === 'p1' ? 'phone1' : pid === 'p3' ? 'phone3' : 'phone2');
+      if (phoneEl) {
+        phoneEl.querySelectorAll('.rpe-a1-btn').forEach(btn => btn.classList.remove('is-selected'));
         if (evt && evt.currentTarget) evt.currentTarget.classList.add('is-selected');
       }
     }
 
     // Interakcja A2: Stepper
-    function stepRpeA2(delta) {
-      currentRpeValA2 = Math.max(0, Math.min(10, currentRpeValA2 + delta));
-      const bigNum = document.getElementById('p2-a2-big-num');
-      const bigDesc = document.getElementById('p2-a2-big-desc');
-      if (bigNum) bigNum.textContent = currentRpeValA2;
-      if (bigDesc) bigDesc.textContent = FOSTER_DESCRIPTIONS[currentRpeValA2];
+    function stepRpeA2(delta, phoneId) {
+      const pid = phoneId || 'p2';
+      currentRpeValA2[pid] = Math.max(0, Math.min(10, (currentRpeValA2[pid] || 7) + delta));
+      const val = currentRpeValA2[pid];
 
-      const segs = document.querySelectorAll('#p2-a2-segments .rpe-a2-seg');
+      const bigNum = document.getElementById(pid + '-a2-big-num');
+      const bigDesc = document.getElementById(pid + '-a2-big-desc');
+      if (bigNum) bigNum.textContent = val;
+      if (bigDesc) bigDesc.textContent = FOSTER_DESCRIPTIONS[val];
+
+      const segs = document.querySelectorAll('#' + pid + '-a2-segments .rpe-a2-seg');
       segs.forEach((seg, i) => {
         seg.classList.remove('is-filled', 'is-current');
-        if (i < currentRpeValA2) seg.classList.add('is-filled');
-        else if (i === currentRpeValA2) seg.classList.add('is-current');
+        if (i < val) seg.classList.add('is-filled');
+        else if (i === val) seg.classList.add('is-current');
       });
     }
 
@@ -2840,7 +3010,7 @@
       const banner = document.getElementById(phoneId + '-b1-banner');
       if (banner) {
         banner.style.color = 'var(--app-ink)';
-        banner.innerHTML = '<strong>Poziom ' + level + ':</strong>&nbsp;' + (SKILL_LEVEL_DESCRIPTIONS[level] ? SKILL_LEVEL_DESCRIPTIONS[level].replace('Poziom ' + level + ': ', '') : '');
+        banner.innerHTML = '<span class="b1-level-prefix">Poziom ' + level + ':</span>&nbsp;' + (SKILL_LEVEL_DESCRIPTIONS[level] || '');
       }
       const grid = document.getElementById(phoneId + '-skill-scale-b1');
       if (grid) {
