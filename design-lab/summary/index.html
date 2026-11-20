@@ -1,0 +1,2303 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Laboratorium Designu: Podsumowanie Treningu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================================================
+       TOKENS & THEMING (Wzorce z v6.html, start-final.html i wellbeing)
+       ========================================================================= */
+    :root,
+    :root[data-theme='dark'] {
+      color-scheme: dark;
+      --app-bg: #0b0b0d;
+      --app-surface: #161618;
+      --app-elevated: #1d1d20;
+      --app-input: #121214;
+      --app-border: #2a2a2e;
+      --app-border-faint: rgba(255, 255, 255, 0.08);
+      --app-ink: #f4f4f1;
+      --app-muted: #a7a7aa;
+      --app-faint: #85858a;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #d91535;
+      --app-crimson-ink: #ef5d6e;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #f0753a;
+      --app-success: #3fb56b;
+      --app-success-ink: #8fd8a8;
+      --app-radius-sm: 4px;
+      --app-radius-xs: 2px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #ef5d6e;
+
+      --app-grad-primary: linear-gradient(120deg, #b8102a 0%, #cb1531 55%, #f0753a 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #f0753a 100%);
+    }
+
+    :root[data-theme='light'] {
+      color-scheme: light;
+      --app-bg: #f1f1ef;
+      --app-surface: #ffffff;
+      --app-elevated: #e8e8e5;
+      --app-input: #f7f7f5;
+      --app-border: #c9c9c5;
+      --app-border-faint: rgba(0, 0, 0, 0.08);
+      --app-ink: #111113;
+      --app-muted: #5f5f63;
+      --app-faint: #66666a;
+      --app-crimson: #b5122b;
+      --app-crimson-hi: #c1122f;
+      --app-crimson-ink: #a01027;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #9a370e;
+      --app-success: #28844b;
+      --app-success-ink: #1e6d3c;
+
+      --app-grad-primary: linear-gradient(120deg, #a01027 0%, #b5122b 55%, #c24b10 100%);
+      --app-grad-accent: linear-gradient(90deg, #b5122b 0%, #f0753a 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: #060608;
+      color: #e2e2e6;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* =========================================================================
+       LAB HEADER: STEROWANIE WARIANTAMI (1..5 A/B/C)
+       ========================================================================= */
+    .lab-header {
+      background: #0f0f13;
+      border-bottom: 1px solid #23232a;
+      padding: 14px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    }
+    .lab-header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .lab-title-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .lab-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+    }
+    .lab-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      background: rgba(184, 16, 42, 0.2);
+      border: 1px solid rgba(184, 16, 42, 0.45);
+      color: #ff6b81;
+      border-radius: var(--app-radius-xs);
+    }
+    .contrast-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      border-radius: var(--app-radius-xs);
+    }
+
+    .lab-theme-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ctrl-pill-group {
+      display: inline-flex;
+      background: #17171d;
+      border: 1px solid #282832;
+      border-radius: var(--app-radius-sm);
+      padding: 2px;
+      gap: 2px;
+    }
+    .ctrl-pill {
+      background: transparent;
+      border: none;
+      color: #92929c;
+      font-family: 'Inter', sans-serif;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--app-radius-xs);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .ctrl-pill:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .ctrl-pill.is-active {
+      background: #2a2a34;
+      color: #ffffff;
+    }
+    .ctrl-pill.is-active-crimson {
+      background: #b8102a;
+      color: #ffffff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Pasek nawigacji wariantów (1..5 A/B/C) */
+    .lab-variants-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #202028;
+    }
+    .var-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .var-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(184, 16, 42, 0.3);
+      color: #ff6b81;
+      font-family: 'Archivo', sans-serif;
+      font-size: 10.5px;
+      font-weight: 800;
+    }
+    .var-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #a7a7aa;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* =========================================================================
+       SCENA GŁÓWNA: TELEFONY OBOK SIEBIE (WYDŁUŻONE, ZERO PRZEWIJANIA)
+       ========================================================================= */
+    .stage-container {
+      flex: 1;
+      padding: 28px 20px 80px;
+      overflow-x: auto;
+    }
+    .phones-grid {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      min-width: fit-content;
+      margin: 0 auto;
+    }
+    .phone-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .phone-header-meta {
+      text-align: center;
+      width: 100%;
+    }
+    .phone-state-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: 'Archivo', sans-serif;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      background: rgba(184, 16, 42, 0.2);
+      color: #ff6b81;
+      border: 1px solid rgba(184, 16, 42, 0.4);
+    }
+    .phone-state-desc {
+      font-size: 11.5px;
+      color: #8c8c94;
+    }
+
+    /* Obudowa telefonu — wydłużona na pełną treść (zero pasków przewijania w środku) */
+    .phone-device {
+      width: 390px;
+      height: auto;
+      min-height: 844px;
+      border-radius: 36px;
+      border: 4px solid #1c1c20;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px #282830;
+      position: relative;
+      overflow: visible; /* Brak wewnętrznego przewijania */
+      display: flex;
+      flex-direction: column;
+      background: var(--app-bg);
+      color: var(--app-ink);
+      user-select: none;
+      transition: width 0.2s ease;
+    }
+    .phone-device.viewport-360 {
+      width: 360px;
+    }
+
+    /* Pasek statusu telefonu */
+    .phone-status-bar {
+      height: 44px;
+      padding: 12px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--app-ink);
+      border-radius: 32px 32px 0 0;
+      background: var(--app-bg);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Zawartość ekranu podsumowania */
+    .screen-content {
+      padding: 6px 16px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Nagłówek ekranu (jak RouteScreenHeader w aplikacji) */
+    .screen-topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+    }
+    .btn-topbar-back {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: var(--app-muted);
+      cursor: pointer;
+      border-radius: var(--app-radius-sm);
+    }
+    .btn-topbar-back:hover { color: var(--app-ink); }
+    .screen-topbar-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--app-ink);
+      letter-spacing: -0.01em;
+    }
+
+    /* =========================================================================
+       SEKCJA 1: PODSUMOWANIE SESJI (1A / 1B / 1C)
+       ========================================================================= */
+    .summary-hero-card {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .session-status-eyebrow {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--app-crimson-ink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .session-plan-name {
+      font-family: 'Archivo', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--app-ink);
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+    .session-saved-hint {
+      font-size: 12.5px;
+      color: var(--app-muted);
+      line-height: 1.35;
+    }
+
+    /* 1A: Kasetki metryk w rzędzie (divide-x) */
+    .metrics-row-1a {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--app-border);
+      border-bottom: 1px solid var(--app-border);
+      padding: 12px 0;
+      text-align: center;
+    }
+    .metric-col-1a {
+      padding: 0 4px;
+      position: relative;
+    }
+    .metric-col-1a + .metric-col-1a::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 10%;
+      bottom: 10%;
+      width: 1px;
+      background: var(--app-border);
+    }
+    .metric-val-1a {
+      font-family: 'Archivo', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--app-ink);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .metric-lbl-1a {
+      font-family: 'Archivo', sans-serif;
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--app-muted);
+      margin-top: 5px;
+    }
+
+    /* 1B: Karta Hero z czasem pracy i pierścieniem wykonania */
+    .metrics-box-1b {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid var(--app-border);
+      padding-top: 12px;
+    }
+    .hero-work-time-1b {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+    }
+    .hero-work-num {
+      font-family: 'Archivo', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--app-ink);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .hero-work-tag {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--app-crimson-ink);
+    }
+    .metrics-subgrid-1b {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .submetric-tile-1b {
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 10px;
+      text-align: center;
+    }
+
+    /* 1C: Panel z bezpośrednim porównaniem do poprzedniego treningu */
+    .metrics-panel-1c {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid var(--app-border);
+      padding-top: 12px;
+    }
+    .metric-line-1c {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+    }
+    .line-lbl-1c {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--app-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .line-val-1c {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Pasek poprzedniego planu (wspólny) */
+    .previous-plan-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      font-size: 12px;
+      color: var(--app-muted);
+    }
+    .prev-plan-btn {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--app-crimson-ink);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 8px;
+      margin: -6px -8px;
+    }
+
+    /* Przełączanie wariantu 1 */
+    .var-1a .metrics-row-1a { display: grid; }
+    .var-1a .metrics-box-1b { display: none; }
+    .var-1a .metrics-panel-1c { display: none; }
+
+    .var-1b .metrics-row-1a { display: none; }
+    .var-1b .metrics-box-1b { display: flex; }
+    .var-1b .metrics-panel-1c { display: none; }
+
+    .var-1c .metrics-row-1a { display: none; }
+    .var-1c .metrics-box-1b { display: none; }
+    .var-1c .metrics-panel-1c { display: flex; }
+
+    /* =========================================================================
+       SEKCJA 2: KARTA RPE (2A / 2B / 2C)
+       ========================================================================= */
+    .rpe-card-box {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .rpe-heading-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .rpe-title-eyebrow {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--app-muted);
+    }
+
+    /* 2A: Karta z odliczaniem 10 min i przyciskiem Oceń teraz */
+    .rpe-countdown-area-2a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 6px 0;
+    }
+    .countdown-timer-2a {
+      font-family: 'Archivo', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--app-ink);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .countdown-hint-2a {
+      font-size: 12px;
+      color: var(--app-muted);
+      line-height: 1.35;
+    }
+    .btn-rate-now {
+      height: var(--app-touch-min);
+      padding: 0 16px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-rate-now:hover {
+      border-color: var(--app-crimson-ink);
+      color: var(--app-crimson-ink);
+    }
+
+    /* 2B: Pełna skala kwadratów 0–10 (jak w wellbeing 1A) */
+    .rpe-scale-box-2b {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .rpe-display-banner {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 0;
+      text-align: center;
+    }
+    .rpe-big-num {
+      font-family: 'Archivo', sans-serif;
+      font-size: 52px;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--app-ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .rpe-desc-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--app-crimson-ink);
+    }
+    /* Siatka 11 kwadratów (0..10) */
+    .rpe-squares-grid {
+      display: grid;
+      grid-template-columns: repeat(11, 1fr);
+      gap: 4px;
+    }
+    .btn-rpe-sq {
+      height: 44px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-xs);
+      color: var(--app-muted);
+      font-family: 'Archivo', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .btn-rpe-sq:hover {
+      color: var(--app-ink);
+      border-color: var(--app-muted);
+    }
+    .btn-rpe-sq.is-selected {
+      background: var(--app-crimson);
+      border-color: var(--app-crimson-hi);
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(193, 18, 47, 0.4);
+    }
+    .rpe-anchors-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--app-muted);
+    }
+
+    /* 2C: Pasek segmentowy z suwakiem i przyciskami -/+ */
+    .rpe-stepper-box-2c {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .stepper-row-2c {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .btn-step-2c {
+      width: 56px;
+      height: 44px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stepper-val-box-2c {
+      text-align: center;
+      flex: 1;
+    }
+    .stepper-num-2c {
+      font-family: 'Archivo', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--app-ink);
+      line-height: 1;
+    }
+    .stepper-desc-2c {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--app-crimson-ink);
+      margin-top: 2px;
+    }
+
+    /* Przełączanie wariantu 2 */
+    .var-2a .rpe-countdown-area-2a { display: flex; }
+    .var-2a .rpe-scale-box-2b { display: none; }
+    .var-2a .rpe-stepper-box-2c { display: none; }
+
+    .var-2b .rpe-countdown-area-2a { display: none; }
+    .var-2b .rpe-scale-box-2b { display: flex; }
+    .var-2b .rpe-stepper-box-2c { display: none; }
+
+    .var-2c .rpe-countdown-area-2a { display: none; }
+    .var-2c .rpe-scale-box-2b { display: none; }
+    .var-2c .rpe-stepper-box-2c { display: flex; }
+
+    /* =========================================================================
+       SEKCJA 3: ELEMENTY DO POPRAWY (CEL · BŁĄD · WSKAZÓWKA) (3A / 3B / 3C)
+       ========================================================================= */
+    .focus-section-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .section-header-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    .section-main-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+      letter-spacing: -0.01em;
+    }
+    .section-sub-count {
+      font-size: 11.5px;
+      color: var(--app-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Karta Focus Skill */
+    .focus-card-box {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .focus-badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .block-tag {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--app-crimson-ink);
+    }
+    .skill-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--app-ink);
+      line-height: 1.2;
+    }
+
+    /* Kasetka Celu */
+    .criterion-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 10px 12px;
+    }
+    .criterion-icon {
+      color: var(--app-ember);
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .criterion-tag {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--app-ember-ink);
+    }
+    .criterion-text {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--app-ink);
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* Notatka z poprzedniego treningu (Notatka z 14.11 · na dziś) */
+    .prev-correction-note {
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .prev-note-eyebrow {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--app-muted);
+    }
+    .note-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 12.5px;
+      line-height: 1.35;
+    }
+    .note-tag-problem {
+      font-family: 'Archivo', sans-serif;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 10.5px;
+      color: var(--app-crimson-ink);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+    .note-tag-fix {
+      font-family: 'Archivo', sans-serif;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 10.5px;
+      color: var(--app-ember-ink);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    /* Pytanie o powtarzalność: Czy ten błąd dziś się powtarzał? */
+    .checks-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .checks-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .checks-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .btn-check-tile {
+      min-height: 44px;
+      padding: 8px 10px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-check-tile.is-checked {
+      background: rgba(184, 16, 42, 0.18);
+      border-color: var(--app-crimson-ink);
+      color: var(--app-ink);
+    }
+    .btn-check-text {
+      background: transparent;
+      border: none;
+      color: var(--app-muted);
+      font-size: 12px;
+      cursor: pointer;
+      text-align: left;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 4px;
+    }
+    .btn-check-text:hover { color: var(--app-ink); }
+
+    /* Pytanie oceny: Jak dobrze ci wychodziło? */
+    .focus-rating-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .focus-question-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+
+    /* 3A: Skala 5 kwadratów (wzorzec wellbeing 1A) */
+    .scale-grid-3a {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .btn-scale-sq {
+      height: 44px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-muted);
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      position: relative;
+    }
+    .btn-scale-sq.is-selected {
+      background: var(--app-crimson);
+      border-color: var(--app-crimson-hi);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(193, 18, 47, 0.4);
+    }
+    .btn-scale-sq .last-indicator {
+      position: absolute;
+      top: -6px;
+      right: -2px;
+      background: #111113;
+      border: 1px solid var(--app-border);
+      color: var(--app-muted);
+      font-size: 8.5px;
+      font-weight: 700;
+      padding: 1px 3px;
+      border-radius: 2px;
+    }
+    .scale-selected-banner {
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 8px 10px;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .banner-num {
+      font-family: 'Archivo', sans-serif;
+      font-weight: 800;
+      color: var(--app-crimson-ink);
+      font-size: 14px;
+    }
+
+    /* 3B: Kafelki pionowe z pełnym opisem */
+    .scale-vertical-3b {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .scale-tile-3b {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-size: 12px;
+      line-height: 1.3;
+      cursor: pointer;
+    }
+    .scale-tile-3b.is-selected {
+      border-color: var(--app-crimson-ink);
+      background: rgba(184, 16, 42, 0.15);
+      font-weight: 600;
+    }
+    .tile-num-3b {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.08);
+      font-family: 'Archivo', sans-serif;
+      font-weight: 800;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .scale-tile-3b.is-selected .tile-num-3b {
+      background: var(--app-crimson);
+      color: #ffffff;
+    }
+
+    /* 3C: Kompaktowa oś zintegrowana */
+    .scale-compact-3c {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .scale-bar-strip-3c {
+      display: flex;
+      height: 44px;
+      border-radius: var(--app-radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--app-border);
+    }
+    .strip-segment-3c {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--app-elevated);
+      font-family: 'Archivo', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--app-muted);
+      cursor: pointer;
+      border-right: 1px solid var(--app-border);
+    }
+    .strip-segment-3c:last-child { border-right: none; }
+    .strip-segment-3c.is-selected {
+      background: var(--app-crimson);
+      color: #ffffff;
+    }
+
+    /* Przełączanie wariantu 3 */
+    .var-3a .scale-grid-3a { display: grid; }
+    .var-3a .scale-selected-banner { display: flex; }
+    .var-3a .scale-vertical-3b { display: none; }
+    .var-3a .scale-compact-3c { display: none; }
+
+    .var-3b .scale-grid-3a { display: none; }
+    .var-3b .scale-selected-banner { display: none; }
+    .var-3b .scale-vertical-3b { display: flex; }
+    .var-3b .scale-compact-3c { display: none; }
+
+    .var-3c .scale-grid-3a { display: none; }
+    .var-3c .scale-selected-banner { display: none; }
+    .var-3c .scale-vertical-3b { display: none; }
+    .var-3c .scale-compact-3c { display: flex; }
+
+    /* Formularz nowej notatki korygującej (wspólny) */
+    .correction-drawer-btn {
+      min-height: 44px;
+      width: 100%;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-size: 12.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .correction-drawer-btn:hover { border-color: var(--app-crimson-ink); }
+    .new-correction-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 6px;
+      border-top: 1px solid var(--app-border);
+    }
+    .correction-input-label {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--app-muted);
+    }
+    .correction-textarea {
+      width: 100%;
+      resize: none;
+      background: var(--app-input);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-xs);
+      color: var(--app-ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      padding: 8px 10px;
+      min-height: 52px;
+    }
+    .correction-hint-text {
+      font-size: 11.5px;
+      color: var(--app-muted);
+      line-height: 1.35;
+    }
+
+    /* =========================================================================
+       SEKCJA 4: POZOSTAŁE ĆWICZENIA I SPARING (4A / 4B / 4C)
+       ========================================================================= */
+    .others-section-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Sparing kafelek (wspólny) */
+    .sparring-box {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sparring-title-row {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--app-muted);
+    }
+    .sparring-btn-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .btn-sparring-opt {
+      min-height: 44px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .btn-sparring-opt.is-active {
+      background: rgba(184, 16, 42, 0.2);
+      border-color: var(--app-crimson-ink);
+      color: var(--app-ink);
+    }
+
+    /* 4A: Rozwijany akordeon */
+    .others-accordion-4a {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      overflow: hidden;
+    }
+    .accordion-header-4a {
+      min-height: 48px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .acc-title-4a {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .acc-sub-4a {
+      font-size: 11px;
+      color: var(--app-muted);
+      margin-top: 1px;
+    }
+    .accordion-content-4a {
+      padding: 12px 14px;
+      border-top: 1px solid var(--app-border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .exercise-rating-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .ex-name-4a {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+
+    /* 4B: Kasetki 2B z bezpośrednimi ocenami */
+    .others-cards-4b {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .other-ex-card-4b {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* 4C: Kapsułki wyboru w wierszu */
+    .others-chips-4c {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Przełączanie wariantu 4 */
+    .var-4a .others-accordion-4a { display: block; }
+    .var-4a .others-cards-4b { display: none; }
+    .var-4a .others-chips-4c { display: none; }
+
+    .var-4b .others-accordion-4a { display: none; }
+    .var-4b .others-cards-4b { display: flex; }
+    .var-4b .others-chips-4c { display: none; }
+
+    .var-4c .others-accordion-4a { display: none; }
+    .var-4c .others-cards-4b { display: none; }
+    .var-4c .others-chips-4c { display: flex; }
+
+    /* =========================================================================
+       SEKCJA 5: NOTATKA DO TRENINGU I ZAPIS (5A / 5B / 5C)
+       ========================================================================= */
+    .note-and-submit-box {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .note-input-box {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .note-heading-label {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--app-muted);
+    }
+    .general-note-textarea {
+      width: 100%;
+      resize: none;
+      background: var(--app-input);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-xs);
+      color: var(--app-ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 13.5px;
+      padding: 10px 12px;
+      min-height: 72px;
+      line-height: 1.4;
+    }
+
+    /* 5A: Hero przycisk 2B-2 z gradientem */
+    .submit-area-5a {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-submit-hero {
+      width: 100%;
+      min-height: 52px;
+      background: var(--app-grad-primary);
+      border: 1px solid var(--app-ember);
+      border-radius: var(--app-radius-sm);
+      color: #ffffff;
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(184, 16, 42, 0.45);
+      transition: transform 0.1s ease;
+    }
+    .btn-submit-hero:active { transform: scale(0.985); }
+    .submit-reminder-text {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--app-muted);
+      line-height: 1.35;
+      padding: 0 8px;
+    }
+
+    /* 5B: Pływający dok dolny z licznikiem znaków */
+    .submit-area-5b {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .char-count-5b {
+      text-align: right;
+      font-size: 11px;
+      color: var(--app-muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .dock-bar-5b {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-submit-dock {
+      flex: 1;
+      min-height: 50px;
+      background: var(--app-crimson);
+      border: 1px solid var(--app-crimson-hi);
+      border-radius: var(--app-radius-sm);
+      color: #ffffff;
+      font-family: 'Archivo', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+    .btn-cancel-dock {
+      height: 50px;
+      padding: 0 16px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-muted);
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* 5C: Karta z predefiniowanymi tagami */
+    .submit-area-5c {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tags-row-5c {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .btn-quick-tag {
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-xs);
+      color: var(--app-muted);
+      font-size: 12px;
+      min-height: 44px;
+      padding: 8px 14px;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .btn-quick-tag:hover {
+      color: var(--app-ink);
+      border-color: var(--app-ember);
+    }
+
+    /* Przełączanie wariantu 5 */
+    .var-5a .submit-area-5a { display: flex; }
+    .var-5a .submit-area-5b { display: none; }
+    .var-5a .submit-area-5c { display: none; }
+
+    .var-5b .submit-area-5a { display: none; }
+    .var-5b .submit-area-5b { display: flex; }
+    .var-5b .submit-area-5c { display: none; }
+
+    .var-5c .submit-area-5a { display: none; }
+    .var-5c .submit-area-5b { display: none; }
+    .var-5c .submit-area-5c { display: flex; }
+  </style>
+</head>
+<body class="var-1a var-2a var-3a var-4a var-5a">
+
+  <!-- =========================================================================
+       LABORATORIUM HEADER: PODGLĄD 1..5 A/B/C
+       ========================================================================= -->
+  <header class="lab-header">
+    <div class="lab-header-top">
+      <div class="lab-title-area">
+        <h1 class="lab-title">Laboratorium Designu: Podsumowanie Treningu</h1>
+        <span class="lab-badge">Ekran po odtwarzaczu</span>
+        <span class="contrast-badge">Kontrast ≥ 4,5:1 (WCAG AA)</span>
+      </div>
+
+      <div class="lab-theme-controls">
+        <span style="font-size: 11.5px; color: #a7a7aa; font-weight: 600;">Szerokość:</span>
+        <div class="ctrl-pill-group">
+          <button id="btnView390" class="ctrl-pill is-active" type="button" onclick="setViewportWidth(390)">390 px (standard)</button>
+          <button id="btnView360" class="ctrl-pill" type="button" onclick="setViewportWidth(360)">360 px (mały ekran)</button>
+        </div>
+
+        <span style="font-size: 11.5px; color: #a7a7aa; font-weight: 600; margin-left: 8px;">Motyw:</span>
+        <div class="ctrl-pill-group">
+          <button id="btnThemeDark" class="ctrl-pill is-active" type="button" onclick="setTheme('dark')">Ciemny</button>
+          <button id="btnThemeLight" class="ctrl-pill" type="button" onclick="setTheme('light')">Jasny</button>
+        </div>
+
+        <span style="font-size: 11.5px; color: #a7a7aa; font-weight: 600; margin-left: 8px;">Zestaw:</span>
+        <div class="ctrl-pill-group">
+          <button class="ctrl-pill is-active-crimson" type="button" onclick="applyPreset('a')">Wszystko A</button>
+          <button class="ctrl-pill" type="button" onclick="applyPreset('b')">Wszystko B</button>
+          <button class="ctrl-pill" type="button" onclick="applyPreset('c')">Wszystko C</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pasek wyboru wariantów dla każdej z 5 sekcji: 1 A/B/C, 2 A/B/C, 3 A/B/C, 4 A/B/C, 5 A/B/C -->
+    <nav class="lab-variants-nav" aria-label="Warianty sekcji Podsumowania">
+      <!-- 1. Podsumowanie sesji -->
+      <div class="var-group">
+        <span class="var-num">1</span>
+        <span class="var-title">Sesja:</span>
+        <div class="ctrl-pill-group">
+          <button id="btn-1a" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSectionVariant(1, 'a')">1A · Kasetki metryk</button>
+          <button id="btn-1b" class="ctrl-pill" type="button" onclick="setSectionVariant(1, 'b')">1B · Karta Hero</button>
+          <button id="btn-1c" class="ctrl-pill" type="button" onclick="setSectionVariant(1, 'c')">1C · Porównanie</button>
+        </div>
+      </div>
+
+      <!-- 2. Karta RPE -->
+      <div class="var-group">
+        <span class="var-num">2</span>
+        <span class="var-title">RPE:</span>
+        <div class="ctrl-pill-group">
+          <button id="btn-2a" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSectionVariant(2, 'a')">2A · Karta z odliczaniem</button>
+          <button id="btn-2b" class="ctrl-pill" type="button" onclick="setSectionVariant(2, 'b')">2B · Skala kwadratów 0–10</button>
+          <button id="btn-2c" class="ctrl-pill" type="button" onclick="setSectionVariant(2, 'c')">2C · Pasek segmentowy</button>
+        </div>
+      </div>
+
+      <!-- 3. Elementy do poprawy -->
+      <div class="var-group">
+        <span class="var-num">3</span>
+        <span class="var-title">Cel / Poprawa:</span>
+        <div class="ctrl-pill-group">
+          <button id="btn-3a" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSectionVariant(3, 'a')">3A · Skala 5 kwadratów</button>
+          <button id="btn-3b" class="ctrl-pill" type="button" onclick="setSectionVariant(3, 'b')">3B · Kafelki pionowe</button>
+          <button id="btn-3c" class="ctrl-pill" type="button" onclick="setSectionVariant(3, 'c')">3C · Oś zintegrowana</button>
+        </div>
+      </div>
+
+      <!-- 4. Pozostałe i sparing -->
+      <div class="var-group">
+        <span class="var-num">4</span>
+        <span class="var-title">Sparing / Inne:</span>
+        <div class="ctrl-pill-group">
+          <button id="btn-4a" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSectionVariant(4, 'a')">4A · Akordeon + kafelki</button>
+          <button id="btn-4b" class="ctrl-pill" type="button" onclick="setSectionVariant(4, 'b')">4B · Kasetki 2B</button>
+          <button id="btn-4c" class="ctrl-pill" type="button" onclick="setSectionVariant(4, 'c')">4C · Kapsułki wyboru</button>
+        </div>
+      </div>
+
+      <!-- 5. Notatka i Zapis -->
+      <div class="var-group">
+        <span class="var-num">5</span>
+        <span class="var-title">Zapis:</span>
+        <div class="ctrl-pill-group">
+          <button id="btn-5a" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSectionVariant(5, 'a')">5A · Hero 2B-2</button>
+          <button id="btn-5b" class="ctrl-pill" type="button" onclick="setSectionVariant(5, 'b')">5B · Dok z licznikiem</button>
+          <button id="btn-5c" class="ctrl-pill" type="button" onclick="setSectionVariant(5, 'c')">5C · Tagi szybkie</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- =========================================================================
+       SCENA GŁÓWNA: DWA TELEFONY OBOK SIEBIE
+       ========================================================================= -->
+  <main class="stage-container">
+    <div class="phones-grid" id="phonesGrid">
+
+      <!-- =====================================================================
+           TELEFON 1: PODSUMOWANIE ZE STANEM ODLICZANIA RPE
+           ===================================================================== -->
+      <div class="phone-column">
+        <div class="phone-header-meta">
+          <span class="phone-state-badge">STAN 1: ODLICZANIE RPE 10 MIN</span>
+          <p class="phone-state-desc">Pełne podsumowanie treningu z planu · Odliczanie RPE · Element oceniony 4/5</p>
+        </div>
+
+        <div class="phone-device" id="phone1">
+          <!-- Pasek statusu telefonu -->
+          <header class="phone-status-bar" aria-hidden="true">
+            <span>9:41</span>
+            <div class="status-icons">
+              <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+              <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+              <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </header>
+
+          <div class="screen-content">
+            <!-- Pasek nawigacyjny z powrotem -->
+            <div class="screen-topbar">
+              <button class="btn-topbar-back" type="button" aria-label="Wróć do historii">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <h2 class="screen-topbar-title">Podsumowanie</h2>
+            </div>
+
+            <!-- SEKCJA 1: PODSUMOWANIE SESJI -->
+            <section class="summary-hero-card" aria-label="Wyniki sesji">
+              <div class="session-status-eyebrow">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                Trening ukończony
+              </div>
+              <h1 class="session-plan-name">Boks: siła i technika</h1>
+              <p class="session-saved-hint">Zapisane w dzienniku. Oceny dopiszą się do wpisu.</p>
+
+              <!-- 1A: Kasetki metryk w rzędzie (divide-x) -->
+              <dl class="metrics-row-1a">
+                <div class="metric-col-1a">
+                  <dd class="metric-val-1a">48:15</dd>
+                  <dt class="metric-lbl-1a">Trening</dt>
+                </div>
+                <div class="metric-col-1a">
+                  <dd class="metric-val-1a">36:00</dd>
+                  <dt class="metric-lbl-1a">Praca</dt>
+                </div>
+                <div class="metric-col-1a">
+                  <dd class="metric-val-1a">3/3</dd>
+                  <dt class="metric-lbl-1a">Ćwiczenia</dt>
+                </div>
+              </dl>
+
+              <!-- 1B: Karta Hero z czasem pracy -->
+              <div class="metrics-box-1b">
+                <div class="hero-work-time-1b">
+                  <div>
+                    <span class="hero-work-tag">Czas czystej pracy</span>
+                    <div class="hero-work-num">36:00</div>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 700; color: var(--app-muted);">z 48:15 łącznego</span>
+                </div>
+                <div class="metrics-subgrid-1b">
+                  <div class="submetric-tile-1b">
+                    <span style="font-family: Archivo; font-size: 18px; font-weight: 800; color: var(--app-ink);">48:15</span>
+                    <span style="display: block; font-size: 10px; color: var(--app-muted); text-transform: uppercase; font-weight: 700;">Trening</span>
+                  </div>
+                  <div class="submetric-tile-1b">
+                    <span style="font-family: Archivo; font-size: 18px; font-weight: 800; color: var(--app-ink);">3/3</span>
+                    <span style="display: block; font-size: 10px; color: var(--app-muted); text-transform: uppercase; font-weight: 700;">Ćwiczenia</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 1C: Panel z bezpośrednim porównaniem -->
+              <div class="metrics-panel-1c">
+                <div class="metric-line-1c">
+                  <span class="line-lbl-1c">Trening</span>
+                  <span class="line-val-1c">48:15 <span style="font-size: 11px; color: var(--app-muted); font-weight: normal;">(poprz. 45:10)</span></span>
+                </div>
+                <div class="metric-line-1c">
+                  <span class="line-lbl-1c">Praca</span>
+                  <span class="line-val-1c">36:00 <span style="font-size: 11px; color: var(--app-muted); font-weight: normal;">(poprz. 34:00)</span></span>
+                </div>
+                <div class="metric-line-1c">
+                  <span class="line-lbl-1c">Ćwiczenia</span>
+                  <span class="line-val-1c">3/3 <span style="font-size: 11px; color: var(--app-muted); font-weight: normal;">(ukończone)</span></span>
+                </div>
+              </div>
+
+              <!-- Poprzednio ten plan -->
+              <div class="previous-plan-bar">
+                <span>Poprzednio ten plan: 14.11 · RPE: 7</span>
+                <a href="#" class="prev-plan-btn" onclick="return false;">Zobacz</a>
+              </div>
+            </section>
+
+            <!-- SEKCJA 2: KARTA RPE -->
+            <section class="rpe-card-box" aria-label="Ocena zmęczenia RPE">
+              <div class="rpe-heading-row">
+                <h3 class="rpe-title-eyebrow">RPE · zmęczenie całym treningiem</h3>
+                <span style="font-size: 10.5px; font-weight: 700; color: var(--app-ember-ink);">ODLICZANIE</span>
+              </div>
+
+              <!-- 2A: Karta z odliczaniem 10 min -->
+              <div class="rpe-countdown-area-2a">
+                <div>
+                  <p style="font-size: 11.5px; color: var(--app-muted);">Zapytamy za</p>
+                  <p class="countdown-timer-2a">09:42</p>
+                </div>
+                <button class="btn-rate-now" type="button" onclick="setSectionVariant(2, 'b')">Oceń teraz</button>
+              </div>
+              <p class="countdown-hint-2a">Ocena ok. 10 minut po treningu jest pewniejsza. Gong da znać.</p>
+
+              <!-- 2B: Skala kwadratów 0–10 -->
+              <div class="rpe-scale-box-2b">
+                <p style="font-size: 12.5px; color: var(--app-muted);">Jak ciężki był cały trening?</p>
+                <div class="rpe-display-banner">
+                  <span class="rpe-big-num">7</span>
+                  <span class="rpe-desc-text">· Bardzo ciężko</span>
+                </div>
+                <div class="rpe-squares-grid">
+                  <button type="button" class="btn-rpe-sq">0</button>
+                  <button type="button" class="btn-rpe-sq">1</button>
+                  <button type="button" class="btn-rpe-sq">2</button>
+                  <button type="button" class="btn-rpe-sq">3</button>
+                  <button type="button" class="btn-rpe-sq">4</button>
+                  <button type="button" class="btn-rpe-sq">5</button>
+                  <button type="button" class="btn-rpe-sq">6</button>
+                  <button type="button" class="btn-rpe-sq is-selected">7</button>
+                  <button type="button" class="btn-rpe-sq">8</button>
+                  <button type="button" class="btn-rpe-sq">9</button>
+                  <button type="button" class="btn-rpe-sq">10</button>
+                </div>
+                <div class="rpe-anchors-row">
+                  <span>0 · odpoczynek</span>
+                  <span>5 · ciężko</span>
+                  <span>10 · maks.</span>
+                </div>
+              </div>
+
+              <!-- 2C: Pasek segmentowy z suwakiem -->
+              <div class="rpe-stepper-box-2c">
+                <p style="font-size: 12.5px; color: var(--app-muted);">Jak ciężki był cały trening?</p>
+                <div class="stepper-row-2c">
+                  <button type="button" class="btn-step-2c">−</button>
+                  <div class="stepper-val-box-2c">
+                    <div class="stepper-num-2c">7</div>
+                    <div class="stepper-desc-2c">Bardzo ciężko</div>
+                  </div>
+                  <button type="button" class="btn-step-2c">+</button>
+                </div>
+                <div class="rpe-anchors-row">
+                  <span>0 · odpoczynek</span>
+                  <span>5 · ciężko</span>
+                  <span>10 · maks.</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- SEKCJA 3: ELEMENTY DO POPRAWY -->
+            <section class="focus-section-container" aria-label="Elementy do poprawy">
+              <div class="section-header-row">
+                <h3 class="section-main-title">Elementy do poprawy</h3>
+                <span class="section-sub-count">oceniono 1 z 2</span>
+              </div>
+
+              <!-- Karta 1: Lewy prosty (aktywny, oceniony 4/5) -->
+              <article class="focus-card-box">
+                <div class="focus-badge-row">
+                  <span class="block-tag">TARCZE</span>
+                  <span style="font-size: 11px; color: var(--app-muted);">Ostatnio <strong style="color: var(--app-ink);">4/5</strong> · 14.11</span>
+                </div>
+                <h4 class="skill-title">Lewy prosty, powrót do gardy</h4>
+
+                <!-- Cel -->
+                <div class="criterion-box">
+                  <svg class="criterion-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+                  <div>
+                    <span class="criterion-tag">Cel</span>
+                    <p class="criterion-text">Ręka wraca do brody przed następnym ciosem</p>
+                  </div>
+                </div>
+
+                <!-- Notatka z 14.11 · na dziś -->
+                <div class="prev-correction-note">
+                  <span class="prev-note-eyebrow">Notatka z 14.11 · na dziś</span>
+                  <div class="note-row">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--app-crimson-ink); margin-top: 1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <p><span class="note-tag-problem">Błąd:</span> po jabie opuszczam łokieć</p>
+                  </div>
+                  <div class="note-row">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--app-ember); margin-top: 1px;"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-7 7c0 2.5 1.5 4.5 3 6h8c1.5-1.5 3-3.5 3-6a7 7 0 0 0-7-7z"/></svg>
+                    <p><span class="note-tag-fix">Wskazówka:</span> łokieć przy żebrach, powrót po tej samej linii</p>
+                  </div>
+                </div>
+
+                <!-- Weryfikacja błędu -->
+                <div class="checks-group">
+                  <p class="checks-title">Czy ten błąd dziś się powtarzał?</p>
+                  <div class="checks-row">
+                    <button type="button" class="btn-check-tile is-checked">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--app-success-ink);"><polyline points="20 6 9 17 4 12"/></svg>
+                      Rzadziej
+                    </button>
+                    <button type="button" class="btn-check-tile">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/></svg>
+                      Tak samo
+                    </button>
+                  </div>
+                  <button type="button" class="btn-check-text">Nie sprawdzałem</button>
+                </div>
+
+                <!-- Ocena: Jak dobrze ci wychodziło? -->
+                <div class="focus-rating-group">
+                  <p class="focus-question-title">Jak dobrze ci wychodziło?</p>
+
+                  <!-- 3A: Skala 5 kwadratów -->
+                  <div class="scale-grid-3a">
+                    <button type="button" class="btn-scale-sq">1</button>
+                    <button type="button" class="btn-scale-sq">2</button>
+                    <button type="button" class="btn-scale-sq">3</button>
+                    <button type="button" class="btn-scale-sq is-selected">
+                      4
+                      <span class="last-indicator">ostatnio</span>
+                    </button>
+                    <button type="button" class="btn-scale-sq">5</button>
+                  </div>
+                  <div class="scale-selected-banner">
+                    <span class="banner-num">4</span>
+                    <span>·</span>
+                    <span>Zwykle się udaje, błąd sam łapię i poprawiam.</span>
+                  </div>
+
+                  <!-- 3B: Kafelki pionowe -->
+                  <div class="scale-vertical-3b">
+                    <div class="scale-tile-3b"><span class="tile-num-3b">1</span><span>Nie udaje się nawet w prostej próbie.</span></div>
+                    <div class="scale-tile-3b"><span class="tile-num-3b">2</span><span>Udaje się czasem, zwykle przerywam, żeby poprawić.</span></div>
+                    <div class="scale-tile-3b"><span class="tile-num-3b">3</span><span>Udaje się, gdy świadomie pilnuję wskazówki.</span></div>
+                    <div class="scale-tile-3b is-selected"><span class="tile-num-3b">4</span><span>Zwykle się udaje, błąd sam łapię i poprawiam. (ostatnio)</span></div>
+                    <div class="scale-tile-3b"><span class="tile-num-3b">5</span><span>Udaje się bez myślenia o wskazówce.</span></div>
+                  </div>
+
+                  <!-- 3C: Oś zintegrowana -->
+                  <div class="scale-compact-3c">
+                    <div class="scale-bar-strip-3c">
+                      <div class="strip-segment-3c">1</div>
+                      <div class="strip-segment-3c">2</div>
+                      <div class="strip-segment-3c">3</div>
+                      <div class="strip-segment-3c is-selected">4</div>
+                      <div class="strip-segment-3c">5</div>
+                    </div>
+                    <p style="font-size: 11.5px; color: var(--app-muted);">Poziom 4: Zwykle się udaje, błąd sam łapię i poprawiam.</p>
+                  </div>
+
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                    <button type="button" class="btn-check-text">Nie umiem ocenić</button>
+                    <button type="button" class="btn-check-text" style="color: var(--app-crimson-ink);">Wyczyść ocenę</button>
+                  </div>
+                </div>
+
+                <!-- Nowa notatka korygująca -->
+                <button type="button" class="correction-drawer-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Dodaj notatkę: błąd i wskazówka
+                </button>
+              </article>
+            </section>
+
+            <!-- SEKCJA 4: POZOSTAŁE ĆWICZENIA I SPARING -->
+            <section class="others-section-container" aria-label="Sparing i pozostałe ćwiczenia">
+              <!-- Sparing intensywność -->
+              <div class="sparring-box">
+                <span class="sparring-title-row">Sparing 1 · intensywność (opcjonalnie)</span>
+                <div class="sparring-btn-grid">
+                  <button type="button" class="btn-sparring-opt">Lekki</button>
+                  <button type="button" class="btn-sparring-opt is-active">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Techniczny
+                  </button>
+                  <button type="button" class="btn-sparring-opt">Twardy</button>
+                </div>
+              </div>
+
+              <!-- 4A: Rozwijany akordeon -->
+              <div class="others-accordion-4a">
+                <div class="accordion-header-4a">
+                  <div>
+                    <div class="acc-title-4a">Pozostałe ćwiczenia</div>
+                    <div class="acc-sub-4a">opcjonalnie · oceniono 0 z 2</div>
+                  </div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--app-muted);"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+
+              <!-- 4B: Kasetki 2B dla ćwiczeń -->
+              <div class="others-cards-4b">
+                <div class="other-ex-card-4b">
+                  <span style="font-family: Archivo; font-size: 13px; font-weight: 800; color: var(--app-ink);">Kombinacje bokserskie</span>
+                  <span style="font-size: 11px; color: var(--app-muted);">Jak oceniasz wykonanie tego ćwiczenia?</span>
+                  <div class="scale-grid-3a" style="gap: 4px;">
+                    <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">1</button>
+                    <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">2</button>
+                    <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">3</button>
+                    <button type="button" class="btn-scale-sq is-selected" style="height: 38px; font-size: 13px;">4</button>
+                    <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">5</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4C: Kapsułki wyboru w wierszu -->
+              <div class="others-chips-4c">
+                <div style="background: var(--app-surface); border: 1px solid var(--app-border); border-radius: 4px; padding: 10px;">
+                  <span style="font-size: 12px; font-weight: 700;">Kombinacje bokserskie:</span>
+                  <span style="font-size: 12px; color: var(--app-crimson-ink); font-weight: 800; margin-left: 6px;">4 · Dobrze i powtarzalnie</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- SEKCJA 5: NOTATKA I ZAPIS -->
+            <section class="note-and-submit-box" aria-label="Zapis ocen i notatka">
+              <div class="note-input-box">
+                <label class="note-heading-label" for="txtNote1">Notatka do treningu · opcjonalnie</label>
+                <textarea id="txtNote1" class="general-note-textarea" rows="3" placeholder="Co zadziałało? Jaki błąd się powtarzał? Co zrobić następnym razem?">Dobra dynamika na tarczach. Lewy prosty wracał szybciej, ale przy trzeciej rundzie opadały ręce ze zmęczenia.</textarea>
+              </div>
+
+              <!-- 5A: Hero 2B-2 z gradientem -->
+              <div class="submit-area-5a">
+                <button type="button" class="btn-submit-hero">ZAPISZ OCENY</button>
+                <p class="submit-reminder-text">RPE przypomnimy na stronie głównej, jeśli zamkniesz ekran wcześniej.</p>
+              </div>
+
+              <!-- 5B: Pływający dok dolny z licznikiem -->
+              <div class="submit-area-5b">
+                <span class="char-count-5b">118 / 1000 znaków</span>
+                <div class="dock-bar-5b">
+                  <button type="button" class="btn-cancel-dock">Wróć</button>
+                  <button type="button" class="btn-submit-dock">ZAPISZ OCENY</button>
+                </div>
+              </div>
+
+              <!-- 5C: Karta z predefiniowanymi tagami -->
+              <div class="submit-area-5c">
+                <div class="tags-row-5c">
+                  <button type="button" class="btn-quick-tag">+ Dobra dynamika</button>
+                  <button type="button" class="btn-quick-tag">+ Spadek sił</button>
+                  <button type="button" class="btn-quick-tag">+ Ręce przy brodzie</button>
+                </div>
+                <button type="button" class="btn-submit-hero" style="background: var(--app-crimson);">ZAPISZ OCENY</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- =====================================================================
+           TELEFON 2: PODSUMOWANIE Z ROZWINIĘTYM PANELEM RPE I BŁĘDU
+           ===================================================================== -->
+      <div class="phone-column">
+        <div class="phone-header-meta">
+          <span class="phone-state-badge">STAN 2: RPE ROZWINIĘTE + NOWA NOTATKA</span>
+          <p class="phone-state-desc">RPE wybrane 7/10 · Rozwinięty formularz błędu i wskazówki · Pozostałe ćwiczenia</p>
+        </div>
+
+        <div class="phone-device" id="phone2">
+          <!-- Pasek statusu telefonu -->
+          <header class="phone-status-bar" aria-hidden="true">
+            <span>9:41</span>
+            <div class="status-icons">
+              <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+              <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+              <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </header>
+
+          <div class="screen-content">
+            <!-- Pasek nawigacyjny z powrotem -->
+            <div class="screen-topbar">
+              <button class="btn-topbar-back" type="button" aria-label="Wróć do historii">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <h2 class="screen-topbar-title">Podsumowanie</h2>
+            </div>
+
+            <!-- SEKCJA 1: PODSUMOWANIE SESJI -->
+            <section class="summary-hero-card" aria-label="Wyniki sesji">
+              <div class="session-status-eyebrow">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                Trening ukończony
+              </div>
+              <h1 class="session-plan-name">Boks: siła i technika</h1>
+              <p class="session-saved-hint">Zapisane w dzienniku. Oceny dopiszą się do wpisu.</p>
+
+              <!-- 1A: Kasetki metryk w rzędzie -->
+              <dl class="metrics-row-1a">
+                <div class="metric-col-1a">
+                  <dd class="metric-val-1a">48:15</dd>
+                  <dt class="metric-lbl-1a">Trening</dt>
+                </div>
+                <div class="metric-col-1a">
+                  <dd class="metric-val-1a">36:00</dd>
+                  <dt class="metric-lbl-1a">Praca</dt>
+                </div>
+                <div class="metric-col-1a">
+                  <dd class="metric-val-1a">3/3</dd>
+                  <dt class="metric-lbl-1a">Ćwiczenia</dt>
+                </div>
+              </dl>
+
+              <!-- 1B: Karta Hero -->
+              <div class="metrics-box-1b">
+                <div class="hero-work-time-1b">
+                  <div>
+                    <span class="hero-work-tag">Czas czystej pracy</span>
+                    <div class="hero-work-num">36:00</div>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 700; color: var(--app-muted);">z 48:15 łącznego</span>
+                </div>
+                <div class="metrics-subgrid-1b">
+                  <div class="submetric-tile-1b">
+                    <span style="font-family: Archivo; font-size: 18px; font-weight: 800; color: var(--app-ink);">48:15</span>
+                    <span style="display: block; font-size: 10px; color: var(--app-muted); text-transform: uppercase; font-weight: 700;">Trening</span>
+                  </div>
+                  <div class="submetric-tile-1b">
+                    <span style="font-family: Archivo; font-size: 18px; font-weight: 800; color: var(--app-ink);">3/3</span>
+                    <span style="display: block; font-size: 10px; color: var(--app-muted); text-transform: uppercase; font-weight: 700;">Ćwiczenia</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 1C: Panel z bezpośrednim porównaniem -->
+              <div class="metrics-panel-1c">
+                <div class="metric-line-1c">
+                  <span class="line-lbl-1c">Trening</span>
+                  <span class="line-val-1c">48:15 <span style="font-size: 11px; color: var(--app-muted); font-weight: normal;">(poprz. 45:10)</span></span>
+                </div>
+                <div class="metric-line-1c">
+                  <span class="line-lbl-1c">Praca</span>
+                  <span class="line-val-1c">36:00 <span style="font-size: 11px; color: var(--app-muted); font-weight: normal;">(poprz. 34:00)</span></span>
+                </div>
+                <div class="metric-line-1c">
+                  <span class="line-lbl-1c">Ćwiczenia</span>
+                  <span class="line-val-1c">3/3 <span style="font-size: 11px; color: var(--app-muted); font-weight: normal;">(ukończone)</span></span>
+                </div>
+              </div>
+
+              <!-- Poprzednio ten plan -->
+              <div class="previous-plan-bar">
+                <span>Poprzednio ten plan: 14.11 · RPE: 7</span>
+                <a href="#" class="prev-plan-btn" onclick="return false;">Zobacz</a>
+              </div>
+            </section>
+
+            <!-- SEKCJA 2: KARTA RPE (STAN ZAPISANY RPE 7) -->
+            <section class="rpe-card-box" aria-label="Ocena zmęczenia RPE">
+              <div class="rpe-heading-row">
+                <h3 class="rpe-title-eyebrow">RPE · zmęczenie całym treningiem</h3>
+                <span style="font-size: 10.5px; font-weight: 700; color: var(--app-success-ink);">ZAPISANO RPE 7</span>
+              </div>
+
+              <!-- 2A: Karta z odliczaniem (w stanie 2 pokazana jako gotowa do edycji) -->
+              <div class="rpe-countdown-area-2a">
+                <div>
+                  <p style="font-size: 11.5px; color: var(--app-muted);">Ocena zmęczenia</p>
+                  <p style="font-family: Archivo; font-size: 26px; font-weight: 800; color: var(--app-ink); line-height: 1;">RPE 7 <span style="font-size: 14px; color: var(--app-crimson-ink);">· Bardzo ciężko</span></p>
+                </div>
+                <button class="btn-rate-now" type="button">Zmień</button>
+              </div>
+
+              <!-- 2B: Skala kwadratów 0–10 -->
+              <div class="rpe-scale-box-2b">
+                <p style="font-size: 12.5px; color: var(--app-muted);">Jak ciężki był cały trening?</p>
+                <div class="rpe-display-banner">
+                  <span class="rpe-big-num">7</span>
+                  <span class="rpe-desc-text">· Bardzo ciężko</span>
+                </div>
+                <div class="rpe-squares-grid">
+                  <button type="button" class="btn-rpe-sq">0</button>
+                  <button type="button" class="btn-rpe-sq">1</button>
+                  <button type="button" class="btn-rpe-sq">2</button>
+                  <button type="button" class="btn-rpe-sq">3</button>
+                  <button type="button" class="btn-rpe-sq">4</button>
+                  <button type="button" class="btn-rpe-sq">5</button>
+                  <button type="button" class="btn-rpe-sq">6</button>
+                  <button type="button" class="btn-rpe-sq is-selected">7</button>
+                  <button type="button" class="btn-rpe-sq">8</button>
+                  <button type="button" class="btn-rpe-sq">9</button>
+                  <button type="button" class="btn-rpe-sq">10</button>
+                </div>
+                <div class="rpe-anchors-row">
+                  <span>0 · odpoczynek</span>
+                  <span>5 · ciężko</span>
+                  <span>10 · maks.</span>
+                </div>
+              </div>
+
+              <!-- 2C: Pasek segmentowy z suwakiem -->
+              <div class="rpe-stepper-box-2c">
+                <p style="font-size: 12.5px; color: var(--app-muted);">Jak ciężki był cały trening?</p>
+                <div class="stepper-row-2c">
+                  <button type="button" class="btn-step-2c">−</button>
+                  <div class="stepper-val-box-2c">
+                    <div class="stepper-num-2c">7</div>
+                    <div class="stepper-desc-2c">Bardzo ciężko</div>
+                  </div>
+                  <button type="button" class="btn-step-2c">+</button>
+                </div>
+                <div class="rpe-anchors-row">
+                  <span>0 · odpoczynek</span>
+                  <span>5 · ciężko</span>
+                  <span>10 · maks.</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- SEKCJA 3: ELEMENTY DO POPRAWY (Z ROZWINIĘTĄ NOTATKĄ KORYGUJĄCĄ) -->
+            <section class="focus-section-container" aria-label="Elementy do poprawy">
+              <div class="section-header-row">
+                <h3 class="section-main-title">Elementy do poprawy</h3>
+                <span class="section-sub-count">oceniono 1 z 2</span>
+              </div>
+
+              <article class="focus-card-box">
+                <div class="focus-badge-row">
+                  <span class="block-tag">TARCZE</span>
+                  <span style="font-size: 11px; color: var(--app-muted);">Ostatnio <strong style="color: var(--app-ink);">4/5</strong> · 14.11</span>
+                </div>
+                <h4 class="skill-title">Lewy prosty, powrót do gardy</h4>
+
+                <div class="criterion-box">
+                  <svg class="criterion-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="2" fill="currentColor"/></svg>
+                  <div>
+                    <span class="criterion-tag">Cel</span>
+                    <p class="criterion-text">Ręka wraca do brody przed następnym ciosem</p>
+                  </div>
+                </div>
+
+                <div class="prev-correction-note">
+                  <span class="prev-note-eyebrow">Notatka z 14.11 · na dziś</span>
+                  <div class="note-row">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--app-crimson-ink); margin-top: 1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <p><span class="note-tag-problem">Błąd:</span> po jabie opuszczam łokieć</p>
+                  </div>
+                  <div class="note-row">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--app-ember); margin-top: 1px;"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-7 7c0 2.5 1.5 4.5 3 6h8c1.5-1.5 3-3.5 3-6a7 7 0 0 0-7-7z"/></svg>
+                    <p><span class="note-tag-fix">Wskazówka:</span> łokieć przy żebrach, powrót po tej samej linii</p>
+                  </div>
+                </div>
+
+                <div class="checks-group">
+                  <p class="checks-title">Czy ten błąd dziś się powtarzał?</p>
+                  <div class="checks-row">
+                    <button type="button" class="btn-check-tile is-checked">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--app-success-ink);"><polyline points="20 6 9 17 4 12"/></svg>
+                      Rzadziej
+                    </button>
+                    <button type="button" class="btn-check-tile">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/></svg>
+                      Tak samo
+                    </button>
+                  </div>
+                  <button type="button" class="btn-check-text">Nie sprawdzałem</button>
+                </div>
+
+                <div class="focus-rating-group">
+                  <p class="focus-question-title">Jak dobrze ci wychodziło?</p>
+
+                  <div class="scale-grid-3a">
+                    <button type="button" class="btn-scale-sq">1</button>
+                    <button type="button" class="btn-scale-sq">2</button>
+                    <button type="button" class="btn-scale-sq">3</button>
+                    <button type="button" class="btn-scale-sq is-selected">
+                      4
+                      <span class="last-indicator">ostatnio</span>
+                    </button>
+                    <button type="button" class="btn-scale-sq">5</button>
+                  </div>
+                  <div class="scale-selected-banner">
+                    <span class="banner-num">4</span>
+                    <span>·</span>
+                    <span>Zwykle się udaje, błąd sam łapię i poprawiam.</span>
+                  </div>
+
+                  <div class="scale-vertical-3b">
+                    <div class="scale-tile-3b"><span class="tile-num-3b">1</span><span>Nie udaje się nawet w prostej próbie.</span></div>
+                    <div class="scale-tile-3b"><span class="tile-num-3b">2</span><span>Udaje się czasem, zwykle przerywam, żeby poprawić.</span></div>
+                    <div class="scale-tile-3b"><span class="tile-num-3b">3</span><span>Udaje się, gdy świadomie pilnuję wskazówki.</span></div>
+                    <div class="scale-tile-3b is-selected"><span class="tile-num-3b">4</span><span>Zwykle się udaje, błąd sam łapię i poprawiam. (ostatnio)</span></div>
+                    <div class="scale-tile-3b"><span class="tile-num-3b">5</span><span>Udaje się bez myślenia o wskazówce.</span></div>
+                  </div>
+
+                  <div class="scale-compact-3c">
+                    <div class="scale-bar-strip-3c">
+                      <div class="strip-segment-3c">1</div>
+                      <div class="strip-segment-3c">2</div>
+                      <div class="strip-segment-3c">3</div>
+                      <div class="strip-segment-3c is-selected">4</div>
+                      <div class="strip-segment-3c">5</div>
+                    </div>
+                    <p style="font-size: 11.5px; color: var(--app-muted);">Poziom 4: Zwykle się udaje, błąd sam łapię i poprawiam.</p>
+                  </div>
+                </div>
+
+                <!-- Rozwinięty formularz: Nowa notatka korygująca -->
+                <div class="new-correction-fields">
+                  <span class="correction-input-label">Notatka: jeden błąd i jedna wskazówka</span>
+                  <div>
+                    <label class="correction-input-label" for="txtProblem2">Błąd</label>
+                    <textarea id="txtProblem2" class="correction-textarea" rows="2" placeholder="np. po uniku robię krok w tył">przy unikach przenoszę ciężar ciała za bardzo na piętę</textarea>
+                  </div>
+                  <div>
+                    <label class="correction-input-label" for="txtFix2">Wskazówka</label>
+                    <textarea id="txtFix2" class="correction-textarea" rows="2" placeholder="np. kontra z miejsca, ciężar na przedniej nodze">kontra z miejsca, środek ciężkości nisko na śródstopiu</textarea>
+                  </div>
+                  <p class="correction-hint-text">Przy następnym treningu zapytamy, czy błąd się powtarzał.</p>
+                </div>
+              </article>
+            </section>
+
+            <!-- SEKCJA 4: POZOSTAŁE ĆWICZENIA I SPARING -->
+            <section class="others-section-container" aria-label="Sparing i pozostałe ćwiczenia">
+              <div class="sparring-box">
+                <span class="sparring-title-row">Sparing 1 · intensywność (opcjonalnie)</span>
+                <div class="sparring-btn-grid">
+                  <button type="button" class="btn-sparring-opt">Lekki</button>
+                  <button type="button" class="btn-sparring-opt is-active">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Techniczny
+                  </button>
+                  <button type="button" class="btn-sparring-opt">Twardy</button>
+                </div>
+              </div>
+
+              <!-- 4A: Rozwinięty akordeon z ćwiczeniem Kombinacje bokserskie -->
+              <div class="others-accordion-4a">
+                <div class="accordion-header-4a">
+                  <div>
+                    <div class="acc-title-4a">Pozostałe ćwiczenia</div>
+                    <div class="acc-sub-4a">opcjonalnie · oceniono 1 z 2</div>
+                  </div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--app-muted); transform: rotate(180deg);"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="accordion-content-4a">
+                  <div class="exercise-rating-row">
+                    <span class="ex-name-4a">Kombinacje bokserskie</span>
+                    <span style="font-size: 11.5px; color: var(--app-muted);">Jak oceniasz wykonanie tego ćwiczenia?</span>
+                    <div class="scale-grid-3a" style="gap: 4px;">
+                      <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">1</button>
+                      <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">2</button>
+                      <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">3</button>
+                      <button type="button" class="btn-scale-sq is-selected" style="height: 38px; font-size: 13px;">4</button>
+                      <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">5</button>
+                    </div>
+                    <span style="font-size: 11px; color: var(--app-crimson-ink); font-weight: 700;">4 · Dobrze i powtarzalnie.</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4B: Kasetki 2B dla ćwiczeń -->
+              <div class="others-cards-4b">
+                <div class="other-ex-card-4b">
+                  <span style="font-family: Archivo; font-size: 13px; font-weight: 800; color: var(--app-ink);">Kombinacje bokserskie</span>
+                  <span style="font-size: 11px; color: var(--app-muted);">Jak oceniasz wykonanie tego ćwiczenia?</span>
+                  <div class="scale-grid-3a" style="gap: 4px;">
+                    <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">1</button>
+                    <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">2</button>
+                    <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">3</button>
+                    <button type="button" class="btn-scale-sq is-selected" style="height: 38px; font-size: 13px;">4</button>
+                    <button type="button" class="btn-scale-sq" style="height: 38px; font-size: 13px;">5</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4C: Kapsułki wyboru w wierszu -->
+              <div class="others-chips-4c">
+                <div style="background: var(--app-surface); border: 1px solid var(--app-border); border-radius: 4px; padding: 10px;">
+                  <span style="font-size: 12px; font-weight: 700;">Kombinacje bokserskie:</span>
+                  <span style="font-size: 12px; color: var(--app-crimson-ink); font-weight: 800; margin-left: 6px;">4 · Dobrze i powtarzalnie</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- SEKCJA 5: NOTATKA I ZAPIS -->
+            <section class="note-and-submit-box" aria-label="Zapis ocen i notatka">
+              <div class="note-input-box">
+                <label class="note-heading-label" for="txtNote2">Notatka do treningu · opcjonalnie</label>
+                <textarea id="txtNote2" class="general-note-textarea" rows="3" placeholder="Co zadziałało? Jaki błąd się powtarzał? Co zrobić następnym razem?">Skupienie na unikach w 2. rundzie przyniosło efekt. Pamiętać o ciężarze na przedniej nodze.</textarea>
+              </div>
+
+              <!-- 5A: Hero 2B-2 z gradientem -->
+              <div class="submit-area-5a">
+                <button type="button" class="btn-submit-hero">ZAPISZ OCENY</button>
+                <p class="submit-reminder-text">RPE przypomnimy na stronie głównej, jeśli zamkniesz ekran wcześniej.</p>
+              </div>
+
+              <!-- 5B: Pływający dok dolny z licznikiem -->
+              <div class="submit-area-5b">
+                <span class="char-count-5b">92 / 1000 znaków</span>
+                <div class="dock-bar-5b">
+                  <button type="button" class="btn-cancel-dock">Wróć</button>
+                  <button type="button" class="btn-submit-dock">ZAPISZ OCENY</button>
+                </div>
+              </div>
+
+              <!-- 5C: Karta z predefiniowanymi tagami -->
+              <div class="submit-area-5c">
+                <div class="tags-row-5c">
+                  <button type="button" class="btn-quick-tag">+ Dobra dynamika</button>
+                  <button type="button" class="btn-quick-tag">+ Spadek sił</button>
+                  <button type="button" class="btn-quick-tag">+ Ręce przy brodzie</button>
+                </div>
+                <button type="button" class="btn-submit-hero" style="background: var(--app-crimson);">ZAPISZ OCENY</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       SKRYPTY INTERAKTYWNE LABORATORIUM
+       ========================================================================= -->
+  <script>
+    const currentVariants = {
+      1: 'a',
+      2: 'a',
+      3: 'a',
+      4: 'a',
+      5: 'a'
+    };
+
+    function setSectionVariant(section, variant) {
+      currentVariants[section] = variant;
+      updateBodyClasses();
+      updateNavButtons();
+    }
+
+    function applyPreset(preset) {
+      for (let i = 1; i <= 5; i++) {
+        currentVariants[i] = preset;
+      }
+      updateBodyClasses();
+      updateNavButtons();
+    }
+
+    function updateBodyClasses() {
+      const classes = [];
+      for (let i = 1; i <= 5; i++) {
+        classes.push(`var-${i}${currentVariants[i]}`);
+      }
+      document.body.className = classes.join(' ');
+    }
+
+    function updateNavButtons() {
+      for (let i = 1; i <= 5; i++) {
+        ['a', 'b', 'c'].forEach(v => {
+          const btn = document.getElementById(`btn-${i}${v}`);
+          if (btn) {
+            const isActive = currentVariants[i] === v;
+            btn.classList.toggle('is-active', isActive);
+            btn.classList.toggle('is-active-crimson', isActive);
+          }
+        });
+      }
+    }
+
+    // Przełączanie szerokości telefonu (390 vs 360 px)
+    function setViewportWidth(width) {
+      const phones = document.querySelectorAll('.phone-device');
+      phones.forEach(p => {
+        if (width === 360) {
+          p.classList.add('viewport-360');
+        } else {
+          p.classList.remove('viewport-360');
+        }
+      });
+      document.getElementById('btnView390').classList.toggle('is-active', width === 390);
+      document.getElementById('btnView360').classList.toggle('is-active', width === 360);
+    }
+
+    // Przełączanie motywu (ciemny vs jasny)
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('btnThemeDark').classList.toggle('is-active', theme === 'dark');
+      document.getElementById('btnThemeLight').classList.toggle('is-active', theme === 'light');
+    }
+  </script>
+</body>
+</html>
