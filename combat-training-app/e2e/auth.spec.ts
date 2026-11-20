@@ -1,6 +1,34 @@
 import { test, expect, openProfile } from './fixtures'
 import { createVerifiedAccount, signIn, testPassword, uniqueEmail, verificationLink } from './authEmulator'
 
+test('shows a retry after session startup stalls and reloads the page', async ({ page }, info) => {
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('allow-auth-startup')) return
+
+    const open = IDBFactory.prototype.open
+    IDBFactory.prototype.open = function (name, version) {
+      // Leave Firebase's initial IndexedDB request pending until the next page load.
+      if (name === 'firebaseLocalStorageDb') return new EventTarget() as IDBOpenDBRequest
+      return open.call(this, name, version)
+    }
+  })
+  await page.clock.install()
+  await page.goto('/login')
+  await expect(page.getByRole('status')).toHaveText('Sprawdzanie sesji…')
+  await page.clock.fastForward(15_000)
+
+  await expect(page.getByRole('alert')).toContainText('Nie udało się odczytać sesji.')
+  const retry = page.getByRole('button', { name: 'Spróbuj ponownie', exact: true })
+  await expect(retry).toBeVisible()
+  expect((await retry.boundingBox())?.height).toBeGreaterThanOrEqual(44)
+  await page.evaluate(() => document.fonts.ready)
+  await info.attach(`session-error-${info.project.name}`, { body: await page.screenshot(), contentType: 'image/png' })
+
+  await page.evaluate(() => sessionStorage.setItem('allow-auth-startup', '1'))
+  await Promise.all([page.waitForEvent('domcontentloaded'), retry.click()])
+  await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
+})
+
 test('opens Start after the first email verification and includes a local continue URL', async ({ page, request, baseURL }) => {
   const email = uniqueEmail()
   await page.goto('/register')

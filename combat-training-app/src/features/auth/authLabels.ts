@@ -30,6 +30,7 @@ export const authLabels = {
   weakPassword: 'Hasło musi mieć co najmniej 8 znaków.',
   loading: 'Sprawdzanie sesji…',
   sessionError: 'Nie udało się odczytać sesji. Odśwież stronę i spróbuj ponownie.',
+  retrySession: 'Spróbuj ponownie',
   configurationTitle: 'Nie można uruchomić logowania',
   configurationError: 'Brakuje poprawnej konfiguracji Firebase. Uzupełnij plik .env zgodnie z .env.example i uruchom aplikację ponownie.',
   errors: {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { isActiveWorkoutPath, resolveAuthRoute } from '@/application/auth/resolveAuthRoute'
+import { Button } from '@/components/ui/Button'
 import { AuthFrame } from './AuthFrame'
 import { useAuth } from './authContext'
 import { authLabels } from './authLabels'
@@ -31,6 +32,9 @@ export function AuthGate() {
   return (
     <AuthFrame title={authLabels.brand}>
       <p role="alert">{authLabels.sessionError}</p>
+      <Button variant="secondary" size="sm" className="mt-4 w-full" onClick={() => window.location.reload()}>
+        {authLabels.retrySession}
+      </Button>
     </AuthFrame>
   )
 }
