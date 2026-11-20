@@ -10,8 +10,6 @@
   --ease-standard: cubic-bezier(0.2,0,0,1);
   --ease-out: cubic-bezier(0,0,0,1);
   --ease-in: cubic-bezier(0.3,0,1,1);
-  /* Countdown ring: linear over almost one tick so time reads as flowing evenly. */
-  --motion-countdown: 950ms;
 }
 
 .transition-colors, .transition-all {
@@ -625,17 +623,12 @@
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-.timer-ring {
-  transition: stroke-dashoffset var(--motion-countdown) linear;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     scroll-behavior: auto !important;
   }
-  .timer-ring { transition: none; }
 }
 
 @media (prefers-reduced-motion: no-preference) {

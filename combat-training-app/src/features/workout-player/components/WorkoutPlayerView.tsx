@@ -20,18 +20,15 @@ import { useWorkoutPlayback } from '@/features/workout-player/hooks/useWorkoutPl
 import { useWorkoutGong } from '@/features/workout-player/hooks/useWorkoutGong'
 import { useWorkoutScreenWakeLock } from '@/features/workout-player/hooks/useWorkoutScreenWakeLock'
 import type { WorkoutPlaybackEvent } from '@/features/workout-player/types/workoutPlaybackEvents.types'
-import type {
-  WorkoutPlaybackStep,
-  WorkoutPlaybackStepKind,
-  WorkoutPlaybackTimeline,
-} from '@/domain/workout-playback/workoutPlayback.types'
+import type { WorkoutPlaybackStep, WorkoutPlaybackTimeline } from '@/domain/workout-playback/workoutPlayback.types'
 import type { WorkoutPlayerLoadState } from '@/features/workout-player/types/workoutPlayback.types'
 import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
-import { getWorkoutStepKindShortLabelPl } from '@/features/workout-player/utils/workoutStepTimerPresentation'
+import { getWorkoutStepKindShortLabelPl, getWorkoutTimerPhase } from '@/features/workout-player/utils/workoutStepTimerPresentation'
 import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
 import { quickTimerLabels } from '@/features/quick-timer/quickTimerLabels'
 import { readStoredWorkoutEndWarnings } from '@/infrastructure/storage/workoutEndWarningStorage'
 import { countRemainingExerciseRounds } from '@/features/workout-player/utils/countRemainingExerciseRounds'
+import './workoutPlayer.css'
 
 interface WorkoutSummaryOptions {
   source?: 'plan' | 'quickTimer'
@@ -106,19 +103,15 @@ function WorkoutPlayerNotFoundState({ workoutsListPath }: { workoutsListPath: st
   )
 }
 
-function getStepKindLabelPl(kind: WorkoutPlaybackStepKind): string {
-  return getWorkoutStepKindShortLabelPl(kind)
-}
-
 function buildStepAnnouncement(step: WorkoutPlaybackStep, stepIndex: number, totalSteps: number): string {
   const blockLabel = getWorkoutBlockLabelPl(step.blockType)
-  const kindLabel = getStepKindLabelPl(step.kind)
+  const kindLabel = getWorkoutStepKindShortLabelPl(step.kind)
   const roundLabel =
     step.roundNumber !== null && step.roundCount !== null
-      ? ` Runda ${step.roundNumber} z ${step.roundCount}.`
+      ? ` ${workoutPlayerLabels.round(step.roundNumber, step.roundCount)}.`
       : ''
 
-  return `Etap ${stepIndex + 1} z ${totalSteps}. Blok ${step.blockIndex + 1}, ${blockLabel}. ${kindLabel}. ${step.name}.${roundLabel}`
+  return `${workoutPlayerLabels.step(stepIndex + 1, totalSteps)}. ${workoutPlayerLabels.block(step.blockIndex + 1, blockLabel)}. ${kindLabel}. ${step.name}.${roundLabel}`
 }
 
 interface WorkoutPlayerActiveContentProps extends WorkoutSummaryOptions {
@@ -317,7 +310,6 @@ function WorkoutPlayerRuntime({
 
   const totalSteps = timeline.steps.length
   const isCompleted = playback.status === 'completed'
-  const isPaused = playback.status === 'paused'
   const nextStep = isPreparing ? currentStep : timeline.steps[playback.currentStepIndex + 1] ?? null
   const isLastStep = !isPreparing && playback.currentStepIndex >= totalSteps - 1
 
@@ -345,13 +337,25 @@ function WorkoutPlayerRuntime({
   }
 
   const stepDurationSeconds = isPreparing ? Number(preparation) : currentStep.durationSeconds
+  const { phase, label } = getWorkoutTimerPhase(playback.status, currentStep.kind, playback.remainingSeconds)
+  const isRoundRest = currentStep.kind === 'roundRest'
+  const roundStep = isRoundRest ? timeline.steps[playback.currentStepIndex - 1] : currentStep
+  const hasInstruction = Boolean(currentStep.instruction)
 
   return (
-    <main className="flex min-h-dvh flex-col overflow-clip bg-bg">
+    <main className="workout-player flex min-h-dvh flex-col" data-phase={phase}>
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col safe-area-pt">
-        {focusSkillsUnavailable && <p role="status" className="px-5 pt-3 text-sm leading-relaxed text-muted">{workoutPlayerLabels.focusSkillsUnavailable}</p>}
-        <div className="shrink-0 px-5 pt-5 pb-2">
-          <LiveScreenHeader progress={<>Etap <span className="tabular-nums">{playback.currentStepIndex + 1}</span> z <span className="tabular-nums">{totalSteps}</span></>}
+        {focusSkillsUnavailable && <p role="status" className="player-focus-notice px-5 pt-3 text-sm leading-relaxed">{workoutPlayerLabels.focusSkillsUnavailable}</p>}
+        <LiveScreenHeader
+          title={plan.nameSnapshot}
+          progress={workoutPlayerLabels.step(playback.currentStepIndex + 1, totalSteps)}
+          action={soundMuted ? (
+            <button type="button" onClick={enableSound} aria-label={workoutPlayerLabels.enableSound} className="player-icon-button topbar-sound-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M11 5 6 9H2v6h4l5 4V5Zm4 4a4 4 0 0 1 0 6M3 3l18 18" />
+              </svg>
+            </button>
+          ) : null}
             exit={<WorkoutPlayerExitControls
               status={playback.status}
               canFinishExercise={currentStep.kind !== 'break'}
@@ -365,50 +369,36 @@ function WorkoutPlayerRuntime({
                 expectedStepRevision: playback.stepRevision,
               })}
               onEndEarly={endEarly}
-            />} />
+            />}
+        />
+        <div className="current-exercise-box">
+          {roundStep && roundStep.roundNumber !== null && roundStep.roundCount !== null ? (
+            <p className="exercise-round-eyebrow">{workoutPlayerLabels.round(roundStep.roundNumber, roundStep.roundCount)}</p>
+          ) : null}
+          {hasInstruction ? <h1 className="exercise-name">{currentStep.name}</h1> : null}
         </div>
-
-        {soundMuted ? <button type="button" onClick={enableSound}
-          className={getButtonClassName({ variant: 'secondary', className: 'mx-5 whitespace-normal text-center' })}
-        >{workoutPlayerLabels.enableSound}</button> : null}
-
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          <div className="shrink-0 px-5 py-3 text-center">
-            <h1 className="break-words font-display text-[24px] font-bold leading-snug text-ink">
-              {currentStep.name}
-            </h1>
-            {currentStep.kind === 'exercise' &&
-            currentStep.roundNumber !== null &&
-            currentStep.roundCount !== null ? (
-              <p className="mt-2 font-display text-[16px] uppercase tracking-[0.12em] text-muted">
-                Runda {currentStep.roundNumber} z {currentStep.roundCount}
-              </p>
-            ) : null}
-            {currentStep.instruction ? (
-              <p className="mt-3 break-words text-[12px] leading-relaxed text-muted">{currentStep.instruction}</p>
-            ) : null}
-          </div>
-
-          <div className="flex flex-1 flex-col items-center justify-center px-5 py-2">
-            <WorkoutCircularTimer
-              key={`${currentStep.id}:${playback.stepRevision}`}
-              totalSeconds={stepDurationSeconds}
-              remainingSeconds={playback.remainingSeconds}
-              stepKind={currentStep.kind}
-              paused={isPaused}
-              preparing={isPreparing}
-              onAdjustTime={!isPreparing && playback.status !== 'idle' ? (deltaSeconds) => {
-                enableSound()
-                adjustTime(deltaSeconds, {
-                  expectedStepIndex: playback.currentStepIndex,
-                  expectedStepRevision: playback.stepRevision,
-                })
-              } : undefined}
-            />
-          </div>
-
-          <WorkoutPlayerNextPreview nextStep={nextStep} isLastStep={isLastStep} />
+        <div className="player-technique-slot">
+          {hasInstruction ? (
+            <p className="exercise-technique">{currentStep.instruction}</p>
+          ) : (
+            <h1 className="exercise-technique">{currentStep.name}</h1>
+          )}
         </div>
+        <WorkoutCircularTimer
+          key={`${currentStep.id}:${playback.stepRevision}`}
+          totalSeconds={stepDurationSeconds}
+          remainingSeconds={playback.remainingSeconds}
+          phaseLabel={label}
+          preparing={isPreparing}
+          onAdjustTime={!isPreparing && playback.status !== 'idle' ? (deltaSeconds) => {
+            enableSound()
+            adjustTime(deltaSeconds, {
+              expectedStepIndex: playback.currentStepIndex,
+              expectedStepRevision: playback.stepRevision,
+            })
+          } : undefined}
+        />
+        <WorkoutPlayerNextPreview roundStep={isRoundRest ? nextStep ?? undefined : roundStep} nextStep={nextStep} isLastStep={isLastStep} />
 
         <WorkoutPlayerControls
           status={playback.status}

@@ -1,34 +1,24 @@
 import { useEffect, useState } from 'react'
 import { formatSecondsAsClock } from '@/domain/time/formatDuration'
-import type { WorkoutPlaybackStepKind } from '@/domain/workout-playback/workoutPlayback.types'
 import { formatRemainingSecondsAccessiblePl } from '@/features/workout-player/utils/formatRemainingSecondsAccessiblePl'
-import { getWorkoutStepTimerPresentation } from '@/features/workout-player/utils/workoutStepTimerPresentation'
-import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
+import { getWorkoutArcProgress } from '@/features/workout-player/utils/workoutStepTimerPresentation'
+import { workoutPlayerLabels as labels } from '@/features/workout-player/workoutPlayerLabels'
 
-const BASE_SIZE = 260
-const STROKE_WIDTH = 10
-const TRACK_COLOR = 'var(--app-border)'
+const ARC_LENGTH = 75
 
 interface WorkoutCircularTimerProps {
   totalSeconds: number
   remainingSeconds: number
-  stepKind: WorkoutPlaybackStepKind
-  paused?: boolean
-  preparing?: boolean
+  phaseLabel: string
+  preparing: boolean
   onAdjustTime?: (deltaSeconds: -15 | 15) => void
-}
-
-function clampProgressRatio(totalSeconds: number, remainingSeconds: number): number {
-  const rawProgressRatio = totalSeconds > 0 ? remainingSeconds / totalSeconds : 0
-  return Math.min(1, Math.max(0, rawProgressRatio))
 }
 
 export function WorkoutCircularTimer({
   totalSeconds,
   remainingSeconds,
-  stepKind,
-  paused = false,
-  preparing = false,
+  phaseLabel,
+  preparing,
   onAdjustTime,
 }: WorkoutCircularTimerProps) {
   const [adjustmentNotice, setAdjustmentNotice] = useState<{ label: string } | null>(null)
@@ -39,111 +29,54 @@ export function WorkoutCircularTimer({
     return () => window.clearTimeout(timeout)
   }, [adjustmentNotice])
 
-  const presentation = getWorkoutStepTimerPresentation(stepKind)
-  const radius = (BASE_SIZE - STROKE_WIDTH) / 2
-  const circumference = 2 * Math.PI * radius
-  const progressRatio = clampProgressRatio(totalSeconds, remainingSeconds)
-  const strokeDashoffset = circumference * (1 - progressRatio)
-  const innerInsetPercent = ((STROKE_WIDTH + 4) / BASE_SIZE) * 100
+  const progress = getWorkoutArcProgress(totalSeconds, remainingSeconds)
+  const digits = preparing ? String(remainingSeconds) : formatSecondsAsClock(remainingSeconds).padStart(5, '0')
 
   return (
-    <div className="flex w-full flex-col items-center">
-      <div
-        className="relative mx-auto aspect-square w-full max-w-[260px] min-w-0"
-        style={{ maxHeight: 'min(260px, calc(100vw - 2.5rem))' }}
-      >
-        <div
-          className={`absolute rounded-full ${presentation.innerFillClass}`}
-          style={{
-            inset: `${innerInsetPercent}%`,
-          }}
-          aria-hidden="true"
-        />
-
-        <svg
-          width="100%"
-          height="100%"
-          viewBox={`0 0 ${BASE_SIZE} ${BASE_SIZE}`}
-          className="absolute inset-0"
-          style={{ transform: 'rotate(-90deg)' }}
-          aria-hidden="true"
-        >
-          <circle
-            cx={BASE_SIZE / 2}
-            cy={BASE_SIZE / 2}
-            r={radius}
-            fill="none"
-            stroke={TRACK_COLOR}
-            strokeWidth={STROKE_WIDTH}
-          />
-          <circle
-            cx={BASE_SIZE / 2}
-            cy={BASE_SIZE / 2}
-            r={radius}
-            fill="none"
-            stroke={presentation.ringColor}
-            strokeWidth={STROKE_WIDTH}
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="butt"
-            className="timer-ring"
-          />
-        </svg>
-
-        <div className="relative flex h-full flex-col items-center justify-center px-4 text-center">
-          {paused ? (
-            <span className="mb-1 font-display text-[16px] font-semibold uppercase tracking-[0.14em] text-muted">
-              WSTRZYMANO
-            </span>
-          ) : null}
+    <div className="timer-center-area">
+      <div className="timer-wrap-2b">
+        <div className="timer-digits-container">
           <span
-            className="font-display text-[48px] font-bold tabular-nums leading-none text-ink min-[360px]:text-[56px] sm:text-[64px]"
+            className={`timer-digits${digits.length === 1 ? ' single-digit' : ''}${digits.length > 5 ? ' timer-digits-compact' : ''}`}
             aria-hidden="true"
           >
-            {preparing ? remainingSeconds : formatSecondsAsClock(remainingSeconds)}
+            {digits}
           </span>
           <span className="sr-only">{formatRemainingSecondsAccessiblePl(remainingSeconds)}</span>
-          <span
-            className={`mt-2 font-display text-[16px] font-semibold uppercase tracking-[0.18em] ${presentation.labelClass}`}
-          >
-            {preparing ? workoutPlayerLabels.preparing : presentation.stateLabel}
-          </span>
         </div>
-
-        {onAdjustTime ? (['subtract', 'add'] as const).map((direction) => {
-          const subtract = direction === 'subtract'
+        <svg className="timer-svg-2b" viewBox="0 0 300 300" aria-hidden="true">
+          <g transform="rotate(135 150 150)" strokeLinecap="round">
+            <circle className="arc-track" cx="150" cy="150" r="138" pathLength="100" strokeDasharray="75 25" />
+            <circle
+              className="arc-progress" cx="150" cy="150" r="138" pathLength="100"
+              strokeDasharray={`${ARC_LENGTH * progress} 100`} visibility={progress === 0 ? 'hidden' : undefined}
+            />
+          </g>
+        </svg>
+        <span className="arc-phase-opening">{phaseLabel}</span>
+        {onAdjustTime ? ([-15, 15] as const).map((delta) => {
+          const subtract = delta < 0
           const symbol = subtract ? '−' : '+'
-          const positionClass = `${subtract ? '-left-11' : '-right-11'} ${paused ? 'top-1/2' : 'top-[calc(50%-0.75rem)]'}`
-
           return (
             <button
-              key={direction}
+              key={delta}
               type="button"
-              aria-label={subtract ? 'Odejmij 15 sekund / 15 s' : 'Dodaj 15 sekund / 15 s'}
+              aria-label={subtract ? labels.subtractTime : labels.addTime}
               onClick={() => {
-                onAdjustTime(subtract ? -15 : 15)
-                setAdjustmentNotice({ label: `${symbol}15 s` })
+                onAdjustTime(delta)
+                setAdjustmentNotice({ label: `${symbol}${labels.timeAdjustment}` })
               }}
-              className={`absolute ${positionClass} flex h-11 w-11 -translate-y-1/2 flex-col items-center justify-center text-faint hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]`}
+              className={`player-adjust-time player-icon-button ${subtract ? 'player-adjust-subtract' : 'player-adjust-add'}`}
             >
-              <span
-                aria-hidden="true"
-                className="text-[32px] font-light leading-none"
-              >
-                {symbol}
-              </span>
-              <span aria-hidden="true" className="font-display text-[10px] font-semibold leading-3 tracking-[0.08em]">
-                15 s
-              </span>
+              <span aria-hidden="true" className="player-adjust-sign">{symbol}</span>
+              <span aria-hidden="true" className="player-adjust-label">{labels.timeAdjustment}</span>
             </button>
           )
         }) : null}
       </div>
-      {onAdjustTime ? (
-        <p className="mt-2 h-5 font-display text-[13px] font-semibold tabular-nums text-muted" aria-live="polite" aria-atomic="true">
-          {adjustmentNotice?.label ?? ''}
-        </p>
-      ) : null}
+      <p className="player-adjust-notice" aria-live="polite" aria-atomic="true">
+        {onAdjustTime ? adjustmentNotice?.label ?? '' : ''}
+      </p>
     </div>
   )
 }

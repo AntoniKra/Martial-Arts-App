@@ -36,7 +36,8 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(startAction).toHaveClass(/home-primary-action/)
     await expect(startAction).toHaveCSS('border-top-width', '1px')
     await expect(startAction).toHaveCSS('color', 'rgb(255, 255, 255)')
-    expect(await startAction.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain('rgb(88, 8, 20)')
+    // Start can re-render while data settles; poll so a detached node does not report an empty style.
+    await expect.poll(() => startAction.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain('rgb(88, 8, 20)')
     await expect(startAction.locator('svg')).toHaveCSS('color', 'rgb(240, 117, 58)')
     await screenshot('featured')
 
@@ -47,7 +48,12 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.getByRole('main').locator('header')).toContainText('Etap 1 z 3')
     await app.freezeClock()
     await app.startWorkout()
-    await expect(page.getByText('PRACA', { exact: true })).toHaveClass(/text-crimson-ink/)
+    await expect(main).toHaveAttribute('data-phase', 'work')
+    await expect(main).toHaveCSS('background-color', theme === 'dark' ? 'rgb(84, 8, 21)' : 'rgb(250, 230, 233)')
+    await expect(main.locator('.arc-phase-opening')).toHaveText('PRACA')
+    const arcSize = page.viewportSize()!.width <= 360 ? '240px' : '260px'
+    await expect(main.locator('.timer-svg-2b')).toHaveCSS('width', arcSize)
+    await expect(main.locator('.timer-svg-2b')).toHaveCSS('height', arcSize)
     await screenshot('player-work')
     await page.clock.fastForward(90_000)
     await page.getByRole('button', { name: 'Następny etap', exact: true }).click()

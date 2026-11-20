@@ -20,13 +20,13 @@ interface WorkoutPlayerControlsProps {
 function getPrimaryControlLabel(status: WorkoutPlaybackStatus): string {
   switch (status) {
     case 'idle':
-      return 'Rozpocznij trening'
+      return workoutPlayerLabels.start
     case 'preparing':
       return workoutPlayerLabels.startNow
     case 'running':
-      return 'Pauza'
+      return workoutPlayerLabels.pause
     case 'paused':
-      return 'Wznów'
+      return workoutPlayerLabels.resume
     case 'completed':
       return ''
   }
@@ -66,38 +66,38 @@ export function WorkoutPlayerControls({
   const showPause = status === 'running'
 
   return (
-    <div className="shrink-0 border-t border-bd bg-surface px-5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
-      <div className="flex h-16 items-center justify-between gap-3">
+    <div className="controls-bottom-bar">
+      {status === 'preparing' ? <p className="player-start-now" aria-hidden="true">{workoutPlayerLabels.startNow}</p> : null}
+      <div className="controls-row-3b">
         <button
           type="button"
           onClick={onPrevious}
           disabled={!canGoPrevious}
-          aria-label="Poprzedni etap"
-          className="flex size-12 shrink-0 items-center justify-center text-muted transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label={workoutPlayerLabels.previousStep}
+          className="player-icon-button side-control-btn"
         >
           <SkipBackIcon />
         </button>
 
-        <div className="relative h-16 w-32 shrink-0">
-          <button
-            type="button"
-            onClick={handlePrimaryAction}
-            aria-label={getPrimaryControlLabel(status)}
-            className="absolute top-1/2 left-1/2 flex size-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[image:var(--app-grad-primary)] text-on-accent ring-4 ring-bg transition-colors"
-          >
-            {showPause ? <PauseIcon className="size-[38px]" /> : <PlayIcon className="size-[38px]" />}
-            {status === 'preparing' ? (
-              <span className="absolute inset-x-0 top-[calc(50%+1.5rem)] font-display text-[12px] font-semibold">{workoutPlayerLabels.startNow}</span>
-            ) : null}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handlePrimaryAction}
+          aria-label={getPrimaryControlLabel(status)}
+          className="player-icon-button diamond-wrapper-3b"
+        >
+          <span className="diamond-shape-3b">
+            <span className="diamond-icon-3b">
+              {showPause ? <PauseIcon className="size-7" /> : <PlayIcon className="ml-0.5 size-7" />}
+            </span>
+          </span>
+        </button>
 
         <button
           type="button"
           onClick={onNext}
           disabled={!canGoNext}
-          aria-label="Następny etap"
-          className="flex size-12 shrink-0 items-center justify-center text-muted transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label={workoutPlayerLabels.nextStep}
+          className="player-icon-button side-control-btn"
         >
           <SkipForwardIcon />
         </button>

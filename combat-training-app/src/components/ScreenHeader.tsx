@@ -42,8 +42,18 @@ export function RouteScreenHeader({ fallback, ...props }: Omit<Parameters<typeof
   }} />
 }
 
-export function LiveScreenHeader({ exit, progress }: { exit: ReactNode; progress: ReactNode }) {
-  return <header className="grid min-h-11 grid-cols-[44px_1fr_44px] items-center gap-1">
-    {exit}<div className="text-center font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{progress}</div><span aria-hidden="true" />
+export function LiveScreenHeader({ exit, title, progress, action }: {
+  exit: ReactNode
+  title: string
+  progress: ReactNode
+  action: ReactNode
+}) {
+  return <header className="player-topbar">
+    {exit}
+    <div className="min-w-0 text-center">
+      <p className="topbar-plan-title">{title}</p>
+      <p className="player-step-progress">{progress}</p>
+    </div>
+    {action}
   </header>
 }

@@ -46,8 +46,8 @@ for (const theme of ['dark', 'light'] as const) {
     }
     const viewport = page.viewportSize()!
     const buttonBox = (await page.getByRole('button', { name: 'Zacznij teraz', exact: true }).boundingBox())!
-    expect(buttonBox.height).toBe(128)
-    expect(Math.min(viewport.height, buttonBox.y + buttonBox.height) - buttonBox.y).toBeGreaterThanOrEqual(100)
+    expect([buttonBox.width, buttonBox.height]).toEqual([88, 88])
+    expect(buttonBox.y + buttonBox.height).toBeLessThanOrEqual(viewport.height)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(viewport.width)
 
     const digits = page.locator('span[aria-hidden="true"]')
