@@ -10,6 +10,7 @@ import type { ThemeMode } from '@/features/theme/theme.types'
 import { THEME_COLOR_BY_MODE } from '@/features/theme/themeStorage'
 
 const css = readFileSync(new URL('../../styles/index.css', import.meta.url), 'utf8')
+const playerCss = readFileSync(new URL('../workout-player/components/workoutPlayer.css', import.meta.url), 'utf8')
 const disciplines = [
   { key: 'boxing', token: 'boxing' },
   { key: 'kickboxing', token: 'kickboxing' },
@@ -59,6 +60,24 @@ function sourceFiles(directory: string, extensions: readonly string[]): string[]
 }
 
 describe.each(['dark', 'light'] as const)('%s theme colours', (mode) => {
+  it('keeps the player phase, timer and muted text at least 4.5:1 on each phase background', () => {
+    const palette = mode === 'dark'
+      ? playerCss.match(/^\.workout-player \{([^}]+)\}/m)?.[1]
+      : playerCss.match(/\[data-theme='light'\] \.workout-player \{([^}]+)\}/)?.[1]
+    const playerColor = (name: string) => {
+      const value = palette?.match(new RegExp(`--player-${name}: (#[a-f0-9]{6});`, 'i'))?.[1]
+      if (!value) throw new Error(`Missing ${mode} player color: ${name}`)
+      return value
+    }
+    const ink = playerColor(mode === 'dark' ? 'white' : 'phase-ink')
+    for (const phase of ['work', 'rest', 'warning', 'paused']) {
+      const background = playerColor(`${phase}-bg`)
+      expect(contrast(ink, background), phase).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(blend(ink, background, 0.85), background), phase).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(playerColor(`${phase}-muted`), background), phase).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
   it.each(disciplines)('keeps $key text at least 4.5:1 against card and page surfaces', ({ key, token }) => {
     const markup = renderToStaticMarkup(createElement(DisciplineBadge, { disciplineKey: key }))
     expect(markup).toContain(`text-discipline-${token}`)

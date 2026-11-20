@@ -97,10 +97,10 @@ export function WorkoutPlayerExitControls({
         aria-label={labels.finishWorkout}
         aria-haspopup="dialog"
         onClick={() => { if (active) openExit(); else void navigate(workoutDetailsPath) }}
-        className="flex min-h-touch min-w-touch shrink-0 items-center justify-center text-ink disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+        className="player-icon-button topbar-exit-btn"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 6l12 12M18 6L6 18" />
+          <path d="M19 12H5m7-7-7 7 7 7" />
         </svg>
       </button>
       <dialog
@@ -125,12 +125,12 @@ export function WorkoutPlayerExitControls({
             first?.focus()
           }
         }}
-        className="fixed inset-x-0 bottom-0 top-auto m-0 mx-auto max-h-[100dvh] w-full max-w-lg overflow-y-auto border-t border-bd bg-surface px-4 pt-5 pb-[calc(1.75rem+env(safe-area-inset-bottom,0px))] text-ink backdrop:bg-bg/80"
+        className="player-exit-sheet fixed inset-x-0 bottom-0 top-auto m-0 mx-auto max-h-[100dvh] w-full max-w-lg overflow-y-auto"
       >
-        <h2 id={titleId} className="font-display text-2xl font-extrabold">{confirmDiscard ? labels.discardTitle : labels.exitTitle}</h2>
-        <p id={descriptionId} className="mt-2.5 text-[13px] leading-relaxed text-muted">{confirmDiscard ? labels.discardDescription : labels.exitDescription}</p>
+        <h2 id={titleId} className="font-display text-[18px] font-extrabold">{confirmDiscard ? labels.discardTitle : labels.exitTitle}</h2>
+        <p id={descriptionId} className="player-exit-description">{confirmDiscard ? labels.discardDescription : labels.exitDescription}</p>
         {confirmDiscard ? (
-          <div className="mt-2.5 flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2">
             <button type="button" onClick={discardWorkout}
               className={getButtonClassName({ variant: 'primary', className: 'min-h-[52px]' })}
             >{labels.discard}</button>
@@ -139,23 +139,22 @@ export function WorkoutPlayerExitControls({
             >{labels.return}</button>
           </div>
         ) : (
-          <div className="mt-2.5 flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2">
             <button ref={returnButtonRef} type="button" onClick={returnToWorkout}
-              className="min-h-[52px] rounded-[2px] border border-ink px-3 text-sm font-semibold"
+              className="player-exit-return"
             >{labels.returnToWorkout}</button>
             {canFinishExercise ? <button type="button"
-              className="min-h-touch rounded-[2px] border border-bd px-3 text-sm font-semibold"
+              className="player-exit-secondary player-exit-skip"
               onClick={() => {
                 closeExit()
                 if (resumeOnReturnRef.current) onResume()
                 onFinishExercise()
               }}
             >{labels.skipExercise(remainingRounds)}</button> : null}
-            <div aria-hidden="true" className="h-5" />
-            <button type="button" className="primary-action min-h-[52px] px-3 font-display text-sm font-extrabold uppercase tracking-[0.06em] text-on-accent"
+            <button type="button" className="player-exit-secondary mt-3"
               onClick={() => { closeExit(); onEndEarly() }}
             >{labels.endEarly}</button>
-            <button type="button" className="min-h-touch px-3 text-sm font-semibold text-crimson-ink"
+            <button type="button" className="player-exit-discard min-h-touch px-3 text-[12.5px] font-semibold"
               onClick={() => setConfirmDiscard(true)}
             >{labels.discardWithoutSaving}</button>
           </div>

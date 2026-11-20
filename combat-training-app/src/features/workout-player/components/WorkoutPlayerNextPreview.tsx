@@ -1,43 +1,44 @@
 import type { WorkoutPlaybackStep } from '@/domain/workout-playback/workoutPlayback.types'
 import { getWorkoutStepKindShortLabelPl } from '@/features/workout-player/utils/workoutStepTimerPresentation'
+import { workoutPlayerLabels as labels } from '@/features/workout-player/workoutPlayerLabels'
 
 interface WorkoutPlayerNextPreviewProps {
+  roundStep: WorkoutPlaybackStep | undefined
   nextStep: WorkoutPlaybackStep | null
   isLastStep: boolean
 }
 
-export function WorkoutPlayerNextPreview({ nextStep, isLastStep }: WorkoutPlayerNextPreviewProps) {
-  if (isLastStep) {
-    return (
-      <p className="shrink-0 px-5 pb-11 text-center text-[11px] text-muted">
-        Koniec treningu
-      </p>
-    )
-  }
-
-  if (!nextStep) {
-    return null
-  }
-
-  const kindLabel = getWorkoutStepKindShortLabelPl(nextStep.kind)
-  const roundLabel =
-    nextStep.roundNumber !== null && nextStep.roundCount !== null
-      ? ` · Runda ${nextStep.roundNumber} z ${nextStep.roundCount}`
-      : ''
+export function WorkoutPlayerNextPreview({ roundStep, nextStep, isLastStep }: WorkoutPlayerNextPreviewProps) {
+  const roundNumber = roundStep?.roundNumber
+  const roundCount = roundStep?.roundCount
+  const nextRound = nextStep && nextStep.roundNumber !== null && nextStep.roundCount !== null
+    ? labels.round(nextStep.roundNumber, nextStep.roundCount) : null
 
   return (
-    <div className="shrink-0 px-5 pb-11 text-center">
-      <p className="font-display text-[12px] font-semibold uppercase tracking-[0.12em] text-faint">
-        Następnie
-      </p>
-      <p className="mt-1 text-[14px] text-muted">
-        <span className="font-semibold text-ink">{nextStep.name}</span>
-        <span className="text-muted">
-          {' '}
-          · {kindLabel}
-          {roundLabel}
-        </span>
-      </p>
+    <div className="next-preview-area">
+      <div className="next-bar-4b">
+        {roundNumber && roundCount ? (
+          <div className="round-dots-row">
+            <span>{labels.rounds}</span>
+            <div className="dots-list" aria-hidden="true">
+              {Array.from({ length: roundCount }, (_, index) => {
+                const round = index + 1
+                const state = round < roundNumber ? 'is-done' : round === roundNumber ? 'is-current' : ''
+                return <span key={round} className={`round-dot ${state}`} />
+              })}
+            </div>
+          </div>
+        ) : null}
+        <p className="player-next-step">
+          {isLastStep ? labels.endOfWorkout : nextStep && (
+            <>
+              {labels.next} <b>{nextStep.name}</b>
+              {' · '}{getWorkoutStepKindShortLabelPl(nextStep.kind)}
+              {nextRound && ` · ${nextRound}`}
+            </>
+          )}
+        </p>
+      </div>
     </div>
   )
 }

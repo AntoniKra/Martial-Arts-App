@@ -161,11 +161,12 @@ for (const theme of ['dark', 'light'] as const) {
     }
     const display = '"Archivo Variable", system-ui, -apple-system, sans-serif'
     expect(samples.primary).toEqual({ size: '13px', weight: '600', family: display })
-    expect(samples.exitEarly).toEqual({ size: '14px', weight: '800', family: display })
+    const body = '"Inter Variable", system-ui, -apple-system, sans-serif'
+    expect(samples.exitEarly).toEqual({ size: '13px', weight: '600', family: body })
     expect(samples.summaryDone).toEqual({ size: '14px', weight: '600', family: display })
-    for (const key of ['exitSkip', 'exitDiscard', 'exitReturn']) {
-      expect(samples[key], key).toEqual({ size: '14px', weight: '600', family: '"Inter Variable", system-ui, -apple-system, sans-serif' })
-    }
+    expect(samples.exitSkip).toEqual({ size: '13px', weight: '600', family: body })
+    expect(samples.exitDiscard).toEqual({ size: '12.5px', weight: '600', family: body })
+    expect(samples.exitReturn).toEqual({ size: '14px', weight: '800', family: display })
     for (const key of ['plansSelected', 'historySelected', 'plansUnselected', 'historyUnselected', 'roundFormat']) {
       expect(samples[key], key).toEqual({ size: '12px', weight: '600', family: display })
     }

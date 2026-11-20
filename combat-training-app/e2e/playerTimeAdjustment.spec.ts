@@ -26,7 +26,7 @@ for (const theme of ['dark', 'light'] as const) {
       expect(box.x).toBeGreaterThanOrEqual(0)
       expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width)
     }
-    expect((await page.locator('svg[viewBox="0 0 260 260"]').boundingBox())!.width).toBe(260)
+    expect((await page.locator('.timer-svg-2b').boundingBox())!.width).toBe(page.viewportSize()!.width <= 360 ? 280 : 300)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width)
     await page.clock.runFor(1000)
     await expect(page.locator('p[aria-live="polite"]', { hasText: '+15 s' })).toHaveCount(0)
@@ -94,11 +94,13 @@ for (const paused of [false, true]) {
     await page.clock.runFor(50_000)
     if (paused) await page.getByRole('button', { name: 'Pauza', exact: true }).click()
     await page.getByRole('button', { name: 'Odejmij 15 sekund / 15 s', exact: true }).click()
-    await expect(page.getByText('ODPOCZYNEK', { exact: true })).toBeVisible()
+    const phase = page.locator('.arc-phase-opening')
+    await expect(phase).toHaveText(paused ? 'WSTRZYMANO' : 'ODPOCZYNEK')
     await expect(page.getByText('Pozostały czas: 30 sekund', { exact: true })).toBeAttached()
     if (paused) {
       await expect(page.getByRole('button', { name: 'Wznów', exact: true })).toBeVisible()
       await page.getByRole('button', { name: 'Wznów', exact: true }).click()
+      await expect(phase).toHaveText('ODPOCZYNEK')
     }
     await page.getByRole('button', { name: 'Dodaj 15 sekund / 15 s', exact: true }).click()
     await expect(page.getByText('Pozostały czas: 45 sekund', { exact: true })).toBeAttached()

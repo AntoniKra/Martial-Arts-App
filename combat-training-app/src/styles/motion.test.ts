@@ -11,10 +11,10 @@ import { WeekDayIndicator } from '@/components/domain/WeekDayIndicator'
 import { ScheduleStatusBadge } from '@/features/week-plan/ScheduleStatusBadge'
 
 const css = postcss.parse(readFileSync(new URL('./index.css', import.meta.url), 'utf8'))
+const playerCss = postcss.parse(readFileSync(new URL('../features/workout-player/components/workoutPlayer.css', import.meta.url), 'utf8'))
 const tokens = {
   '--motion-fast': '100ms', '--motion-med': '250ms', '--motion-slow': '300ms',
   '--ease-standard': 'cubic-bezier(0.2,0,0,1)', '--ease-out': 'cubic-bezier(0,0,0,1)', '--ease-in': 'cubic-bezier(0.3,0,1,1)',
-  '--motion-countdown': '950ms',
 }
 
 describe('motion foundation', () => {
@@ -29,10 +29,12 @@ describe('motion foundation', () => {
   })
 
   it('uses tokens for every explicit transition and animation duration', () => {
-    css.walkDecls(/^(transition|animation)(-duration)?$/, (declaration) => {
-      expect(declaration.value).not.toMatch(/\d+m?s\b/)
-      if (declaration.value !== 'none') expect(declaration.value).toMatch(/var\(--motion-(fast|med|slow|countdown)\)/)
-    })
+    for (const stylesheet of [css, playerCss]) {
+      stylesheet.walkDecls(/^(transition|animation)(-duration)?$/, (declaration) => {
+        expect(declaration.value).not.toMatch(/\d+m?s\b/)
+        if (declaration.value !== 'none') expect(declaration.value).toMatch(/var\(--motion-(fast|med|slow)\)/)
+      })
+    }
   })
 
   it('allows width only for the wellbeing progress indicator (#206) and uses only transform/opacity keyframes', () => {
