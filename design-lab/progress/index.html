@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Laboratorium Designu: Ekran Postęp (Wykresy)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================================================
+       TOKENS & THEMING (Zatwierdzony Start & docs/design-system.md)
+       ========================================================================= */
+    :root,
+    :root[data-theme='dark'] {
+      color-scheme: dark;
+      --app-bg: #0b0b0d;
+      --app-surface: #161618;
+      --app-elevated: #1d1d20;
+      --app-border: #2a2a2e;
+      --app-border-faint: rgba(255, 255, 255, 0.08);
+      --app-ink: #f4f4f1;
+      --app-muted: #a7a7aa;
+      --app-faint: #85858a;
+      --app-crimson: #c1122f;
+      --app-crimson-hi: #d91535;
+      --app-crimson-ink: #ef5d6e;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #f0753a;
+      --app-success: #3fb56b;
+      --app-success-ink: #8fd8a8;
+      --app-missed: #4a4a4f;
+      --app-nav: #111113;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #ef5d6e;
+
+      --app-grad-primary: linear-gradient(120deg, #b8102a 0%, #d4152f 55%, #c8341a 100%);
+      --app-grad-accent: linear-gradient(90deg, #c1122f 0%, #f0753a 100%);
+      --app-grad-bar-current: linear-gradient(180deg, #f0753a 0%, #d4152f 25%, #9e0d24 100%);
+    }
+
+    :root[data-theme='light'] {
+      color-scheme: light;
+      --app-bg: #f1f1ef;
+      --app-surface: #ffffff;
+      --app-elevated: #e8e8e5;
+      --app-border: #c9c9c5;
+      --app-border-faint: rgba(0, 0, 0, 0.08);
+      --app-ink: #111113;
+      --app-muted: #5f5f63;
+      --app-faint: #66666a;
+      --app-crimson: #b5122b;
+      --app-crimson-hi: #c1122f;
+      --app-crimson-ink: #a01027;
+      --app-on-accent: #f4f4f1;
+      --app-ember: #f0753a;
+      --app-ember-ink: #9a370e;
+      --app-success: #286243;
+      --app-success-ink: #286243;
+      --app-missed: #c9c9c5;
+      --app-nav: #ffffff;
+      --app-radius-sm: 4px;
+      --app-touch-min: 44px;
+      --app-focus-ring: #b5122b;
+
+      --app-grad-primary: linear-gradient(120deg, #a01027 0%, #b5122b 55%, #c24b10 100%);
+      --app-grad-accent: linear-gradient(90deg, #a01027 0%, #c24b10 100%);
+      --app-grad-bar-current: linear-gradient(180deg, #c24b10 0%, #b5122b 25%, #7a0c1d 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: #060608;
+      color: #e2e2e6;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================================
+       LAB HEADER & KONTROLKI WARIANTÓW (1..5 A/B/C)
+       ========================================================================= */
+    .lab-header {
+      background: #0f0f13;
+      border-bottom: 1px solid #23232a;
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    }
+    .lab-header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .lab-title-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .lab-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+    }
+    .lab-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      background: rgba(193, 18, 47, 0.2);
+      border: 1px solid rgba(193, 18, 47, 0.45);
+      color: #ff6b81;
+      border-radius: var(--app-radius-sm);
+    }
+    .contrast-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      border-radius: var(--app-radius-sm);
+    }
+
+    .lab-theme-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ctrl-pill-group {
+      display: inline-flex;
+      background: #17171d;
+      border: 1px solid #282832;
+      border-radius: var(--app-radius-sm);
+      padding: 2px;
+      gap: 2px;
+    }
+    .ctrl-pill {
+      background: transparent;
+      border: none;
+      color: #92929c;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .ctrl-pill:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .ctrl-pill.is-active {
+      background: #2b2b36;
+      color: #ffffff;
+    }
+    .ctrl-pill.is-active-crimson {
+      background: #b8102a;
+      color: #ffffff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Pasek wyboru wariantów dla 5 sekcji */
+    .lab-variants-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      padding-top: 10px;
+      border-top: 1px solid #202028;
+    }
+    .var-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .var-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #a7a7aa;
+    }
+    .var-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 2px;
+      background: #252530;
+      color: #ef5d6e;
+      font-family: 'Archivo', sans-serif;
+      font-size: 10.5px;
+      font-weight: 800;
+    }
+
+    .preset-group {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* =========================================================================
+       GŁÓWNY WIDOK: 2 TELEFONY OBOK SIEBIE (Z DANYMI oraz PUSTY)
+       CAŁY EKRAN BEZ WEWNĘTRZNEGO PRZEWIJANIA (height: auto)
+       ========================================================================= */
+    .stage-container {
+      flex: 1;
+      padding: 24px 20px 80px;
+      overflow-x: auto;
+    }
+    .phones-grid {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      min-width: fit-content;
+      margin: 0 auto;
+    }
+    .phone-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .phone-meta {
+      text-align: center;
+    }
+    .phone-meta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--app-radius-sm);
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .phone-meta-badge.badge-populated {
+      background: rgba(193, 18, 47, 0.2);
+      color: #ff5c72;
+      border: 1px solid rgba(193, 18, 47, 0.4);
+    }
+    .phone-meta-badge.badge-empty {
+      background: rgba(167, 167, 170, 0.15);
+      color: #d4d4d8;
+      border: 1px solid rgba(167, 167, 170, 0.35);
+    }
+    .phone-meta-desc {
+      font-size: 11px;
+      color: #8c8c94;
+    }
+
+    /* Obudowa telefonu — brak wewnętrznego scrolla, pełna wysokość zawartości */
+    .phone-device {
+      width: 390px;
+      min-height: 844px;
+      height: auto;
+      border-radius: 36px;
+      border: 4px solid #1c1c20;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px #282830;
+      background: var(--app-bg);
+      color: var(--app-ink);
+      position: relative;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      transition: width 0.2s ease;
+    }
+    .phone-device.viewport-360 {
+      width: 360px;
+    }
+
+    /* Pasek notcha & statusu telefonu */
+    .phone-notch {
+      width: 120px;
+      height: 28px;
+      background: #000000;
+      border-radius: 0 0 14px 14px;
+      margin: 0 auto;
+      flex-shrink: 0;
+    }
+    .phone-status-bar {
+      height: 28px;
+      padding: 4px 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--app-ink);
+      flex-shrink: 0;
+    }
+    .phone-status-icons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Wnętrze ekranu Postęp */
+    .screen-content {
+      padding: 12px 16px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      flex: 1;
+    }
+
+    /* =========================================================================
+       NAGŁÓWEK EKRANU POSTĘP & SEGMENTED CONTROL ([Wykresy] [Historia])
+       ========================================================================= */
+    .screen-header {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .screen-header-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--app-ink);
+      line-height: 1.1;
+    }
+    .screen-header-sub {
+      font-size: 13px;
+      color: var(--app-muted);
+    }
+
+    /* Segmented Control [Wykresy | Historia] */
+    .segmented-control {
+      display: flex;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      overflow: hidden;
+      min-height: var(--app-touch-min);
+    }
+    .segmented-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: none;
+      background: transparent;
+      color: var(--app-muted);
+      cursor: pointer;
+      position: relative;
+    }
+    .segmented-btn.is-active {
+      background: var(--app-crimson);
+      color: var(--app-on-accent);
+      box-shadow: inset 0 0 0 2px var(--app-on-accent);
+    }
+    .segmented-btn.is-active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--app-on-accent);
+    }
+
+    /* =========================================================================
+       SEKCJA 1: PODSUMOWANIE TYGODNIA W LICZBACH (1A / 1B / 1C)
+       ========================================================================= */
+    /* 1A: Kafelki akcentowe (Zatwierdzony standard Start v2) */
+    .metrics-row-1a {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .metric-tile-1a {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 10px 8px 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 74px;
+      position: relative;
+      overflow: hidden;
+    }
+    .metric-tile-1a::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--app-border);
+    }
+    .metric-tile-1a.is-active-metric::before {
+      background: var(--app-grad-accent);
+    }
+    .metric-val-1a {
+      font-family: 'Archivo', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--app-ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .viewport-360 .metric-val-1a {
+      font-size: 22px;
+    }
+    .metric-lbl-1a {
+      font-size: 11px;
+      color: var(--app-muted);
+      line-height: 1.2;
+      margin-top: 4px;
+    }
+    .metric-lbl-1a .sub-hint {
+      display: block;
+      font-size: 10px;
+      opacity: 0.8;
+    }
+
+    /* 1B: Zintegrowany Stat-Bar (Panel horyzontalny) */
+    .metrics-bar-1b {
+      display: none;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 8px;
+      align-items: center;
+      justify-content: space-around;
+    }
+    .stat-col-1b {
+      flex: 1;
+      text-align: center;
+      padding: 0 4px;
+      position: relative;
+    }
+    .stat-col-1b + .stat-col-1b::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 10%;
+      bottom: 10%;
+      width: 1px;
+      background: var(--app-border);
+    }
+    .stat-val-1b {
+      font-family: 'Archivo', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--app-ink);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-lbl-1b {
+      font-size: 10.5px;
+      color: var(--app-muted);
+      margin-top: 4px;
+    }
+
+    /* 1C: Karta Hero z paskiem postępu planu */
+    .metrics-hero-1c {
+      display: none;
+      gap: 8px;
+    }
+    .hero-plan-box-1c {
+      flex: 1.3;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .hero-plan-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--app-elevated);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .hero-plan-fill {
+      height: 100%;
+      background: var(--app-grad-primary);
+      border-radius: 3px;
+    }
+    .hero-side-boxes-1c {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .hero-mini-tile {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 6px 10px;
+    }
+
+    /* Przełączanie wariantu 1 */
+    .var-1a .metrics-row-1a { display: grid; }
+    .var-1a .metrics-bar-1b { display: none; }
+    .var-1a .metrics-hero-1c { display: none; }
+
+    .var-1b .metrics-row-1a { display: none; }
+    .var-1b .metrics-bar-1b { display: flex; }
+    .var-1b .metrics-hero-1c { display: none; }
+
+    .var-1c .metrics-row-1a { display: none; }
+    .var-1c .metrics-bar-1b { display: none; }
+    .var-1c .metrics-hero-1c { display: flex; }
+
+    /* =========================================================================
+       SEKCJA 2: TEN TYDZIEŃ (DNI TYGODNIA) (2A / 2B / 2C)
+       ========================================================================= */
+    .section-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .section-heading {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .section-link {
+      font-size: 13px;
+      color: var(--app-muted);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .section-link:hover {
+      color: var(--app-ink);
+    }
+
+    /* 2A: Kropki w kasetkach (Start v2 - kropka nad nazwą, kreska dziś pod nazwą) */
+    .week-days-2a {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .day-tile-2a {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 7px 2px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+    }
+    .day-dot-2a {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+    }
+    .day-dot-2a.is-done {
+      background: var(--app-crimson-ink);
+      border-color: var(--app-crimson-ink);
+      box-shadow: 0 0 6px rgba(239, 93, 110, 0.4);
+    }
+    .day-dot-2a.is-planned {
+      background: transparent;
+      border-color: var(--app-ember);
+    }
+    .day-name-2a {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-muted);
+      line-height: 1;
+    }
+    .day-tile-2a.is-today .day-name-2a {
+      color: var(--app-ink);
+      font-weight: 800;
+    }
+    /* Czerwona kreska pod nazwą dla 'dziś' (commit 501f4f8) */
+    .day-tile-2a.is-today::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      width: 14px;
+      height: 2px;
+      background: var(--app-crimson-ink);
+      border-radius: 1px;
+    }
+
+    /* 2B: Kapsułki pionowe ze wskaźnikiem daty */
+    .week-days-2b {
+      display: none;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .day-capsule-2b {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 6px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .day-capsule-2b.is-today {
+      border-color: var(--app-crimson);
+      background: rgba(193, 18, 47, 0.08);
+    }
+    .capsule-dow-2b {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--app-muted);
+      text-transform: uppercase;
+    }
+    .capsule-dot-2b {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--app-border);
+      margin: 2px 0;
+    }
+    .capsule-dot-2b.is-done {
+      background: var(--app-crimson-ink);
+    }
+    .capsule-dot-2b.is-planned {
+      border: 1.5px solid var(--app-ember);
+      background: transparent;
+    }
+    .capsule-dom-2b {
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--app-ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 2C: Oś ciągła (Wstęga postępu) */
+    .week-ribbon-2c {
+      display: none;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 10px;
+      position: relative;
+    }
+    .ribbon-track-line {
+      position: absolute;
+      top: 22px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: var(--app-border);
+      z-index: 1;
+    }
+    .ribbon-nodes-row {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      z-index: 2;
+    }
+    .ribbon-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .ribbon-circle {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--app-surface);
+      border: 2px solid var(--app-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ribbon-circle.is-done {
+      border-color: var(--app-crimson);
+      background: var(--app-crimson);
+    }
+    .ribbon-circle.is-planned {
+      border-color: var(--app-ember);
+    }
+    .ribbon-circle.is-today {
+      box-shadow: 0 0 0 3px rgba(240, 117, 58, 0.3);
+    }
+    .ribbon-lbl {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--app-muted);
+    }
+
+    /* Przełączanie wariantu 2 */
+    .var-2a .week-days-2a { display: grid; }
+    .var-2a .week-days-2b { display: none; }
+    .var-2a .week-ribbon-2c { display: none; }
+
+    .var-2b .week-days-2a { display: none; }
+    .var-2b .week-days-2b { display: grid; }
+    .var-2b .week-ribbon-2c { display: none; }
+
+    .var-2c .week-days-2a { display: none; }
+    .var-2c .week-days-2b { display: none; }
+    .var-2c .week-ribbon-2c { display: block; }
+
+    /* =========================================================================
+       SEKCJA 3: WYKRES OSTATNICH TYGODNI (3A / 3B / 3C)
+       ========================================================================= */
+    .chart-card-box {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .chart-title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    .chart-main-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--app-ink);
+    }
+    .chart-sub-title {
+      font-size: 11.5px;
+      color: var(--app-muted);
+    }
+
+    /* 3A: Słupki z kreską celu i etykietami liczbowymi */
+    .chart-area-3a {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 140px;
+      padding: 10px 4px 0;
+      border-bottom: 1px solid var(--app-border);
+      position: relative;
+    }
+    .chart-col-3a {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      position: relative;
+      max-width: 54px;
+    }
+    .col-val-label-3a {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--app-ink);
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 4px;
+    }
+    .col-val-label-3a .target-part {
+      font-size: 10px;
+      color: var(--app-muted);
+    }
+    .bar-track-3a {
+      width: 22px;
+      height: 100px;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 2px 2px 0 0;
+    }
+    [data-theme='light'] .bar-track-3a {
+      background: rgba(0, 0, 0, 0.03);
+    }
+    .bar-fill-3a {
+      width: 100%;
+      background: var(--app-border);
+      border-radius: 2px 2px 0 0;
+      transition: height 0.3s ease;
+    }
+    .chart-col-3a.is-current .bar-fill-3a {
+      background: var(--app-grad-bar-current);
+    }
+    /* Pozioma kreska celu */
+    .target-marker-line-3a {
+      position: absolute;
+      left: -4px;
+      right: -4px;
+      height: 2px;
+      background: var(--app-ember);
+      border-radius: 1px;
+      z-index: 2;
+    }
+    .col-date-label-3a {
+      font-family: 'Inter', sans-serif;
+      font-size: 10.5px;
+      color: var(--app-muted);
+      margin-top: 6px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .chart-col-3a.is-current .col-date-label-3a {
+      color: var(--app-ink);
+      font-weight: 700;
+    }
+
+    /* 3B: Kasetki słupkowe (Karta słupkowa z tłem celu) */
+    .chart-area-3b {
+      display: none;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 6px;
+      height: 130px;
+      padding-top: 10px;
+    }
+    .col-cassette-3b {
+      flex: 1;
+      height: 100%;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+      position: relative;
+      padding: 2px;
+    }
+    .col-cassette-3b.is-current {
+      border-color: var(--app-ember);
+    }
+    .cassette-fill-3b {
+      width: 100%;
+      background: var(--app-crimson);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .col-cassette-3b.is-current .cassette-fill-3b {
+      background: var(--app-grad-bar-current);
+    }
+    .cassette-date-3b {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--app-muted);
+    }
+
+    /* 3C: Wykres analityczny z siatką pomocniczą i osią Y */
+    .chart-area-3c {
+      display: none;
+      height: 140px;
+      position: relative;
+      padding: 10px 0 0 24px;
+      border-bottom: 1px solid var(--app-border);
+    }
+    .y-axis-labels {
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 20px;
+      width: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      color: var(--app-muted);
+      text-align: right;
+    }
+    .grid-lines-3c {
+      position: absolute;
+      left: 24px;
+      right: 0;
+      top: 15px;
+      bottom: 25px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .grid-line-row {
+      width: 100%;
+      height: 1px;
+      background: var(--app-border-faint);
+    }
+    .columns-row-3c {
+      height: 100%;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      position: relative;
+      z-index: 2;
+    }
+    .col-item-3c {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      width: 24px;
+    }
+
+    /* Przełączanie wariantu 3 */
+    .var-3a .chart-area-3a { display: flex; }
+    .var-3a .chart-area-3b { display: none; }
+    .var-3a .chart-area-3c { display: none; }
+
+    .var-3b .chart-area-3a { display: none; }
+    .var-3b .chart-area-3b { display: flex; }
+    .var-3b .chart-area-3c { display: none; }
+
+    .var-3c .chart-area-3a { display: none; }
+    .var-3c .chart-area-3b { display: none; }
+    .var-3c .chart-area-3c { display: block; }
+
+    .btn-toggle-weeks {
+      background: transparent;
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 8px 14px;
+      align-self: center;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background 0.15s ease;
+      min-height: 40px;
+    }
+    .btn-toggle-weeks:hover {
+      background: var(--app-elevated);
+    }
+
+    /* Stan pusty wykresu (nowe konto / < 3 tyg) */
+    .chart-empty-state {
+      padding: 24px 16px;
+      text-align: center;
+      background: var(--app-surface);
+      border: 1px dashed var(--app-border);
+      border-radius: var(--app-radius-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .empty-state-icon {
+      color: var(--app-muted);
+      margin-bottom: 2px;
+    }
+    .empty-state-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+    .empty-state-text {
+      font-size: 12.5px;
+      color: var(--app-muted);
+      line-height: 1.4;
+      max-width: 260px;
+    }
+
+    /* =========================================================================
+       SEKCJA 4: ELEMENTY DO POPRAWY (FOCUS SKILLS) (4A / 4B / 4C)
+       ========================================================================= */
+    .skills-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .skills-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-add-skill {
+      background: transparent;
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      color: var(--app-ink);
+      font-family: 'Archivo', sans-serif;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .btn-add-skill:hover {
+      background: var(--app-elevated);
+    }
+
+    /* 4A: Karty z 5 segmentami i plakietką trendu (Zatwierdzony standard) */
+    .skills-list-4a {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .skill-card-4a {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s ease;
+    }
+    .skill-card-4a:hover {
+      background: var(--app-elevated);
+    }
+    .skill-header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .skill-name-txt {
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--app-ink);
+      line-height: 1.2;
+    }
+    .skill-crit-txt {
+      font-size: 12.5px;
+      color: var(--app-muted);
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+    .skill-rating-big {
+      font-family: 'Archivo', sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--app-ink);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+    .skill-rating-big .scale-denom {
+      font-size: 13px;
+      color: var(--app-muted);
+      font-weight: 600;
+    }
+
+    /* 5 poziomych segmentów oceny */
+    .segments-bar-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      height: 6px;
+    }
+    .seg-pill {
+      height: 100%;
+      background: var(--app-border);
+      border-radius: 1px;
+    }
+    .seg-pill.is-filled {
+      background: var(--app-crimson);
+    }
+
+    .skill-meta-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--app-muted);
+      padding-top: 2px;
+    }
+    .status-badge-trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 7px;
+      border-radius: var(--app-radius-sm);
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .status-badge-trend.is-improved {
+      background: rgba(63, 181, 107, 0.15);
+      color: var(--app-success-ink);
+      border: 1px solid rgba(63, 181, 107, 0.35);
+    }
+    .status-badge-trend.is-neutral {
+      background: rgba(167, 167, 170, 0.12);
+      color: var(--app-muted);
+      border: 1px solid var(--app-border);
+    }
+
+    /* Karta nowego elementu bez ocen */
+    .skill-card-not-rated {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--app-elevated);
+      border: 1px dashed var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 10px 12px;
+    }
+    .not-rated-icon {
+      color: var(--app-crimson-ink);
+      flex-shrink: 0;
+    }
+    .not-rated-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+    .not-rated-sub {
+      font-size: 11.5px;
+      color: var(--app-muted);
+    }
+
+    /* Karta Ostatnia notatka korygująca */
+    .correction-note-box {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .correction-meta-eyebrow {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--app-muted);
+    }
+    .correction-quote-line {
+      font-size: 13px;
+      color: var(--app-ink);
+      line-height: 1.35;
+    }
+    .correction-quote-line strong {
+      color: var(--app-ember-ink);
+    }
+
+    /* 4B: Karty ze wskaźnikami bloków treningowych */
+    .skills-list-4b {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .block-shape-badges {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 11px;
+    }
+    .block-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      background: var(--app-elevated);
+      border: 1px solid var(--app-border);
+      border-radius: 2px;
+      font-size: 10.5px;
+    }
+
+    /* 4C: Karta kompaktowa ze zintegrowaną notatką */
+    .skills-list-4c {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .integrated-note-row {
+      margin-top: 6px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--app-border);
+      font-size: 12px;
+      color: var(--app-muted);
+    }
+
+    /* Przełączanie wariantu 4 */
+    .var-4a .skills-list-4a { display: flex; }
+    .var-4a .skills-list-4b { display: none; }
+    .var-4a .skills-list-4c { display: none; }
+
+    .var-4b .skills-list-4a { display: none; }
+    .var-4b .skills-list-4b { display: flex; }
+    .var-4b .skills-list-4c { display: none; }
+
+    .var-4c .skills-list-4a { display: none; }
+    .var-4c .skills-list-4b { display: none; }
+    .var-4c .skills-list-4c { display: flex; }
+
+    /* Pusty stan elementów do poprawy */
+    .skills-empty-box {
+      background: var(--app-surface);
+      border: 1px dashed var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 20px 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .skills-empty-p {
+      font-size: 13px;
+      color: var(--app-muted);
+      line-height: 1.45;
+      max-width: 280px;
+    }
+
+    /* =========================================================================
+       SEKCJA 5: SEKCJA „WIĘCEJ” (KAFELKI DIAGNOSTYCZNE) (5A / 5B / 5C)
+       ========================================================================= */
+    /* 5A: Kafelki 2x2 (Standard MoreTile z aplikacji) */
+    .more-grid-5a {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .more-tile-5a {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 98px;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .more-tile-5a:hover {
+      background: var(--app-elevated);
+    }
+    .more-title-eyebrow {
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--app-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .more-val-num {
+      font-family: 'Archivo', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--app-ink);
+      font-variant-numeric: tabular-nums;
+      margin: 4px 0 2px;
+    }
+    .more-hint-txt {
+      font-size: 11px;
+      color: var(--app-muted);
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* 5B: Paski akordeonowe (Lista pełnej szerokości) */
+    .more-list-5b {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .more-row-5b {
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: var(--app-touch-min);
+    }
+    .row-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .row-icon-5b {
+      color: var(--app-crimson-ink);
+      flex-shrink: 0;
+    }
+    .row-title-5b {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--app-ink);
+    }
+    .row-sub-5b {
+      font-size: 11px;
+      color: var(--app-muted);
+    }
+    .row-val-right {
+      text-align: right;
+    }
+    .row-val-num {
+      font-family: 'Archivo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 5C: Kafelki ze wskaźnikiem normy / statusu */
+    .more-grid-5c {
+      display: none;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .badge-status-pill {
+      font-family: 'Archivo', sans-serif;
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 5px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--app-muted);
+    }
+    .badge-status-pill.is-ok {
+      background: rgba(63, 181, 107, 0.2);
+      color: var(--app-success-ink);
+      border: 1px solid rgba(63, 181, 107, 0.4);
+    }
+
+    /* Przełączanie wariantu 5 */
+    .var-5a .more-grid-5a { display: grid; }
+    .var-5a .more-list-5b { display: none; }
+    .var-5a .more-grid-5c { display: none; }
+
+    .var-5b .more-grid-5a { display: none; }
+    .var-5b .more-list-5b { display: flex; }
+    .var-5b .more-grid-5c { display: none; }
+
+    .var-5c .more-grid-5a { display: none; }
+    .var-5c .more-list-5b { display: none; }
+    .var-5c .more-grid-5c { display: grid; }
+
+    /* =========================================================================
+       DOLNY PASEK NAWIGACJI (Zatwierdzony wzorzec Start v2)
+       ========================================================================= */
+    .bottom-nav-bar {
+      margin-top: auto;
+      background: var(--app-nav);
+      border-top: 1px solid var(--app-border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      height: 60px;
+      flex-shrink: 0;
+      position: relative;
+      border-radius: 0 0 32px 32px;
+    }
+    .nav-tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      color: var(--app-muted);
+      text-decoration: none;
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      position: relative;
+    }
+    .nav-tab-item.is-active {
+      color: var(--app-ink);
+    }
+    .nav-tab-item.is-active svg {
+      color: var(--app-crimson-ink);
+    }
+    .nav-tab-item.is-active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      width: 24px;
+      height: 2px;
+      background: var(--app-crimson-ink);
+      border-radius: 1px;
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="var-1a var-2a var-3a var-4a var-5a">
+
+  <!-- =========================================================================
+       LABORATORIUM HEADER: PODGLĄD 1..5 A/B/C
+       ========================================================================= -->
+  <header class="lab-header">
+    <div class="lab-header-top">
+      <div class="lab-title-area">
+        <h1 class="lab-title">Laboratorium Designu: Ekran Postęp (Wykresy)</h1>
+        <span class="lab-badge">Zakładka Wykresy</span>
+        <span class="contrast-badge">Kontrast ≥ 4,5:1 (WCAG AA)</span>
+      </div>
+
+      <div class="lab-theme-controls">
+        <span style="font-size: 11.5px; color: #a7a7aa; font-weight: 600;">Szerokość:</span>
+        <div class="ctrl-pill-group">
+          <button id="btnView390" class="ctrl-pill is-active" type="button" onclick="setViewportWidth(390)">390 px (standard)</button>
+          <button id="btnView360" class="ctrl-pill" type="button" onclick="setViewportWidth(360)">360 px (mały ekran)</button>
+        </div>
+
+        <span style="font-size: 11.5px; color: #a7a7aa; font-weight: 600; margin-left: 8px;">Motyw:</span>
+        <div class="ctrl-pill-group">
+          <button id="btnThemeDark" class="ctrl-pill is-active" type="button" onclick="setTheme('dark')">Ciemny</button>
+          <button id="btnThemeLight" class="ctrl-pill" type="button" onclick="setTheme('light')">Jasny</button>
+        </div>
+
+        <span style="font-size: 11.5px; color: #a7a7aa; font-weight: 600; margin-left: 8px;">Zestaw:</span>
+        <div class="ctrl-pill-group">
+          <button class="ctrl-pill is-active-crimson" type="button" onclick="applyPreset('a')">Wszystko A</button>
+          <button class="ctrl-pill" type="button" onclick="applyPreset('b')">Wszystko B</button>
+          <button class="ctrl-pill" type="button" onclick="applyPreset('c')">Wszystko C</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pasek wyboru wariantów dla każdej z 5 sekcji: 1 A/B/C, 2 A/B/C, 3 A/B/C, 4 A/B/C, 5 A/B/C -->
+    <nav class="lab-variants-nav" aria-label="Warianty sekcji Postępu">
+      <!-- 1. Podsumowanie -->
+      <div class="var-group">
+        <span class="var-num">1</span>
+        <span class="var-title">Podsumowanie:</span>
+        <div class="ctrl-pill-group">
+          <button id="btn-1a" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSectionVariant(1, 'a')">1A · Kafelki akcentowe</button>
+          <button id="btn-1b" class="ctrl-pill" type="button" onclick="setSectionVariant(1, 'b')">1B · Zintegrowany Stat-Bar</button>
+          <button id="btn-1c" class="ctrl-pill" type="button" onclick="setSectionVariant(1, 'c')">1C · Karta Hero z celem</button>
+        </div>
+      </div>
+
+      <!-- 2. Ten tydzień -->
+      <div class="var-group">
+        <span class="var-num">2</span>
+        <span class="var-title">Ten tydzień:</span>
+        <div class="ctrl-pill-group">
+          <button id="btn-2a" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSectionVariant(2, 'a')">2A · Kropki w kasetkach</button>
+          <button id="btn-2b" class="ctrl-pill" type="button" onclick="setSectionVariant(2, 'b')">2B · Kapsułki pionowe</button>
+          <button id="btn-2c" class="ctrl-pill" type="button" onclick="setSectionVariant(2, 'c')">2C · Ciągła oś wstęgi</button>
+        </div>
+      </div>
+
+      <!-- 3. Wykres ostatnich tygodni -->
+      <div class="var-group">
+        <span class="var-num">3</span>
+        <span class="var-title">Wykres:</span>
+        <div class="ctrl-pill-group">
+          <button id="btn-3a" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSectionVariant(3, 'a')">3A · Słupki z kreską celu</button>
+          <button id="btn-3b" class="ctrl-pill" type="button" onclick="setSectionVariant(3, 'b')">3B · Dwutonowe kasetki</button>
+          <button id="btn-3c" class="ctrl-pill" type="button" onclick="setSectionVariant(3, 'c')">3C · Siatka analityczna</button>
+        </div>
+      </div>
+
+      <!-- 4. Elementy do poprawy -->
+      <div class="var-group">
+        <span class="var-num">4</span>
+        <span class="var-title">Elementy do poprawy:</span>
+        <div class="ctrl-pill-group">
+          <button id="btn-4a" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSectionVariant(4, 'a')">4A · 5 segmentów + trend</button>
+          <button id="btn-4b" class="ctrl-pill" type="button" onclick="setSectionVariant(4, 'b')">4B · Kształty bloków</button>
+          <button id="btn-4c" class="ctrl-pill" type="button" onclick="setSectionVariant(4, 'c')">4C · Zintegrowana notatka</button>
+        </div>
+      </div>
+
+      <!-- 5. Więcej -->
+      <div class="var-group">
+        <span class="var-num">5</span>
+        <span class="var-title">Więcej:</span>
+        <div class="ctrl-pill-group">
+          <button id="btn-5a" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setSectionVariant(5, 'a')">5A · Kafelki 2x2</button>
+          <button id="btn-5b" class="ctrl-pill" type="button" onclick="setSectionVariant(5, 'b')">5B · Paski akordeonowe</button>
+          <button id="btn-5c" class="ctrl-pill" type="button" onclick="setSectionVariant(5, 'c')">5C · Plakietki statusu</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- =========================================================================
+       GŁÓWNA SCENA: 2 TELEFONY OBOK SIEBIE
+       ========================================================================= -->
+  <main class="stage-container">
+    <div class="phones-grid">
+
+      <!-- =====================================================================
+           TELEFON 1: Z DANYMI (Kilka tygodni treningów, pełna historia)
+           ===================================================================== -->
+      <div class="phone-column">
+        <div class="phone-meta">
+          <span class="phone-meta-badge badge-populated">Stan 1: Z danymi</span>
+          <p class="phone-meta-desc">Kilka tygodni treningów · Aktywny plan · Oceny i notatki</p>
+        </div>
+
+        <article class="phone-device" id="phonePopulated">
+          <div class="phone-notch"></div>
+          <header class="phone-status-bar" aria-hidden="true">
+            <span>9:41</span>
+            <div class="phone-status-icons">
+              <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+              <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+              <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </header>
+
+          <div class="screen-content">
+            <!-- Nagłówek ekranu -->
+            <div class="screen-header">
+              <h1 class="screen-header-title">Postęp</h1>
+              <p class="screen-header-sub">17–23 listopada · ten tydzień</p>
+            </div>
+
+            <!-- Segmented Control [Wykresy | Historia] -->
+            <div class="segmented-control" role="radiogroup" aria-label="Zakładki Postępu">
+              <button class="segmented-btn is-active" type="button" role="radio" aria-checked="true">Wykresy</button>
+              <button class="segmented-btn" type="button" role="radio" aria-checked="false">Historia</button>
+            </div>
+
+            <!-- SEKCJA 1: PODSUMOWANIE TYGODNIA W LICZBACH -->
+            <section aria-label="Ten tydzień w liczbach">
+              <!-- 1A: Kafelki akcentowe -->
+              <div class="metrics-row-1a">
+                <div class="metric-tile-1a is-active-metric">
+                  <div class="metric-val-1a">2 / 3</div>
+                  <div class="metric-lbl-1a">treningi (plan)</div>
+                </div>
+                <div class="metric-tile-1a">
+                  <div class="metric-val-1a">185</div>
+                  <div class="metric-lbl-1a">minut <span class="sub-hint">· zwykle 160</span></div>
+                </div>
+                <div class="metric-tile-1a">
+                  <div class="metric-val-1a">12</div>
+                  <div class="metric-lbl-1a">rund sparingu</div>
+                </div>
+              </div>
+
+              <!-- 1B: Zintegrowany Stat-Bar -->
+              <div class="metrics-bar-1b">
+                <div class="stat-col-1b">
+                  <div class="stat-val-1b">2 / 3</div>
+                  <div class="stat-lbl-1b">treningi (plan)</div>
+                </div>
+                <div class="stat-col-1b">
+                  <div class="stat-val-1b">185 min</div>
+                  <div class="stat-lbl-1b">zwykle 160</div>
+                </div>
+                <div class="stat-col-1b">
+                  <div class="stat-val-1b">12 rund</div>
+                  <div class="stat-lbl-1b">sparingu</div>
+                </div>
+              </div>
+
+              <!-- 1C: Karta Hero z celem -->
+              <div class="metrics-hero-1c">
+                <div class="hero-plan-box-1c">
+                  <div>
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--app-muted);">Plan tygodnia</span>
+                    <div style="font-family: 'Archivo'; font-size: 26px; font-weight: 800; color: var(--app-ink); line-height: 1.1; margin-top: 2px;">2 z 3</div>
+                  </div>
+                  <div class="hero-plan-bar">
+                    <div class="hero-plan-fill" style="width: 66%;"></div>
+                  </div>
+                </div>
+                <div class="hero-side-boxes-1c">
+                  <div class="hero-mini-tile">
+                    <span style="font-family: 'Archivo'; font-size: 16px; font-weight: 800;">185</span>
+                    <span style="font-size: 11px; color: var(--app-muted); margin-left: 3px;">minut</span>
+                  </div>
+                  <div class="hero-mini-tile">
+                    <span style="font-family: 'Archivo'; font-size: 16px; font-weight: 800;">12</span>
+                    <span style="font-size: 11px; color: var(--app-muted); margin-left: 3px;">rund sparingu</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- SEKCJA 2: TEN TYDZIEŃ (DNI TYGODNIA) -->
+            <section aria-label="Ten tydzień">
+              <div class="section-header-row">
+                <h2 class="section-heading">Ten tydzień</h2>
+                <a class="section-link" href="#" onclick="return false;">Plan tygodnia ›</a>
+              </div>
+
+              <!-- 2A: Kropki w kasetkach (Start v2) -->
+              <div class="week-days-2a">
+                <div class="day-tile-2a"><span class="day-dot-2a is-done"></span><span class="day-name-2a">PN</span></div>
+                <div class="day-tile-2a"><span class="day-dot-2a"></span><span class="day-name-2a">WT</span></div>
+                <div class="day-tile-2a"><span class="day-dot-2a is-done"></span><span class="day-name-2a">ŚR</span></div>
+                <div class="day-tile-2a is-today"><span class="day-dot-2a is-planned"></span><span class="day-name-2a">CZ</span></div>
+                <div class="day-tile-2a"><span class="day-dot-2a"></span><span class="day-name-2a">PT</span></div>
+                <div class="day-tile-2a"><span class="day-dot-2a is-planned"></span><span class="day-name-2a">SO</span></div>
+                <div class="day-tile-2a"><span class="day-dot-2a"></span><span class="day-name-2a">ND</span></div>
+              </div>
+
+              <!-- 2B: Kapsułki pionowe ze wskaźnikiem daty -->
+              <div class="week-days-2b">
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">PN</span><span class="capsule-dot-2b is-done"></span><span class="capsule-dom-2b">17</span></div>
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">WT</span><span class="capsule-dot-2b"></span><span class="capsule-dom-2b">18</span></div>
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">ŚR</span><span class="capsule-dot-2b is-done"></span><span class="capsule-dom-2b">19</span></div>
+                <div class="day-capsule-2b is-today"><span class="capsule-dow-2b" style="color: var(--app-crimson-ink);">CZ</span><span class="capsule-dot-2b is-planned"></span><span class="capsule-dom-2b">20</span></div>
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">PT</span><span class="capsule-dot-2b"></span><span class="capsule-dom-2b">21</span></div>
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">SO</span><span class="capsule-dot-2b is-planned"></span><span class="capsule-dom-2b">22</span></div>
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">ND</span><span class="capsule-dot-2b"></span><span class="capsule-dom-2b">23</span></div>
+              </div>
+
+              <!-- 2C: Ciągła oś tygodnia (Wstęga postępu) -->
+              <div class="week-ribbon-2c">
+                <div class="ribbon-track-line"></div>
+                <div class="ribbon-nodes-row">
+                  <div class="ribbon-node"><div class="ribbon-circle is-done"></div><span class="ribbon-lbl">PN</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle"></div><span class="ribbon-lbl">WT</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle is-done"></div><span class="ribbon-lbl">ŚR</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle is-planned is-today"></div><span class="ribbon-lbl" style="color: var(--app-ink);">CZ</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle"></div><span class="ribbon-lbl">PT</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle is-planned"></div><span class="ribbon-lbl">SO</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle"></div><span class="ribbon-lbl">ND</span></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- SEKCJA 3: WYKRES OSTATNICH TYGODNI -->
+            <section aria-label="Ostatnie tygodnie">
+              <div class="chart-card-box">
+                <div class="chart-title-row">
+                  <h2 class="chart-main-title">Ostatnie tygodnie</h2>
+                  <span class="chart-sub-title">treningi w tygodniu</span>
+                </div>
+
+                <!-- 3A: Słupki z kreską celu i etykietami liczbowymi -->
+                <div class="chart-area-3a" role="img" aria-label="Wykres ostatnich tygodni">
+                  <!-- Tydzień 1: 20.10 (3 zrobione / plan 3) -->
+                  <div class="chart-col-3a">
+                    <span class="col-val-label-3a">3<span class="target-part">/3</span></span>
+                    <div class="bar-track-3a">
+                      <div class="bar-fill-3a" style="height: 75%;"></div>
+                      <div class="target-marker-line-3a" style="bottom: 75%;"></div>
+                    </div>
+                    <span class="col-date-label-3a">20.10</span>
+                  </div>
+
+                  <!-- Tydzień 2: 27.10 (2 zrobione / plan 3) -->
+                  <div class="chart-col-3a">
+                    <span class="col-val-label-3a">2<span class="target-part">/3</span></span>
+                    <div class="bar-track-3a">
+                      <div class="bar-fill-3a" style="height: 50%;"></div>
+                      <div class="target-marker-line-3a" style="bottom: 75%;"></div>
+                    </div>
+                    <span class="col-date-label-3a">27.10</span>
+                  </div>
+
+                  <!-- Tydzień 3: 03.11 (4 zrobione / plan 3) -->
+                  <div class="chart-col-3a">
+                    <span class="col-val-label-3a">4<span class="target-part">/3</span></span>
+                    <div class="bar-track-3a">
+                      <div class="bar-fill-3a" style="height: 100%;"></div>
+                      <div class="target-marker-line-3a" style="bottom: 75%;"></div>
+                    </div>
+                    <span class="col-date-label-3a">3.11</span>
+                  </div>
+
+                  <!-- Tydzień 4: 10.11 (2 zrobione / plan 2) -->
+                  <div class="chart-col-3a">
+                    <span class="col-val-label-3a">2<span class="target-part">/2</span></span>
+                    <div class="bar-track-3a">
+                      <div class="bar-fill-3a" style="height: 50%;"></div>
+                      <div class="target-marker-line-3a" style="bottom: 50%;"></div>
+                    </div>
+                    <span class="col-date-label-3a">10.11</span>
+                  </div>
+
+                  <!-- Tydzień 5: Bieżący (2 zrobione / plan 3) -->
+                  <div class="chart-col-3a is-current">
+                    <span class="col-val-label-3a">2<span class="target-part">/3</span></span>
+                    <div class="bar-track-3a">
+                      <div class="bar-fill-3a" style="height: 50%;"></div>
+                      <div class="target-marker-line-3a" style="bottom: 75%;"></div>
+                    </div>
+                    <span class="col-date-label-3a">ten tydz.</span>
+                  </div>
+                </div>
+
+                <!-- 3B: Dwutonowe kasetki słupkowe -->
+                <div class="chart-area-3b">
+                  <div class="col-cassette-3b">
+                    <span class="cassette-date-3b">20.10</span>
+                    <div class="cassette-fill-3b" style="height: 80%;">3/3</div>
+                  </div>
+                  <div class="col-cassette-3b">
+                    <span class="cassette-date-3b">27.10</span>
+                    <div class="cassette-fill-3b" style="height: 55%;">2/3</div>
+                  </div>
+                  <div class="col-cassette-3b">
+                    <span class="cassette-date-3b">3.11</span>
+                    <div class="cassette-fill-3b" style="height: 100%;">4/3</div>
+                  </div>
+                  <div class="col-cassette-3b">
+                    <span class="cassette-date-3b">10.11</span>
+                    <div class="cassette-fill-3b" style="height: 60%;">2/2</div>
+                  </div>
+                  <div class="col-cassette-3b is-current">
+                    <span class="cassette-date-3b">teraz</span>
+                    <div class="cassette-fill-3b" style="height: 55%;">2/3</div>
+                  </div>
+                </div>
+
+                <!-- 3C: Siatka analityczna z osią Y -->
+                <div class="chart-area-3c">
+                  <div class="y-axis-labels">
+                    <span>4</span>
+                    <span>3</span>
+                    <span>2</span>
+                    <span>1</span>
+                  </div>
+                  <div class="grid-lines-3c">
+                    <div class="grid-line-row"></div>
+                    <div class="grid-line-row"></div>
+                    <div class="grid-line-row"></div>
+                    <div class="grid-line-row"></div>
+                  </div>
+                  <div class="columns-row-3c">
+                    <div class="col-item-3c"><div class="bar-fill-3a" style="height: 75%;"></div><span class="col-date-label-3a">20.10</span></div>
+                    <div class="col-item-3c"><div class="bar-fill-3a" style="height: 50%;"></div><span class="col-date-label-3a">27.10</span></div>
+                    <div class="col-item-3c"><div class="bar-fill-3a" style="height: 100%;"></div><span class="col-date-label-3a">3.11</span></div>
+                    <div class="col-item-3c"><div class="bar-fill-3a" style="height: 50%;"></div><span class="col-date-label-3a">10.11</span></div>
+                    <div class="col-item-3c is-current"><div class="bar-fill-3a" style="height: 50%; background: var(--app-crimson-ink);"></div><span class="col-date-label-3a" style="font-weight:700;">teraz</span></div>
+                  </div>
+                </div>
+
+                <button class="btn-toggle-weeks" type="button">Pokaż 12 tygodni</button>
+              </div>
+            </section>
+
+            <!-- SEKCJA 4: ELEMENTY DO POPRAWY (FOCUS SKILLS) -->
+            <section aria-labelledby="skills-heading-1">
+              <div class="skills-header-row">
+                <div class="skills-title-group">
+                  <h2 id="skills-heading-1" class="section-heading">Elementy do poprawy</h2>
+                </div>
+                <button class="btn-add-skill" type="button">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                  <span>Dodaj</span>
+                </button>
+              </div>
+
+              <!-- 4A: Karty z 5 segmentami i plakietką trendu (Zatwierdzony standard) -->
+              <div class="skills-list-4a">
+                <!-- Karta 1: Lewy prosty -->
+                <a class="skill-card-4a" href="#" onclick="return false;">
+                  <div class="skill-header-top">
+                    <div>
+                      <h3 class="skill-name-txt">Lewy prosty, powrót do gardy</h3>
+                      <p class="skill-crit-txt">Ręka wraca do brody przed następnym ciosem</p>
+                    </div>
+                    <div class="skill-rating-big">4<span class="scale-denom">/5</span></div>
+                  </div>
+                  <div class="segments-bar-5" aria-hidden="true">
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill"></span>
+                  </div>
+                  <div class="skill-meta-footer">
+                    <span>ostatnio: 3 → 4 → 4</span>
+                    <span class="status-badge-trend is-improved">↑ z 3</span>
+                  </div>
+                </a>
+
+                <!-- Karta 2: Balans przy unikach -->
+                <a class="skill-card-4a" href="#" onclick="return false;">
+                  <div class="skill-header-top">
+                    <div>
+                      <h3 class="skill-name-txt">Balans przy unikach rotacyjnych</h3>
+                      <p class="skill-crit-txt">Ciężar ciała nie ucieka za linię kolana</p>
+                    </div>
+                    <div class="skill-rating-big">3<span class="scale-denom">/5</span></div>
+                  </div>
+                  <div class="segments-bar-5" aria-hidden="true">
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill"></span>
+                    <span class="seg-pill"></span>
+                  </div>
+                  <div class="skill-meta-footer">
+                    <span>ostatnio: 2 → 3 → 3</span>
+                    <span class="status-badge-trend is-neutral">bez zmian</span>
+                  </div>
+                </a>
+
+                <!-- Karta 3: Jeszcze bez ocen -->
+                <a class="skill-card-4a" href="#" onclick="return false;">
+                  <div class="skill-header-top">
+                    <div>
+                      <h3 class="skill-name-txt">Kopnięcie okrężne (low kick)</h3>
+                      <p class="skill-crit-txt">Rotacja biodra i stopa zakroczna otwarta 45°</p>
+                    </div>
+                  </div>
+                  <div class="skill-card-not-rated">
+                    <svg class="not-rated-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>
+                    <div>
+                      <p class="not-rated-title">Jeszcze bez ocen</p>
+                      <p class="not-rated-sub">Ocenisz po najbliższym treningu</p>
+                    </div>
+                  </div>
+                </a>
+
+                <!-- Ostatnia notatka korygująca -->
+                <a class="correction-note-box" href="#" onclick="return false;">
+                  <p class="correction-meta-eyebrow">Ostatnia notatka · 18.11</p>
+                  <p class="correction-quote-line">„Opuszczona prawa ręka przy lewym haku” → <strong>Trzymaj prawą rękawicę przyklejoną do szczęki</strong></p>
+                </a>
+              </div>
+
+              <!-- 4B: Karty ze wskaźnikami bloków treningowych -->
+              <div class="skills-list-4b">
+                <a class="skill-card-4a" href="#" onclick="return false;">
+                  <div class="skill-header-top">
+                    <div>
+                      <h3 class="skill-name-txt">Lewy prosty, powrót do gardy</h3>
+                      <p class="skill-crit-txt">Ręka wraca do brody przed następnym ciosem</p>
+                    </div>
+                    <div class="skill-rating-big">4<span class="scale-denom">/5</span></div>
+                  </div>
+                  <div class="block-shape-badges">
+                    <span class="block-badge-pill">● Worek: 4</span>
+                    <span class="block-badge-pill">■ Tarcze: 4</span>
+                    <span class="block-badge-pill">▲ Sparing: 3</span>
+                  </div>
+                  <div class="skill-meta-footer">
+                    <span>3 ostatnie treningi</span>
+                    <span class="status-badge-trend is-improved">↑ z 3</span>
+                  </div>
+                </a>
+
+                <a class="skill-card-4a" href="#" onclick="return false;">
+                  <div class="skill-header-top">
+                    <div>
+                      <h3 class="skill-name-txt">Balans przy unikach rotacyjnych</h3>
+                      <p class="skill-crit-txt">Ciężar ciała nie ucieka za linię kolana</p>
+                    </div>
+                    <div class="skill-rating-big">3<span class="scale-denom">/5</span></div>
+                  </div>
+                  <div class="block-shape-badges">
+                    <span class="block-badge-pill">◆ Technika: 3</span>
+                    <span class="block-badge-pill">▲ Sparing: 2</span>
+                  </div>
+                  <div class="skill-meta-footer">
+                    <span>2 ostatnie treningi</span>
+                    <span class="status-badge-trend is-neutral">bez zmian</span>
+                  </div>
+                </a>
+              </div>
+
+              <!-- 4C: Karta kompaktowa ze zintegrowaną notatką -->
+              <div class="skills-list-4c">
+                <a class="skill-card-4a" href="#" onclick="return false;">
+                  <div class="skill-header-top">
+                    <div>
+                      <h3 class="skill-name-txt">Lewy prosty, powrót do gardy</h3>
+                      <p class="skill-crit-txt">Ręka wraca do brody przed ciosem</p>
+                    </div>
+                    <div class="skill-rating-big">4<span class="scale-denom">/5</span></div>
+                  </div>
+                  <div class="segments-bar-5">
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill is-filled"></span>
+                    <span class="seg-pill"></span>
+                  </div>
+                  <div class="integrated-note-row">
+                    Notatka: <strong>„Trzymaj prawą rękawicę przyklejoną do szczęki”</strong>
+                  </div>
+                </a>
+              </div>
+            </section>
+
+            <!-- SEKCJA 5: SEKCJA „WIĘCEJ” (KAFELKI DIAGNOSTYCZNE) -->
+            <section aria-label="Więcej">
+              <h2 class="section-heading" style="margin-bottom: 8px;">Więcej</h2>
+
+              <!-- 5A: Kafelki 2x2 (Standard MoreTile) -->
+              <div class="more-grid-5a">
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Sparing</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
+                  <div class="more-val-num">16 rund</div>
+                  <div class="more-hint-txt">4 treningi ze sparingiem · 4 tyg.</div>
+                </div>
+
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Obciążenie</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
+                  <div class="more-val-num">1 420</div>
+                  <div class="more-hint-txt">zwykle ok. 1 350 · sRPE × min · ten tydzień</div>
+                </div>
+
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Samopoczucie</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
+                  <div class="more-val-num">14/14</div>
+                  <div class="more-hint-txt">wpisów · norma dostępna</div>
+                </div>
+
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Masa ciała</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
+                  <div class="more-val-num">78,4 kg</div>
+                  <div class="more-hint-txt">średnia 7 dni</div>
+                </div>
+              </div>
+
+              <!-- 5B: Paski akordeonowe (Lista pełnej szerokości) -->
+              <div class="more-list-5b">
+                <div class="more-row-5b">
+                  <div class="row-meta-left">
+                    <svg class="row-icon-5b" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 11V6a3 3 0 0 1 6 0v5M12 11V4a3 3 0 0 1 6 0v7M18 11v6a5 5 0 0 1-10 0v-6"/></svg>
+                    <div>
+                      <div class="row-title-5b">Sparing</div>
+                      <div class="row-sub-5b">4 treningi ze sparingiem · 4 tyg.</div>
+                    </div>
+                  </div>
+                  <div class="row-val-right">
+                    <div class="row-val-num">16 rund</div>
+                  </div>
+                </div>
+
+                <div class="more-row-5b">
+                  <div class="row-meta-left">
+                    <svg class="row-icon-5b" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    <div>
+                      <div class="row-title-5b">Obciążenie treningowe</div>
+                      <div class="row-sub-5b">sRPE × min · zwykle 1 350</div>
+                    </div>
+                  </div>
+                  <div class="row-val-right">
+                    <div class="row-val-num">1 420</div>
+                  </div>
+                </div>
+
+                <div class="more-row-5b">
+                  <div class="row-meta-left">
+                    <svg class="row-icon-5b" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                    <div>
+                      <div class="row-title-5b">Samopoczucie</div>
+                      <div class="row-sub-5b">norma wyznaczona (21 dni)</div>
+                    </div>
+                  </div>
+                  <div class="row-val-right">
+                    <div class="row-val-num">14/14</div>
+                  </div>
+                </div>
+
+                <div class="more-row-5b">
+                  <div class="row-meta-left">
+                    <svg class="row-icon-5b" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h18"/></svg>
+                    <div>
+                      <div class="row-title-5b">Masa ciała</div>
+                      <div class="row-sub-5b">średnia krocząca 7 dni</div>
+                    </div>
+                  </div>
+                  <div class="row-val-right">
+                    <div class="row-val-num">78,4 kg</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5C: Kafelki z plakietkami statusu -->
+              <div class="more-grid-5c">
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Sparing</span>
+                    <span class="badge-status-pill">4 tyg.</span>
+                  </div>
+                  <div class="more-val-num">16 rund</div>
+                  <div class="more-hint-txt">4 treningi ze sparingiem</div>
+                </div>
+
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Obciążenie</span>
+                    <span class="badge-status-pill">sRPE</span>
+                  </div>
+                  <div class="more-val-num">1 420</div>
+                  <div class="more-hint-txt">zwykle ok. 1 350</div>
+                </div>
+
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Samopoczucie</span>
+                    <span class="badge-status-pill is-ok">Norma dostępna</span>
+                  </div>
+                  <div class="more-val-num">14/14</div>
+                  <div class="more-hint-txt">wpisów kompletnych</div>
+                </div>
+
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Masa ciała</span>
+                    <span class="badge-status-pill">Średnia 7D</span>
+                  </div>
+                  <div class="more-val-num">78,4 kg</div>
+                  <div class="more-hint-txt">kategoria wagowa OK</div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Dolny pasek nawigacji aplikacji -->
+          <nav class="bottom-nav-bar" aria-label="Nawigacja główna">
+            <a class="nav-tab-item" href="#" onclick="return false;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <span>Start</span>
+            </a>
+            <a class="nav-tab-item" href="#" onclick="return false;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>Plany</span>
+            </a>
+            <a class="nav-tab-item is-active" href="#" onclick="return false;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg>
+              <span>Postęp</span>
+            </a>
+            <a class="nav-tab-item" href="#" onclick="return false;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Profil</span>
+            </a>
+          </nav>
+        </article>
+      </div>
+
+
+      <!-- =====================================================================
+           TELEFON 2: PUSTY (Nowe konto / brak historii / brak celów)
+           ===================================================================== -->
+      <div class="phone-column">
+        <div class="phone-meta">
+          <span class="phone-meta-badge badge-empty">Stan 2: Pusty (nowe konto)</span>
+          <p class="phone-meta-desc">Brak treningów · Wykres &lt; 3 tyg. · Puste elementy</p>
+        </div>
+
+        <article class="phone-device" id="phoneEmpty">
+          <div class="phone-notch"></div>
+          <header class="phone-status-bar" aria-hidden="true">
+            <span>9:41</span>
+            <div class="phone-status-icons">
+              <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+              <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+              <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </header>
+
+          <div class="screen-content">
+            <!-- Nagłówek ekranu -->
+            <div class="screen-header">
+              <h1 class="screen-header-title">Postęp</h1>
+              <p class="screen-header-sub">17–23 listopada · ten tydzień</p>
+            </div>
+
+            <!-- Segmented Control [Wykresy | Historia] -->
+            <div class="segmented-control" role="radiogroup" aria-label="Zakładki Postępu">
+              <button class="segmented-btn is-active" type="button" role="radio" aria-checked="true">Wykresy</button>
+              <button class="segmented-btn" type="button" role="radio" aria-checked="false">Historia</button>
+            </div>
+
+            <!-- SEKCJA 1: PODSUMOWANIE TYGODNIA W LICZBACH (STAN PUSTY) -->
+            <section aria-label="Ten tydzień w liczbach">
+              <!-- 1A: Kafelki akcentowe (pusty) -->
+              <div class="metrics-row-1a">
+                <div class="metric-tile-1a">
+                  <div class="metric-val-1a">0</div>
+                  <div class="metric-lbl-1a">treningi</div>
+                </div>
+                <div class="metric-tile-1a">
+                  <div class="metric-val-1a">0</div>
+                  <div class="metric-lbl-1a">minut</div>
+                </div>
+                <div class="metric-tile-1a">
+                  <div class="metric-val-1a">0</div>
+                  <div class="metric-lbl-1a">rund sparingu</div>
+                </div>
+              </div>
+
+              <!-- 1B: Zintegrowany Stat-Bar (pusty) -->
+              <div class="metrics-bar-1b">
+                <div class="stat-col-1b">
+                  <div class="stat-val-1b">0</div>
+                  <div class="stat-lbl-1b">treningów</div>
+                </div>
+                <div class="stat-col-1b">
+                  <div class="stat-val-1b">0 min</div>
+                  <div class="stat-lbl-1b">czasu</div>
+                </div>
+                <div class="stat-col-1b">
+                  <div class="stat-val-1b">0 rund</div>
+                  <div class="stat-lbl-1b">sparingu</div>
+                </div>
+              </div>
+
+              <!-- 1C: Karta Hero z celem (pusty) -->
+              <div class="metrics-hero-1c">
+                <div class="hero-plan-box-1c">
+                  <div>
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--app-muted);">Plan tygodnia</span>
+                    <div style="font-family: 'Archivo'; font-size: 24px; font-weight: 800; color: var(--app-muted); margin-top: 2px;">Brak celu</div>
+                  </div>
+                  <div class="hero-plan-bar">
+                    <div class="hero-plan-fill" style="width: 0%;"></div>
+                  </div>
+                </div>
+                <div class="hero-side-boxes-1c">
+                  <div class="hero-mini-tile">
+                    <span style="font-family: 'Archivo'; font-size: 16px; font-weight: 800;">0</span>
+                    <span style="font-size: 11px; color: var(--app-muted); margin-left: 3px;">minut</span>
+                  </div>
+                  <div class="hero-mini-tile">
+                    <span style="font-family: 'Archivo'; font-size: 16px; font-weight: 800;">0</span>
+                    <span style="font-size: 11px; color: var(--app-muted); margin-left: 3px;">rund sparingu</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- SEKCJA 2: TEN TYDZIEŃ (DNI TYGODNIA) (STAN PUSTY) -->
+            <section aria-label="Ten tydzień">
+              <div class="section-header-row">
+                <h2 class="section-heading">Ten tydzień</h2>
+                <a class="section-link" href="#" onclick="return false;">Plan tygodnia ›</a>
+              </div>
+
+              <!-- 2A: Kropki w kasetkach (pusty) -->
+              <div class="week-days-2a">
+                <div class="day-tile-2a"><span class="day-dot-2a"></span><span class="day-name-2a">PN</span></div>
+                <div class="day-tile-2a"><span class="day-dot-2a"></span><span class="day-name-2a">WT</span></div>
+                <div class="day-tile-2a"><span class="day-dot-2a"></span><span class="day-name-2a">ŚR</span></div>
+                <div class="day-tile-2a is-today"><span class="day-dot-2a"></span><span class="day-name-2a">CZ</span></div>
+                <div class="day-tile-2a"><span class="day-dot-2a"></span><span class="day-name-2a">PT</span></div>
+                <div class="day-tile-2a"><span class="day-dot-2a"></span><span class="day-name-2a">SO</span></div>
+                <div class="day-tile-2a"><span class="day-dot-2a"></span><span class="day-name-2a">ND</span></div>
+              </div>
+
+              <!-- 2B: Kapsułki pionowe (pusty) -->
+              <div class="week-days-2b">
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">PN</span><span class="capsule-dot-2b"></span><span class="capsule-dom-2b">17</span></div>
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">WT</span><span class="capsule-dot-2b"></span><span class="capsule-dom-2b">18</span></div>
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">ŚR</span><span class="capsule-dot-2b"></span><span class="capsule-dom-2b">19</span></div>
+                <div class="day-capsule-2b is-today"><span class="capsule-dow-2b" style="color: var(--app-crimson-ink);">CZ</span><span class="capsule-dot-2b"></span><span class="capsule-dom-2b">20</span></div>
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">PT</span><span class="capsule-dot-2b"></span><span class="capsule-dom-2b">21</span></div>
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">SO</span><span class="capsule-dot-2b"></span><span class="capsule-dom-2b">22</span></div>
+                <div class="day-capsule-2b"><span class="capsule-dow-2b">ND</span><span class="capsule-dot-2b"></span><span class="capsule-dom-2b">23</span></div>
+              </div>
+
+              <!-- 2C: Ciągła oś tygodnia (pusty) -->
+              <div class="week-ribbon-2c">
+                <div class="ribbon-track-line"></div>
+                <div class="ribbon-nodes-row">
+                  <div class="ribbon-node"><div class="ribbon-circle"></div><span class="ribbon-lbl">PN</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle"></div><span class="ribbon-lbl">WT</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle"></div><span class="ribbon-lbl">ŚR</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle is-today"></div><span class="ribbon-lbl" style="color: var(--app-ink);">CZ</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle"></div><span class="ribbon-lbl">PT</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle"></div><span class="ribbon-lbl">SO</span></div>
+                  <div class="ribbon-node"><div class="ribbon-circle"></div><span class="ribbon-lbl">ND</span></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- SEKCJA 3: WYKRES OSTATNICH TYGODNI (STAN PUSTY < 3 TYG) -->
+            <section aria-label="Ostatnie tygodnie">
+              <div class="chart-empty-state">
+                <svg class="empty-state-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 16l4-5 4 3 6-8"/></svg>
+                <h2 class="empty-state-title">Ostatnie tygodnie</h2>
+                <p class="empty-state-text">Wykres pojawi się po 3 tygodniach regularnych treningów.</p>
+              </div>
+            </section>
+
+            <!-- SEKCJA 4: ELEMENTY DO POPRAWY (STAN PUSTY) -->
+            <section aria-labelledby="skills-heading-2">
+              <div class="skills-header-row">
+                <div class="skills-title-group">
+                  <h2 id="skills-heading-2" class="section-heading">Elementy do poprawy</h2>
+                </div>
+                <button class="btn-add-skill" type="button">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                  <span>Dodaj</span>
+                </button>
+              </div>
+
+              <!-- Pusty stan z tekstem 1:1 z progressLabels.ts -->
+              <div class="skills-empty-box">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--app-crimson-ink);"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>
+                <p class="skills-empty-p">Dodaj jedną rzecz, nad którą pracujesz, np. ręka wraca do brody po jabie. Po treningu ocenisz, jak wyszła.</p>
+                <button class="btn-add-skill" type="button" style="background: var(--app-crimson); color: #ffffff; border-color: var(--app-crimson);">
+                  <span>+ Dodaj element do poprawy</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- SEKCJA 5: SEKCJA „WIĘCEJ” (STAN PUSTY) -->
+            <section aria-label="Więcej">
+              <h2 class="section-heading" style="margin-bottom: 8px;">Więcej</h2>
+
+              <!-- 5A: Kafelki 2x2 (Pusty) -->
+              <div class="more-grid-5a">
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Sparing</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
+                  <div class="more-val-num" style="color: var(--app-muted); font-size: 18px;">Brak danych</div>
+                  <div class="more-hint-txt">Historia niedostępna</div>
+                </div>
+
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Obciążenie</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
+                  <div class="more-val-num" style="color: var(--app-muted); font-size: 18px;">Brak danych</div>
+                  <div class="more-hint-txt">sRPE × min · ten tydzień</div>
+                </div>
+
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Samopoczucie</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
+                  <div class="more-val-num">0/14</div>
+                  <div class="more-hint-txt">wpisów do normy · wymagane 21 dni</div>
+                </div>
+
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow">
+                    <span>Masa ciała</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
+                  <div class="more-val-num" style="color: var(--app-muted); font-size: 18px;">Brak danych</div>
+                  <div class="more-hint-txt">średnia 7 dni</div>
+                </div>
+              </div>
+
+              <!-- 5B: Paski akordeonowe (Pusty) -->
+              <div class="more-list-5b">
+                <div class="more-row-5b">
+                  <div class="row-meta-left">
+                    <svg class="row-icon-5b" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 11V6a3 3 0 0 1 6 0v5M12 11V4a3 3 0 0 1 6 0v7M18 11v6a5 5 0 0 1-10 0v-6"/></svg>
+                    <div><div class="row-title-5b">Sparing</div><div class="row-sub-5b">Historia niedostępna</div></div>
+                  </div>
+                  <div class="row-val-right"><div class="row-val-num" style="color: var(--app-muted); font-size: 14px;">Brak danych</div></div>
+                </div>
+                <div class="more-row-5b">
+                  <div class="row-meta-left">
+                    <svg class="row-icon-5b" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    <div><div class="row-title-5b">Obciążenie</div><div class="row-sub-5b">Wymaga ocen RPE</div></div>
+                  </div>
+                  <div class="row-val-right"><div class="row-val-num" style="color: var(--app-muted); font-size: 14px;">Brak danych</div></div>
+                </div>
+                <div class="more-row-5b">
+                  <div class="row-meta-left">
+                    <svg class="row-icon-5b" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                    <div><div class="row-title-5b">Samopoczucie</div><div class="row-sub-5b">wpisów do normy (wymagane 21 dni)</div></div>
+                  </div>
+                  <div class="row-val-right"><div class="row-val-num">0/14</div></div>
+                </div>
+                <div class="more-row-5b">
+                  <div class="row-meta-left">
+                    <svg class="row-icon-5b" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h18"/></svg>
+                    <div><div class="row-title-5b">Masa ciała</div><div class="row-sub-5b">Brak wprowadzonych pomiarów</div></div>
+                  </div>
+                  <div class="row-val-right"><div class="row-val-num" style="color: var(--app-muted); font-size: 14px;">Brak danych</div></div>
+                </div>
+              </div>
+
+              <!-- 5C: Kafelki z plakietkami statusu (Pusty) -->
+              <div class="more-grid-5c">
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow"><span>Sparing</span><span class="badge-status-pill">4 tyg.</span></div>
+                  <div class="more-val-num" style="color: var(--app-muted); font-size: 18px;">Brak danych</div>
+                  <div class="more-hint-txt">Historia niedostępna</div>
+                </div>
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow"><span>Obciążenie</span><span class="badge-status-pill">sRPE</span></div>
+                  <div class="more-val-num" style="color: var(--app-muted); font-size: 18px;">Brak danych</div>
+                  <div class="more-hint-txt">Wymaga RPE</div>
+                </div>
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow"><span>Samopoczucie</span><span class="badge-status-pill">0/14</span></div>
+                  <div class="more-val-num">0/14</div>
+                  <div class="more-hint-txt">wymagane 21 dni</div>
+                </div>
+                <div class="more-tile-5a">
+                  <div class="more-title-eyebrow"><span>Masa ciała</span><span class="badge-status-pill">7 dni</span></div>
+                  <div class="more-val-num" style="color: var(--app-muted); font-size: 18px;">Brak danych</div>
+                  <div class="more-hint-txt">Brak pomiarów</div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Dolny pasek nawigacji aplikacji -->
+          <nav class="bottom-nav-bar" aria-label="Nawigacja główna">
+            <a class="nav-tab-item" href="#" onclick="return false;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <span>Start</span>
+            </a>
+            <a class="nav-tab-item" href="#" onclick="return false;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>Plany</span>
+            </a>
+            <a class="nav-tab-item is-active" href="#" onclick="return false;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg>
+              <span>Postęp</span>
+            </a>
+            <a class="nav-tab-item" href="#" onclick="return false;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Profil</span>
+            </a>
+          </nav>
+        </article>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       SKRYPTY INTERAKTYWNE LABORATORIUM
+       ========================================================================= */
+  -->
+  <script>
+    // Stan aktywnych wariantów
+    const currentVariants = {
+      1: 'a',
+      2: 'a',
+      3: 'a',
+      4: 'a',
+      5: 'a'
+    };
+
+    function setSectionVariant(sectionNumber, variantLetter) {
+      currentVariants[sectionNumber] = variantLetter;
+      updateBodyClasses();
+      updateNavButtons();
+    }
+
+    function applyPreset(presetLetter) {
+      for (let i = 1; i <= 5; i++) {
+        currentVariants[i] = presetLetter;
+      }
+      updateBodyClasses();
+      updateNavButtons();
+    }
+
+    function updateBodyClasses() {
+      // Usuń poprzednie klasy wariantów
+      const classes = [];
+      for (let i = 1; i <= 5; i++) {
+        classes.push(`var-${i}${currentVariants[i]}`);
+      }
+      // Zachowaj ewentualne inne klasy
+      document.body.className = classes.join(' ');
+    }
+
+    function updateNavButtons() {
+      for (let i = 1; i <= 5; i++) {
+        ['a', 'b', 'c'].forEach(v => {
+          const btn = document.getElementById(`btn-${i}${v}`);
+          if (btn) {
+            const isActive = currentVariants[i] === v;
+            btn.classList.toggle('is-active', isActive);
+            btn.classList.toggle('is-active-crimson', isActive);
+          }
+        });
+      }
+    }
+
+    // Przełączanie szerokości telefonu (390 vs 360 px)
+    function setViewportWidth(width) {
+      const phones = document.querySelectorAll('.phone-device');
+      phones.forEach(p => {
+        if (width === 360) {
+          p.classList.add('viewport-360');
+        } else {
+          p.classList.remove('viewport-360');
+        }
+      });
+      document.getElementById('btnView390').classList.toggle('is-active', width === 390);
+      document.getElementById('btnView360').classList.toggle('is-active', width === 360);
+    }
+
+    // Przełączanie motywu (ciemny vs jasny)
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('btnThemeDark').classList.toggle('is-active', theme === 'dark');
+      document.getElementById('btnThemeLight').classList.toggle('is-active', theme === 'light');
+    }
+  </script>
+</body>
+</html>
