@@ -4,7 +4,7 @@ import { test, expect } from './fixtures'
 import { block, roundsExercise, workoutPlan } from '../src/test/workoutBuilders'
 
 for (const theme of ['dark', 'light'] as const) {
-  test(`records fifteen extra seconds and shows variant two in ${theme}`, async ({ app, page }, testInfo) => {
+  test(`records fifteen extra seconds and keeps the v6 controls outside the arc in ${theme}`, async ({ app, page }, testInfo) => {
     await app.createPlan('Korekta czasu rundy', '3:00')
     await app.setTheme(theme)
     await app.openPlayer()
@@ -17,17 +17,28 @@ for (const theme of ['dark', 'light'] as const) {
     await add.click()
     await expect(page.getByText('Pozostały czas: 3 minuty i 15 sekund', { exact: true })).toBeAttached()
     await expect(page.locator('p[aria-live="polite"]', { hasText: '+15 s' })).toBeVisible()
-    for (const label of ['Dodaj 15 sekund / 15 s', 'Odejmij 15 sekund / 15 s']) {
-      const button = page.getByRole('button', { name: label, exact: true })
-      await expect(button.getByText('15 s', { exact: true })).toBeVisible()
-      const box = (await button.boundingBox())!
-      expect(box.width).toBeGreaterThanOrEqual(44)
-      expect(box.height).toBeGreaterThanOrEqual(44)
-      expect(box.x).toBeGreaterThanOrEqual(0)
-      expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width)
+    const viewport = page.viewportSize()!
+    const viewports = testInfo.project.name === 'phone' ? [viewport, { width: 390, height: 844 }] : [viewport]
+    for (const size of viewports) {
+      await page.setViewportSize(size)
+      const arc = (await page.locator('.timer-svg-2b').boundingBox())!
+      expect(arc.width).toBe(size.width <= 360 ? 240 : 260)
+      const subtract = page.getByRole('button', { name: 'Odejmij 15 sekund / 15 s', exact: true })
+      for (const button of [subtract, add]) {
+        await expect(button.getByText('15 s', { exact: true })).toBeVisible()
+        const box = (await button.boundingBox())!
+        expect([box.width, box.height]).toEqual([44, 44])
+        expect(box.x).toBeGreaterThan(0)
+        expect(box.x + box.width).toBeLessThan(size.width)
+        expect(box.y).toBeGreaterThan(0)
+        expect(box.y + box.height).toBeLessThan(size.height)
+        expect(box.y + box.height / 2).toBeCloseTo(arc.y + arc.height / 2 - 14)
+        const arcGap = button === subtract ? arc.x - box.x - box.width : box.x - arc.x - arc.width
+        expect(arcGap).toBeGreaterThanOrEqual(8)
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(size.width)
     }
-    expect((await page.locator('.timer-svg-2b').boundingBox())!.width).toBe(page.viewportSize()!.width <= 360 ? 280 : 300)
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width)
+    await page.setViewportSize(viewport)
     await page.clock.runFor(1000)
     await expect(page.locator('p[aria-live="polite"]', { hasText: '+15 s' })).toHaveCount(0)
     await page.evaluate(() => document.fonts.ready)

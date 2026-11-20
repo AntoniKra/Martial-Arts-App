@@ -6,7 +6,7 @@ const instruction = 'Jab → prawy prosty → lewy hak na korpus'
 const start = Date.parse('2026-11-03T10:00:00Z')
 
 for (const theme of ['dark', 'light'] as const) {
-  test(`player v4 fits the exercise, arc and controls in every phase in ${theme} theme`, async ({ app, page }, info) => {
+  test(`player v6 fits the exercise, arc and controls in every phase in ${theme} theme`, async ({ app, page }, info) => {
     await app.open('/')
     await app.setTheme(theme)
     const exercise = { ...roundsExercise('exercise-1', 2, 60, 30), exerciseNameSnapshot: 'Praca na nogach', instruction }
@@ -15,7 +15,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.seedPlan(plan)
     await app.open(`/workouts/${plan.id}`)
     await app.openPlayer()
-    await page.clock.setFixedTime(new Date(start))
+    await page.clock.setFixedTime(new Date(start - 3_000))
     await page.evaluate(() => document.fonts.ready)
 
     const main = page.getByRole('main')
@@ -43,7 +43,9 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(heading).toHaveCSS('font-size', '26px')
     await expect(technique).toHaveText(instruction)
     await expect(technique).toHaveCSS('-webkit-line-clamp', '2')
-    await expect(next).toHaveCSS('font-size', '11.5px')
+    await expect(next).toHaveCSS('font-size', '12.5px')
+    await expect(next).toHaveCSS('line-height', '15.625px')
+    await expect(next).toHaveCSS('-webkit-line-clamp', '2')
     await expect(page.locator('.round-dot')).toHaveCount(2)
     await expect(page.locator('.round-dot').first()).toHaveClass(/is-current/)
     await expect(page.locator('.arc-track')).toHaveAttribute('stroke-dasharray', '75 25')
@@ -55,13 +57,15 @@ for (const theme of ['dark', 'light'] as const) {
       for (const size of viewports) {
         await page.setViewportSize(size)
         const small = size.width <= 360
-        const arcSize = small ? '280px' : '300px'
+        const arcSize = small ? '240px' : '260px'
         await expect(arc).toHaveCSS('width', arcSize)
         await expect(arc).toHaveCSS('height', arcSize)
-        await expect(timer).toHaveCSS('font-size', small ? '96px' : '104px')
+        const singleDigit = phase === 'preparing'
+        await expect(timer).toHaveCSS('font-size', singleDigit ? (small ? '96px' : '104px') : (small ? '76px' : '84px'))
         await expect(timer).toHaveCSS('font-weight', '800')
         await expect(timer).toHaveCSS('font-variant-numeric', 'tabular-nums')
-        await expect(phaseWord).toHaveCSS('font-size', small ? '20px' : '22px')
+        await expect(phaseWord).toHaveCSS('font-size', small ? '17px' : '19px')
+        await expect(phaseWord).toHaveCSS('bottom', small ? '12px' : '14px')
         await expect(technique).toHaveCSS('font-size', small ? '22px' : '24px')
         const box = (await arc.boundingBox())!
         const digits = (await timer.boundingBox())!
@@ -81,6 +85,9 @@ for (const theme of ['dark', 'light'] as const) {
     }
 
     await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
+    await expect(timer).toHaveText('10')
+    await page.clock.setFixedTime(new Date(start))
+    await expect(timer).toHaveText('7')
     await checkPhase('preparing', 'PRZYGOTUJ SIĘ')
     await page.getByRole('button', { name: 'Zacznij teraz', exact: true }).click()
     await checkPhase('work', 'PRACA')
@@ -116,7 +123,7 @@ for (const theme of ['dark', 'light'] as const) {
   })
 }
 
-test('player v4 fits long plan data without clipping the clock or scrolling', async ({ app, page }) => {
+test('player v6 fits long plan data and keeps clock digits within the arc', async ({ app, page }, info) => {
   await app.open('/')
   const exercise = {
     ...roundsExercise('long-rounds', 99, 86_400, 30),
@@ -139,9 +146,41 @@ test('player v4 fits long plan data without clipping the clock or scrolling', as
   expect(digits.x + digits.width).toBeLessThanOrEqual(arc.x + arc.width * 292 / 300)
   expect(await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.scrollHeight]))
     .toEqual([page.viewportSize()!.width, page.viewportSize()!.height])
+
+  await page.clock.fastForward((86_400 - 3599) * 1000)
+  const timer = page.locator('.timer-digits')
+  await expect(timer).toHaveText('59:59')
+  const viewport = page.viewportSize()!
+  const viewports = info.project.name === 'phone' ? [viewport, { width: 390, height: 844 }] : [viewport]
+  for (const size of viewports) {
+    await page.setViewportSize(size)
+    const circle = (await page.locator('.timer-svg-2b').boundingBox())!
+    const digits = (await timer.boundingBox())!
+    const ink = await timer.evaluate((element) => {
+      const style = getComputedStyle(element)
+      const canvas = document.createElement('canvas').getContext('2d')!
+      canvas.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+      const bounds = element.getBoundingClientRect()
+      // All values use the same tabular width. Measure glyph height without the line box's whitespace.
+      return ['00:00', element.textContent!].map((value) => {
+        const glyphs = canvas.measureText(value)
+        const baseline = bounds.top + (bounds.height + glyphs.fontBoundingBoxAscent - glyphs.fontBoundingBoxDescent) / 2
+        return [baseline - glyphs.actualBoundingBoxAscent, baseline + glyphs.actualBoundingBoxDescent]
+      })
+    })
+    const centerX = circle.x + circle.width / 2
+    const centerY = circle.y + circle.height / 2
+    // The track radius plus half its stroke is 142 in the 300-unit viewBox.
+    const outerRadius = circle.width * 142 / 300
+    for (const x of [digits.x, digits.x + digits.width]) {
+      for (const y of ink.flat()) {
+        expect(Math.hypot(x - centerX, y - centerY)).toBeLessThanOrEqual(outerRadius)
+      }
+    }
+  }
 })
 
-test('player v4 respects reduced motion on phase changes and presses', async ({ app, page }) => {
+test('player v6 respects reduced motion on phase changes and presses', async ({ app, page }) => {
   await app.createPlan('Ruch odtwarzacza')
   await app.openPlayer()
   await app.freezeClock()

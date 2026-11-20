@@ -51,6 +51,9 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(main).toHaveAttribute('data-phase', 'work')
     await expect(main).toHaveCSS('background-color', theme === 'dark' ? 'rgb(84, 8, 21)' : 'rgb(250, 230, 233)')
     await expect(main.locator('.arc-phase-opening')).toHaveText('PRACA')
+    const arcSize = page.viewportSize()!.width <= 360 ? '240px' : '260px'
+    await expect(main.locator('.timer-svg-2b')).toHaveCSS('width', arcSize)
+    await expect(main.locator('.timer-svg-2b')).toHaveCSS('height', arcSize)
     await screenshot('player-work')
     await page.clock.fastForward(90_000)
     await page.getByRole('button', { name: 'Następny etap', exact: true }).click()

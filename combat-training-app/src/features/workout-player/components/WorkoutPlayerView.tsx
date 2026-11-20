@@ -398,7 +398,6 @@ function WorkoutPlayerRuntime({
             })
           } : undefined}
         />
-        <div className="player-timer-spacing" />
         <WorkoutPlayerNextPreview roundStep={isRoundRest ? nextStep ?? undefined : roundStep} nextStep={nextStep} isLastStep={isLastStep} />
 
         <WorkoutPlayerControls

@@ -37,7 +37,7 @@ export function WorkoutCircularTimer({
       <div className="timer-wrap-2b">
         <div className="timer-digits-container">
           <span
-            className={digits.length > 5 ? 'timer-digits timer-digits-compact' : 'timer-digits'}
+            className={`timer-digits${digits.length === 1 ? ' single-digit' : ''}${digits.length > 5 ? ' timer-digits-compact' : ''}`}
             aria-hidden="true"
           >
             {digits}
@@ -54,29 +54,26 @@ export function WorkoutCircularTimer({
           </g>
         </svg>
         <span className="arc-phase-opening">{phaseLabel}</span>
+        {onAdjustTime ? ([-15, 15] as const).map((delta) => {
+          const subtract = delta < 0
+          const symbol = subtract ? '−' : '+'
+          return (
+            <button
+              key={delta}
+              type="button"
+              aria-label={subtract ? labels.subtractTime : labels.addTime}
+              onClick={() => {
+                onAdjustTime(delta)
+                setAdjustmentNotice({ label: `${symbol}${labels.timeAdjustment}` })
+              }}
+              className={`player-adjust-time player-icon-button ${subtract ? 'player-adjust-subtract' : 'player-adjust-add'}`}
+            >
+              <span aria-hidden="true" className="player-adjust-sign">{symbol}</span>
+              <span aria-hidden="true" className="player-adjust-label">{labels.timeAdjustment}</span>
+            </button>
+          )
+        }) : null}
       </div>
-
-      {onAdjustTime ? ([-15, 15] as const).map((delta) => {
-        const subtract = delta < 0
-        const symbol = subtract ? '−' : '+'
-        return (
-          <button
-            key={delta}
-            type="button"
-            aria-label={subtract ? labels.subtractTime : labels.addTime}
-            onClick={() => {
-              onAdjustTime(delta)
-              setAdjustmentNotice({ label: `${symbol}${labels.timeAdjustment}` })
-            }}
-            className={`player-adjust-time player-icon-button ${subtract ? 'player-adjust-subtract' : 'player-adjust-add'}`}
-          >
-            <span aria-hidden="true" className="text-[32px] font-light leading-none">{symbol}</span>
-            <span aria-hidden="true" className="font-display text-[10px] font-semibold leading-3 tracking-[0.08em]">
-              {labels.timeAdjustment}
-            </span>
-          </button>
-        )
-      }) : null}
       <p className="player-adjust-notice" aria-live="polite" aria-atomic="true">
         {onAdjustTime ? adjustmentNotice?.label ?? '' : ''}
       </p>
