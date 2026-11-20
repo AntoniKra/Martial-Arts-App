@@ -2,6 +2,7 @@ import { useEffect, useState, type PropsWithChildren } from 'react'
 import type { AuthService, AuthState } from '@/application/auth/authService'
 import { AuthContext } from './authContext'
 import { mapAuthError } from './mapAuthError'
+import { subscribeToAuthState } from './subscribeToAuthState'
 
 export function AuthProvider({ service, children }: PropsWithChildren<{ service: AuthService }>) {
   const [state, setState] = useState<AuthState>({ status: 'loading' })
@@ -12,10 +13,7 @@ export function AuthProvider({ service, children }: PropsWithChildren<{ service:
   const [redirectCause, setRedirectCause] = useState<unknown>(null)
   const redirectError = redirectCause === null ? null : mapAuthError(redirectCause, state.status === 'ready' ? state.session?.email : undefined)
 
-  useEffect(() => service.subscribe(
-    (session) => setState({ status: 'ready', session }),
-    () => setState({ status: 'error' }),
-  ), [service])
+  useEffect(() => subscribeToAuthState(service, setState), [service])
 
   useEffect(() => {
     let active = true
