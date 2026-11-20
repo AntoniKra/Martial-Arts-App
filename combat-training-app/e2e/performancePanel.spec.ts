@@ -1,3 +1,4 @@
+import packageInfo from '../package.json' with { type: 'json' }
 import { selectRpe } from './rpeSlider'
 import { test, expect } from './fixtures'
 
@@ -14,7 +15,7 @@ test('opt-in panel measures a real offline manual entry and stays absent without
 
   await app.open('/workout-sessions/new?perf=1')
   await expect(panel).toBeVisible()
-  await expect(panel.getByLabel('Wyniki pomiarów', { exact: true })).toContainText('Firebase 13.2.0')
+  await expect(panel.getByLabel('Wyniki pomiarów', { exact: true })).toContainText(`Firebase ${packageInfo.dependencies.firebase}`)
   // Session storage keeps the flag through navigation and reloads.
   await app.open('/workout-sessions/new')
   await expect(panel).toBeVisible()
