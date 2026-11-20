@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laboratorium Designu: Odtwarzacz Treningu v8</title>
+  <!-- Google Fonts: Archivo (display/liczby/nagłówki), Inter (interfejs/opisy) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================================================
+       DESIGN SYSTEM TOKENS & MOTYW (ciemny domyślny, jasny na żądanie)
+       Wzorce z v4.html 1:1
+       ========================================================================= */
+    :root {
+      --app-font-display: 'Archivo', sans-serif;
+      --app-font-body: 'Inter', sans-serif;
+
+      --app-radius-xs: 2px;
+      --app-radius-sm: 4px;
+      --app-radius-md: 8px;
+      --app-radius-full: 9999px;
+
+      --app-ember: #f0753a;
+      --app-crimson: #b8102a;
+      --app-focus-ring: #f0753a;
+
+      /* FAZA: Pełne nasycenie tła ekranu w trybie ciemnym */
+      --phase-bg-prep: #16171d;       /* Grafit z odcieniem obsydianu */
+      --phase-text-prep: #ffffff;     /* Kontrast 17.5:1 */
+      --phase-sub-prep: #b0b0ba;
+      --phase-accent-prep: #f0753a;
+      --phase-ring-prep: #f0753a;
+
+      /* FAZA: Pełne nasycenie tła ekranu w trybie ciemnym (czytelne z 3 m) */
+      --phase-bg-work: #540815;       /* Głęboki nasycony karmazyn */
+      --phase-text-work: #ffffff;     /* Kontrast 14.8:1 */
+      --phase-sub-work: #ff99a8;      /* Kontrast 7.6:1 */
+      --phase-accent-work: #ff526d;
+      --phase-ring-work: #ff2a4b;
+
+      --phase-bg-rest: #1c2028;       /* Neutralny grafit/stal (zero zieleni) */
+      --phase-text-rest: #ffffff;     /* Kontrast 16.3:1 */
+      --phase-sub-rest: #a6b2c4;      /* Kontrast 8.4:1 */
+      --phase-accent-rest: #cbd5e1;
+      --phase-ring-rest: #94a3b8;
+
+      --phase-bg-warning: #5c200b;    /* Ciemny rozżarzony żar */
+      --phase-text-warning: #ffffff;  /* Kontrast 12.6:1 */
+      --phase-sub-warning: #ffb191;   /* Kontrast 7.8:1 */
+      --phase-accent-warning: #ff854d;
+      --phase-ring-warning: #ff7536;
+
+      --phase-bg-paused: #131418;     /* Przygaszony obsydian/grafit */
+      --phase-text-paused: #ffffff;   /* Kontrast 18.4:1 */
+      --phase-sub-paused: #a1a1aa;    /* Kontrast 7.5:1 */
+      --phase-accent-paused: #d4d4d8;
+      --phase-ring-paused: #71717a;
+
+      --app-grad-primary: linear-gradient(120deg, #b8102a 0%, #cb1531 55%, #f0753a 100%);
+    }
+
+    [data-theme='light'] {
+      --app-focus-ring: #b5122b;
+
+      --phase-bg-prep: #edf0f5;       /* Chłodny grafitowy błękit */
+      --phase-text-prep: #111113;     /* Kontrast 16.5:1 */
+      --phase-sub-prep: #343c4e;
+      --phase-accent-prep: #b5122b;
+      --phase-ring-prep: #b5122b;
+      /* FAZA: Pełne nasycenie tła ekranu w trybie jasnym (czytelne z 3 m) */
+      --phase-bg-work: #fae6e9;       /* Wyrazisty róż/karmazyn */
+      --phase-text-work: #111113;     /* Kontrast 15.8:1 */
+      --phase-sub-work: #800a1c;      /* Kontrast 7.9:1 */
+      --phase-accent-work: #b5122b;
+      --phase-ring-work: #c1122f;
+
+      --phase-bg-rest: #edf0f5;       /* Chłodny grafitowy błękit/stal */
+      --phase-text-rest: #111113;     /* Kontrast 16.5:1 */
+      --phase-sub-rest: #2b3342;      /* Kontrast 8.7:1 */
+      --phase-accent-rest: #48546a;
+      --phase-ring-rest: #626e84;
+
+      --phase-bg-warning: #fceee6;    /* Ciepły odcień żaru/amber */
+      --phase-text-warning: #111113;  /* Kontrast 16.6:1 */
+      --phase-sub-warning: #8a320c;   /* Kontrast 5.9:1 */
+      --phase-accent-warning: #b34614;
+      --phase-ring-warning: #d4591e;
+
+      --phase-bg-paused: #e8e8ec;     /* Zgaszony neutralny grafit */
+      --phase-text-paused: #111113;   /* Kontrast 15.4:1 */
+      --phase-sub-paused: #4a4a52;    /* Kontrast 7.2:1 */
+      --phase-accent-paused: #60606a;
+      --phase-ring-paused: #848490;
+
+      --app-grad-primary: linear-gradient(120deg, #a01027 0%, #b5122b 55%, #c24b10 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: #060608;
+      color: #e2e2e6;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================================
+       LAB HEADER (Baza z v4.html)
+       ========================================================================= */
+    .lab-header {
+      background: #0f0f13;
+      border-bottom: 1px solid #23232a;
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    }
+    .lab-header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .lab-title-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .lab-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+    }
+    .lab-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      background: rgba(184, 16, 42, 0.2);
+      border: 1px solid rgba(184, 16, 42, 0.45);
+      color: #ff6b81;
+      border-radius: var(--app-radius-xs);
+    }
+    .lab-choice-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      background: #1a1a22;
+      border: 1px solid #32323e;
+      color: #cbd5e1;
+      border-radius: var(--app-radius-xs);
+    }
+    .contrast-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      border-radius: var(--app-radius-xs);
+    }
+
+    .lab-theme-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .ctrl-pill-group {
+      display: inline-flex;
+      background: #17171d;
+      border: 1px solid #282832;
+      border-radius: var(--app-radius-sm);
+      padding: 2px;
+      gap: 2px;
+    }
+    .ctrl-pill {
+      background: transparent;
+      border: none;
+      color: #92929c;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: var(--app-radius-xs);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .ctrl-pill:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .ctrl-pill.is-active {
+      background: #2a2a34;
+      color: #ffffff;
+    }
+    .ctrl-pill.is-active-crimson {
+      background: #b8102a;
+      color: #ffffff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .lab-variants-list {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 18px;
+      padding-top: 10px;
+      border-top: 1px solid #202028;
+    }
+    .var-dim-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .dim-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #a7a7aa;
+    }
+
+    /* =========================================================================
+       SCENA GŁÓWNA: 4 TELEFONY OBOK SIEBIE (z v4.html)
+       ========================================================================= */
+    .stage-container {
+      flex: 1;
+      padding: 28px 20px 60px;
+      overflow-x: auto;
+    }
+    .phones-grid {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      min-width: fit-content;
+      margin: 0 auto;
+    }
+    .phone-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .phone-header-meta {
+      text-align: center;
+      width: 100%;
+    }
+    .phone-state-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: 'Archivo', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .phone-state-badge.badge-prep {
+      background: rgba(240, 117, 58, 0.18);
+      color: #ff9d66;
+      border-color: rgba(240, 117, 58, 0.4);
+    }
+    [data-theme='light'] .phone-state-badge.badge-prep {
+      background: rgba(181, 18, 43, 0.1);
+      color: #8c0c1e;
+      border-color: rgba(181, 18, 43, 0.3);
+    }
+
+    .phone-state-badge.badge-work {
+      background: rgba(193, 18, 47, 0.2);
+      color: #ff5c72;
+      border: 1px solid rgba(193, 18, 47, 0.4);
+    }
+    .phone-state-badge.badge-rest {
+      background: rgba(167, 167, 170, 0.15);
+      color: #d4d4d8;
+      border: 1px solid rgba(167, 167, 170, 0.35);
+    }
+    .phone-state-badge.badge-warning {
+      background: rgba(240, 117, 58, 0.2);
+      color: #ff7536;
+      border: 1px solid rgba(240, 117, 58, 0.45);
+    }
+    .phone-state-badge.badge-paused {
+      background: #222226;
+      color: #a7a7aa;
+      border: 1px solid #333338;
+    }
+    .phone-state-desc {
+      font-size: 11px;
+      color: #8c8c94;
+    }
+
+    /* =========================================================================
+       OBUDOWA TELEFONU (390 x 844, zero przewijania wewnętrznego)
+       ========================================================================= */
+    .phone-device {
+      width: 390px;
+      height: 844px;
+      max-height: 844px;
+      border-radius: 36px;
+      border: 4px solid #1c1c20;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px #282830;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      transition: background-color 300ms ease, color 300ms ease, width 0.2s ease;
+    }
+    .phone-device.viewport-360 {
+      width: 360px;
+    }
+
+    /* FAZA = KOLOR CAŁEGO TŁA EKRANU (WYPEŁNIENIE, 300 ms transition) */
+    .phone-device.state-prep {
+      background-color: var(--phase-bg-prep);
+      color: var(--phase-text-prep);
+    }
+
+    .phone-device.state-work {
+      background-color: var(--phase-bg-work);
+      color: var(--phase-text-work);
+    }
+    .phone-device.state-rest {
+      background-color: var(--phase-bg-rest);
+      color: var(--phase-text-rest);
+    }
+    .phone-device.state-warning {
+      background-color: var(--phase-bg-warning);
+      color: var(--phase-text-warning);
+    }
+    .phone-device.state-paused {
+      background-color: var(--phase-bg-paused);
+      color: var(--phase-text-paused);
+    }
+
+    /* Notch */
+    .phone-notch {
+      width: 120px;
+      height: 28px;
+      background: #000000;
+      border-radius: 14px;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+    }
+
+    /* Pasek statusu telefonu */
+    .phone-status-bar {
+      height: 44px;
+      padding: 12px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: currentColor;
+      z-index: 40;
+      flex-shrink: 0;
+    }
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Główny kontener wewnętrzny ekranu */
+    .player-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    /* =========================================================================
+       6. NAGŁÓWEK ODTWARZACZA JAK W APLIKACJI:
+       - Po lewej strzałka ← (wyjście)
+       - Środek: nazwa planu (bez zmian)
+       - Po prawej: przekreślony głośnik TYLKO w stanie PAUZA; w innych puste
+       ========================================================================= */
+    .player-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 16px 2px;
+      min-height: 44px;
+      flex-shrink: 0;
+    }
+    .topbar-plan-title {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.9;
+      max-width: 230px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+      flex: 1;
+    }
+    .topbar-back-btn, .topbar-sound-btn {
+      background: transparent;
+      border: none;
+      color: currentColor;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: var(--app-radius-sm);
+      flex-shrink: 0;
+    }
+    .topbar-back-btn:focus-visible, .topbar-sound-btn:focus-visible {
+      outline: 2px solid var(--app-focus-ring);
+    }
+    .topbar-spacer {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+    }
+
+    /* =========================================================================
+       BIEŻĄCY ETAP TRENINGU (1:1 z v4.html)
+       - Kombinacja nad licznikiem zostaje tam, gdzie w v4
+       ========================================================================= */
+    .current-exercise-box {
+      text-align: center;
+      padding: 2px 20px 0;
+      flex-shrink: 0;
+    }
+    .exercise-round-eyebrow {
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.85;
+      margin-bottom: 2px;
+      white-space: nowrap;
+    }
+    .exercise-name {
+      font-family: 'Archivo', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      color: currentColor;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .exercise-technique {
+      font-family: 'Archivo', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      color: currentColor;
+      opacity: 0.95;
+      max-width: 340px;
+      margin: 58px auto 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 28px;
+    }
+    .viewport-360 .exercise-technique {
+      font-size: 22px;
+      max-width: 310px;
+    }
+
+    /* =========================================================================
+       1 & 2. LICZNIK: PRAWDZIWY ŁUK 270° PRZESUNIĘTY TROCHĘ W DÓŁ
+       - Cała sekcja przesunięta w dół, by zmniejszyć pustą przestrzeń nad belką Rundy
+       - Cyfry zmniejszone tylko tyle, by "02:47", "00:58" mieściły się z marginesem
+       - Nigdy nie wychodzą poza zewnętrzną krawędź łuku
+       - Cyfra przygotowania ("7") bez zmian (104px / 96px)
+       ========================================================================= */
+    .timer-center-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end; /* Przesunięcie w dół ku belce dolnej */
+      padding: 4px 16px 8px;      /* Zmniejsza pustą przestrzeń nad belką Rundy */
+      min-height: 0;
+      position: relative;
+    }
+
+    .timer-wrap-2b {
+      width: 260px;
+      height: 260px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .viewport-360 .timer-wrap-2b {
+      width: 240px;
+      height: 240px;
+    }
+
+    /* SVG warstwa łuku 270° (z-index: 2, pointer-events: none) */
+    .timer-svg-2b {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .arc-track {
+      stroke: rgba(255, 255, 255, 0.18);
+      stroke-width: 8;
+      fill: none;
+    }
+    [data-theme='light'] .arc-track {
+      stroke: rgba(0, 0, 0, 0.12);
+    }
+    .arc-progress {
+      stroke-width: 8;
+      fill: none;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.3s ease, stroke 0.3s ease;
+    }
+    .state-prep .arc-progress { stroke: var(--phase-ring-prep); }
+    .state-work .arc-progress { stroke: var(--phase-ring-work); }
+    .state-rest .arc-progress { stroke: var(--phase-ring-rest); }
+    .state-warning .arc-progress { stroke: var(--phase-ring-warning); }
+    .state-paused .arc-progress { stroke: var(--phase-ring-paused); }
+
+    /* Kontener cyfr wewnątrz łuku */
+    .timer-digits-container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: -16px; /* Idealne wyśrodkowanie w kopule łuku */
+      width: 100%;
+    }
+
+    /* Cyfry licznika: 84 px (390 px) i 76 px (360 px) — bezpiecznie w łuku z marginesem */
+    .timer-digits {
+      font-family: 'Archivo', sans-serif;
+      font-size: 84px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      color: currentColor;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .viewport-360 .timer-digits {
+      font-size: 76px;
+    }
+
+    /* Cyfra przygotowania („7”) bez zmian (104px / 96px) */
+    .timer-digits.single-digit {
+      font-size: 104px;
+      line-height: 0.85;
+    }
+    .viewport-360 .timer-digits.single-digit {
+      font-size: 96px;
+    }
+
+    /* Słowo fazy umieszczone W OTWARCIU ŁUKU (w dolnej 90° przerwie) */
+    .arc-phase-opening {
+      position: absolute;
+      bottom: 14px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Archivo', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      line-height: 1;
+      white-space: nowrap;
+      color: currentColor;
+      z-index: 3;
+    }
+    .viewport-360 .arc-phase-opening {
+      font-size: 17px;
+      bottom: 12px;
+    }
+
+    /* =========================================================================
+       3. KOREKTA CZASU „−15 s” / „+15 s”:
+       - Po bokach łuku na wysokości cyfr
+       - POZA łukiem i nie bliżej niż 8 px od niego
+       - Mały znak +/− i podpis „15 s” pod spodem, kolor przygaszony
+       - Cel dotyku ≥ 44 px
+       ========================================================================= */
+    .btn-time-adjust {
+      position: absolute;
+      top: calc(50% - 14px); /* Wysokość cyfr */
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: currentColor;
+      opacity: 0.65;
+      cursor: pointer;
+      transition: opacity 0.15s ease, transform 0.1s ease;
+      touch-action: manipulation;
+      padding: 0;
+      z-index: 10;
+    }
+    .btn-time-adjust:hover {
+      opacity: 1;
+    }
+    .btn-time-adjust:active {
+      transform: translateY(-50%) scale(0.94);
+    }
+    .btn-time-adjust:focus-visible {
+      outline: 2px solid var(--app-focus-ring);
+      border-radius: var(--app-radius-xs);
+    }
+    .btn-adjust-left {
+      left: -52px; /* ≥ 8 px od łuku (dokładnie 8 px od obwiedni i 15 px od linii łuku) */
+    }
+    .btn-adjust-right {
+      right: -52px; /* ≥ 8 px od łuku (dokładnie 8 px od obwiedni i 15 px od linii łuku) */
+    }
+    .adjust-sign {
+      font-size: 20px;
+      font-weight: 300;
+      line-height: 1;
+      display: block;
+    }
+    .adjust-label {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      display: block;
+      margin-top: 1px;
+    }
+
+    /* =========================================================================
+       5. BELKA „RUNDY · NASTĘPNIE” (BELKA 4B):
+       - Tekst następnego kroku w maksymalnie 2 liniach zamiast ucinania
+       ========================================================================= */
+    .next-preview-area {
+      padding: 0 16px 8px;
+      flex-shrink: 0;
+    }
+    .next-bar-4b {
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--app-radius-sm);
+      padding: 8px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    [data-theme='light'] .next-bar-4b {
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .round-dots-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dots-list {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .round-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    [data-theme='light'] .round-dot {
+      background: rgba(0, 0, 0, 0.15);
+    }
+    .round-dot.is-done {
+      background: currentColor;
+      opacity: 0.85;
+    }
+    .round-dot.is-current {
+      background: currentColor;
+      box-shadow: 0 0 6px currentColor;
+    }
+    /* Tekst następnego kroku: maks 2 linie */
+    .next-step-desc {
+      font-size: 12.5px;
+      line-height: 1.25;
+      opacity: 0.9;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* =========================================================================
+       4. STEROWANIE: ROMB 3B + PRZYCISKI COFNIJ/DALEJ POWIĘKSZONE DO 52 PX
+       - Przyciski cofnij/dalej: powiększone z 48px do 52x52 px (ten sam styl)
+       - Romb bez zmian (wrapper 88 px, kształt 62 px)
+       ========================================================================= */
+    .controls-bottom-bar {
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.28);
+      padding: 8px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+      flex-shrink: 0;
+    }
+    [data-theme='light'] .controls-bottom-bar {
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .controls-row-3b {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      height: 88px;
+    }
+    /* Powiększone do 52 px (z 48px), ten sam styl co w v4 */
+    .side-control-btn {
+      width: 52px;
+      height: 52px;
+      min-width: 52px;
+      min-height: 52px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--app-radius-sm);
+      color: currentColor;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    [data-theme='light'] .side-control-btn {
+      background: rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .side-control-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .side-control-btn:focus-visible {
+      outline: 2px solid var(--app-focus-ring);
+    }
+
+    /* Romb 3B: obsługa stanu focus klawiatury (:focus-visible)
+       - Usunięcie prostokątnego domyślnego focus ring przeglądarki
+       - Obwódka 2 px w kolorze --app-focus-ring w kształcie ROMBU (zbieżna z obrotem 45°)
+    */
+    .diamond-wrapper-3b {
+      width: 88px;
+      height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      position: relative;
+      outline: none;
+    }
+    .diamond-wrapper-3b:focus,
+    .diamond-wrapper-3b:focus-visible {
+      outline: none;
+    }
+
+    .diamond-shape-3b {
+      width: 62px;
+      height: 62px;
+      transform: rotate(45deg);
+      background: var(--app-grad-primary);
+      border: 1px solid var(--app-ember);
+      box-shadow: 0 4px 18px rgba(184, 16, 42, 0.45), 0 0 12px rgba(240, 117, 58, 0.3);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: transform 0.1s ease, border 0.2s ease, box-shadow 0.2s ease;
+    }
+    .diamond-wrapper-3b:active .diamond-shape-3b {
+      transform: rotate(45deg) scale(0.95);
+    }
+
+    /* 1. Obwódka 2 px w kształcie ROMBU wokół przycisku (:focus-visible) */
+    .diamond-shape-3b::after {
+      content: '';
+      position: absolute;
+      inset: -6px; /* 6 px odstępu koncentrycznego od krawędzi rombu */
+      border: 2px solid var(--app-focus-ring);
+      border-radius: 6px;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.96);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 10px rgba(240, 117, 58, 0.45);
+    }
+    [data-theme='light'] .diamond-shape-3b::after {
+      border-color: var(--app-focus-ring);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7), 0 0 8px rgba(181, 18, 43, 0.35);
+    }
+
+    /* Stan sfokusowany klawiaturą (:focus-visible) oraz stały podgląd w labie (body.show-romb-focus) */
+    .diamond-wrapper-3b:focus-visible .diamond-shape-3b::after,
+    .diamond-wrapper-3b.is-focused .diamond-shape-3b::after,
+    body.show-romb-focus .diamond-shape-3b::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .diamond-icon-3b {
+      transform: rotate(-45deg);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Podpis „Zacznij teraz” nad rombem w przygotowaniu */
+    .start-now-badge {
+      position: absolute;
+      top: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffffff;
+      color: #b8102a;
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 2px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 10;
+    }
+    [data-theme='light'] .start-now-badge {
+      background: #111113;
+      color: #ffffff;
+    }
+
+    /* Jasna obwódka 2 px w fazie PRACA (i ostatnie 5 s) */
+    body.romb-border-bright .state-work .diamond-shape-3b,
+    body.romb-border-bright .state-warning .diamond-shape-3b {
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 22px rgba(0, 0, 0, 0.65), 0 0 16px rgba(255, 255, 255, 0.45);
+    }
+    [data-theme='light'] body.romb-border-bright .state-work .diamond-shape-3b,
+    [data-theme='light'] body.romb-border-bright .state-warning .diamond-shape-3b {
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 18px rgba(184, 16, 42, 0.5), 0 0 12px rgba(240, 117, 58, 0.4);
+    }
+
+    /* =========================================================================
+       MODAL WYJŚCIA (1:1 z v4.html)
+       ========================================================================= */
+    .exit-modal-backdrop {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      align-items: flex-end;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .exit-modal-backdrop.is-open {
+      display: flex;
+    }
+    .exit-modal-sheet {
+      width: 100%;
+      background: #18181c;
+      border-top: 1px solid #2e2e38;
+      border-radius: 16px 16px 0 0;
+      padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+      color: #ffffff;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+    }
+    [data-theme='light'] .exit-modal-sheet {
+      background: #ffffff;
+      border-top: 1px solid #e2e2e8;
+      color: #111113;
+    }
+    .modal-title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .modal-desc {
+      font-size: 13px;
+      color: #a7a7aa;
+      line-height: 1.4;
+      margin-bottom: 20px;
+    }
+    [data-theme='light'] .modal-desc {
+      color: #64646e;
+    }
+    .modal-btn-return {
+      width: 100%;
+      height: 48px;
+      background: var(--app-grad-primary);
+      border: 1px solid var(--app-ember);
+      border-radius: var(--app-radius-sm);
+      color: #ffffff;
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    .modal-btn-skip {
+      width: 100%;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--app-radius-sm);
+      color: currentColor;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    [data-theme='light'] .modal-btn-skip {
+      background: rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .modal-btn-finish {
+      width: 100%;
+      height: 44px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--app-radius-sm);
+      color: currentColor;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    [data-theme='light'] .modal-btn-finish {
+      border: 1px solid rgba(0, 0, 0, 0.12);
+    }
+    .modal-btn-discard {
+      width: 100%;
+      height: 38px;
+      background: transparent;
+      border: none;
+      color: #ff5c72;
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="romb-border-bright show-romb-focus">
+
+  <!-- =========================================================================
+       LABORATORIUM HEADER: ODTWARZACZ v6 (v4 + poprawki)
+       ========================================================================= -->
+  <header class="lab-header">
+    <div class="lab-header-top">
+      <div class="lab-title-area">
+        <h1 class="lab-title">Laboratorium Designu: Odtwarzacz Treningu v8</h1>
+        <span class="lab-badge">Baza: v7.html</span>
+        <span class="lab-choice-badge">Polecenie 50 px niżej</span>
+        <span class="lab-choice-badge">„Zacznij teraz” nad rombem</span>
+        <span class="lab-choice-badge">Romb focus-visible (2 px)</span>
+        <span class="lab-choice-badge">Pogrubione Następnie w pracy</span>
+        <span class="contrast-badge">Kontrast ≥ 4,5:1 (WCAG AA)</span>
+      </div>
+
+      <div class="lab-theme-controls">
+        <span style="font-size: 11.5px; color: #a7a7aa; font-weight: 600;">Szerokość:</span>
+        <div class="ctrl-pill-group">
+          <button id="btnView390" class="ctrl-pill is-active" type="button" onclick="setViewportWidth(390)">390 px (standard)</button>
+          <button id="btnView360" class="ctrl-pill" type="button" onclick="setViewportWidth(360)">360 px (mały ekran)</button>
+        </div>
+
+        <span style="font-size: 11.5px; color: #a7a7aa; font-weight: 600; margin-left: 8px;">Motyw:</span>
+        <div class="ctrl-pill-group">
+          <button id="btnThemeDark" class="ctrl-pill is-active" type="button" onclick="setTheme('dark')">Ciemny</button>
+          <button id="btnThemeLight" class="ctrl-pill" type="button" onclick="setTheme('light')">Jasny</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pasek przełączników odtwarzacza v8 -->
+    <nav class="lab-variants-list" aria-label="Warianty odtwarzacza v8">
+      <div class="var-dim-group">
+        <span class="dim-label">Romb w fazie PRACA:</span>
+        <div class="ctrl-pill-group">
+          <button id="btnRombBright" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setRombBorder(true)">Z jasną obwódką 2 px (zalecane)</button>
+          <button id="btnRombStandard" class="ctrl-pill" type="button" onclick="setRombBorder(false)">Bez obwódki (standard v2)</button>
+        </div>
+      </div>
+      <div class="var-dim-group">
+        <span class="dim-label">Stan focus rombu (:focus-visible):</span>
+        <div class="ctrl-pill-group">
+          <button id="btnFocusShow" class="ctrl-pill is-active is-active-crimson" type="button" onclick="setRombFocusDemo(true)">Widoczny (podgląd obwódki 2 px)</button>
+          <button id="btnFocusNative" class="ctrl-pill" type="button" onclick="setRombFocusDemo(false)">Tylko po Tab (klawiatura)</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- =========================================================================
+       GŁÓWNA SCENA: 4 TELEFONY OBOK SIEBIE (Stany jak w v4.html)
+       ========================================================================= -->
+  <main class="stage-container">
+    <div class="phones-grid" id="phonesGrid">
+
+      <!-- =====================================================================
+           TELEFON 1: PRZYGOTOWANIE (Cyfra „7”, „PRZYGOTUJ SIĘ”, „Zacznij teraz”, Romb focus)
+           ===================================================================== -->
+      <div class="phone-column">
+        <div class="phone-header-meta">
+          <span class="phone-state-badge badge-prep">1. PRZYGOTOWANIE · ETAP 1 Z 20</span>
+          <p class="phone-state-desc">Odliczanie „7” · „PRZYGOTUJ SIĘ” · „Zacznij teraz” nad rombem + obwódka focus</p>
+        </div>
+
+        <div class="phone-device state-prep" id="phone1">
+          <div class="phone-notch"></div>
+          <header class="phone-status-bar" aria-hidden="true">
+            <span>9:41</span>
+            <div class="status-icons">
+              <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+              <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+              <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </header>
+
+          <div class="player-screen">
+            <!-- Nagłówek jak w aplikacji -->
+            <div class="player-topbar">
+              <button class="topbar-back-btn" type="button" aria-label="Zakończ trening" onclick="toggleExitModal(1)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <span class="topbar-plan-title">Boks: siła i technika</span>
+              <div class="topbar-spacer" aria-hidden="true"></div>
+            </div>
+
+            <!-- Bieżący etap: Przygotowanie -->
+            <div class="current-exercise-box">
+              <p class="exercise-round-eyebrow">ETAP 1 Z 20 · PRZYGOTOWANIE</p>
+              <h2 class="exercise-name">Boks: siła i technika</h2>
+              <p class="exercise-technique">Zajmij pozycję walki · ustaw gardę</p>
+            </div>
+
+            <!-- Licznik: Cyfra „7” w łuku 270° -->
+            <div class="timer-center-area">
+              <div class="timer-wrap-2b">
+                <button class="btn-time-adjust btn-adjust-left" type="button" aria-label="Odejmij 15 sekund">
+                  <span class="adjust-sign">−</span>
+                  <span class="adjust-label">15 s</span>
+                </button>
+
+                <svg class="timer-svg-2b" viewBox="0 0 300 300">
+                  <circle cx="150" cy="150" r="138" class="arc-track"
+                    stroke-dasharray="650.31 216.77"
+                    stroke-linecap="round"
+                    transform="rotate(135 150 150)" />
+                  <circle cx="150" cy="150" r="138" class="arc-progress"
+                    stroke-dasharray="455.22 867.08"
+                    stroke-dashoffset="0"
+                    stroke-linecap="round"
+                    transform="rotate(135 150 150)" />
+                </svg>
+
+                <div class="timer-digits-container">
+                  <span class="timer-digits single-digit">7</span>
+                </div>
+
+                <div class="arc-phase-opening">PRZYGOTUJ SIĘ</div>
+
+                <button class="btn-time-adjust btn-adjust-right" type="button" aria-label="Dodaj 15 sekund">
+                  <span class="adjust-sign">+</span>
+                  <span class="adjust-label">15 s</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Podgląd następnego kroku -->
+            <div class="next-preview-area">
+              <div class="next-bar-4b">
+                <div class="round-dots-row">
+                  <span style="font-size: 11px; font-weight: 700; opacity: 0.85;">NASTĘPNIE:</span>
+                  <div class="dots-list">
+                    <span class="round-dot is-current"></span>
+                    <span class="round-dot"></span>
+                    <span class="round-dot"></span>
+                  </div>
+                </div>
+                <p class="next-step-desc">
+                  Następnie: <b>Kombinacje bokserskie (Runda 1 z 3) · Lewy prosty, prawy prosty</b>
+                </p>
+              </div>
+            </div>
+
+            <!-- Sterowanie: Romb z „Zacznij teraz” i obwódką focus 2 px -->
+            <div class="controls-bottom-bar">
+              <div class="controls-row-3b">
+                <button class="side-control-btn" type="button" aria-label="Poprzedni etap" disabled style="opacity: 0.35; cursor: not-allowed;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                </button>
+                <button class="diamond-wrapper-3b" type="button" aria-label="Zacznij teraz" onclick="togglePhonePause(1)">
+                  <span class="start-now-badge">Zacznij teraz</span>
+                  <div class="diamond-shape-3b">
+                    <span class="diamond-icon-3b" style="margin-left: 2px;">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                    </span>
+                  </div>
+                </button>
+                <button class="side-control-btn" type="button" aria-label="Następny etap">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal wyjścia 1 -->
+          <div class="exit-modal-backdrop" id="exitModal1" onclick="if(event.target===this) toggleExitModal(1)">
+            <div class="exit-modal-sheet">
+              <h3 class="modal-title">Zakończyć trening?</h3>
+              <p class="modal-desc">Trening jest wstrzymany. Zapiszą się tylko dokończone rundy.</p>
+              <button class="modal-btn-return" type="button" onclick="toggleExitModal(1)">Wróć do treningu</button>
+              <button class="modal-btn-skip" type="button" onclick="toggleExitModal(1)">Pomiń resztę ćwiczenia (2 rundy)</button>
+              <button class="modal-btn-finish" type="button" onclick="toggleExitModal(1)">Zakończ i zapisz</button>
+              <button class="modal-btn-discard" type="button" onclick="toggleExitModal(1)">Porzuć bez zapisu…</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- =====================================================================
+           TELEFON 2: STAN PRACY (Głęboki karmazyn #540815 / Kontrast 14.8:1)
+           ===================================================================== -->
+      <div class="phone-column">
+        <div class="phone-header-meta">
+          <span class="phone-state-badge badge-work">2. PRACA · RUNDA 2 Z 3</span>
+          <p class="phone-state-desc">Karmazyn · Pogrubione „Następnie: Odpoczynek (1:00)” · Romb focus 2 px</p>
+        </div>
+
+        <div class="phone-device state-work" id="phone2">
+          <div class="phone-notch"></div>
+          <header class="phone-status-bar" aria-hidden="true">
+            <span>9:41</span>
+            <div class="status-icons">
+              <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+              <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+              <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </header>
+
+          <div class="player-screen">
+            <!-- 6. Nagłówek jak w aplikacji: po lewej ← (wyjście), po prawej puste miejsce -->
+            <div class="player-topbar">
+              <button class="topbar-back-btn" type="button" aria-label="Zakończ trening" onclick="toggleExitModal(5)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <span class="topbar-plan-title">Boks: siła i technika</span>
+              <div class="topbar-spacer" aria-hidden="true"></div>
+            </div>
+
+            <!-- Bieżące ćwiczenie: kombinacja nad licznikiem zostaje tam, gdzie w v4 -->
+            <div class="current-exercise-box">
+              <p class="exercise-round-eyebrow">RUNDA 2 Z 3</p>
+              <h2 class="exercise-name">Kombinacje bokserskie</h2>
+              <p class="exercise-technique">Jab → prawy prosty → lewy hak na korpus</p>
+            </div>
+
+            <!-- 1 & 2. Licznik przesunięty w dół + 3. Korekta czasu po bokach łuku -->
+            <div class="timer-center-area">
+              <div class="timer-wrap-2b">
+                <!-- 3. Korekta −15 s po lewej stronie, poza łukiem, cel ≥ 44px -->
+                <button class="btn-time-adjust btn-adjust-left" type="button" aria-label="Odejmij 15 sekund">
+                  <span class="adjust-sign">−</span>
+                  <span class="adjust-label">15 s</span>
+                </button>
+
+                <!-- Łuk 270° -->
+                <svg class="timer-svg-2b" viewBox="0 0 300 300">
+                  <circle cx="150" cy="150" r="138" class="arc-track"
+                    stroke-dasharray="650.31 216.77"
+                    stroke-linecap="round"
+                    transform="rotate(135 150 150)" />
+                  <circle cx="150" cy="150" r="138" class="arc-progress"
+                    stroke-dasharray="377.18 867.08"
+                    stroke-dashoffset="0"
+                    stroke-linecap="round"
+                    transform="rotate(135 150 150)" />
+                </svg>
+
+                <!-- 1. Cyfry licznika 88 px (390 px) / 78 px (360 px) — bezpiecznie w łuku -->
+                <div class="timer-digits-container">
+                  <span class="timer-digits">02:47</span>
+                </div>
+
+                <!-- Słowo fazy w otwarciu łuku -->
+                <div class="arc-phase-opening">PRACA</div>
+
+                <!-- 3. Korekta +15 s po prawej stronie, poza łukiem, cel ≥ 44px -->
+                <button class="btn-time-adjust btn-adjust-right" type="button" aria-label="Dodaj 15 sekund">
+                  <span class="adjust-sign">+</span>
+                  <span class="adjust-label">15 s</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 5. Podgląd następnego kroku: tekst w maks. 2 liniach -->
+            <div class="next-preview-area">
+              <div class="next-bar-4b">
+                <div class="round-dots-row">
+                  <span style="font-size: 11px; font-weight: 700; opacity: 0.85;">RUNDY:</span>
+                  <div class="dots-list">
+                    <span class="round-dot is-done"></span>
+                    <span class="round-dot is-current"></span>
+                    <span class="round-dot"></span>
+                  </div>
+                </div>
+                <p class="next-step-desc">
+                  <strong>Następnie: Odpoczynek (1:00)</strong>
+                </p>
+              </div>
+            </div>
+
+            <!-- 4. Sterowanie: przyciski cofnij/dalej powiększone do 52 px, romb bez zmian -->
+            <div class="controls-bottom-bar">
+              <div class="controls-row-3b">
+                <button class="side-control-btn" type="button" aria-label="Poprzedni etap">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                </button>
+                <button class="diamond-wrapper-3b" type="button" aria-label="Pauza" onclick="togglePhonePause(5)">
+                  <div class="diamond-shape-3b">
+                    <span class="diamond-icon-3b">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+                    </span>
+                  </div>
+                </button>
+                <button class="side-control-btn" type="button" aria-label="Następny etap">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal wyjścia -->
+          <div class="exit-modal-backdrop" id="exitModal5" onclick="if(event.target===this) toggleExitModal(5)">
+            <div class="exit-modal-sheet">
+              <h3 class="modal-title">Zakończyć trening?</h3>
+              <p class="modal-desc">Trening jest wstrzymany. Zapiszą się tylko dokończone rundy.</p>
+              <button class="modal-btn-return" type="button" onclick="toggleExitModal(5)">Wróć do treningu</button>
+              <button class="modal-btn-skip" type="button" onclick="toggleExitModal(5)">Pomiń resztę ćwiczenia (2 rundy)</button>
+              <button class="modal-btn-finish" type="button" onclick="toggleExitModal(5)">Zakończ i zapisz</button>
+              <button class="modal-btn-discard" type="button" onclick="toggleExitModal(5)">Porzuć bez zapisu…</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- =====================================================================
+           TELEFON 3: STAN PRZERWY (Chłodny grafit #1c2028 / Kontrast 16.3:1)
+           ===================================================================== -->
+      <div class="phone-column">
+        <div class="phone-header-meta">
+          <span class="phone-state-badge badge-rest">3. PRZERWA · ODPOCZYNEK</span>
+          <p class="phone-state-desc">Pełne tło stalowo-grafitowe · Czas „00:42” bezpiecznie w łuku</p>
+        </div>
+
+        <div class="phone-device state-rest" id="phone3">
+          <div class="phone-notch"></div>
+          <header class="phone-status-bar" aria-hidden="true">
+            <span>9:41</span>
+            <div class="status-icons">
+              <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+              <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+              <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </header>
+
+          <div class="player-screen">
+            <!-- 6. Nagłówek jak w aplikacji: po lewej ← (wyjście), po prawej puste miejsce -->
+            <div class="player-topbar">
+              <button class="topbar-back-btn" type="button" aria-label="Zakończ trening" onclick="toggleExitModal(5)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <span class="topbar-plan-title">Boks: siła i technika</span>
+              <div class="topbar-spacer" aria-hidden="true"></div>
+            </div>
+
+            <!-- Bieżące ćwiczenie: Odpoczynek -->
+            <div class="current-exercise-box">
+              <p class="exercise-round-eyebrow">RUNDA 2 Z 3</p>
+              <h2 class="exercise-name">Odpoczynek</h2>
+              <p class="exercise-technique"></p>
+            </div>
+
+            <!-- 1 & 2. Licznik przesunięty w dół + 3. Korekta czasu po bokach łuku -->
+            <div class="timer-center-area">
+              <div class="timer-wrap-2b">
+                <button class="btn-time-adjust btn-adjust-left" type="button" aria-label="Odejmij 15 sekund">
+                  <span class="adjust-sign">−</span>
+                  <span class="adjust-label">15 s</span>
+                </button>
+
+                <svg class="timer-svg-2b" viewBox="0 0 300 300">
+                  <circle cx="150" cy="150" r="138" class="arc-track"
+                    stroke-dasharray="650.31 216.77"
+                    stroke-linecap="round"
+                    transform="rotate(135 150 150)" />
+                  <circle cx="150" cy="150" r="138" class="arc-progress"
+                    stroke-dasharray="455.22 867.08"
+                    stroke-dashoffset="0"
+                    stroke-linecap="round"
+                    transform="rotate(135 150 150)" />
+                </svg>
+
+                <div class="timer-digits-container">
+                  <span class="timer-digits">00:42</span>
+                </div>
+
+                <div class="arc-phase-opening">PRZERWA</div>
+
+                <button class="btn-time-adjust btn-adjust-right" type="button" aria-label="Dodaj 15 sekund">
+                  <span class="adjust-sign">+</span>
+                  <span class="adjust-label">15 s</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 5. Podgląd następnego kroku: tekst w maks. 2 liniach -->
+            <div class="next-preview-area">
+              <div class="next-bar-4b">
+                <div class="round-dots-row">
+                  <span style="font-size: 11px; font-weight: 700; opacity: 0.85;">RUNDY:</span>
+                  <div class="dots-list">
+                    <span class="round-dot is-done"></span>
+                    <span class="round-dot is-done"></span>
+                    <span class="round-dot is-current"></span>
+                  </div>
+                </div>
+                <p class="next-step-desc">
+                  Następnie: <b>Tarcze: tempo i siła (Runda 3 z 3) · Lewy prosty, prawy overhand</b>
+                </p>
+              </div>
+            </div>
+
+            <!-- 4. Sterowanie: przyciski cofnij/dalej powiększone do 52 px -->
+            <div class="controls-bottom-bar">
+              <div class="controls-row-3b">
+                <button class="side-control-btn" type="button" aria-label="Poprzedni etap">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                </button>
+                <button class="diamond-wrapper-3b" type="button" aria-label="Pauza" onclick="togglePhonePause(2)">
+                  <div class="diamond-shape-3b">
+                    <span class="diamond-icon-3b">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+                    </span>
+                  </div>
+                </button>
+                <button class="side-control-btn" type="button" aria-label="Następny etap">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal wyjścia -->
+          <div class="exit-modal-backdrop" id="exitModal2" onclick="if(event.target===this) toggleExitModal(5)">
+            <div class="exit-modal-sheet">
+              <h3 class="modal-title">Zakończyć trening?</h3>
+              <p class="modal-desc">Trening jest wstrzymany. Zapiszą się tylko dokończone rundy.</p>
+              <button class="modal-btn-return" type="button" onclick="toggleExitModal(5)">Wróć do treningu</button>
+              <button class="modal-btn-skip" type="button" onclick="toggleExitModal(5)">Pomiń resztę ćwiczenia (1 runda)</button>
+              <button class="modal-btn-finish" type="button" onclick="toggleExitModal(5)">Zakończ i zapisz</button>
+              <button class="modal-btn-discard" type="button" onclick="toggleExitModal(5)">Porzuć bez zapisu…</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- =====================================================================
+           TELEFON 4: STAN OSTATNIE 5 S / FINISZ (Ciemny żar #5c200b / Kontrast 12.6:1)
+           ===================================================================== -->
+      <div class="phone-column">
+        <div class="phone-header-meta">
+          <span class="phone-state-badge badge-warning">3. OSTATNIE 5 S · FINISZ</span>
+          <p class="phone-state-desc">Pełne tło ciemny żar · Czas „00:05” bezpiecznie w łuku</p>
+        </div>
+
+        <div class="phone-device state-warning" id="phone4">
+          <div class="phone-notch"></div>
+          <header class="phone-status-bar" aria-hidden="true">
+            <span>9:41</span>
+            <div class="status-icons">
+              <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+              <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+              <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </header>
+
+          <div class="player-screen">
+            <!-- 6. Nagłówek jak w aplikacji: po lewej ← (wyjście), po prawej puste miejsce -->
+            <div class="player-topbar">
+              <button class="topbar-back-btn" type="button" aria-label="Zakończ trening" onclick="toggleExitModal(5)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <span class="topbar-plan-title">Boks: siła i technika</span>
+              <div class="topbar-spacer" aria-hidden="true"></div>
+            </div>
+
+            <!-- Bieżące ćwiczenie: kombinacja nad licznikiem -->
+            <div class="current-exercise-box">
+              <p class="exercise-round-eyebrow">RUNDA 2 Z 3</p>
+              <h2 class="exercise-name">Kombinacje bokserskie</h2>
+              <p class="exercise-technique">Jab → prawy prosty → lewy hak na korpus</p>
+            </div>
+
+            <!-- 1 & 2. Licznik przesunięty w dół + 3. Korekta czasu po bokach łuku -->
+            <div class="timer-center-area">
+              <div class="timer-wrap-2b">
+                <button class="btn-time-adjust btn-adjust-left" type="button" aria-label="Odejmij 15 sekund">
+                  <span class="adjust-sign">−</span>
+                  <span class="adjust-label">15 s</span>
+                </button>
+
+                <svg class="timer-svg-2b" viewBox="0 0 300 300">
+                  <circle cx="150" cy="150" r="138" class="arc-track"
+                    stroke-dasharray="650.31 216.77"
+                    stroke-linecap="round"
+                    transform="rotate(135 150 150)" />
+                  <circle cx="150" cy="150" r="138" class="arc-progress"
+                    stroke-dasharray="632.10 867.08"
+                    stroke-dashoffset="0"
+                    stroke-linecap="round"
+                    transform="rotate(135 150 150)" />
+                </svg>
+
+                <div class="timer-digits-container">
+                  <span class="timer-digits">00:05</span>
+                </div>
+
+                <div class="arc-phase-opening">PRACA</div>
+
+                <button class="btn-time-adjust btn-adjust-right" type="button" aria-label="Dodaj 15 sekund">
+                  <span class="adjust-sign">+</span>
+                  <span class="adjust-label">15 s</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 5. Podgląd następnego kroku: tekst w maks. 2 liniach -->
+            <div class="next-preview-area">
+              <div class="next-bar-4b">
+                <div class="round-dots-row">
+                  <span style="font-size: 11px; font-weight: 700; opacity: 0.85;">RUNDY:</span>
+                  <div class="dots-list">
+                    <span class="round-dot is-done"></span>
+                    <span class="round-dot is-current"></span>
+                    <span class="round-dot"></span>
+                  </div>
+                </div>
+                <p class="next-step-desc">
+                  Następnie: <b>Odpoczynek (1:00) · Uspokojenie tętna i nawodnienie</b>
+                </p>
+              </div>
+            </div>
+
+            <!-- 4. Sterowanie: przyciski cofnij/dalej powiększone do 52 px -->
+            <div class="controls-bottom-bar">
+              <div class="controls-row-3b">
+                <button class="side-control-btn" type="button" aria-label="Poprzedni etap">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                </button>
+                <button class="diamond-wrapper-3b" type="button" aria-label="Pauza" onclick="togglePhonePause(3)">
+                  <div class="diamond-shape-3b">
+                    <span class="diamond-icon-3b">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+                    </span>
+                  </div>
+                </button>
+                <button class="side-control-btn" type="button" aria-label="Następny etap">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal wyjścia -->
+          <div class="exit-modal-backdrop" id="exitModal3" onclick="if(event.target===this) toggleExitModal(5)">
+            <div class="exit-modal-sheet">
+              <h3 class="modal-title">Zakończyć trening?</h3>
+              <p class="modal-desc">Trening jest wstrzymany. Zapiszą się tylko dokończone rundy.</p>
+              <button class="modal-btn-return" type="button" onclick="toggleExitModal(5)">Wróć do treningu</button>
+              <button class="modal-btn-skip" type="button" onclick="toggleExitModal(5)">Pomiń resztę ćwiczenia (2 rundy)</button>
+              <button class="modal-btn-finish" type="button" onclick="toggleExitModal(5)">Zakończ i zapisz</button>
+              <button class="modal-btn-discard" type="button" onclick="toggleExitModal(5)">Porzuć bez zapisu…</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- =====================================================================
+           TELEFON 5: STAN PAUZY (Przygaszony obsydian #131418 / Kontrast 18.4:1)
+           ===================================================================== -->
+      <div class="phone-column">
+        <div class="phone-header-meta">
+          <span class="phone-state-badge badge-paused">5. PAUZA · WSTRZYMANO</span>
+          <p class="phone-state-desc">Pełne tło zgaszony grafit · Ikona zablokowanego dźwięku po prawej</p>
+        </div>
+
+        <div class="phone-device state-paused" id="phone5">
+          <div class="phone-notch"></div>
+          <header class="phone-status-bar" aria-hidden="true">
+            <span>9:41</span>
+            <div class="status-icons">
+              <svg width="15" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M1 9h2V2H1v7zm4 0h2V0H5v9zm4 0h2V4H9v5zm4 0h2V6h-2v3z"/></svg>
+              <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-10C4.5 2 1.5 3.5 0 5.5l1.5 1.5C2.7 5.3 5.2 4 8 4s5.3 1.3 6.5 3L16 5.5C14.5 3.5 11.5 2 8 2z"/></svg>
+              <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="3" width="13" height="6" rx="1.5"/><path d="M23 4.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </header>
+
+          <div class="player-screen">
+            <!-- 6. Nagłówek jak w aplikacji: po lewej ← (wyjście), po prawej przekreślony głośnik (dźwięk zablokowany) -->
+            <div class="player-topbar">
+              <button class="topbar-back-btn" type="button" aria-label="Zakończ trening" onclick="toggleExitModal(5)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <span class="topbar-plan-title">Boks: siła i technika</span>
+              <button class="topbar-sound-btn" type="button" aria-label="Dźwięk zablokowany — stuknij, aby odblokować" title="Dźwięk zablokowany">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+            </div>
+
+            <!-- Bieżące ćwiczenie: kombinacja nad licznikiem -->
+            <div class="current-exercise-box">
+              <p class="exercise-round-eyebrow">RUNDA 2 Z 3</p>
+              <h2 class="exercise-name">Kombinacje bokserskie</h2>
+              <p class="exercise-technique">Jab → prawy prosty → lewy hak na korpus</p>
+            </div>
+
+            <!-- 1 & 2. Licznik przesunięty w dół + 3. Korekta czasu po bokach łuku -->
+            <div class="timer-center-area">
+              <div class="timer-wrap-2b">
+                <button class="btn-time-adjust btn-adjust-left" type="button" aria-label="Odejmij 15 sekund">
+                  <span class="adjust-sign">−</span>
+                  <span class="adjust-label">15 s</span>
+                </button>
+
+                <svg class="timer-svg-2b" viewBox="0 0 300 300">
+                  <circle cx="150" cy="150" r="138" class="arc-track"
+                    stroke-dasharray="650.31 216.77"
+                    stroke-linecap="round"
+                    transform="rotate(135 150 150)" />
+                  <circle cx="150" cy="150" r="138" class="arc-progress"
+                    stroke-dasharray="260.12 867.08"
+                    stroke-dashoffset="0"
+                    stroke-linecap="round"
+                    transform="rotate(135 150 150)" />
+                </svg>
+
+                <div class="timer-digits-container">
+                  <span class="timer-digits">01:45</span>
+                </div>
+
+                <div class="arc-phase-opening">WSTRZYMANO</div>
+
+                <button class="btn-time-adjust btn-adjust-right" type="button" aria-label="Dodaj 15 sekund">
+                  <span class="adjust-sign">+</span>
+                  <span class="adjust-label">15 s</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 5. Podgląd następnego kroku: tekst w maks. 2 liniach -->
+            <div class="next-preview-area">
+              <div class="next-bar-4b">
+                <div class="round-dots-row">
+                  <span style="font-size: 11px; font-weight: 700; opacity: 0.85;">RUNDY:</span>
+                  <div class="dots-list">
+                    <span class="round-dot is-done"></span>
+                    <span class="round-dot is-current"></span>
+                    <span class="round-dot"></span>
+                  </div>
+                </div>
+                <p class="next-step-desc">
+                  Następnie: <b>Odpoczynek (1:00) · Wznowienie po zakończeniu pauzy</b>
+                </p>
+              </div>
+            </div>
+
+            <!-- 4. Sterowanie: przyciski cofnij/dalej powiększone do 52 px (ikona Play dla wznowienia) -->
+            <div class="controls-bottom-bar">
+              <div class="controls-row-3b">
+                <button class="side-control-btn" type="button" aria-label="Poprzedni etap">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                </button>
+                <button class="diamond-wrapper-3b" type="button" aria-label="Wznów" onclick="togglePhonePause(4)">
+                  <div class="diamond-shape-3b">
+                    <span class="diamond-icon-3b" style="margin-left: 2px;">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>
+                    </span>
+                  </div>
+                </button>
+                <button class="side-control-btn" type="button" aria-label="Następny etap">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal wyjścia -->
+          <div class="exit-modal-backdrop" id="exitModal4" onclick="if(event.target===this) toggleExitModal(5)">
+            <div class="exit-modal-sheet">
+              <h3 class="modal-title">Zakończyć trening?</h3>
+              <p class="modal-desc">Trening jest wstrzymany. Zapiszą się tylko dokończone rundy.</p>
+              <button class="modal-btn-return" type="button" onclick="toggleExitModal(5)">Wróć do treningu</button>
+              <button class="modal-btn-skip" type="button" onclick="toggleExitModal(5)">Pomiń resztę ćwiczenia (2 rundy)</button>
+              <button class="modal-btn-finish" type="button" onclick="toggleExitModal(5)">Zakończ i zapisz</button>
+              <button class="modal-btn-discard" type="button" onclick="toggleExitModal(5)">Porzuć bez zapisu…</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       SKRYPTY INTERAKTYWNE LABORATORIUM (1:1 z v4.html)
+       ========================================================================= -->
+  <script>
+    // Przełączanie szerokości telefonu (390 vs 360 px)
+    function setViewportWidth(width) {
+      const phones = document.querySelectorAll('.phone-device');
+      phones.forEach(p => {
+        if (width === 360) {
+          p.classList.add('viewport-360');
+        } else {
+          p.classList.remove('viewport-360');
+        }
+      });
+      document.getElementById('btnView390').classList.toggle('is-active', width === 390);
+      document.getElementById('btnView360').classList.toggle('is-active', width === 360);
+    }
+
+    // Przełączanie motywu (ciemny vs jasny)
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('btnThemeDark').classList.toggle('is-active', theme === 'dark');
+      document.getElementById('btnThemeLight').classList.toggle('is-active', theme === 'light');
+    }
+
+    // Przełączanie jasnej obwódki rombu w fazie PRACA
+    function setRombBorder(bright) {
+      document.body.classList.toggle('romb-border-bright', bright);
+      document.getElementById('btnRombBright').classList.toggle('is-active', bright);
+      document.getElementById('btnRombBright').classList.toggle('is-active-crimson', bright);
+      document.getElementById('btnRombStandard').classList.toggle('is-active', !bright);
+      document.getElementById('btnRombStandard').classList.toggle('is-active-crimson', !bright);
+    }
+
+    // Przełączanie demonstracji focusu klawiaturą (:focus-visible)
+    function setRombFocusDemo(show) {
+      document.body.classList.toggle('show-romb-focus', show);
+      document.getElementById('btnFocusShow').classList.toggle('is-active', show);
+      document.getElementById('btnFocusShow').classList.toggle('is-active-crimson', show);
+      document.getElementById('btnFocusNative').classList.toggle('is-active', !show);
+      document.getElementById('btnFocusNative').classList.toggle('is-active-crimson', !show);
+    }
+
+    // Obsługa modalu wyjścia (telefony 1..5)
+    function toggleExitModal(id) {
+      const modal = document.getElementById('exitModal' + id);
+      if (modal) {
+        modal.classList.toggle('is-open');
+      }
+    }
+
+    // Kliknięcie pauzy/wznowienia na telefonach 1..5
+    function togglePhonePause(id) {
+      const phone = document.getElementById('phone' + id);
+      if (!phone) return;
+      if (phone.classList.contains('state-paused')) {
+        phone.classList.remove('state-paused');
+        const defaultState = id === 1 ? 'state-prep' : (id === 3 ? 'state-rest' : (id === 4 ? 'state-warning' : 'state-work'));
+        const defaultPhase = id === 1 ? 'PRZYGOTUJ SIĘ' : (id === 3 ? 'PRZERWA' : (id === 4 ? 'FINISZ' : 'PRACA'));
+        phone.classList.add(defaultState);
+        phone.querySelector('.arc-phase-opening').textContent = defaultPhase;
+      } else {
+        phone.classList.remove('state-prep', 'state-work', 'state-rest', 'state-warning');
+        phone.classList.add('state-paused');
+        phone.querySelector('.arc-phase-opening').textContent = 'WSTRZYMANO';
+      }
+    }
+
+    // Zamknięcie modali klawiszem Escape
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.exit-modal-backdrop.is-open').forEach(m => m.classList.remove('is-open'));
+      }
+    });
+  </script>
+</body>
+</html>
