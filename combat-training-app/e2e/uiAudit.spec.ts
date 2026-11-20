@@ -36,7 +36,8 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(startAction).toHaveClass(/home-primary-action/)
     await expect(startAction).toHaveCSS('border-top-width', '1px')
     await expect(startAction).toHaveCSS('color', 'rgb(255, 255, 255)')
-    expect(await startAction.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain('rgb(88, 8, 20)')
+    // Start can re-render while data settles; poll so a detached node does not report an empty style.
+    await expect.poll(() => startAction.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain('rgb(88, 8, 20)')
     await expect(startAction.locator('svg')).toHaveCSS('color', 'rgb(240, 117, 58)')
     await screenshot('featured')
 
