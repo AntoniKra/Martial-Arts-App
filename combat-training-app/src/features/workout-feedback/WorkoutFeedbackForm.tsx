@@ -15,7 +15,6 @@ import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutF
 import { formatWorkoutFeedbackMetrics, workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
 import { PreviousPlanRunSummary } from './PreviousPlanRunSummary'
 import { rpeLabels } from './rpeLabels'
-import { sparringIntensityLabels } from './sparringIntensityLabels'
 import { hasUnsavedWorkoutFeedback } from './unsavedWorkoutFeedback'
 
 export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, previousRun, sessions = [] }: {
@@ -37,7 +36,8 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
   const others = selectOtherExercises(session)
   const editableSparring = draft.sparring.map((entry, index) => ({ entry, index })).filter(({ entry }) => canEditSparringIntensity(entry))
   const assessed = draft.focusRatings.filter((rating) => hasCompletedExercise(session, rating.workoutItemId) && rating.assessment !== null).length
-  const metrics = formatWorkoutFeedbackMetrics(session)
+  const assessedOthers = draft.exerciseRatings.filter((rating) => others.some((other) => other.workoutItemId === rating.workoutItemId)).length
+  const [duration, work, completion] = formatWorkoutFeedbackMetrics(session)
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -55,36 +55,37 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
   }
 
   return <UnsavedPlanChangesGuard isDirty={hasUnsavedWorkoutFeedback(draft, initial)} allowLeaveRef={allowLeave} description={labels.discardDescription}>
-    <div className="mx-auto w-full max-w-xl space-y-3.5 px-4 py-5">
-    <RouteScreenHeader title={labels.title} fallback={routes.progressHistory} />
-    <header className="space-y-3">
-      <p className="font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-crimson-ink">{labels.status[session.status]}</p>
-      <h2 className="break-words font-display text-[22px] font-extrabold text-ink">{session.workoutPlanNameSnapshot}</h2>
-      <p className="text-[13px] leading-relaxed text-muted">{labels.savedEntry}</p>
-      {pending && <p role="status" className="text-[12px] font-semibold text-muted">{workoutDataLabels.pending}</p>}
-      <dl className="grid grid-cols-3 divide-x divide-bd border-y border-bd py-4">
-        {metrics.map((value, index) => <div key={labels.metrics[index]} className="min-w-0 px-2 text-center">
-          <dd className="font-display text-[22px] font-bold tabular-nums text-ink">{value}</dd>
-          <dt className="mt-1 font-display text-[9px] font-semibold uppercase tracking-[0.1em] text-muted">{labels.metrics[index]}</dt>
+    <div className="motion-controls mx-auto w-full max-w-xl space-y-3 px-4 pt-3 pb-9">
+    <div className="feedback-header">
+      <RouteScreenHeader title={labels.status[session.status]} fallback={routes.progressHistory}
+        action={pending
+          ? <span role="status" className="feedback-badge is-countdown">{workoutDataLabels.pending}</span>
+          : <span className="feedback-badge is-saved"><FeedbackIcon kind="check" size={12} />{labels.savedBadge}</span>}
+        subtitle={<>
+          <h2 className="wrap-anywhere font-display text-base font-extrabold tracking-tight text-ink">{session.workoutPlanNameSnapshot}</h2>
+          <p className="mt-0.5 text-xs leading-snug">{labels.savedEntry}</p>
+        </>} />
+    </div>
+    <section aria-label={labels.metricsHeading} className="feedback-surface">
+      <dl className="grid grid-cols-2">
+        <div className="feedback-work-time col-span-2 space-y-0.5 rounded-t-sm px-4 pt-4 pb-3.5">
+          <dt className="feedback-eyebrow flex items-center gap-1.5"><FeedbackIcon kind="clock" size={13} />{labels.workTime}</dt>
+          <dd className="font-display text-[36px] leading-[1.05] font-black tracking-tight tabular-nums text-ink">{work}</dd>
+        </div>
+        {[[labels.metrics[0], duration], [labels.metrics[2], completion]].map(([name, value], index) => <div key={name}
+          className={`flex min-w-0 flex-col border-t border-bd px-3.5 py-2.5 ${index === 0 ? 'border-r' : ''}`}>
+          <dt className="order-last text-[10px] font-bold tracking-wider text-muted uppercase">{name}</dt>
+          <dd className="font-display text-lg font-extrabold tabular-nums text-ink">{value}</dd>
         </div>)}
       </dl>
-    </header>
-    {previousRun && <PreviousPlanRunSummary previous={previousRun} />}
+      {previousRun && <PreviousPlanRunSummary previous={previousRun} />}
+    </section>
     {rpeCard}
-    <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-6">
-      <fieldset disabled={saving} className="min-w-0 space-y-6">
-        {editableSparring.map(({ entry, index }, visibleIndex) => <fieldset key={entry.blockId} className="min-w-0 space-y-2">
-          <legend className="mb-2 text-sm font-semibold text-ink">{labels.sparringIntensity(visibleIndex + 1)}</legend>
-          {(['light', 'technical', 'hard'] as const).map((intensity) => <button key={intensity} type="button" aria-pressed={entry.intensity === intensity}
-            onClick={() => setDraft((current) => ({ ...current, sparring: current.sparring.map((value, valueIndex) => valueIndex === index
-              ? { ...value, intensity: value.intensity === intensity ? null : intensity } : value) }))}
-            className={`block min-h-touch w-full border p-3 text-left text-sm leading-relaxed ${entry.intensity === intensity ? 'border-crimson bg-elevated font-semibold text-ink' : 'border-bd bg-surface text-muted'}`}>
-            {entry.intensity === intensity && <span aria-hidden="true">✓ </span>}{sparringIntensityLabels[intensity]}
-          </button>)}
-        </fieldset>)}
-        {draft.focusRatings.length > 0 && <section aria-labelledby="focus-feedback-heading" className="space-y-4">
+    <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-3">
+      <fieldset disabled={saving} className="min-w-0 space-y-3">
+        {draft.focusRatings.length > 0 && <section aria-labelledby="focus-feedback-heading" className="space-y-2">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="focus-feedback-heading" className="font-display text-lg font-extrabold text-ink">{labels.focusHeading}</h2>
+            <h2 id="focus-feedback-heading" className="font-display text-base font-extrabold text-ink">{labels.focusHeading}</h2>
             <p className="text-[11px] tabular-nums text-muted">{labels.assessed(assessed, draft.focusRatings.length)}</p>
           </div>
           {draft.focusRatings.map((rating, index) => <FocusCard key={rating.workoutItemId} rating={rating} session={session} skills={skills}
@@ -95,35 +96,50 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
               setErrors((current) => ({ ...current, corrections: { ...current.corrections, [edited.workoutItemId]: '' } }))
             }} />)}
         </section>}
-        <section className="space-y-3">
-          <button type="button" aria-expanded={othersOpen} aria-controls="other-exercises" onClick={() => setOthersOpen(!othersOpen)}
-            className="flex min-h-14 w-full items-center gap-3 rounded-sm border border-bd bg-surface px-3.5 py-2 text-left">
-            <span className="flex-1"><span className="block text-sm font-bold text-ink">{labels.othersHeading}</span>
-              <span className="block text-xs text-muted">opcjonalnie · {labels.assessed(draft.exerciseRatings.filter((rating) => others.some((other) => other.workoutItemId === rating.workoutItemId)).length, others.length)}</span></span>
-            <FeedbackIcon kind="chevron" className={`text-muted ${othersOpen ? 'rotate-180' : ''}`} />
-          </button>
-          <div id="other-exercises" hidden={!othersOpen} className="space-y-5 pb-4">{others.map((exercise) => <article key={exercise.workoutItemId} aria-label={exercise.nameSnapshot} className="space-y-3 border border-bd bg-surface p-4">
-            <h3 className="break-words font-display text-sm font-semibold text-ink">{exercise.nameSnapshot}</h3>
-            <AssessmentScale question={labels.otherQuestion} descriptions={labels.otherScale}
-              value={draft.exerciseRatings.find((value) => value.workoutItemId === exercise.workoutItemId)?.rating ?? null}
-              onChange={(rating) => setDraft((current) => ({ ...current, exerciseRatings: [
-                ...current.exerciseRatings.filter((value) => value.workoutItemId !== exercise.workoutItemId),
-                ...(typeof rating === 'number' ? [{ ...exercise, rating }] : []),
-              ] }))} />
-          </article>)}</div>
-        </section>
-        <label className="block font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">
+        <div className="feedback-surface space-y-3 p-3.5">
+          {editableSparring.map(({ entry, index }, visibleIndex) => <fieldset key={entry.blockId} className="min-w-0">
+            <legend className="feedback-eyebrow mb-1.5">{labels.sparringIntensity(visibleIndex + 1)}</legend>
+            <div className="grid grid-cols-3 gap-1.5">
+              {(['light', 'technical', 'hard'] as const).map((intensity) => <button key={intensity} type="button" aria-pressed={entry.intensity === intensity}
+                onClick={() => setDraft((current) => ({ ...current, sparring: current.sparring.map((value, valueIndex) => valueIndex === index
+                  ? { ...value, intensity: value.intensity === intensity ? null : intensity } : value) }))}
+                className="feedback-sparring-option motion-press">
+                <span className="feedback-sparring-title">
+                  {entry.intensity === intensity && <span aria-hidden="true">✓ </span>}{labels.sparringOptions[intensity].name}
+                </span>{' '}
+                <span className="feedback-sparring-description">{labels.sparringOptions[intensity].description}</span>
+              </button>)}
+            </div>
+          </fieldset>)}
+          <div className="rounded-sm border border-bd bg-elevated">
+            <button type="button" aria-expanded={othersOpen} aria-controls="other-exercises" onClick={() => setOthersOpen(!othersOpen)}
+              className="flex min-h-touch w-full items-center justify-between gap-2 rounded-sm px-3 py-1.5 text-left text-[12.5px] text-ink">
+              <span><strong>{labels.othersWithCount(others.length)}</strong> · <span className="tabular-nums">{labels.optional} · {labels.assessed(assessedOthers, others.length)}</span></span>
+              <FeedbackIcon kind="chevron" size={16} className={`feedback-others-chevron ${othersOpen ? 'rotate-180' : ''}`} />
+            </button>
+            <div id="other-exercises" hidden={!othersOpen} className="space-y-2.5 rounded-b-sm border-t border-bd bg-surface p-3">{others.map((exercise) => <article key={exercise.workoutItemId} aria-label={exercise.nameSnapshot} className="space-y-1.5">
+              <h3 className="wrap-anywhere font-display text-[13.5px] font-extrabold text-ink">{exercise.nameSnapshot}</h3>
+              <AssessmentScale question={labels.otherQuestion} descriptions={labels.otherScale} summary
+                value={draft.exerciseRatings.find((value) => value.workoutItemId === exercise.workoutItemId)?.rating ?? null}
+                onChange={(rating) => setDraft((current) => ({ ...current, exerciseRatings: [
+                  ...current.exerciseRatings.filter((value) => value.workoutItemId !== exercise.workoutItemId),
+                  ...(typeof rating === 'number' ? [{ ...exercise, rating }] : []),
+                ] }))} />
+            </article>)}</div>
+          </div>
+        </div>
+        <label className="feedback-surface feedback-eyebrow block p-3">
           {labels.noteHeading}
-          <textarea rows={3} maxLength={1000} value={draft.note ?? ''} placeholder={labels.notePlaceholder} aria-invalid={!!errors.note}
+          <textarea rows={2} maxLength={1000} value={draft.note ?? ''} placeholder={labels.notePlaceholder} aria-invalid={!!errors.note}
             aria-describedby={errors.note ? 'feedback-note-error' : undefined}
             onChange={(event) => { setDraft((current) => ({ ...current, note: event.target.value })); setErrors((current) => ({ ...current, note: undefined })) }}
-            className="mt-2 block w-full resize-none border border-bd bg-input p-3 font-sans text-[16px] font-normal normal-case tracking-normal text-ink" />
+            className="feedback-textarea mt-1.5 min-h-16" />
         </label>
         {errors.note && <p id="feedback-note-error" role="alert" className="text-[12px] text-crimson-ink">{errors.note}</p>}
       </fieldset>
       {saveError && <p role="alert" className="text-[13px] text-crimson-ink">{labels.saveError}</p>}
-      <Button type="submit" loading={saving} size="lg" className="w-full uppercase tracking-[0.1em]">{labels.done}</Button>
-      <p className="text-center text-[12px] leading-relaxed text-muted">{rpeLabels.reminderHint}</p>
+      <Button type="submit" loading={saving} size="lg" className="feedback-submit w-full uppercase">{labels.done}</Button>
+      <p className="px-2 text-center text-[11px] leading-snug text-muted">{rpeLabels.reminderHint}</p>
     </form>
   </div>
   </UnsavedPlanChangesGuard>

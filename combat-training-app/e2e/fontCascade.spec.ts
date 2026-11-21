@@ -163,7 +163,7 @@ for (const theme of ['dark', 'light'] as const) {
     expect(samples.primary).toEqual({ size: '13px', weight: '600', family: display })
     const body = '"Inter Variable", system-ui, -apple-system, sans-serif'
     expect(samples.exitEarly).toEqual({ size: '13px', weight: '600', family: body })
-    expect(samples.summaryDone).toEqual({ size: '14px', weight: '600', family: display })
+    expect(samples.summaryDone).toEqual({ size: '14px', weight: '800', family: display })
     expect(samples.exitSkip).toEqual({ size: '13px', weight: '600', family: body })
     expect(samples.exitDiscard).toEqual({ size: '12.5px', weight: '600', family: body })
     expect(samples.exitReturn).toEqual({ size: '14px', weight: '800', family: display })

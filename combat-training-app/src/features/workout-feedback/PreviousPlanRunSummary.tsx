@@ -7,18 +7,20 @@ import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWork
 
 export function PreviousPlanRunSummary({ previous }: { previous: PreviousPlanRun }) {
   const { session, planChanged } = previous
-  return <section aria-labelledby="previous-plan-run-heading" className="space-y-3 border border-bd bg-surface p-3">
-    <div className="flex flex-wrap items-center justify-between gap-x-3">
-      <h2 id="previous-plan-run-heading" className="font-display text-sm font-semibold text-ink">{labels.previousPlanRun(formatWorkoutSessionDatePl(session.completedAt))}</h2>
-      <Link to={routes.workoutFeedback(session.id)} className="inline-flex min-h-touch min-w-touch items-center justify-center text-[12px] font-semibold text-ink">{labels.viewPreviousPlanRun}</Link>
+  return <section aria-labelledby="previous-plan-run-heading" className="rounded-b-sm border-t border-bd bg-elevated px-3.5 pb-2.5 text-xs text-muted">
+    <div className="flex min-h-touch items-center justify-between gap-1.5">
+      <div className="min-w-0 tabular-nums">
+        <h2 id="previous-plan-run-heading" className="inline">{labels.previousPlanRun(formatWorkoutSessionDatePl(session.completedAt))}</h2>
+        <span aria-hidden="true"> · </span><span className="whitespace-nowrap">{labels.previousPlanRunRpe(session.rpe)}</span>
+      </div>
+      <Link to={routes.workoutFeedback(session.id)} className="inline-flex min-h-touch min-w-touch shrink-0 items-center font-display text-[11px] font-extrabold tracking-wider text-crimson-ink uppercase">{labels.viewPreviousPlanRun}</Link>
     </div>
     <dl className="grid grid-cols-3 gap-2">
       {formatWorkoutFeedbackMetrics(session).map((value, index) => <div key={labels.metrics[index]} className="min-w-0 text-center">
-        <dd className="font-display text-[22px] font-bold tabular-nums text-ink">{value}</dd>
-        <dt className="mt-1 font-display text-[9px] font-semibold uppercase tracking-[0.1em] text-muted">{labels.metrics[index]}</dt>
+        <dt className="text-[10px] font-bold tracking-wide uppercase">{labels.metrics[index]}</dt>
+        <dd className="font-display text-sm font-extrabold tabular-nums text-ink">{value}</dd>
       </div>)}
     </dl>
-    <p className="text-[13px] tabular-nums text-muted">{labels.previousPlanRunRpe(session.rpe)}</p>
     <LazyWellbeingWorkoutLine date={session.workoutDate} previous />
     {planChanged && <p className="text-[13px] leading-relaxed text-muted">{labels.planChanged}</p>}
   </section>

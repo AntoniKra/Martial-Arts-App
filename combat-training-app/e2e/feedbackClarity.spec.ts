@@ -28,15 +28,24 @@ for (const theme of ['dark', 'light'] as const) {
     await app.seedSession(current)
     await app.open('/workout-sessions/clarity/feedback')
     await app.setTheme(theme)
-    await expect(page.getByRole('heading', { name: 'Podsumowanie', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Trening częściowy', exact: true, level: 1 })).toBeVisible()
     const card = page.getByRole('article', { name: skill.name, exact: true })
     await expect(card.getByText('Cel', { exact: true })).toBeVisible()
     await expect(card.getByText('ostatnio', { exact: true })).toBeVisible()
     await expect(card.getByText(/Ostatnio 5\/5 · 1.11 · Tarcze/)).toBeVisible()
+    const correction = card.getByRole('complementary', { name: 'Notatka z 1.11 · na dziś', exact: true })
+    await expect(correction.locator('dt')).toHaveText(['Błąd', 'Wskazówka'])
+    await expect(correction.locator('dd')).toHaveText(['Opuszczam rękę.', 'Dotykam policzka.'])
+    const tiles = await correction.locator('dl > div').evaluateAll((elements) => elements.map((element) => {
+      const { left, top } = element.getBoundingClientRect()
+      return { left, top }
+    }))
+    expect(tiles[0].top).toBe(tiles[1].top)
+    expect(tiles[1].left).toBeGreaterThan(tiles[0].left)
     const checks = card.getByRole('group', { name: 'Czy ten błąd dziś się powtarzał?', exact: true })
     const less = checks.getByRole('radio', { name: 'Rzadziej', exact: true })
     await less.check()
-    expect(await less.locator('..').evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(88)
+    await expect(less.locator('..')).toHaveCSS('height', '44px')
     await less.focus()
     await page.keyboard.press('ArrowRight')
     await expect(checks.getByRole('radio', { name: 'Tak samo', exact: true })).toBeChecked()
@@ -47,6 +56,10 @@ for (const theme of ['dark', 'light'] as const) {
     await rating.focus()
     await page.keyboard.press('ArrowDown')
     await expect(card.getByRole('radio', { name: /^4 / })).toBeChecked()
+    const level = card.getByText('Poziom 4:', { exact: true })
+    await expect(level).toHaveCSS('white-space', 'nowrap')
+    await expect(level.locator('..')).toHaveText('Poziom 4: Zwykle się udaje, błąd sam łapię i poprawiam.')
+    await expect(card.locator('.feedback-rating-grid')).toHaveCSS('grid-template-columns', /^(\S+\s+){4}\S+$/)
     expect(await card.getByRole('radio', { name: /^4 / }).evaluate((element) => getComputedStyle(element.nextElementSibling!).outlineStyle)).toBe('solid')
     const skipped = page.getByRole('article', { name: 'Niski kop', exact: true })
     await expect(skipped.getByText('Pominięte w treningu', { exact: true })).toBeVisible()
@@ -56,6 +69,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(others).toHaveAttribute('aria-expanded', 'false')
     await others.click()
     await page.getByRole('article', { name: 'Praca na nogach', exact: true }).getByRole('radio', { name: /^4 / }).check()
+    await expect(page.getByRole('article', { name: 'Praca na nogach', exact: true }).getByText('Poziom 4: Dobrze i powtarzalnie.')).toBeVisible()
     await expect(others).toContainText('oceniono 1 z 1')
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
@@ -66,6 +80,40 @@ for (const theme of ['dark', 'light'] as const) {
     })
   })
 }
+
+test('keeps summary badges and the level prefix on one line at phone widths', async ({ app, page }, info) => {
+  test.skip(info.project.name !== 'phone', 'Exercises the two summary phone widths')
+  const longName = 'Lewy prosty i powrót do gardy po kombinacji na tarczach'
+  const longProblem = 'Pod koniec długiej kombinacji opuszczam rękę i tracę pozycję do następnego ciosu. '.repeat(2).trim()
+  await app.open('/workouts')
+  await app.seedFocusSkill({ ...skill, openCorrection: { ...skill.openCorrection!, problem: longProblem } })
+  await app.seedSession({ ...previous, focusRatings: [{ ...focus, assessment: 'unableToRate' }] })
+  await app.seedSession({ ...current, focusRatings: [{ ...focus, skillNameSnapshot: longName, assessment: 4 }] })
+  await app.open('/workout-sessions/clarity/feedback')
+  const card = page.getByRole('article', { name: longName, exact: true })
+  const previousBadge = card.getByText('Ostatnio Nie umiem ocenić · 1.11 · Tarcze', { exact: true })
+  const prefix = card.getByText('Poziom 4:', { exact: true })
+  await expect(card.getByText(longProblem, { exact: true })).toBeVisible()
+  for (const width of [360, 390]) {
+    await page.setViewportSize({ width, height: 800 })
+    await page.evaluate(() => document.fonts.ready)
+    for (const value of [previousBadge, prefix, page.getByText('Zapisane', { exact: true }), page.getByText('Zapisano', { exact: true })]) {
+      await expect(value).toBeVisible()
+      expect(await value.evaluate((element) => {
+        const text = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+        const range = document.createRange()
+        const rects: DOMRect[] = []
+        for (let node = text.nextNode(); node; node = text.nextNode()) {
+          if (!node.textContent?.trim()) continue
+          range.selectNodeContents(node)
+          rects.push(...range.getClientRects())
+        }
+        return rects.length > 0 && rects.every((rect) => rect.left >= 0 && rect.right <= innerWidth && rect.top === rects[0].top)
+      })).toBe(true)
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
+  }
+})
 
 test('saves a manual error and cue with the existing problem/fix fields', async ({ app, page }) => {
   await app.open('/workouts')
