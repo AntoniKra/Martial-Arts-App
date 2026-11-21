@@ -1,7 +1,13 @@
 import type { SparringIntensity } from '@/domain/workout/workout.types'
+import { workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
+
+function formatOption(intensity: SparringIntensity): string {
+  const { name, description } = labels.sparringOptions[intensity]
+  return labels.sparringOptionLabel(name, description)
+}
 
 export const sparringIntensityLabels: Record<SparringIntensity, string> = {
-  light: 'Lekki — luźna wymiana, ciosy bez siły',
-  technical: 'Techniczny — kontrolowana siła, praca nad konkretnymi elementami',
-  hard: 'Twardy — pełne tempo i siła, jak w walce',
+  light: formatOption('light'),
+  technical: formatOption('technical'),
+  hard: formatOption('hard'),
 }

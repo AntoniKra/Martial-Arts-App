@@ -64,7 +64,11 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   ] }])
   await assess(page, skills[0].name, 3)
   await card(page, skills[1].name).getByRole('radio', { name: 'Nie umiem ocenić', exact: true }).check()
+  await expect(card(page, skills[1].name).getByText('Wybrano odpowiedź: Nie umiem ocenić.', { exact: true })).toBeVisible()
+  await expect(card(page, skills[1].name).getByRole('button', { name: 'Wyczyść ocenę', exact: true })).toHaveCSS('min-height', '44px')
   await card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true }).click()
+  const drawer = card(page).getByRole('group', { name: 'Notatka: jeden błąd i jedna wskazówka', exact: true })
+  await expect(drawer.getByRole('textbox')).toHaveCount(2)
   await card(page).getByRole('textbox', { name: 'Błąd', exact: true }).fill('Opuszczam prawą rękę po ciosie.')
   await card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true }).click()
   // Incomplete corrections are validated without submitting a partial batch.

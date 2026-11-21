@@ -1,5 +1,5 @@
 export function FeedbackIcon({ kind, size = 18, className = '' }: {
-  kind: 'goal' | 'problem' | 'fix' | 'better' | 'same' | 'skip' | 'plus' | 'chevron'; size?: number; className?: string
+  kind: 'goal' | 'problem' | 'fix' | 'better' | 'same' | 'skip' | 'plus' | 'chevron' | 'clock' | 'check'; size?: number; className?: string
 }) {
   return <svg aria-hidden="true" width={size} height={size} className={`shrink-0 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
     {kind === 'goal' && <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></>}
@@ -10,5 +10,7 @@ export function FeedbackIcon({ kind, size = 18, className = '' }: {
     {kind === 'skip' && <path d="m5 4 10 8-10 8Zm14 1v14" />}
     {kind === 'plus' && <path d="M12 5v14M5 12h14" />}
     {kind === 'chevron' && <path d="m6 9 6 6 6-6" />}
+    {kind === 'clock' && <><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></>}
+    {kind === 'check' && <path d="m4 12 5 5L20 6" />}
   </svg>
 }

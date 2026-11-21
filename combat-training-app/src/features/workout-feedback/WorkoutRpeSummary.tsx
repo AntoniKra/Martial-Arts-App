@@ -5,8 +5,12 @@ import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { createRpeDismissalStorage } from '@/infrastructure/storage/rpeDismissalStorage'
 import { RpePanel } from './RpePanel'
+import { RpeSegments } from './RpeScale'
+import { FeedbackIcon } from './FeedbackIcon'
 import { rpeLabels as labels } from './rpeLabels'
+import { workoutFeedbackLabels } from './workoutFeedbackLabels'
 import { useRpeCountdown } from './useRpeCountdown'
+import './workoutFeedback.css'
 
 export function WorkoutRpeSummary({ session, uid, initialOpen, onSave, children }: {
   session: PlanWorkoutSession | QuickTimerWorkoutSession; uid: string; initialOpen: boolean
@@ -23,20 +27,32 @@ export function WorkoutRpeSummary({ session, uid, initialOpen, onSave, children 
     setOpen(false)
     requestAnimationFrame(() => (rateButton.current ?? cardHeading.current)?.focus())
   }
-  const card = <section aria-labelledby="rpe-card-heading" className="space-y-4 border border-bd bg-surface p-4">
-    <h2 id="rpe-card-heading" ref={cardHeading} tabIndex={-1} className="font-display text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">{labels.heading}</h2>
+  const clock = formatSecondsAsClock(remaining)
+  const card = <section aria-labelledby="rpe-card-heading" className="feedback-surface space-y-2.5 p-3.5">
+    <div className="flex items-center justify-between gap-2">
+      <h2 id="rpe-card-heading" ref={cardHeading} tabIndex={-1} className="feedback-eyebrow">{labels.heading}</h2>
+      {session.rpe !== null
+        ? <span aria-hidden="true" className="feedback-badge is-saved">{workoutFeedbackLabels.rpeSaved}</span>
+        : remaining > 0 && <span className="feedback-badge is-countdown">{workoutFeedbackLabels.rpeCountdown}</span>}
+    </div>
     {session.rpe === null ? <>
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          {remaining > 0 ? <>
-            <p className="text-[12px] text-muted">{labels.countdown}</p>
-            <p role="timer" aria-label={`${labels.countdown} ${formatSecondsAsClock(remaining)}`} className="font-display text-[36px] font-bold leading-tight tabular-nums text-ink">{formatSecondsAsClock(remaining)}</p>
-          </> : <p className="font-display text-lg font-semibold text-ink">{labels.ready}</p>}
-        </div>
-        <button ref={rateButton} type="button" onClick={() => { gong.unlock(); setOpen(true) }} className={getButtonClassName({ variant: 'secondary', className: 'uppercase tracking-[0.08em]' })}>{labels.rateNow}</button>
-      </div>
-      {remaining > 0 && <p className="text-[12px] leading-relaxed text-muted">{labels.timingHint}</p>}
-    </> : <p role="status" className="text-sm font-semibold tabular-nums text-ink">{labels.saved(session.rpe)}</p>}
+      {remaining > 0 ? <div className="flex items-baseline justify-between gap-2">
+        <p className="text-xs text-muted">{labels.countdown}</p>
+        <p role="timer" aria-label={`${labels.countdown} ${clock}`} className="font-display text-[32px] leading-tight font-black tracking-tight tabular-nums text-ember-ink">{clock}</p>
+      </div> : <p className="font-display text-sm font-extrabold text-ink">{labels.ready}</p>}
+      <button ref={rateButton} type="button" onClick={() => { gong.unlock(); setOpen(true) }}
+        className={getButtonClassName({ variant: 'secondary', size: 'sm', className: 'motion-press w-full rounded-sm font-extrabold uppercase' })}>
+        <FeedbackIcon kind="check" size={14} />{labels.rateNow}
+      </button>
+      {remaining > 0 && <p className="text-[11.5px] leading-snug text-muted">{labels.timingHint}</p>}
+    </> : <div className="space-y-2 rounded-sm border border-bd bg-elevated px-3 py-2.5">
+      <p role="status" className="font-display text-[15px] font-extrabold tracking-wide uppercase tabular-nums text-ink">
+        <span className="sr-only">{labels.saved(session.rpe)}</span>
+        <span aria-hidden="true">{workoutFeedbackLabels.rpeValue(session.rpe)}</span>
+        <span> · {labels.descriptions[session.rpe] || labels.between[session.rpe]}</span>
+      </p>
+      <RpeSegments value={session.rpe} />
+    </div>}
   </section>
   return <>
     <div hidden={open}>{children(card)}</div>
