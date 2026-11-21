@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 .env.local
+.env.showcase
 *.log
 .DS_Store
 .vscode/
