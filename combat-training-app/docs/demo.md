@@ -36,3 +36,46 @@ oraz projekt `demo-` przed zapisem. Nie łączy się z prawdziwym projektem.
 `screenshots:tour` korzysta z tego samego generatora i zapisu danych; zwykłe
 `npm run typecheck` obejmuje także jego kod. Testy jednostkowe danych demo
 są częścią `npm test` i nie uruchamiają emulatorów ani testów E2E.
+
+## Konta pokazowe w produkcji
+
+Właściciel zakłada w aplikacji trzy osobne konta e-mail/hasło, wyłącznie do
+pokazów. Może użyć aliasów skrzynki, np. adresów z dopiskami `+kuba`,
+`+ola` i `+marek`. Przed zasileniem każdego konta potwierdza adres
+e-mail i w razie potrzeby przechodzi onboarding. Dane treningowe i zdrowotne
+są fikcyjne.
+
+W katalogu `combat-training-app` uzupełnij `.env` konfiguracją Firebase
+używaną przez aplikację produkcyjną (`VITE_FIREBASE_PROJECT_ID`
+i `VITE_FIREBASE_API_KEY`). Skopiuj `.env.showcase.example` do
+`.env.showcase` i wpisz pary adresu oraz hasła dla swoich kont pokazowych.
+Plik `.env.showcase` jest ignorowany przez Git. Jeśli hasło zawiera znak
+`#`, ujmij wartość w cudzysłów zgodnie z formatem `.env`.
+
+Po `npm ci` uruchom poniższe polecenie osobno dla każdego konta.
+Za każdym razem sprawdź wyświetlony identyfikator projektu i adres e-mail,
+a następnie wpisz `tak`, aby rozpocząć zapis.
+
+```sh
+npm run showcase -- --persona kuba --production
+npm run showcase -- --persona ola --production
+npm run showcase -- --persona marek --production
+```
+
+- **Kuba** – 13 treningów bokserskich w 8 tygodniach, trzy opuszczone terminy i cztery wpisy samopoczucia.
+- **Ola** – 40 treningów w 14 tygodniach. Zachowuje dotychczasowy zestaw z trybu lokalnego, w tym dyscyplinę kickboxing.
+- **Marek** – 70 treningów kickboxingu w 16 tygodniach, z mocnymi sparingami, lżejszym co czwartym tygodniem i dziesięciodniową przerwą.
+
+Historia obejmuje zakończone tygodnie liczone w strefie Europe/Warsaw.
+Skrypt korzysta z reguł Firestore i uprawnień zalogowanego właściciela konta.
+Gdy są już zapisane treningi, skrypt odmawia zapisu. Na dedykowanym koncie
+możesz dodać `--replace`, aby usunąć i wgrać od nowa dokumenty z kolekcji
+`workoutSessions`, `workoutPlans`, `focusSkills`, `weekPlans`, `recurringWeeks`,
+`bodyWeights`, `readiness` i `exercises`. Profil jest zapisywany osobno z zachowaniem
+istniejących zgód i znacznika wycofania zgody na samopoczucie.
+Po przerwaniu zapisu uruchom ponownie tę samą personę z `--replace`.
+Operację wykonuj, gdy konto nie zapisuje równolegle danych w aplikacji.
+
+Aby trwale usunąć dane pokazowe, zaloguj się na odpowiednie konto i użyj
+opcji usunięcia konta w Profilu. Usuwa ona również konto Firebase Authentication.
+Zobacz [ADR 0020](adr/0020-production-showcase-accounts.md).

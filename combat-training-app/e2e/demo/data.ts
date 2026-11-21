@@ -8,8 +8,9 @@ import { shiftCalendarDate, weekStartForDate } from '../../src/domain/week-plan/
 import { calculateWorkoutDate } from '../../src/domain/workout-session/workoutSessionDefinitions'
 import type { RecurringWeek, WeekPlan } from '../../src/domain/week-plan/weekPlan.types'
 import { createWorkoutPlaybackTimeline } from '../../src/domain/workout-playback/createWorkoutPlaybackTimeline'
+import { createShowcaseData } from './showcaseData'
 
-export function createDemoData(now = new Date()) {
+function createOlaDemoData(now: Date) {
   const today = calculateWorkoutDate(now.toISOString(), 'Europe/Warsaw')
   const currentWeek = weekStartForDate(today)
   const firstWeek = shiftCalendarDate(currentWeek, -14 * 7)
@@ -158,6 +159,13 @@ export function createDemoData(now = new Date()) {
     demoWeeks, demoWellbeing, demoExercises, demoRecurring }
 }
 
-export type DemoData = ReturnType<typeof createDemoData>
+export const demoPersonas = ['kuba', 'ola', 'marek'] as const
+export type DemoPersona = typeof demoPersonas[number]
+export type DemoData = ReturnType<typeof createOlaDemoData>
+
+export function createDemoData(now = new Date(), persona: DemoPersona = 'ola'): DemoData {
+  return persona === 'ola' ? createOlaDemoData(now) : createShowcaseData(now, persona)
+}
+
 export const { demoInstant, demoPlans, demoSessions, demoSkills, demoProfile, demoWeights, demoWeeks,
   demoWellbeing, demoExercises, demoRecurring } = createDemoData()

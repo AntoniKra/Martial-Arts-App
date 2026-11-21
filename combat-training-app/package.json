@@ -18,6 +18,7 @@
     "test:e2e": "firebase emulators:exec --only auth,firestore --project demo-combat-training --config firebase.json --non-interactive \"playwright test\"",
     "test:e2e:project": "node scripts/test-e2e-project.mjs",
     "demo": "node scripts/demo.mjs",
+    "showcase": "node scripts/showcase.mjs",
     "screenshots:tour": "node scripts/screenshots-tour.mjs",
     "spike:firestore:typecheck": "tsc --noEmit --project spikes/firestore-offline/tsconfig.json",
     "spike:firestore:build": "vite build --config spikes/firestore-offline/vite.config.ts",
