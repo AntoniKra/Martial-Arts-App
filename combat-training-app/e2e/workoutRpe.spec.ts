@@ -89,7 +89,7 @@ test('renders the A2 meter and keeps the slider and stepper in sync', async ({ p
   const panel = page.getByRole('region', { name: 'Jak ciężki był cały trening?', exact: true })
   await expect(panel.getByText('Wybór 0–10', { exact: true })).toBeVisible()
   const slider = panel.getByRole('slider', { name: 'RPE od 0 do 10', exact: true })
-  await expect(slider).toHaveCSS('min-height', '44px')
+  await expect(slider).toHaveCSS('min-height', '56px')
   await expect(slider.locator('.rpe-segments')).toHaveCSS('height', '12px')
   await expect(slider.locator('.rpe-segments > span')).toHaveCount(11)
   await expect(slider.locator('.is-current')).toHaveCount(0)
