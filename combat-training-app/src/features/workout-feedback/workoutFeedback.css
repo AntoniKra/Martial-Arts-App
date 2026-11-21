@@ -68,7 +68,8 @@
 
 .rpe-telemetry-slider {
   align-items: center;
-  min-height: var(--app-touch-min);
+  /* The visible bar stays thin; the drag area keeps the 56 px touch target from the RPE review. */
+  min-height: 56px;
   cursor: pointer;
 }
 
