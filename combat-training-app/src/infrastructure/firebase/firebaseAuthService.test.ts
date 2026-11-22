@@ -4,7 +4,11 @@ import { initializeApp } from 'firebase/app'
 import { createFirebaseAuthService, readSignInEnvironment } from './firebaseAuthService'
 
 const fake = vi.hoisted(() => ({
-  user: { uid: 'athlete', email: 'athlete@example.test', emailVerified: false },
+  user: {
+    uid: 'athlete', email: 'athlete@example.test', emailVerified: false,
+    getIdToken: vi.fn<(forceRefresh: boolean) => Promise<string>>(),
+    getIdTokenResult: vi.fn<() => Promise<{ claims: { email_verified?: unknown } }>>(),
+  },
   auth: { currentUser: null as unknown, languageCode: '' },
   clearCache: vi.fn<() => Promise<void>>(),
   hasUnsentWrites: vi.fn<() => Promise<boolean>>(),
@@ -32,9 +36,22 @@ beforeEach(() => {
   vi.stubGlobal('location', { origin: 'http://127.0.0.1:4173' })
   fake.auth.currentUser = fake.user
   fake.user.emailVerified = false
+  fake.user.getIdToken.mockResolvedValue('refreshed')
+  fake.user.getIdTokenResult.mockResolvedValue({ claims: { email_verified: false } })
   vi.mocked(sdk.initializeAuth).mockReturnValue(fake.auth as unknown as sdk.Auth)
 })
 afterEach(() => vi.unstubAllGlobals())
+
+function observeSession(service = createFirebaseAuthService(config)) {
+  const unsubscribeSdk = vi.fn()
+  vi.mocked(sdk.onIdTokenChanged).mockReturnValue(unsubscribeSdk)
+  const onState = vi.fn<Parameters<typeof service.subscribe>[0]>()
+  const unsubscribe = service.subscribe(onState)
+  const onTokenChanged = vi.mocked(sdk.onIdTokenChanged).mock.calls[0][1] as (user: unknown) => Promise<void>
+  return { onState, onTokenChanged, unsubscribe, unsubscribeSdk }
+}
+
+const verifiedSession = { uid: 'athlete', email: 'athlete@example.test', emailVerified: true }
 
 describe('Firebase AuthService', () => {
   it.each(['athlete-app.example.test', 'another-app.example.test'])('uses the configured app domain %s for both email actions', async (authDomain) => {
@@ -121,22 +138,81 @@ describe('Firebase AuthService', () => {
       expect(readSignInEnvironment()).toEqual(environment)
     } finally { vi.unstubAllGlobals() }
   })
-  it('sends verification, refreshes the ID token before reloading and returns the verified session', async () => {
-    const user = { ...fake.user, getIdToken: vi.fn(async () => 'fresh-token') }
-    fake.auth.currentUser = user
+  it('reloads the account on explicit checks and shares a single refresh with the token listener', async () => {
     const service = createFirebaseAuthService(config)
+    const { onState, onTokenChanged } = observeSession(service)
     await service.sendVerificationEmail()
-    vi.mocked(sdk.reload).mockImplementation(async () => { user.emailVerified = true })
-    expect(await service.refreshVerification()).toEqual({ uid: user.uid, email: user.email, emailVerified: true })
-    expect(sdk.sendEmailVerification).toHaveBeenCalledWith(user, { url: 'http://127.0.0.1:4173/' })
-    expect(user.getIdToken).toHaveBeenCalledWith(true)
-    expect(user.getIdToken.mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(sdk.reload).mock.invocationCallOrder[0])
+    vi.mocked(sdk.reload).mockImplementation(async () => {
+      fake.user.emailVerified = true
+      void onTokenChanged(fake.user)
+    })
+    fake.user.getIdToken.mockImplementation(async () => {
+      fake.user.getIdTokenResult.mockResolvedValue({ claims: { email_verified: true } })
+      return 'refreshed'
+    })
+    const checks = await Promise.all([service.refreshVerification(), service.refreshVerification()])
+    expect(checks).toEqual([verifiedSession, verifiedSession])
+    expect(onState).toHaveBeenLastCalledWith({ status: 'ready', session: verifiedSession })
+    expect(sdk.sendEmailVerification).toHaveBeenCalledWith(fake.user, { url: 'http://127.0.0.1:4173/' })
+    expect(sdk.reload).toHaveBeenCalledOnce()
+    expect(fake.user.getIdToken).toHaveBeenCalledExactlyOnceWith(true)
   })
-  it('does not reload when the token refresh fails', async () => {
-    const user = { ...fake.user, getIdToken: vi.fn(async () => { throw { code: 'auth/network-request-failed' } }) }
-    fake.auth.currentUser = user
-    await expect(createFirebaseAuthService(config).refreshVerification()).rejects.toEqual({ code: 'auth/network-request-failed' })
-    expect(sdk.reload).not.toHaveBeenCalled()
+
+  it('keeps a verified profile in the checking state until the token claim is true', async () => {
+    const { onState, onTokenChanged } = observeSession()
+    fake.user.emailVerified = true
+    let finishRefresh!: (value: string) => void
+    fake.user.getIdToken.mockReturnValue(new Promise((resolve) => { finishRefresh = resolve }))
+    const firstCheck = onTokenChanged(fake.user)
+    await vi.waitFor(() => expect(onState).toHaveBeenCalledExactlyOnceWith({ status: 'loading' }))
+    const repeatedCheck = onTokenChanged(fake.user)
+    fake.user.getIdTokenResult.mockResolvedValue({ claims: { email_verified: true } })
+    finishRefresh('refreshed')
+    await Promise.all([firstCheck, repeatedCheck])
+    expect(onState).toHaveBeenLastCalledWith({ status: 'ready', session: verifiedSession })
+    expect(fake.user.getIdToken).toHaveBeenCalledExactlyOnceWith(true)
+  })
+
+  it('does not repeat a forced refresh when the new token still lacks a true claim', async () => {
+    const { onState, onTokenChanged } = observeSession()
+    fake.user.emailVerified = true
+    fake.user.getIdTokenResult.mockResolvedValue({ claims: { email_verified: 'true' } })
+    fake.user.getIdToken.mockImplementation(async () => {
+      void onTokenChanged(fake.user)
+      return 'refreshed'
+    })
+    await onTokenChanged(fake.user)
+    await onTokenChanged(fake.user)
+    expect(onState).toHaveBeenLastCalledWith({ status: 'error' })
+    expect(onState.mock.calls.every(([state]) => state.status !== 'ready')).toBe(true)
+    expect(fake.user.getIdToken).toHaveBeenCalledExactlyOnceWith(true)
+  })
+
+  it('publishes the session error without retrying after a failed forced refresh', async () => {
+    const { onState, onTokenChanged } = observeSession()
+    fake.user.emailVerified = true
+    fake.user.getIdToken.mockRejectedValue(new Error('Token refresh failed'))
+    await onTokenChanged(fake.user)
+    expect(onState.mock.calls).toEqual([[{ status: 'loading' }], [{ status: 'error' }]])
+    await onTokenChanged(fake.user)
+    expect(onState).toHaveBeenLastCalledWith({ status: 'error' })
+    expect(fake.user.getIdToken).toHaveBeenCalledExactlyOnceWith(true)
+  })
+
+  it('ignores a stale claim read after a newer token event verifies the session', async () => {
+    const { onState, onTokenChanged } = observeSession()
+    fake.user.emailVerified = true
+    let finishReadingClaim!: () => void
+    fake.user.getIdTokenResult.mockReturnValueOnce(new Promise((resolve) => {
+      finishReadingClaim = () => resolve({ claims: { email_verified: false } })
+    }))
+    const staleCheck = onTokenChanged(fake.user)
+    fake.user.getIdTokenResult.mockResolvedValue({ claims: { email_verified: true } })
+    await onTokenChanged(fake.user)
+    finishReadingClaim()
+    await staleCheck
+    expect(onState).toHaveBeenCalledExactlyOnceWith({ status: 'ready', session: verifiedSession })
+    expect(fake.user.getIdToken).not.toHaveBeenCalled()
   })
   it('waits for cache cleanup before signing out', async () => {
     let finishCleanup = () => {}
@@ -176,20 +252,20 @@ describe('Firebase AuthService', () => {
     vi.mocked(sdk.sendPasswordResetEmail).mockRejectedValue({ code: 'auth/network-request-failed' })
     await expect(service.requestPasswordReset('athlete@example.test')).rejects.toEqual({ code: 'auth/network-request-failed' })
   })
-  it('subscribes, projects only session fields, validates external users and unsubscribes', () => {
-    const service = createFirebaseAuthService(config)
-    const unsubscribe = vi.fn()
-    vi.mocked(sdk.onIdTokenChanged).mockReturnValue(unsubscribe)
-    const onSession = vi.fn()
-    const onError = vi.fn()
-    expect(service.subscribe(onSession, onError)).toBe(unsubscribe)
-    const callback = vi.mocked(sdk.onIdTokenChanged).mock.calls[0][1] as (user: sdk.User | null) => void
-    callback(fake.user as sdk.User)
-    expect(onSession).toHaveBeenCalledWith(fake.user)
-    callback(null)
-    expect(onSession).toHaveBeenLastCalledWith(null)
-    callback({ uid: 'invalid' } as sdk.User)
-    expect(onError).toHaveBeenCalledOnce()
+  it('projects session fields, validates external users and unsubscribes', async () => {
+    const { onState, onTokenChanged, unsubscribe, unsubscribeSdk } = observeSession()
+    await onTokenChanged(fake.user)
+    expect(onState).toHaveBeenLastCalledWith({ status: 'ready', session: { ...verifiedSession, emailVerified: false } })
+    expect(fake.user.getIdToken).not.toHaveBeenCalled()
+    fake.auth.currentUser = null
+    await onTokenChanged(null)
+    expect(onState).toHaveBeenLastCalledWith({ status: 'ready', session: null })
+    const invalidUser = { uid: 'invalid' }
+    fake.auth.currentUser = invalidUser
+    await onTokenChanged(invalidUser)
+    expect(onState).toHaveBeenLastCalledWith({ status: 'error' })
+    unsubscribe()
+    expect(unsubscribeSdk).toHaveBeenCalledOnce()
   })
 })
 

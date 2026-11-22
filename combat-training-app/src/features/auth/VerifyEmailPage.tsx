@@ -11,10 +11,22 @@ export function VerifyEmailPage() {
   const [now, setNow] = useState(Date.now)
   const [unverified, setUnverified] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  const { refreshVerification } = auth
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000)
     return () => window.clearInterval(timer)
   }, [])
+  useEffect(() => {
+    function checkWhenVisible() {
+      if (document.visibilityState === 'visible') void refreshVerification()
+    }
+    document.addEventListener('visibilitychange', checkWhenVisible)
+    window.addEventListener('focus', checkWhenVisible)
+    return () => {
+      document.removeEventListener('visibilitychange', checkWhenVisible)
+      window.removeEventListener('focus', checkWhenVisible)
+    }
+  }, [refreshVerification])
   const seconds = verificationRetrySeconds(auth.verificationSentAt, now)
 
   return (
@@ -28,7 +40,7 @@ export function VerifyEmailPage() {
       <div className="flex flex-col gap-3">
         <Button loading={auth.busy} onClick={async () => {
           setActionError(await auth.execute(async () => {
-            setUnverified(!(await auth.refreshVerification()))
+            setUnverified(!(await refreshVerification()))
           }))
         }}>{labels.checkVerification}</Button>
         <Button variant="secondary" disabled={seconds > 0 || auth.busy}

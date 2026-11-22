@@ -22,5 +22,5 @@ export interface AuthService {
   sendVerificationEmail(): Promise<void>
   refreshVerification(): Promise<AuthSession | null>
   requestPasswordReset(email: string): Promise<void>
-  subscribe(onSession: (session: AuthSession | null) => void, onError: () => void): () => void
+  subscribe(onState: (state: AuthState) => void): () => void
 }

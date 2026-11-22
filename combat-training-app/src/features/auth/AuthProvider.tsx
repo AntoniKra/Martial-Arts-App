@@ -1,4 +1,4 @@
-import { useEffect, useState, type PropsWithChildren } from 'react'
+import { useCallback, useEffect, useState, type PropsWithChildren } from 'react'
 import type { AuthService, AuthState } from '@/application/auth/authService'
 import { AuthContext } from './authContext'
 import { mapAuthError } from './mapAuthError'
@@ -45,11 +45,14 @@ export function AuthProvider({ service, children }: PropsWithChildren<{ service:
     return error === null
   }
 
-  async function refreshVerification() {
-    const session = await service.refreshVerification()
-    setState({ status: 'ready', session })
-    return session?.emailVerified === true
-  }
+  const refreshVerification = useCallback(async () => {
+    try {
+      return (await service.refreshVerification())?.emailVerified === true
+    } catch {
+      setState({ status: 'error' })
+      return false
+    }
+  }, [service])
 
   return (
     <AuthContext.Provider value={{ service, state, busy, verificationSentAt, verificationError, redirectError, redirectOperation, execute, sendVerification, refreshVerification }}>
