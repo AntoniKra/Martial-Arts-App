@@ -166,6 +166,7 @@
 }
 
 .player-technique-slot {
+  position: relative;
   display: grid;
   flex: 1 0 auto;
   place-items: center;
@@ -184,6 +185,22 @@
   font: 700 var(--player-technique-size)/1.15 var(--font-display);
   letter-spacing: -.01em;
   opacity: .95;
+}
+
+.player-technique-cue {
+  /* Center in a region starting 100 px lower, with room for two lines on short screens. */
+  position: absolute;
+  inset-block: min(var(--player-cue-top, 104px), calc(100% - 64px)) 4px;
+  inset-inline: 20px;
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+}
+
+.player-technique-slot:has(h1 + .player-technique-cue) {
+  /* During preparation, allow two lines each for the centered title and the cue. */
+  --player-cue-top: 124px;
+  min-height: 188px;
 }
 
 .timer-center-area {
@@ -380,6 +397,8 @@
 
 .diamond-wrapper-3b { width: 88px; height: 88px; }
 
+.diamond-wrapper-3b:focus-visible { outline: none; }
+
 .diamond-shape-3b {
   --app-grad-primary: var(--player-primary-gradient);
   display: grid;
@@ -392,6 +411,15 @@
   background: var(--app-grad-primary);
   box-shadow: var(--player-primary-shadow);
   transition: transform var(--motion-fast) ease, border-color calc(var(--motion-fast) * 2) ease;
+}
+
+.diamond-wrapper-3b:focus-visible .diamond-shape-3b::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 2px solid var(--app-focus-ring);
+  border-radius: calc(var(--app-radius-sm) + 2px);
+  pointer-events: none;
 }
 
 .diamond-icon-3b {

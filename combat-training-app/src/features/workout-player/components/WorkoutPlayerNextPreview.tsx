@@ -1,4 +1,5 @@
 import type { WorkoutPlaybackStep } from '@/domain/workout-playback/workoutPlayback.types'
+import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { getWorkoutStepKindShortLabelPl } from '@/features/workout-player/utils/workoutStepTimerPresentation'
 import { workoutPlayerLabels as labels } from '@/features/workout-player/workoutPlayerLabels'
 
@@ -32,9 +33,16 @@ export function WorkoutPlayerNextPreview({ roundStep, nextStep, isLastStep }: Wo
         <p className="player-next-step">
           {isLastStep ? labels.endOfWorkout : nextStep && (
             <>
-              {labels.next} <b>{nextStep.name}</b>
-              {' · '}{getWorkoutStepKindShortLabelPl(nextStep.kind)}
-              {nextRound && ` · ${nextRound}`}
+              {labels.next}{' '}
+              {nextStep.kind === 'roundRest' ? (
+                <strong>{labels.roundRest} ({formatSecondsAsClock(nextStep.durationSeconds)})</strong>
+              ) : (
+                <>
+                  <b>{nextStep.name}</b>
+                  {' · '}{getWorkoutStepKindShortLabelPl(nextStep.kind)}
+                  {nextRound && ` · ${nextRound}`}
+                </>
+              )}
             </>
           )}
         </p>

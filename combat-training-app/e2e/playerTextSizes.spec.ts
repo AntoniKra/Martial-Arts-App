@@ -6,7 +6,7 @@ const instruction = 'Jab → prawy prosty → lewy hak na korpus'
 const start = Date.parse('2026-11-03T10:00:00Z')
 
 for (const theme of ['dark', 'light'] as const) {
-  test(`player v6 fits the exercise, arc and controls in every phase in ${theme} theme`, async ({ app, page }, info) => {
+  test(`player v8 fits the exercise, arc and controls in every phase in ${theme} theme`, async ({ app, page }, info) => {
     await app.open('/')
     await app.setTheme(theme)
     const exercise = { ...roundsExercise('exercise-1', 2, 60, 30), exerciseNameSnapshot: 'Praca na nogach', instruction }
@@ -23,10 +23,12 @@ for (const theme of ['dark', 'light'] as const) {
     const round = page.locator('.exercise-round-eyebrow')
     const heading = page.getByRole('heading', { level: 1 })
     const technique = page.locator('.exercise-technique')
+    const techniqueSlot = page.locator('.player-technique-slot')
     const arc = page.locator('.timer-wrap-2b')
     const timer = page.locator('.timer-digits')
     const phaseWord = page.locator('.arc-phase-opening')
     const next = page.locator('.player-next-step')
+    const primary = page.locator('.diamond-wrapper-3b')
     const viewport = page.viewportSize()!
     const viewports = info.project.name === 'phone' ? [viewport, { width: 390, height: 844 }] : [viewport]
     const colors = theme === 'dark'
@@ -54,6 +56,22 @@ for (const theme of ['dark', 'light'] as const) {
       await expect(main).toHaveAttribute('data-phase', phase)
       await expect(phaseWord).toHaveText(label)
       await expect(main).toHaveCSS('background-color', colors[phase])
+      await primary.focus()
+      await page.keyboard.press('Shift+Tab')
+      await page.keyboard.press('Tab')
+      await expect(primary).toBeFocused()
+      await expect(primary).toHaveCSS('outline-style', 'none')
+      const focusRing = await primary.locator('.diamond-shape-3b').evaluate((shape) => {
+        const ring = getComputedStyle(shape, '::after')
+        const style = getComputedStyle(shape)
+        return { content: ring.content, border: ring.borderTop, inset: ring.inset, transform: style.transform }
+      })
+      expect(focusRing).toEqual({
+        content: '""',
+        border: `2px solid ${theme === 'dark' ? 'rgb(239, 93, 110)' : 'rgb(181, 18, 43)'}`,
+        inset: '-6px',
+        transform: 'matrix(0.707107, 0.707107, -0.707107, 0.707107, 0, 0)',
+      })
       for (const size of viewports) {
         await page.setViewportSize(size)
         const small = size.width <= 360
@@ -71,6 +89,19 @@ for (const theme of ['dark', 'light'] as const) {
         const digits = (await timer.boundingBox())!
         expect(digits.x).toBeGreaterThanOrEqual(box.x + box.width * 8 / 300)
         expect(digits.x + digits.width).toBeLessThanOrEqual(box.x + box.width * 292 / 300)
+        if (phase === 'preparing' || phase === 'work') {
+          const cue = (await technique.boundingBox())!
+          const slot = (await techniqueSlot.boundingBox())!
+          const title = (await heading.boundingBox())!
+          const shift = cue.y + cue.height / 2 - (slot.y + slot.height / 2)
+          expect(shift).toBeCloseTo(50, 0)
+          expect(cue.y).toBeGreaterThanOrEqual(title.y + title.height)
+          expect(cue.y + cue.height).toBeLessThan(box.y)
+          if (phase === 'work') {
+            const lineHeight = await technique.evaluate((element) => parseFloat(getComputedStyle(element).lineHeight))
+            expect(cue.height / lineHeight).toBeCloseTo(2, 1)
+          }
+        }
         const geometry = await page.evaluate(() => ({
           scrollY,
           scrollX,
@@ -86,16 +117,15 @@ for (const theme of ['dark', 'light'] as const) {
 
     await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
     await expect(timer).toHaveText('10')
+    expect(await primary.locator('.diamond-shape-3b').evaluate((shape) => getComputedStyle(shape, '::after').content)).toBe('none')
     await page.clock.setFixedTime(new Date(start))
     await expect(timer).toHaveText('7')
+    await expect(technique).toHaveText('Zajmij pozycję walki · ustaw gardę')
     await checkPhase('preparing', 'PRZYGOTUJ SIĘ')
     await page.getByRole('button', { name: 'Zacznij teraz', exact: true }).click()
+    await expect(technique).toHaveText(instruction)
     await checkPhase('work', 'PRACA')
     await expect(page.locator('.arc-progress')).toHaveAttribute('stroke-dasharray', '75 100')
-    const nameBox = (await heading.boundingBox())!
-    const techniqueBox = (await technique.boundingBox())!
-    const arcBox = (await arc.boundingBox())!
-    expect(Math.abs((nameBox.y + nameBox.height + arcBox.y) / 2 - (techniqueBox.y + techniqueBox.height / 2))).toBeLessThan(3)
 
     await page.clock.setFixedTime(new Date(start + 30_000))
     await expect(page.locator('.arc-progress')).toHaveAttribute('stroke-dasharray', '37.5 100')
