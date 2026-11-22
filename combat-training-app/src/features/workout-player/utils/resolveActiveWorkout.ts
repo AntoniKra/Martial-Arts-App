@@ -10,6 +10,7 @@ import { applyStepDurations } from './adjustPlaybackTime'
 export type ActiveWorkoutRecovery =
   | { kind: 'none' }
   | { kind: 'resume'; workout: ActiveWorkout }
+  | { kind: 'completed'; workout: ActiveWorkout; session: PlanWorkoutSession | QuickTimerWorkoutSession }
   | { kind: 'interrupted'; workout: ActiveWorkout; session: PlanWorkoutSession | QuickTimerWorkoutSession }
 
 function advanceTo(saved: ActiveWorkout, nowMs: number): ActiveWorkout {
@@ -46,7 +47,12 @@ function advanceTo(saved: ActiveWorkout, nowMs: number): ActiveWorkout {
 
 export function resolveActiveWorkout(saved: ActiveWorkout | null, nowMs: number): ActiveWorkoutRecovery {
   if (!saved) return { kind: 'none' }
-  if (saved.playback.status === 'completed' && saved.recorder.completedAt !== null) return { kind: 'resume', workout: saved }
+  if (saved.playback.status === 'completed' && saved.recorder.completedAt !== null) {
+    const steps = createWorkoutPlaybackTimeline(saved.plan).steps
+    const result = buildRecordedWorkoutSession(saved.plan, steps, saved.recorder,
+      saved.recorder.completedAt, saved.recorder.endedEarly, saved.source ?? 'plan')
+    return result.kind === 'save' ? { kind: 'completed', workout: saved, session: result.session } : { kind: 'none' }
+  }
   const current = advanceTo(saved, nowMs)
   if (current.playback.status !== 'completed' && nowMs - saved.lastSeenAt <= 12 * 60 * 60 * 1000) {
     return { kind: 'resume', workout: current }

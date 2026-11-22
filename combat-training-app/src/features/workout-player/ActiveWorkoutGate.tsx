@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useAuth } from '@/features/auth/authContext'
 import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
+import { createCompletedWorkoutStorage } from '@/infrastructure/storage/completedWorkoutStorage'
 import { ActiveWorkoutContext } from './activeWorkoutContext'
 import { resolveActiveWorkout } from './utils/resolveActiveWorkout'
 
@@ -11,7 +12,22 @@ function AccountActiveWorkout({ uid, children }: PropsWithChildren<{ uid: string
   const [storage] = useState(() => createActiveWorkoutRepository(uid))
   const [recovery, setRecovery] = useState(() => {
     const saved = storage.read()
+    const completed = createCompletedWorkoutStorage(uid)
+    if (saved && completed.readAll().some((session) => session.id === saved.recorder.sessionId)) {
+      // The app can close after staging the entry and before clearing the player snapshot.
+      storage.clear()
+      return { kind: 'none' } as const
+    }
     const result = resolveActiveWorkout(saved, Date.now())
+    if (result.kind === 'completed') {
+      try {
+        completed.save(result.session)
+        storage.clear()
+        return { kind: 'none' } as const
+      } catch {
+        return { kind: 'resume', workout: result.workout } as const
+      }
+    }
     if (saved && result.kind === 'none') storage.clear()
     return result
   })

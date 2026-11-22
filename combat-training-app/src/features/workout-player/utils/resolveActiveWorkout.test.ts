@@ -247,13 +247,17 @@ describe('active workout recovery', () => {
     expect(resolveActiveWorkout(saved, Date.now())).toEqual({ kind: 'none' })
   })
 
-  it('keeps an already finalized session for retrying its local Firestore save', () => {
+  it('rebuilds a finalized session for retry with its original id and finish time', () => {
     const saved = withPriorWork()
     saved.playback.status = 'completed'
     saved.deadlineMs = null
     saved.recorder.completedAt = now
     saved.recorder.endedEarly = true
-    expect(resolveActiveWorkout(saved, Date.now())).toEqual({ kind: 'resume', workout: saved })
+    vi.setSystemTime(now + 86_400_000)
+    expect(resolveActiveWorkout(saved, Date.now())).toMatchObject({
+      kind: 'completed', workout: saved,
+      session: { id: 'session', status: 'partial', completedAt: new Date(now).toISOString(), workSeconds: 120 },
+    })
   })
 
   it('uses the recorded timezone when deriving the workout day after recovery', () => {

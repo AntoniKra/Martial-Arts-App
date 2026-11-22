@@ -1,7 +1,7 @@
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { createContext, useContext } from 'react'
 import type { WorkoutPlanRepository } from './workout/workoutPlanRepository'
-import type { WorkoutSessionRepository } from './workout-session/workoutSessionRepository'
+import type { RecordedWorkoutSession, WorkoutSessionRepository } from './workout-session/workoutSessionRepository'
 import type { CollectionState } from './useRepositoryCollection'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
@@ -45,6 +45,8 @@ export interface WorkoutData {
   focusSkills: CollectionState<FocusSkill>
   planRepository: WorkoutPlanRepository
   sessionRepository: WorkoutSessionRepository
+  completedWorkoutRetries: readonly RecordedWorkoutSession[]
+  saveRecordedSession: (session: RecordedWorkoutSession) => Promise<void>
   focusSkillRepository: FocusSkillRepository
   retry: () => void
 }

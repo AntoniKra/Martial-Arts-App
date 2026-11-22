@@ -180,6 +180,7 @@ export function createFirestoreRepositories(uid: string): WorkoutRepositories {
     },
     sessions: {
       subscribe: trackedSubscribe(sessions), save: sessions.save.bind(sessions),
+      saveRecorded: (session, onServerRejection) => sessions.save(session, undefined, onServerRejection),
       saveManual: async (session, correctionUpdates) => {
         const parsed = workoutSessionDocumentSchema.parse({ ...session, schemaVersion: workoutDocumentVersion(session) })
         const skillFields = correctionUpdates.map((update) => {

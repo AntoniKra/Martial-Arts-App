@@ -3,7 +3,8 @@ import { useCallback, useRef, useState } from 'react'
 import type { WorkoutSessionRecording } from '@/application/workout/activeWorkoutRepository'
 import { buildRecordedWorkoutSession } from '../utils/workoutSessionRecording'
 
-import type { WorkoutSession, WorkoutSessionStepOutcome } from '@/domain/workout-session/workoutSession.types'
+import type { RecordedWorkoutSession } from '@/application/workout-session/workoutSessionRepository'
+import type { WorkoutSessionStepOutcome } from '@/domain/workout-session/workoutSession.types'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { createWorkoutFocusRatings } from '@/domain/workout-session/workoutFocusRatings'
@@ -23,7 +24,7 @@ export const WORKOUT_SESSION_NO_WORK_MESSAGE = workoutPlayerLabels.noWork
 
 interface UseWorkoutSessionRecorderResult {
   onPlaybackEvent: (event: WorkoutPlaybackEvent) => void
-  completedSession: WorkoutSession | null
+  completedSession: RecordedWorkoutSession | null
   runGeneration: number
   hasRecorderError: boolean
   hasNoWork: boolean
@@ -51,7 +52,7 @@ export function useWorkoutSessionRecorder(
   const isFinalizedRef = useRef(initial?.completedAt !== null && initial?.completedAt !== undefined)
   const runGenerationRef = useRef(0)
   const [runGeneration, setRunGeneration] = useState(0)
-  const [completedSession, setCompletedSession] = useState<WorkoutSession | null>(() => {
+  const [completedSession, setCompletedSession] = useState<RecordedWorkoutSession | null>(() => {
     if (!initial || initial.completedAt === null) return null
     const result = buildRecordedWorkoutSession(plan, timeline.steps, initial, initial.completedAt, initial.endedEarly, source)
     return result.kind === 'save' ? result.session : null

@@ -204,11 +204,15 @@ test('recovers the immutable plan even when Firestore cannot load', async ({ app
   await expect(page.getByRole('button', { name: 'Pauza', exact: true })).toBeVisible()
 })
 
+const completedCopies = (page: import('@playwright/test').Page) => page.evaluate(() => Object.keys(localStorage)
+  .filter((key) => key.startsWith('combat-training.completedWorkout.'))
+  .map((key) => JSON.parse(localStorage.getItem(key) ?? 'null')?.id))
+
 test.describe('offline with the PWA cache', () => {
   // Lazy routes need the same precache used by the installed application.
   test.use({ serviceWorkers: 'allow' })
 
-  test('clears recovery after a local offline save and sends that partial entry when back online', async ({ app, page, context }) => {
+  test('retains a partial entry after a local offline save and clears it after server confirmation', async ({ app, page, context }) => {
     await app.open('/')
     const plan = workoutPlan([block('bag', [roundsExercise('jab', 3, 120, 30)], 'bag')])
     await app.seedPlan(plan)
@@ -228,9 +232,42 @@ test.describe('offline with the PWA cache', () => {
     await dialog.getByRole('button', { name: 'Zapisz to, co zrobione', exact: true }).click()
     await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
     expect(await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('combat-training.activeWorkout.')))).toEqual([])
+    await expect.poll(() => completedCopies(page)).toHaveLength(1)
     expect(await app.readSessions()).toHaveLength(0)
     await context.setOffline(false)
     await expect.poll(async () => (await app.readSessions()).length).toBe(1)
+    await expect.poll(() => completedCopies(page)).toEqual([])
+  })
+
+  test('keeps a completed offline session across reload and clears the copy after the server confirms it', async ({ app, page, context }) => {
+    await app.open()
+    const plan = workoutPlan([block('bag', [roundsExercise('jab', 1, 120, 0)], 'bag')])
+    await app.seedPlan(plan)
+    await app.open(`/workouts/${plan.id}`)
+    await app.openPlayer()
+    await page.clock.setFixedTime(new Date(time))
+    await app.startWorkout()
+    await app.prepareOffline()
+    await context.setOffline(true)
+    try {
+      await page.clock.setFixedTime(new Date(time + 121_000))
+      await app.expectWorkoutSaved()
+      const sessionId = new URL(page.url()).pathname.split('/')[2]
+      await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
+      await expect.poll(() => completedCopies(page)).toEqual([sessionId])
+      expect(await app.readSessions()).toEqual([])
+
+      await app.open(`/workout-sessions/${sessionId}/feedback`)
+      await expect(page.getByText('Czeka na wysłanie', { exact: true })).toBeVisible()
+      await expect.poll(() => completedCopies(page)).toEqual([sessionId])
+
+      await context.setOffline(false)
+      await expect.poll(async () => (await app.readSessions()).map(({ id }) => id)).toEqual([sessionId])
+      await expect(page.getByText('Zapisane', { exact: true })).toBeVisible()
+      await expect.poll(() => completedCopies(page)).toEqual([])
+    } finally {
+      await context.setOffline(false)
+    }
   })
 })
 

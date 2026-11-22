@@ -7,6 +7,8 @@ export const workoutPlayerLabels = {
   lastActivity: 'Ostatnia aktywność',
   saveInterrupted: 'Zapisz to, co zrobione',
   saving: 'Zapisywanie treningu…',
+  unsentSession: (name: string) => `Trening „${name}” nie został wysłany. Kopia sesji jest zapisana na tym urządzeniu.`,
+  retrySave: 'Spróbuj ponownie',
   preparationSetting: 'Przygotowanie przed startem',
   preparing: 'PRZYGOTUJ SIĘ',
   preparationInstruction: 'Zajmij pozycję walki · ustaw gardę',

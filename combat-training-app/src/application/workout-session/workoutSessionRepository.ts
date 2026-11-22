@@ -3,8 +3,11 @@ import type { SubscribableRepository } from '@/application/repositorySubscriptio
 import type { QuickTimerFeedbackUpdate } from '@/domain/quick-timer/quickTimerFeedback'
 import type { FocusCorrectionUpdate, WorkoutFeedbackUpdate } from '@/domain/workout-session/workoutFeedback'
 
+export type RecordedWorkoutSession = Exclude<WorkoutSession, ManualWorkoutSession>
+
 export interface WorkoutSessionRepository extends SubscribableRepository<WorkoutSession> {
   save(session: WorkoutSession): Promise<void>
+  saveRecorded(session: RecordedWorkoutSession, onServerRejection: (error: unknown) => void): Promise<void>
   saveManual(session: ManualWorkoutSession, correctionUpdates: readonly FocusCorrectionUpdate[]): Promise<void>
   updateNote(id: string, note: string | null): Promise<boolean>
   saveFeedback(id: string, feedback: WorkoutFeedbackUpdate): Promise<boolean>

@@ -9,7 +9,7 @@ import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
-import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
+import type { RecordedWorkoutSession } from '@/application/workout-session/workoutSessionRepository'
 import { WorkoutCircularTimer } from '@/features/workout-player/components/WorkoutCircularTimer'
 import { WorkoutPlayerControls } from '@/features/workout-player/components/WorkoutPlayerControls'
 import { WorkoutPlayerNextPreview } from '@/features/workout-player/components/WorkoutPlayerNextPreview'
@@ -45,7 +45,7 @@ interface WorkoutPlayerViewProps extends WorkoutSummaryOptions {
   workoutsListPath: string
   workoutDetailsPath: string
   onRetry: () => void
-  saveWorkoutSession: (session: WorkoutSession) => Promise<void>
+  saveWorkoutSession: (session: RecordedWorkoutSession) => Promise<void>
 }
 
 function StatusPanel({ children }: { children: ReactNode }) {
@@ -120,7 +120,7 @@ interface WorkoutPlayerActiveContentProps extends WorkoutSummaryOptions {
   activeWorkoutRepository?: ActiveWorkoutRepository
   plan: WorkoutPlan
   workoutDetailsPath: string
-  saveWorkoutSession: (session: WorkoutSession) => Promise<void>
+  saveWorkoutSession: (session: RecordedWorkoutSession) => Promise<void>
 }
 
 interface WorkoutPlayerRuntimeProps extends WorkoutSummaryOptions {
@@ -129,7 +129,7 @@ interface WorkoutPlayerRuntimeProps extends WorkoutSummaryOptions {
   plan: WorkoutPlan
   timeline: WorkoutPlaybackTimeline
   workoutDetailsPath: string
-  saveWorkoutSession: (session: WorkoutSession) => Promise<void>
+  saveWorkoutSession: (session: RecordedWorkoutSession) => Promise<void>
 }
 
 function WorkoutPlayerCompletedPanel({
