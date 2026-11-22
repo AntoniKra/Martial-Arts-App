@@ -1,14 +1,18 @@
 import { useMemo, useState, type PropsWithChildren } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { routes } from '@/app/routes'
+import type { ActiveWorkoutRepository } from '@/application/workout/activeWorkoutRepository'
 import { useAuth } from '@/features/auth/authContext'
-import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
 import { ActiveWorkoutContext } from './activeWorkoutContext'
 import { resolveActiveWorkout } from './utils/resolveActiveWorkout'
 
-function AccountActiveWorkout({ uid, children }: PropsWithChildren<{ uid: string }>) {
+interface ActiveWorkoutGateProps {
+  createRepository: (uid: string) => ActiveWorkoutRepository
+}
+
+function AccountActiveWorkout({ uid, createRepository, children }: PropsWithChildren<ActiveWorkoutGateProps & { uid: string }>) {
   const location = useLocation()
-  const [storage] = useState(() => createActiveWorkoutRepository(uid))
+  const [storage] = useState(() => createRepository(uid))
   const [recovery, setRecovery] = useState(() => {
     const saved = storage.read()
     const result = resolveActiveWorkout(saved, Date.now())
@@ -27,10 +31,10 @@ function AccountActiveWorkout({ uid, children }: PropsWithChildren<{ uid: string
   return <ActiveWorkoutContext.Provider value={{ recovery, repository }}>{children}</ActiveWorkoutContext.Provider>
 }
 
-export function ActiveWorkoutGate() {
+export function ActiveWorkoutGate({ createRepository }: ActiveWorkoutGateProps) {
   const { state } = useAuth()
   const currentUid = state.status === 'ready' && state.session?.emailVerified ? state.session.uid : null
   const [uid, setUid] = useState(currentUid)
   if (currentUid && currentUid !== uid) setUid(currentUid)
-  return uid ? <AccountActiveWorkout key={uid} uid={uid}><Outlet /></AccountActiveWorkout> : <Outlet />
+  return uid ? <AccountActiveWorkout key={uid} uid={uid} createRepository={createRepository}><Outlet /></AccountActiveWorkout> : <Outlet />
 }
