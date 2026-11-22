@@ -4,7 +4,7 @@ import type { RepositorySnapshot, SubscribableRepository } from '@/application/r
 import type { AthleteProfile, BodyWeight } from '@/domain/profile/profile.types'
 import { createConsentWithdrawalBatches, hasValidHealthConsent, isMeasurementDate } from '@/domain/profile/bodyWeight'
 import { calculateWorkoutDate } from '@/domain/workout-session/workoutSessionDefinitions'
-import { parseBodyWeightDocument, parseProfileDocument } from './profileDocumentSchemas'
+import { consentWithdrawalSchema, parseBodyWeightDocument, parseProfileDocument } from './profileDocumentSchemas'
 import type { WellbeingEntry } from '@/domain/wellbeing/wellbeing'
 import { hasWellbeingConsent } from '@/domain/wellbeing/wellbeingConsent'
 import { parseWellbeingDocument } from './wellbeingDocumentSchema'
@@ -126,15 +126,18 @@ export function createFirestoreHealthRepositories(db: Firestore, uid: string) {
   const weights = new HealthRepository<BodyWeight>(db, uid, 'bodyWeights', parseBodyWeightDocument, (value) => value.date)
   const wellbeing = new HealthRepository<WellbeingEntry>(db, uid, 'readiness', parseWellbeingDocument, (value) => value.date)
   let withdrawing = false
-  async function lockWellbeingWithdrawal(): Promise<number | null> {
+  async function lockWithdrawal(field: 'bodyWeightWithdrawal' | 'wellbeingWithdrawal'): Promise<number | null> {
     return commitWhileOnline(() => runTransaction(db, async (transaction) => {
       const reference = doc(db, 'users', uid), snapshot = await transaction.get(reference)
       if (!snapshot.exists()) throw new Error('Profile missing')
       const current = parseProfileDocument(snapshot.data())
-      if (!hasWellbeingConsent(current)) return null
-      if (current.wellbeingWithdrawal?.pending) return current.wellbeingWithdrawal.generation
-      const generation = (current.wellbeingWithdrawal?.generation ?? 0) + 1
-      transaction.update(reference, { wellbeingWithdrawal: { generation, pending: true }, updatedAt: new Date().toISOString() })
+      const hasConsent = field === 'bodyWeightWithdrawal' ? hasValidHealthConsent(current) : hasWellbeingConsent(current)
+      if (!hasConsent) return null
+      const previous = current[field]
+      if (previous?.pending) return previous.generation
+      const generation = (previous?.generation ?? 0) + 1
+      const marker = consentWithdrawalSchema.parse({ generation, pending: true })
+      transaction.update(reference, { [field]: marker, updatedAt: new Date().toISOString() })
       return generation
     }))
   }
@@ -143,23 +146,22 @@ export function createFirestoreHealthRepositories(db: Firestore, uid: string) {
     profile.current(uid)
     withdrawing = true
     try {
+      const field = collectionName === 'bodyWeights' ? 'bodyWeightWithdrawal' : 'wellbeingWithdrawal'
+      const clearedConsent = collectionName === 'bodyWeights'
+        ? { healthDataConsent: null, weightClassLabel: null } : { wellbeingConsent: null }
       // Wait for the shared lock on the server before taking the list to delete.
-      const withdrawalGeneration = collectionName === 'readiness' ? await lockWellbeingWithdrawal() : null
-      if (collectionName === 'readiness' && withdrawalGeneration === null) return
+      const generation = await lockWithdrawal(field)
+      if (generation === null) return
       // Read every document from the server, including invalid documents, before deleting anything.
       const snapshot = await commitWhileOnline(() => getDocsFromServer(collection(db, 'users', uid, collectionName)))
-      for (const part of createConsentWithdrawalBatches(snapshot.docs.map((entry) => entry.id), collectionName === 'readiness')) {
+      for (const part of createConsentWithdrawalBatches(snapshot.docs.map((entry) => entry.id), true)) {
         const batch = writeBatch(db)
         for (const id of part.ids) batch.delete(doc(db, 'users', uid, collectionName, id))
-        if (collectionName === 'readiness') batch.update(doc(db, 'users', uid), {
-          wellbeingWithdrawal: { generation: withdrawalGeneration, pending: !part.withdrawConsent },
-          ...(part.withdrawConsent ? { wellbeingConsent: null } : {}),
-          updatedAt: new Date().toISOString(),
+        const marker = consentWithdrawalSchema.parse({ generation, pending: !part.withdrawConsent })
+        batch.update(doc(db, 'users', uid), {
+          [field]: marker, ...(part.withdrawConsent ? clearedConsent : {}), updatedAt: new Date().toISOString(),
         })
-        else if (part.withdrawConsent) batch.update(doc(db, 'users', uid), {
-          healthDataConsent: null, weightClassLabel: null, updatedAt: new Date().toISOString(),
-        })
-        // Every wellbeing batch guards its generation atomically, including delayed offline batches.
+        // Every batch guards its generation atomically, including delayed offline batches.
         await commitWhileOnline(() => batch.commit())
       }
     } finally { withdrawing = false }
@@ -194,7 +196,9 @@ export function createFirestoreHealthRepositories(db: Firestore, uid: string) {
     bodyWeights: {
       subscribe: weights.subscribe.bind(weights),
       save: async (value: BodyWeight) => {
-        if (withdrawing || !hasValidHealthConsent(profile.current(uid))) throw new Error('Current health consent required')
+        if (withdrawing) throw new Error('Current health consent required')
+        const current = profile.current(uid)
+        if (!hasValidHealthConsent(current) || current?.bodyWeightWithdrawal?.pending) throw new Error('Current health consent required')
         const today = calculateWorkoutDate(new Date().toISOString(), Intl.DateTimeFormat().resolvedOptions().timeZone)
         if (!isMeasurementDate(value.date, today)) throw new Error('Invalid measurement date')
         await weights.save(value)

@@ -257,33 +257,64 @@ describe('wellbeing repository', () => {
   })
 })
 
-describe('online consent withdrawal', () => {
-  it.each([0, 1, 499, 500, 1200])('awaits server read and each batch, clearing consent last for %s documents', async (count) => {
+describe('online body weight consent withdrawal', () => {
+  const pending = { generation: lockGeneration, pending: true }
+  const completed = { generation: lockGeneration, pending: false }
+
+  it.each([0, 1, 498, 499, 500, 1200])('guards each batch and clears consent last for %s documents', async (count) => {
     const { repositories } = subscribed()
     sdk.read.mockResolvedValueOnce({ docs: Array.from({ length: count }, (_, index) => ({ id: String(index) })) })
     await repositories.profile.withdrawConsent()
-    const operations = sdk.batches.flat()
-    expect(operations.slice(0, count)).toEqual(Array.from({ length: count }, (_, index) => ['delete', `${weightPath}/${index}`]))
-    expect(operations.at(-1)).toEqual(['update', profilePath, { healthDataConsent: null, weightClassLabel: null, updatedAt: instant }])
+    expect(sdk.transactionUpdates).toEqual([{ bodyWeightWithdrawal: pending, updatedAt: instant }])
+    expect(sdk.batches.flatMap((batch) => batch.slice(0, -1)))
+      .toEqual(Array.from({ length: count }, (_, index) => ['delete', `${weightPath}/${index}`]))
+    expect(sdk.batches.slice(0, -1).map((batch) => batch.at(-1)))
+      .toEqual(Array.from({ length: Math.floor(count / 498) }, () => ['update', profilePath, { bodyWeightWithdrawal: pending, updatedAt: instant }]))
+    expect(sdk.batches.at(-1)?.at(-1)).toEqual(['update', profilePath, {
+      healthDataConsent: null, weightClassLabel: null, bodyWeightWithdrawal: completed, updatedAt: instant,
+    }])
     expect(sdk.batches.every((batch) => batch.length <= 499)).toBe(true)
     expect(sdk.read.mock.invocationCallOrder[0]).toBeLessThan(sdk.commit.mock.invocationCallOrder[0])
   })
-  it('leaves all data intact on server-read failure', async () => {
+  it('waits for server confirmation of the lock before reading the collection', async () => {
+    const { repositories } = subscribed()
+    let acknowledge!: () => void
+    sdk.lock.mockImplementationOnce(() => new Promise((resolve) => { acknowledge = resolve }))
+    const withdrawal = repositories.profile.withdrawConsent()
+    await vi.waitFor(() => expect(sdk.lock).toHaveBeenCalledOnce())
+    expect(sdk.read).not.toHaveBeenCalled()
+    expect(sdk.commit).not.toHaveBeenCalled()
+    acknowledge()
+    await withdrawal
+    expect(sdk.read).toHaveBeenCalledOnce()
+  })
+  it('keeps the lock and does not delete or clear consent on server-read failure', async () => {
     const { repositories } = subscribed()
     sdk.read.mockRejectedValueOnce(new Error('offline'))
     await expect(repositories.profile.withdrawConsent()).rejects.toThrow('offline')
+    expect(sdk.transactionUpdates).toEqual([{ bodyWeightWithdrawal: pending, updatedAt: instant }])
     expect(sdk.batches).toEqual([])
   })
-  it('retains consent on interrupted deletion and can retry with the remaining server documents', async () => {
+  it('reuses the server generation and clears consent on retry with the remaining documents', async () => {
     const { repositories } = subscribed()
+    sdk.profileData = { ...sdk.profileData, bodyWeightWithdrawal: { generation: 7, pending: false } }
     sdk.read.mockResolvedValueOnce({ docs: Array.from({ length: 500 }, (_, index) => ({ id: String(index) })) })
     sdk.commit.mockResolvedValueOnce().mockRejectedValueOnce(new Error('interrupted'))
     await expect(repositories.profile.withdrawConsent()).rejects.toThrow('interrupted')
     expect(sdk.batches[0]).toHaveLength(499)
-    sdk.read.mockResolvedValueOnce({ docs: [{ id: '499' }] })
+    sdk.read.mockResolvedValueOnce({ docs: [{ id: '498' }, { id: '499' }] })
     await repositories.profile.withdrawConsent()
-    expect(sdk.batches.at(-1)).toEqual([['delete', `${weightPath}/499`],
-      ['update', profilePath, { healthDataConsent: null, weightClassLabel: null, updatedAt: instant }]])
+    expect(sdk.transactionUpdates).toEqual([{ bodyWeightWithdrawal: { generation: 8, pending: true }, updatedAt: instant }])
+    expect(sdk.batches.at(-1)).toEqual([['delete', `${weightPath}/498`], ['delete', `${weightPath}/499`],
+      ['update', profilePath, {
+        healthDataConsent: null, weightClassLabel: null, bodyWeightWithdrawal: { generation: 8, pending: false }, updatedAt: instant,
+      }]])
+  })
+  it('rejects local measurement writes when the profile already has a shared lock', async () => {
+    const { repositories } = subscribed()
+    emitProfile({ ...profile, bodyWeightWithdrawal: pending }, true)
+    await expect(repositories.bodyWeights.save(weight)).rejects.toThrow('consent')
+    expect(sdk.set).not.toHaveBeenCalled()
   })
   it('blocks concurrent local writes and waits for each committed batch before preparing the next', async () => {
     const { repositories } = subscribed()

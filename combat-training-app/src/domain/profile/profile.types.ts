@@ -6,6 +6,7 @@ export interface HealthDataConsent {
 
 export interface AthleteProfile {
   healthDataConsent: HealthDataConsent | null
+  bodyWeightWithdrawal?: { generation: number; pending: boolean } | null
   wellbeingConsent?: HealthDataConsent | null
   wellbeingWithdrawal?: { generation: number; pending: boolean } | null
   weightClassLabel: string | null
