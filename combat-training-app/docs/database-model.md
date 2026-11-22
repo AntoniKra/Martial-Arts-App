@@ -1,46 +1,46 @@
 # Model danych w Firestore
 
-Stan: 14 listopada 2026. Decyzje: `adr/0008-firestore-document-model.md` (ten model), `adr/0007-firestore-reads-with-onsnapshot.md` (pobieranie danych), `adr/0005-journal-entry-definitions.md` (wpis w dzienniku), `adr/0012-body-weight-health-consent.md` (zgoda na masę ciała), `adr/0015-wellbeing-consent-and-personal-baseline.md` (Samopoczucie). Funkcje i oceny opisuje `feedback-system.md`.
+Stan przed zamrożeniem funkcji: 22 listopada 2026. Decyzje: `adr/0008-firestore-document-model.md` (ten model), `adr/0007-firestore-reads-with-onsnapshot.md` (pobieranie danych), `adr/0005-journal-entry-definitions.md` (wpis w dzienniku), `adr/0012-body-weight-health-consent.md` (zgoda na masę ciała), `adr/0015-wellbeing-consent-and-personal-baseline.md` (Samopoczucie). Funkcje i oceny opisuje `feedback-system.md`.
 
-Model zastępuje lokalny storage. Dane z `localStorage` to dane pokazowe: nie importujemy ich, Firestore zaczyna od zera (decyzja D2). Opis dawnego storage v1–v3 jest w historii Gita i w `domain-model.md`.
+Plany i wpisy dziennika są utrwalane w Firestore. Stare dane pokazowe z lokalnego magazynu planów i sesji nie są importowane (decyzja D2).
 
 ## Zasady
 
-- **Wszystko pod `users/{uid}`.** Konta nie dzielą żadnych danych. Biblioteka kombinacji i opisy testów wbudowanych są w kodzie, nie w bazie.
-- **`schemaVersion` w każdym dokumencie.** Każda kolekcja zaczyna od `1`, niezależnie od wersji dawnego `localStorage`. Zmiana kształtu dokumentu podnosi wersję, a odczyt obsługuje starsze wersje.
-- **Identyfikatory nadaje aplikacja** (`crypto.randomUUID()`), żeby zapis działał bez sieci. Pole `id` w dokumencie jest równe ID dokumentu. Wyjątek: dokumenty „jeden na dzień” albo „jeden na tydzień” mają ID równe dacie (`weekPlans`, `bodyWeights`, `readiness`). Zapas zgodności dla ID sesji opisano w sekcji `workoutSessions`.
+- **Dane konta pod `users/{uid}`.** Biblioteka wbudowanych ćwiczeń znajduje się w kodzie, a prywatne definicje są w Firestore.
+- **`schemaVersion` w każdym dokumencie.** Obsługiwane wersje zależą od kolekcji i wariantu dokumentu.
+- **Identyfikatory nadaje aplikacja**, żeby zapis działał bez sieci. Obecne formaty ID są w wykazie kolekcji. Zapas zgodności dla ID sesji opisano w sekcji `workoutSessions`.
 - **Daty jako tekst.** Dzień: `YYYY-MM-DD`. Chwila: ISO 8601 w UTC z `toISOString()`, np. `2026-11-08T01:51:00.000Z`, więc sortuje się jak tekst. Nie używamy `serverTimestamp()`: dokument zapisany offline ma od razu komplet pól.
 - **`createdAt` i `updatedAt`** są w każdym dokumencie.
 - **Jednostki:** czasy w sekundach, waga w kg z dokładnością do 0,1.
 - **Snapshoty.** Sesja zapisuje nazwę planu, nazwy etapów, nazwę ćwiczenia celu i treść kryterium z chwili treningu. Późniejsza zmiana planu, biblioteki albo kryterium nie zmienia historii.
 - **Bez dokumentów podsumowań.** Tydzień, trendy, plan tygodnia i statystyki profilu liczymy w `src/domain` z pobranych dokumentów. Przy kilkuset wpisach na osobę to tanie i nie może się rozjechać z danymi.
-- **Walidacja:** każdy odczyt i zapis przechodzi przez schemat `zod/mini` w `src/infrastructure` (ADR 0006). Reguły Firestore sprawdzają to samo na płytkim poziomie.
+- **Walidacja:** repozytoria sprawdzają pełne dokumenty schematami `zod/mini` w `src/infrastructure` (ADR 0006). Reguły Firestore niezależnie sprawdzają dostęp i wymagania poszczególnych kolekcji. Eksport JSON zachowuje również surowe dokumenty, które nie przeszły walidacji.
 
 ## Kolekcje
 
-### Rozszerzenie: Moje ćwiczenia (issue #156, ADR 0017)
+| Ścieżka | Zawartość i ID dokumentu | `schemaVersion` |
+| --- | --- | --- |
+| `users/{uid}` | dokument profilu (zgody i etykieta kategorii), ID użytkownika | 1 |
+| `users/{uid}/workoutPlans/{planId}` | plan treningowy, UUID | 1 |
+| `users/{uid}/workoutSessions/{sessionId}` | wpis dziennika, UUID lub zapasowe ID opisane niżej | 1 dla szybkiego stopera, 1 lub 2 dla planu i ręcznego wpisu |
+| `users/{uid}/focusSkills/{focusSkillId}` | element do poprawy z kryterium, UUID | 1 bez pola `exerciseId`, 2 z tym polem |
+| `users/{uid}/weekPlans/{documentId}` | plan konkretnego tygodnia, ID nagłówka `YYYY-MM-DD` poniedziałku, ID pozycji `{weekStart}~{position}` | 1 dla starszej listy, 2 dla nagłówka i pozycji aktualnego modelu |
+| `users/{uid}/recurringWeeks/{documentId}` | stały tydzień, nagłówek `default` i pozycje `item-{position}` | 1 |
+| `users/{uid}/readiness/{date}` | samopoczucie, dzień `YYYY-MM-DD` | 1 |
+| `users/{uid}/bodyWeights/{date}` | pomiar masy ciała, dzień `YYYY-MM-DD` | 1 |
+| `users/{uid}/exercises/{exerciseId}` | prywatna definicja ćwiczenia, UUID | 1 |
+| `users/{uid}/controlTests/{testId}` | zarezerwowana nazwa dla definicji testu R4 | zarezerwowana kolekcja |
+| `users/{uid}/controlTestResults/{resultId}` | zarezerwowana nazwa dla wyniku testu R4 | zarezerwowana kolekcja |
 
-Nowa wdrożona kolekcja `users/{uid}/exercises/{exerciseId}` wchodzi do `USER_COLLECTIONS` i `IMPLEMENTED_USER_COLLECTIONS`. Dokument v1: `id`, `namePl` (1–100 znaków), `type` (`combination` / `drill` / `continuous`), unikalne niepuste `disciplines` (1–5) i `blockTypes` (1–8), `defaultConfiguration` (jak konfiguracja ćwiczenia: 1–99 rund, czasy całkowite 1–86400 s, odpoczynek 0–86400 s), opcjonalne `copiedFromId`, nullable `archivedAt` i `lastUsedAt`, bool `favorite`, `createdAt`, `updatedAt`, `schemaVersion: 1`. Reguły sprawdzają także elementy list i mapę parametrów, dokładne klucze i niezmienność typu, pochodzenia oraz `createdAt`. Nasłuch obejmuje całą prywatną kolekcję. Biblioteka wbudowana nadal pozostaje w kodzie.
+`USER_COLLECTIONS` w `src/infrastructure/firebase/userCollections.ts` obejmuje wszystkie nazwy podkolekcji z wykazu. `IMPLEMENTED_USER_COLLECTIONS` obejmuje osiem wdrożonych podkolekcji i wyznacza zakres eksportu oraz usuwania konta. Dokument profilu jest obsługiwany osobno. Dwie zarezerwowane nazwy R4 nie mają repozytoriów ani dostępu w regułach ([ADR 0021](adr/0021-control-tests-deferred.md)).
+
+### Moje ćwiczenia (issue #156, ADR 0017)
+
+Dokument v1 zawiera `id`, `namePl` (1–100 znaków), `type` (`combination` / `drill` / `continuous`), unikalne niepuste `disciplines` (1–5) i `blockTypes` (1–8), `defaultConfiguration` (1–99 rund, czasy całkowite 1–86400 s, odpoczynek 0–86400 s), opcjonalne `copiedFromId`, nullable `archivedAt` i `lastUsedAt`, bool `favorite`, `createdAt`, `updatedAt` i `schemaVersion: 1`. Reguły sprawdzają także elementy list i mapę parametrów, dokładne klucze i niezmienność typu, pochodzenia oraz `createdAt`.
 
 Plan zachowuje wersję 1 i istniejące `combinationId`, teraz także dla prywatnych definicji. Nowe sesje planu z ID biblioteki w `stepResults[].combinationId` mają wersję 2; sesje bez tego pola i stare dokumenty pozostają w wersji 1. Migawka etapu ma opcjonalne ID biblioteki, ale oceny sesji nie zmieniają pól. Cel z opcjonalnym `exerciseId` (ID biblioteki lub `null`) ma wersję 2; cel bez pola pozostaje wersją 1. Zmiana nazwy definicji nie aktualizuje migawki planu ani sesji. Trend i poprzednia ocena nadal po `focusSkillId` i niezmienionych zasadach kryteriów.
 
-JSON obejmuje surową kolekcję `exercises`, także dokumenty błędne. Osobny `combat-training-moje-cwiczenia-RRRR-MM-DD.csv` zawiera poprawne definicje, w tym archiwalne, ze wszystkimi metadanymi (BOM, średnik i ochrona komórek). Usuwanie konta obejmuje `exercises` po usunięciu sesji, celów i planów. Indywidualne trwałe usunięcie wymaga braku odwołań w planach i historii sprawdzonych na serwerze; niepełne/błędne lub niewysłane dane blokują operację. Archiwizacja nie wymaga sieci. Szczegóły i ograniczenie równoległych zmian na innych urządzeniach: ADR 0017. Opis pierwotnych wersji poniżej pozostaje punktem odniesienia dla starych dokumentów.
-
-| Ścieżka | Co przechowuje | ID dokumentu | Stan / pierwsze użycie |
-| --- | --- | --- | --- |
-| `users/{uid}` | zgoda na dane o zdrowiu i etykieta kategorii wagowej | `uid` | wdrożone: Profil |
-| `users/{uid}/workoutPlans/{planId}` | plany treningowe | UUID | wdrożone: przejście na Firestore |
-| `users/{uid}/workoutSessions/{sessionId}` | wpisy w dzienniku z ocenami i RPE | UUID albo zapasowe ID opisane niżej | wdrożone: przejście na Firestore |
-| `users/{uid}/focusSkills/{focusSkillId}` | ćwiczenia celu z kryterium | UUID | wdrożone: ćwiczenia celu (R1) |
-| `users/{uid}/weekPlans/{weekStart}` | plan tygodnia, czyli moduł celów | poniedziałek `YYYY-MM-DD` | wdrożone: plan tygodnia (R3) |
-| `users/{uid}/readiness/{date}` | samopoczucie | dzień `YYYY-MM-DD` | wdrożone: Samopoczucie (Q3, issue #146) |
-| `users/{uid}/bodyWeights/{date}` | pomiary masy ciała | dzień `YYYY-MM-DD` | wdrożone: Profil |
-| `users/{uid}/controlTests/{testId}` | testy kontrolne z paszportem | UUID | **zaplanowane, jeszcze niewdrożone**: testy (R4) |
-| `users/{uid}/controlTestResults/{resultId}` | wyniki testów | UUID | **zaplanowane, jeszcze niewdrożone**: testy (R4) |
-
-Lista jest zamknięta. Kod trzyma ją w `src/infrastructure/firebase/userCollections.ts` (`USER_COLLECTIONS`). Wdrożone w kodzie kolekcje to `workoutPlans`, `workoutSessions`, `focusSkills`, `weekPlans`, `bodyWeights` i `readiness`; pozostałe nazwy opisują przyszłe funkcje. Sam rejestr nie otwiera reguł ani nasłuchów. Eksport i usunięcie konta korzystają wyłącznie z `IMPLEMENTED_USER_COLLECTIONS`; kolekcje zaplanowane nie są odczytywane, bo reguły odmawiają dostępu. Dokument `users/{uid}` obsługują osobno. Nowa kolekcja wymaga dopisania jej do rejestru, reguł i testów reguł.
-
-Kolekcje `controlTests` i `controlTestResults` pozostają zaplanowane, bez obsługi danych i reguł zezwalających na dostęp.
+JSON obejmuje surową kolekcję `exercises`, także dokumenty błędne. Osobny `combat-training-moje-cwiczenia-RRRR-MM-DD.csv` zawiera poprawne definicje, w tym archiwalne, ze wszystkimi metadanymi (BOM, średnik i ochrona komórek). Usuwanie konta obejmuje `exercises` po usunięciu sesji, celów i planów. Indywidualne trwałe usunięcie wymaga sprawdzenia na serwerze, że definicja nie jest używana w planach ani w historii. Niepełne, błędne lub niewysłane dane blokują operację. Archiwizacja działa offline. Szczegóły i ograniczenia współbieżnej edycji opisuje ADR 0017.
 
 ## `users/{uid}`
 
@@ -65,20 +65,20 @@ Wdrożony profil oraz dwie niezależne zgody: na pomiary masy ciała z kategori�
 
 ## `workoutPlans`
 
-Plan to jeden dokument z blokami i elementami w listach. Kształt odpowiada dzisiejszemu `WorkoutPlan`, z trzema dodatkami.
+Plan to jeden dokument z blokami i elementami w listach. Kształt odpowiada typowi `WorkoutPlan`.
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
 | `schemaVersion` | `1` | |
-| `id`, `disciplineKey`, `customName`, `nameSnapshot`, `mainGoal`, `createdAt` | jak dziś | |
-| `updatedAt` | chwila | **nowe** |
+| `id`, `disciplineKey`, `customName`, `nameSnapshot`, `mainGoal` | identyfikator, dyscyplina, nazwy i główny cel | |
+| `createdAt`, `updatedAt` | chwila | |
 | `blocks` | lista bloków | |
 
-Blok: `id`, `blockType`, `items` jak dziś, plus **`sparringIntensity`**: `light`, `technical`, `hard` albo `null`. Pole ma tylko blok typu `sparring`. `null` znaczy „nie wybrano”: podsumowanie zapyta wtedy o intensywność (Q4).
+Blok ma `id`, `blockType`, `items`. Blok typu `sparring` może mieć też `sparringIntensity`: `light`, `technical`, `hard` albo `null`. `null` oznacza, że intensywność może zostać uzupełniona w podsumowaniu (Q4).
 
-Ćwiczenie: pola jak dziś (`id`, `type: 'exercise'`, `combinationId`, `exerciseNameSnapshot`, `instruction`, `configuration`), plus **`focusSkillId`**: ID z `focusSkills` albo `null`.
+Ćwiczenie ma `id`, `type: 'exercise'`, `combinationId`, `exerciseNameSnapshot`, `instruction`, `configuration` i `focusSkillId` (ID z `focusSkills` albo `null`).
 
-Przerwa: bez zmian (`id`, `type: 'break'`, `durationSeconds`, `instruction`).
+Przerwa ma `id`, `type: 'break'`, `durationSeconds` i `instruction`.
 
 Reguły domenowe:
 - najwyżej 3 ćwiczenia z `focusSkillId` w planie (Q1);
@@ -86,7 +86,7 @@ Reguły domenowe:
 
 ## `workoutSessions`
 
-Jeden dokument to jeden wpis w dzienniku. Pola zależą od źródła (`source`). Pola, które dopiero wypełnią przyszłe funkcje, są w dokumencie od początku (`null` albo pusta lista). Dzięki temu nie trzeba będzie migrować danych zebranych przed ich wdrożeniem.
+Jeden dokument to jeden wpis w dzienniku. Zawartość i wersja zależą od źródła (`source`).
 
 Nowa sesja z planu otrzymuje ID z `crypto.randomUUID()` przy rozpoczęciu pierwszego etapu (`src/features/workout-player/hooks/useWorkoutSessionRecorder.ts`). Jeśli odzyskiwany zapis przygotowania ma `sessionId: null`, a termin przygotowania już minął, `src/features/workout-player/utils/resolveActiveWorkout.ts` nadaje ID `planId-startedAtMs`, gdzie `startedAtMs` to termin końca przygotowania w milisekundach. To zapas zgodności dla wznowienia; istniejące `sessionId` jest zachowywane.
 
@@ -94,7 +94,7 @@ Nowa sesja z planu otrzymuje ID z `crypto.randomUUID()` przy rozpoczęciu pierws
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
-| `schemaVersion` | `1` | |
+| `schemaVersion` | `1` lub `2` | Według źródła i pól opisanych poniżej |
 | `id` | UUID albo `planId-startedAtMs` | Zapasowe ID tylko w opisanym wyżej przypadku wznowienia |
 | `source` | `plan`, `quickTimer`, `manual` | ADR 0005 |
 | `status` | `completed`, `partial` | Ręczny wpis ma zawsze `completed` |
@@ -112,7 +112,9 @@ Nowa sesja z planu otrzymuje ID z `crypto.randomUUID()` przy rozpoczęciu pierws
 
 ### Pola zależne od źródła
 
-Issue #149 / ADR 0016: nowy lub świadomie poprawiony ręczny wpis ma `schemaVersion: 2` oraz `parts`: 1–6 unikalnych kluczy `technique`, `pads`, `bag`, `sparring`, `conditioning`, `other`. `category` odpowiada pojedynczej nazwanej części; dla kilku części i `other` jest `mixed`. Wersja 1 bez `parts` pozostaje odczytywana bez migracji. Plan i szybki stoper nadal mają wersję 1. Odczyt i zapis sprawdza `zod/mini`; Firestore sprawdza wersję, obecność listy, dozwolone wartości, brak duplikatów, długość, zgodność rodzaju i obecności sparingu. `createdAt` już istniało: nowy wpis zapisuje chwilę dodania, edycja ją zachowuje.
+- `manual`: nowy lub poprawiony wpis ma wersję 2 i `parts` z 1–6 unikalnymi kluczami `technique`, `pads`, `bag`, `sparring`, `conditioning`, `other`. `category` odpowiada pojedynczej nazwanej części, a przy kilku częściach lub `other` przyjmuje `mixed`. Starszy wpis bez `parts` ma wersję 1 i jest odczytywany bez migracji (ADR 0016).
+- `plan`: wersja 2, gdy co najmniej jeden zapisany etap ma `combinationId`. Sesje bez tego pola we wszystkich etapach mają wersję 1 (ADR 0017).
+- `quickTimer`: wersja 1.
 
 | Pole | `plan` | `quickTimer` | `manual` |
 | --- | --- | --- | --- |
@@ -126,7 +128,7 @@ Issue #149 / ADR 0016: nowy lub świadomie poprawiony ręczny wpis ma `schemaVer
 
 Ręczny wpis ma `status: 'completed'`, `completion: null`, `workSeconds: null` i `sparringSeconds: null` (nieznane czasy, a nie zera). Data przy tworzeniu: od dziś − 7 dni do dziś w strefie urządzenia. Edycja może pozostawić starszą zapisaną datę; nowa data musi być z tego zakresu. Nowy wpis otrzymuje UUID, strefę urządzenia i `createdAt = updatedAt = rpeRecordedAt = now`. Edycja zachowuje ID, `createdAt` i `timezone`. Pierwsza wersja ręcznego wpisu z 12 listopada pozostaje obsługiwana; części zajęć od 14 listopada używają wersji 2.
 
-Po korekcie zegara `−15 s` / `+15 s` (issue #91) `stepResults[].plannedDurationSeconds` oznacza czas docelowy etapu po korektach, minimum 1 s, a nie pierwotny czas z planu. Dla `completed` nadal obowiązuje `performedDurationSeconds === plannedDurationSeconds`; np. runda 180 s wydłużona o 15 s zapisuje obie wartości jako 195 i wnosi 195 s do pracy. Licznik `completion` nie zmienia znaczenia. Korekta nie zmienia planu ani pól dokumentu sesji, więc schemat wersji 1 i reguły Firestore pozostają bez zmian. Lokalny zapis wznowienia ma opcjonalne `stepDurations` z celami etapów; brak pola w starym zapisie oznacza czasy z planu. Wynik wcześniejszej próby zachowuje własny czas docelowy także po restarcie etapu.
+Po korekcie zegara `−15 s` / `+15 s` (issue #91) `stepResults[].plannedDurationSeconds` oznacza czas docelowy etapu po korektach, minimum 1 s. Dla `completed` obowiązuje `performedDurationSeconds === plannedDurationSeconds`. Runda 180 s wydłużona o 15 s zapisuje obie wartości jako 195 i wnosi 195 s do pracy. Lokalny zapis wznowienia ma opcjonalne `stepDurations` z celami etapów. Brak pola oznacza czasy z planu. Wynik wcześniejszej próby zachowuje własny czas docelowy także po restarcie etapu.
 
 ### `SparringEntry`
 
@@ -164,8 +166,9 @@ Ręczny wpis zawiera najwyżej 3 unikalne `focusSkillId`; ocena 1–5 albo `unab
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
-| `schemaVersion` | `1` | |
+| `schemaVersion` | `1` lub `2` | Zależnie od obecności pola `exerciseId` |
 | `id` | UUID | |
+| `exerciseId` | ID biblioteki lub `null` | Pole dostępne w v2 |
 | `name` | tekst 1–80 | Np. „Lewy prosty, powrót do gardy” |
 | `criterion` | tekst 1–200 | Kryterium oceny (R1) |
 | `openCorrection` | `{ problem, fix, sessionId, workoutDate }` albo `null` | Ostatnia otwarta notatka „problem i poprawka” (R2) |
@@ -182,17 +185,19 @@ Ręczny wpis zawiera najwyżej 3 unikalne `focusSkillId`; ocena 1–5 albo `unab
 
 ## `weekPlans` (plan tygodnia i moduł celów)
 
-### Rozszerzenie v2: dni i stały tydzień (issue #164, ADR 0018)
+### Model v2: dni i stały tydzień
 
-Issue #176: stary model v1 opisany poniżej jest odczytywany bez przepisywania i pokazywany w układzie v2; pierwsza zmiana zapisuje nagłówek i wszystkie pozycje v2 jedną partią, zachowując dane i historię. Nowy model aplikacyjny dodaje `schedule` (0–14 pozycji) i `targetCount` (całkowite 0–14); `items` jest wtedy pustą listą. Pozycja ma `id`, `kind` i dzień 0–6 (poniedziałek–niedziela). Wariant `club`: `disciplineKey`, `startTime` i `endTime` w formacie HH:mm, koniec późniejszy od początku, unikalne `parts` jak w ręcznym wpisie (0–6) i `clubName` (null lub 1–100 znaków). Wariant `own`: dzień lub null (dowolny dzień), `category`, nullable `workoutPlanId` i `planNameSnapshot` (oba puste lub oba podane). Wariant `rest`: wymagany dzień. W konkretnym tygodniu każda pozycja ma `omitted: boolean` (odpoczynek zawsze false).
+Model aplikacyjny v2 ma `schedule` (0–14 pozycji) i osobny `targetCount` (całkowite 0–14). `items` jest pustą listą. Pozycja ma `id`, `kind` i dzień 0–6 (poniedziałek–niedziela). Wariant `club`: `disciplineKey`, `startTime` i `endTime` w formacie HH:mm, koniec późniejszy od początku, unikalne `parts` jak w ręcznym wpisie (0–6) i `clubName` (null lub 1–100 znaków). Wariant `own`: dzień lub null (dowolny dzień), `category`, nullable `workoutPlanId` i `planNameSnapshot` (oba puste lub oba podane). Wariant `rest`: wymagany dzień. W konkretnym tygodniu każda pozycja ma `omitted: boolean` (odpoczynek zawsze false). Powstanie migawki ze stałego tygodnia i aktualizowanie jej od dziś z ochroną wyjątków opisuje [ADR 0018](adr/0018-recurring-and-scheduled-weeks.md).
 
 Fizycznie `users/{uid}/recurringWeeks` przechowuje nagłówek v1 `default` (`id`, `itemCount`, `createdAt`, `updatedAt`, `schemaVersion`) i pozycje v1 `item-{position}` (`id`, `position` 0–13, `activity`, czasy, wersja). Jest to jedna logiczna lista stałego tygodnia. `weekPlans/{weekStart}` v2 ma `scheduleSize` zamiast listy `schedule`; pozycje v2 znajdują się w tej samej kolekcji pod ID `{weekStart}~{position}`, z polami `weekStart`, `position`, `activity`, czasy i wersja. Szczegóły atomowego zapisu, walidacji spójności i uzasadnienie rozdzielenia dokumentów: ADR 0018. `recurringWeeks` jest wdrożona i należy do obu rejestrów kolekcji, eksportu JSON, sprawdzania oczekujących zapisów i usuwania konta. Eksport zachowuje fizyczne dokumenty, bez zmiany wersji lub naprawiania danych.
 
 Każdy tydzień powstaje z niezależnej migawki stałych pozycji po potwierdzonym odczycie braku tygodnia. Przeniesienie, dodanie, usunięcie i „Nie byłem” w konkretnym tygodniu zmieniają tylko tę migawkę i odłączają zmienione wystąpienie od stałego planu. Zmiana stałego tygodnia propaguje dodanie, edycję i usunięcie od dziś w Warszawie, chroniąc minione dni oraz ręczne wyjątki; oba tygodnie zapisuje jedna partia. Włączenie „Powtarzaj co tydzień” dodaje pozycję również do stałego tygodnia, w tej samej partii (ADR 0018). Brak lub błąd odczytu nie oznacza pustego planu. Zapis lokalny potwierdza nasłuch, a `hasPendingWrites` pokazuje „Czeka na wysłanie”. Zakończony tydzień zachowuje trwałą flagę edycji. Data pozostaje utrwalonym `workoutDate`; nie przeliczamy jej z UTC.
 
-Zaliczanie v2 maksymalizuje liczbę dopasowań, każda sesja i pozycja najwyżej raz. Dla klubu wymagana jest dyscyplina i dowolna wspólna część, gdy części podano; dla treningu własnego rodzaj/część. Datowana pozycja wymaga identycznej daty; null dopuszcza cały tydzień. Odpoczynek i świadomie pominięte pozycje nie są dopasowywane. Cel liczy wszystkie zapisane sesje, również częściowe i „Poza planem”; pasek najwyżej 100%. Statusy „Wykonane”, „Zaplanowane”, „Opuszczone”, „Nie byłem” i „Poza planem” są wyliczane, nie utrwalane. Miniony dzień bez wpisu jest opuszczony; dowolny dzień dopiero po niedzieli. Reguły sprawdzają każdą pozycję oraz własność; `zod/mini` sprawdza również daty, unikalność i spójność zestawu.
+Zaliczanie v2 maksymalizuje liczbę dopasowań. Każda sesja i pozycja uczestniczy najwyżej raz. Klub wymaga zgodnej dyscypliny i dowolnej wspólnej części, jeżeli podano części. Trening własny wymaga zgodnego rodzaju lub części. Datowana pozycja wymaga identycznej daty, a `null` dopuszcza cały tydzień. Odpoczynek i świadomie pominięte pozycje nie są dopasowywane. W tygodniu bez `legacyGoal` do `targetCount` liczą się wszystkie zapisane sesje, w tym częściowe i „Poza planem”. Pasek dochodzi najwyżej do 100%. Statusy realizacji wylicza aplikacja. Miniony dzień bez wpisu jest opuszczony, a pozycja bez dnia staje się opuszczona dopiero po niedzieli.
 
-### Dotychczasowy model v1
+### Zgodność ze starszym celem v1
+
+Odczyt pokazuje v1 w układzie v2 bez zapisu. Pierwsza zmiana zapisuje nagłówek i pozycje v2 jedną partią. Przeniesiona pozycja może zachować oryginalną definicję w `legacyGoal`. Dopóki tydzień zawiera takie pozycje, cel liczy ukończone dopasowania, a przeniesiona pozycja zachowuje dopasowanie według planu lub rodzaju oraz osobny status częściowego wykonania. Edycja danej pozycji może zastąpić jej starszą definicję. Zapis i współbieżność opisuje [ADR 0018](adr/0018-recurring-and-scheduled-weeks.md).
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
@@ -219,12 +224,6 @@ Dopasowanie liczymy czysto w `src/domain`, bez zmieniania sesji ani planu:
 6. Pasek to **wyłącznie ukończone / zaplanowane**, najwyżej 100%. Częściowe, niewykonane i dodatkowe mają osobne liczniki. Pozostałe sesje są dodatkowe tylko przy istniejącym celu. Brak dokumentu lub `items: []` oznacza brak celu: liczba treningów i możliwość ułożenia planu, bez paska i „dodatkowych”. Loading, błąd, niepoprawne lub niepełne dane nie oznaczają braku celu ani zera sesji.
 
 `mixed` nie jest dowolnym rodzajem, a podobna nazwa nie zastępuje ID planu. `planNameSnapshot` zachowuje historię po zmianie lub usunięciu planu treningowego. Niedostępny plan pozostaje na liście do świadomego usunięcia lub zastąpienia. Edycja celu (także pustej listy) nie usuwa sesji; realizacja przelicza się względem aktualnej listy.
-
-Nie ma automatycznego przenoszenia. Kopiowanie wybranych pozycji lub całej listy z poprzedniego tygodnia obejmuje także ukończone cele; nadaje nowe ID, dopisuje do szkicu celu i wymaga zapisu. Nie kopiuje sesji, statusów ani flagi, nie zmienia źródła. Przekroczenie 14 blokuje całą operację.
-
-Home pokazuje zwięzły cel, a „Postęp” prowadzi do leniwie ładowanych szczegółów z wyborem tygodnia i edycją. Jeden nasłuch na konto obejmuje bieżący i 12 poprzednich tygodni oraz przyszłość (`weekStart >=` dolna granica). Po zmianie tygodnia lub powrocie z tła granica odświeża się bez przeładowania; starszych dokumentów nie usuwamy. Tydzień spoza zakresu nie jest prezentowany jako pusty. Niepełny cache bez dokumentu blokuje tworzenie planu; poprawny dokument z cache można edytować offline. Liczniki sesji wymagają pełnego, poprawnego odczytu; błąd ćwiczeń celu nie blokuje niezależnego celu tygodnia.
-
-Zapis potwierdza lokalny snapshot i pokazuje „Czeka na wysłanie” do potwierdzenia serwera. Późniejsze odrzucenie pokazuje błąd i wymaga ponowienia odczytu, zamiast pozostawiać komunikat sukcesu. Zmiana konta i wylogowanie zamykają nasłuch oraz czyszczą jego dane; cel nie trafia do globalnego `localStorage`.
 
 ## `readiness` (Samopoczucie, Q3, issue #146)
 
@@ -262,50 +261,18 @@ Wdrożone pomiary z datą jako kluczem dokumentu.
 
 ## `controlTests` i `controlTestResults` (testy kontrolne, R4)
 
-**Zaplanowane, jeszcze niewdrożone.** Kształt wstępny, bez obsługi danych i zezwalających reguł. Szczegóły pól doprecyzujemy w issue testów, bo ekranów jeszcze nie projektowaliśmy.
-
-`controlTests`:
-
-| Pole | Typ | Opis |
-| --- | --- | --- |
-| `schemaVersion` | `1` | |
-| `id` | UUID | |
-| `kind` | `custom`, `burpees3min`, `kast` | Protokół testów wbudowanych jest w kodzie |
-| `name` | tekst 1–80 | |
-| `measure` | `seconds`, `repetitions` | |
-| `betterDirection` | `lower`, `higher` | |
-| `protocol` | tekst ≤ 1000 albo `null` | Tylko test własny |
-| `passport` | `{ place, equipment, warmup, timeOfDay, other }`, teksty ≤ 200 | Stałe warunki testu |
-| `archivedAt` | chwila albo `null` | |
-| `createdAt`, `updatedAt` | chwila | |
-
-`controlTestResults`:
-
-| Pole | Typ | Opis |
-| --- | --- | --- |
-| `schemaVersion` | `1` | |
-| `id`, `testId` | UUID | |
-| `testNameSnapshot` | tekst | |
-| `performedOn` | `YYYY-MM-DD` | |
-| `value` | liczba > 0 | |
-| `sameConditions` | boolean | Czy warunki zgadzały się z paszportem |
-| `conditionsNote`, `note` | tekst ≤ 500 albo `null` | |
-| `videoRecorded` | boolean | KAST: zalecenie nagrania |
-| `createdAt`, `updatedAt` | chwila | |
-
-- Próg prawdziwej zmiany ma tylko test wbudowany i jest w kodzie (burpees 3 min: 6 powtórzeń). Test własny pokazuje „pewność nieznana”.
-- KAST jest dostępny tylko dla kickboxingu i K-1.
+Nazwy są zarezerwowane dla kierunku rozwoju R4. Bieżący model nie ma dla nich wdrożonych schematów, nasłuchów ani dostępu w regułach. Decyzję o zakresie zapisuje [ADR 0021](adr/0021-control-tests-deferred.md).
 
 ## Dane poza Firestore
 
 | Co | Gdzie | Dlaczego |
 | --- | --- | --- |
 | Motyw (D4) | `localStorage` urządzenia | Wybór dotyczy urządzenia |
-| Przygotowanie przed treningiem i sygnał 10 s | `localStorage` urządzenia, bez `uid` | Ustawienia urządzenia; zostają po usunięciu konta |
+| Przygotowanie przed treningiem i sygnały końca rundy i przerwy | `localStorage` urządzenia, bez `uid` | Ustawienia urządzenia, które zostają po usunięciu konta |
 | Ostatnie ustawienia szybkiego stopera | `localStorage`, klucz `combat-training.quickTimer.{uid}` | Dyscyplina, rodzaj, format, liczba rund, czas pracy i przerwy na następny raz; zostają po wylogowaniu, usuwane razem z kontem |
 | Zamknięte przypomnienia RPE | `localStorage`, klucz `combat-training.rpeDismissals.{uid}` | ID wpisów, przy których zamknięto przypomnienie o RPE na Start; zostają po wylogowaniu, usuwane razem z kontem |
-| Trwający trening do wznowienia (Q8) | pamięć urządzenia, osobno dla każdego `uid` | Zmienia się co sekundę, a po zapisie wpisu jest kasowany |
-| Szkic kreatora | pamięć urządzenia | Zapis w chmurze dopiero po świadomej akcji |
+| Trwający trening do wznowienia (Q8) | `localStorage`, klucz `combat-training.activeWorkout.<uid>`, wersja 1 | Migawka odtwarzania i rejestratora jest zapisywana przy zmianach stanu w widocznej karcie, przy przejściu do ukrytej karty i przy `pagehide`. Po udanym zapisie wpisu jest usuwana. |
+| Szkic kreatora | stan Reacta na ekranie kreatora | Świadomy zapis tworzy lub aktualizuje plan w Firestore. |
 | Pamięć podręczna Firestore | IndexedDB (`persistentLocalCache`) | Czyszczona przy wylogowaniu |
 
 Stare klucze `localStorage` z planami i sesjami aplikacja usuwa raz, po przejściu na Firestore. Bez tego zostałyby w przeglądarce, widoczne dla każdego konta na tym komputerze.
@@ -314,21 +281,21 @@ Stare klucze `localStorage` z planami i sesjami aplikacja usuwa raz, po przejśc
 
 - Dostęp tylko do własnych danych: `request.auth.uid == uid` i `request.auth.token.email_verified == true` (ADR 0002). Konto Google ma potwierdzony adres.
 - Wszystko, czego reguła nie zezwala wprost, jest zabronione.
-- Wdrożone kolekcje: dozwolone klucze (`hasOnly`) i wymagane klucze (`hasAll`), typy, `schemaVersion == 1`, tożsamość dokumentu (`id`, a w `weekPlans` — `weekStart`), znaczniki czasu oraz odpowiednie dla modelu długości tekstów, rozmiary list i zakresy liczb, np. RPE 0–10.
+- Wdrożone kolekcje: dozwolone i wymagane klucze, typy, wersja właściwa dla kolekcji i wariantu, tożsamość dokumentu, znaczniki czasu oraz limity pól, np. RPE 0–10.
 - Profil wymaga dokładnych kluczy, wersji 1, poprawnych znaczników czasu oraz dokładnej mapy zgody z potwierdzeniem 18+. Kategoria 1–20 znaków musi być `null` bez zgody. Aktualizacja zachowuje `createdAt` i nie podmienia istniejącej zgody.
 - `bodyWeights` i `readiness` wymagają przy zapisie własnej aktywnej zgody z `get(/users/{uid})`; odczyt i usunięcie pozostają dostępne zweryfikowanemu właścicielowi. `controlTests` i `controlTestResults` nadal odmawiają wszystkich operacji.
 - Elementów list (`stepResults`, `blocks`) reguły nie sprawdzają pole po polu. Sprawdzają typ i rozmiar listy, a resztę schemat `zod/mini` w aplikacji.
-- Gałąź `manual` wymaga dokładnie kluczy wspólnych i `focusRatings` (lista ≤ 3), całkowitego RPE 0–10 i chwili jego podania, `null` czasów pracy i sparingu, całkowitego czasu 60–28 800 s oraz listy sparingu ≤ 1. Szczegóły elementów, unikalność ocen i sparing wymagany dla rodzaju „Sparing” sprawdza `zod/mini`. Zakresu 7 dni nie sprawdzamy względem `request.time`, aby późniejsza synchronizacja offline i edycja starszego wpisu mogły się powieść.
-- Testy na emulatorze dla wdrożonych kolekcji: właściciel, drugie konto, niezalogowany, konto bez potwierdzonego e-maila, zły `schemaVersion`, nadmiarowe pole. Dodatkowo profil i pomiary sprawdzają zgodę 18+, jej niezmienność, kategorię bez zgody, granice masy, zgodność daty z ID i usuwanie po wycofaniu. Zaplanowane kolekcje nadal mają testy odmowy.
+- Gałąź `manual` wymaga kluczy wspólnych i `focusRatings` (lista ≤ 3), całkowitego RPE 0–10 i chwili jego podania, `null` czasów pracy i sparingu, całkowitego czasu 60–28 800 s oraz listy sparingu ≤ 1. Wersja 2 wymaga także `parts`. Reguły sprawdzają jej wartości, unikalność, zgodność z kategorią i obecność wpisu sparingu. Schemat klienta sprawdza również elementy ocen i ich unikalność. Zakresu 7 dni nie sprawdzamy względem `request.time`, aby późniejsza synchronizacja offline i edycja starszego wpisu mogły się powieść.
+- Testy na emulatorze obejmują m.in. dostęp właściciela, drugiego konta, niezalogowanego i konta bez potwierdzonego e-maila, wersje dokumentów i nadmiarowe pola. Dla profilu i pomiarów sprawdzają również zgodę 18+, granice masy i usuwanie po wycofaniu zgody. Dla zarezerwowanych kolekcji sprawdzają odmowę.
 
 ## Odczyt (ADR 0007)
 
 | Kolekcja | Co słuchamy przez `onSnapshot` |
 | --- | --- |
-| `workoutPlans`, `workoutSessions`, `focusSkills` | całą kolekcję; sortowanie w `src/domain` |
+| `workoutPlans`, `workoutSessions`, `focusSkills`, `exercises` | całą kolekcję |
 | `weekPlans` | bieżący i 12 poprzednich tygodni oraz wszystkie przyszłe plany (`weekStart >=` dolna granica) |
+| `recurringWeeks` | nagłówek i pozycje stałego tygodnia |
 | `bodyWeights` | całą kolekcję tylko przy ważnej zgodzie; sortowanie w `src/domain` |
-| `controlTests`, `controlTestResults` | **zaplanowane, jeszcze niewdrożone:** całą kolekcję; sortowanie w `src/domain` |
 | `readiness` | całą kolekcję tylko przy osobnej aktywnej zgodzie; poprzednie dni są potrzebne do normy historycznego RPE i każdego punktu wykresu (ADR 0015) |
 | `users/{uid}` | dokument zawsze po zalogowaniu |
 
@@ -339,25 +306,16 @@ Profil i pomiary mają wspólnego providera danych z pozostałymi kolekcjami. `h
 
 ## Eksport i usunięcie konta (Q7)
 
-- **Eksport:** dwa osobne pliki: `combat-training-dane-RRRR-MM-DD.json` i `combat-training-dziennik-RRRR-MM-DD.csv` z lokalną datą. JSON ma `format: 'combat-training-export'`, `formatVersion: 1`, chwilę ISO `exportedAt`, identyfikator i e-mail konta, surowy profil albo `null` i dokumenty kolekcji z `IMPLEMENTED_USER_COLLECTIONS`, w kolejności ID dokumentu, z wcięciem 2 spacje. Pola pozostają bez zmian, również `schemaVersion`; zachowujemy także niepoprawne dokumenty. Nie odczytujemy kolekcji zaplanowanych. Przy zgodzie na masę ciała UI ostrzega o danych o zdrowiu.
+- **Eksport:** osobne pliki JSON, CSV dziennika, CSV samopoczucia i CSV prywatnych ćwiczeń, z lokalną datą w nazwie. JSON ma `format: 'combat-training-export'`, `formatVersion: 1`, chwilę ISO `exportedAt`, identyfikator i e-mail konta, surowy profil albo `null` oraz dokumenty z `IMPLEMENTED_USER_COLLECTIONS` w kolejności ID. Zachowuje pola i wersje surowych dokumentów, także niepoprawnych.
 - **CSV dziennika:** UTF-8 z BOM, separator `;`, minuty z jedną cyfrą po przecinku i przecinkiem dziesiętnym; cudzysłowy i nowe linie są escapowane. Komórki zaczynające się od `=`, `+`, `-`, `@`, tabulatora lub CR dostają apostrof. Jeden wiersz na poprawny wpis, od najstarszego (`workoutDate`, `startedAt` lub `createdAt`, `id`); niepoprawne dokumenty nadal są dostępne w JSON. Polskie etykiety są współdzielone z UI, wartości nieznane pozostają puste. Realizacja rozróżnia ćwiczenia i rundy; ręczny wpis ma ją pustą. Szybki stoper bierze nazwę z `workoutSessionName`, nie ma ocen celu, a intensywność `null` pozostaje pusta. „RPE z pamięci” korzysta ze wspólnego obliczenia.
 - **CSV samopoczucia:** osobny plik `combat-training-samopoczucie-RRRR-MM-DD.csv`, także UTF-8 z BOM, `;` i ochroną komórek. Wszystkie poprawne wpisy według daty, również dni bez treningów: cztery oceny, notatka, wersja pytań, utworzenie i poprawka. JSON zawiera także surowe niepoprawne wpisy `readiness`; ostrzeżenie eksportu obejmuje obie grupy danych o zdrowiu.
 - **Źródło:** tylko serwer (`getDocFromServer`, `getDocsFromServer`); bez sieci lub przy `hasPendingWrites` eksport i usunięcie są zablokowane.
 - **Usunięcie konta:** bez Cloud Functions i karencji (ADR 0013).
   1. Ponowne logowanie hasłem lub Google. Powrót z Google uznaje się za potwierdzony wyłącznie przy zgodnym `uid` znacznika i wyniku `reauthenticate` odebranym raz przez AuthProvider. Usunięcie zawsze wymaga osobnego przycisku.
   2. Odświeżenie tokenu i kontrola `authTime` (do 4 minut); błąd lub stare potwierdzenie nie usuwa żadnych danych.
-  3. Odczyt z serwera i usunięcie kolejno `readiness`, `bodyWeights`, `workoutSessions`, `focusSkills`, `weekPlans`, `workoutPlans`, partiami najwyżej 500, także dokumentów niezgodnych ze schematem.
+  3. Odczyt z serwera i usunięcie kolejno `readiness`, `bodyWeights`, `workoutSessions`, `focusSkills`, `weekPlans`, `workoutPlans`, `exercises` i `recurringWeeks`, partiami najwyżej 500, także dokumentów niezgodnych ze schematem.
   4. Usunięcie `users/{uid}`, potem konta Authentication.
   5. Zamknięcie nasłuchów i wyczyszczenie Firestore; usunięcie wszystkich kluczy `localStorage` pasujących do `combat-training.*.{uid}` oraz znacznika przekierowania. Klucze innego konta i ustawienia bez `uid` (motyw, przygotowanie, sygnał 10 s) zostają. Sprzątanie jest niezależne od odmontowania ekranu.
   6. Jednorazowy komunikat na logowaniu. Trasa usuwania nigdy nie jest celem powrotu po logowaniu.
 
-  Przerwany proces można powtórzyć. Znane ograniczenie: token innego urządzenia może być ważny do godziny i wysłać zaległy dokument po usunięciu. UI prosi o połączenie i wylogowanie innych urządzeń; ręczną kontrolę właściciela opisuje `deployment.md`. Reguły bez zmian.
-
-## Zmiany w kodzie wobec dzisiejszych typów
-
-- `WorkoutSession` staje się unią według `source`. `workoutPlanId`, nazwa planu, oceny ćwiczeń i `stepResults` zależą od źródła.
-- `completion` dostaje kształt `{ completed, planned, unit }` zamiast `{ completedExercises, plannedExercises }`.
-- Nowe pola sesji: `rpe`, `rpeRecordedAt`, `sparring`, `focusRatings`, `exerciseRatings`, `createdAt`, `updatedAt`.
-- `WorkoutPlan`: `focusSkillId` w ćwiczeniu, `sparringIntensity` w bloku sparingu, `updatedAt`.
-- `WorkoutFeedback` z `src/domain/feedback/feedback.types.ts` przestaje obowiązywać: koncentracja, dyskomfort, realizacja celu i odczuwany postęp są w „Kierunkach rozwoju”.
-- Repozytoria i schematy `localStorage` dla planów i sesji znikają po przejściu na Firestore.
+  Przerwany proces można powtórzyć. Znane ograniczenie: token innego urządzenia może być ważny do godziny i wysłać zaległy dokument po usunięciu. UI prosi o połączenie i wylogowanie innych urządzeń. Ręczną kontrolę właściciela opisuje `deployment.md`.

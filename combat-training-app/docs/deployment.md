@@ -1,8 +1,8 @@
 # Wdrożenie na Firebase Hosting
 
-Aplikacja działa pod adresem `https://combat-training-830fb.web.app`. Po zielonym CI na `main` wgrywa ją GitHub Actions. Wdrożenie z komputera właściciela zostaje jako droga awaryjna. Decyzja: `adr/0010-automatic-hosting-deploy.md`.
+Adres kanału live to `https://combat-training-830fb.web.app`. Wdrożenie prowadzi GitHub Actions po udanym CI na aktualnym `main` i sprawdzeniu wersji reguł Firestore. Wdrożenie ręczne pozostaje drogą awaryjną właściciela ([ADR 0010](adr/0010-automatic-hosting-deploy.md)).
 
-Workflow `CI` równolegle sprawdza typy, lint, testy jednostkowe i build w jobie `Typecheck, lint, test, build`, reguły Firestore w jobie `Firestore rules` oraz E2E na trzech maszynach w jobach `Playwright E2E (phone/tablet/desktop)`, po jednym rozmiarze ekranu na maszynę. Raporty E2E i zrzuty błędów są w artefaktach przebiegu Actions `playwright-report-phone`, `playwright-report-tablet` i `playwright-report-desktop` przez 14 dni; wdrożenie po scaleniu wymaga sukcesu wszystkich jobów CI.
+Workflow `CI` równolegle sprawdza typy, lint, testy jednostkowe i build w jobie `Typecheck, lint, test, build`, reguły Firestore w jobie `Firestore rules` oraz E2E w jobach `Playwright E2E (phone/tablet/desktop)`, po jednym rozmiarze ekranu na maszynę. Playwright ponawia każdy nieudany test w CI raz. Raporty E2E i zrzuty błędów są dostępne przez 14 dni w artefaktach `playwright-report-phone`, `playwright-report-tablet` i `playwright-report-desktop`. Wdrożenie po scaleniu wymaga sukcesu wszystkich jobów CI.
 
 ## Automatyczne wdrożenie po scaleniu
 
@@ -22,11 +22,9 @@ Gdy znacznik jest, a `combat-training-app/firestore.rules` różni się od tamte
 
 PR z tego repozytorium uruchamia `Hosting preview build`. Ten workflow nie dostaje sekretów i ma tylko `contents: read`, tak jak CI. To wystarcza, żeby zapisać artefakt. Buduje aplikację i na 3 dni zapisuje dwa artefakty: `hosting-preview-dist` (gotowy `dist`) oraz `hosting-preview-pr` (numer PR, zapisany w osobnym jobie po budowaniu).
 
-Po udanym budowaniu `Hosting preview deploy` (musi być już na `main`) robi checkout tylko domyślnej gałęzi. Numer PR z artefaktu musi być liczbą i musi należeć do metadanych tego przebiegu: do pull requestów zapisanych przy runie, a gdy GitHub zostawi tę listę pustą — do pull requestów commita `head_sha`. Dodatkowo HEAD pull requesta musi być nadal tym commitem. Niezgodność albo starszy build zatrzymuje workflow przed wgraniem i przed komentarzem. Wgrania jednego PR idą po kolei i nie przerywają trwającego. Potem workflow pobiera `dist` i wgrywa same pliki statyczne na kanał `pr-<numer>`. Kanał wygasa po 7 dniach. Job nie uruchamia `npm ci`, `build:deploy` ani niczego z artefaktu. Akcja Firebase wywołuje u siebie `npx firebase-tools`, żeby wysłać pliki. Hook `predeploy` jest usuwany tylko w kopii roboczej joba (`jq 'del(.hosting.predeploy)'`), więc podgląd nie buduje kodu z `main`. Ręczne `npx firebase deploy --only hosting -P prod` nadal samo buduje aplikację.
+Po udanym budowaniu `Hosting preview deploy` pobiera konfigurację Hostingu z domyślnej gałęzi. Numer PR z artefaktu musi być liczbą i musi należeć do metadanych przebiegu albo, gdy lista PR w metadanych jest pusta, do PR przypisanych do zbudowanego commita. HEAD pull requesta musi nadal wskazywać ten commit. Wgrania jednego PR są kolejkowane. Workflow pobiera `dist` i wgrywa sprawdzone pliki statyczne na kanał `pr-<numer>`, który wygasa po 2 dniach. Hook `predeploy` jest usuwany w kopii roboczej joba, a artefakt służy wyłącznie jako źródło plików statycznych.
 
 Link jest w jednym komentarzu pod PR i jest aktualizowany przy kolejnym wgraniu, a nie dopisywany od nowa. Podgląd używa prawdziwego projektu Firebase i prawdziwych danych konta: testując PR z błędem, można zepsuć własne dane.
-
-W PR, który dodaje te workflow, uruchamia się tylko budowanie. Wgranie podglądu i wdrożenie po scaleniu zaczną działać od następnego PR po scaleniu.
 
 ## Zmienne repozytorium
 
@@ -94,9 +92,9 @@ Gdy automat nie działa, po `git pull` na `main` powtórz krok 3.
 
 ## Reguły Firestore
 
-Plik `firestore.rules` dopuszcza cztery kolekcje pod `users/{uid}`: `workoutPlans` (plany), `workoutSessions` (sesje), `focusSkills` (ćwiczenia celu) i `weekPlans` (plany tygodnia), wyłącznie dla właściciela z potwierdzonym e-mailem. Dokument profilu `users/{uid}` i pozostałe kolekcje są zabronione do czasu wdrożenia ich funkcji. Reguły sprawdzają dokument płytko; elementy list sprawdzają schematy `zod/mini` w aplikacji (`database-model.md`).
+Plik `firestore.rules` udostępnia zweryfikowanemu właścicielowi dokument profilu `users/{uid}` oraz osiem podkolekcji: `workoutPlans`, `workoutSessions`, `focusSkills`, `weekPlans`, `recurringWeeks`, `exercises`, `bodyWeights` i `readiness`. Zapisy pomiarów masy ciała i samopoczucia wymagają odpowiedniej zgody. Reguły sprawdzają dozwolone wersje i pola według kolekcji. Szczegóły oraz uzupełniającą walidację klienta opisuje [model danych](database-model.md#reguły-bezpieczeństwa).
 
-Przed wdrożeniem uruchom `npm run test:rules` (Node.js 24.12.0 lub nowszy i Java 21). Skrypt startuje wyłącznie emulator Firestore na `127.0.0.1:8080`, z projektem `demo-combat-training`, uruchamia osobny zestaw testów i zatrzymuje emulator. Nie korzysta z produkcji ani z kont Firebase. `npm test` nadal uruchamia tylko testy aplikacji, bez Javy. CI wykonuje oba zestawy.
+Przed wdrożeniem uruchom `npm run test:rules` (Node.js 24.12.0 lub nowszy i Java 21). Skrypt uruchamia emulator Firestore na `127.0.0.1:8080` z projektem `demo-combat-training`, wykonuje testy reguł i zatrzymuje emulator. `npm test` uruchamia osobno testy jednostkowe aplikacji, danych pokazowych i narzędzi wydajnościowych. CI wykonuje oba zestawy.
 
 Reguły na produkcję wdraża ręcznie właściciel, osobno od Hostingu, po sprawdzeniu wyników testów i scaleniu PR. Polecenie zapisane poniżej nie jest częścią testów, CI ani automatycznego wdrożenia hostingu:
 
@@ -145,7 +143,7 @@ Obie odpowiedzi powinny mieć `cache-control: no-cache`.
 
 Kontrola CSP przez właściciela:
 
-1. Na podglądzie PR: zaloguj się e-mailem, zapisz trening i sprawdź konsolę przeglądarki na komputerze — bez błędów CSP. Uwaga: workflow podglądu pobiera `firebase.json` z `main`, a z PR tylko `dist`. Dlatego podgląd PR wprowadzającego CSP nie dostanie jeszcze nowego nagłówka; pełną politykę przed scaleniem sprawdza lokalny E2E na `vite preview`. Nie zmieniamy mechanizmu wdrażania w tym zadaniu.
+1. Na podglądzie PR zaloguj się e-mailem, zapisz trening i sprawdź konsolę przeglądarki pod kątem błędów CSP. Podgląd używa `firebase.json` z gałęzi domyślnej, więc zmiany polityki z PR sprawdź przed scaleniem na lokalnym `vite preview`.
 2. Po scaleniu i wdrożeniu: sprawdź logowanie Google na komputerze i iPhonie. W odpowiedzi dokumentu w zakładce Network sprawdź wymuszający `Content-Security-Policy`. Sprawdź też odpowiedzi `/__/auth/handler` i `/__/auth/iframe`: nie powinny otrzymywać CSP aplikacji.
 3. Jeśli logowanie nie działa: Firebase Console → Hosting → poprzednia wersja → „Rollback”, potem komentarz w PR.
 

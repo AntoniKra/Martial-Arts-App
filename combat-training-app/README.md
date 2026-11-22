@@ -1,83 +1,54 @@
 # Combat Training App
 
-Progresywna aplikacja internetowa (PWA) do ewidencji i analizy treningów sportów walki: boks, kickboxing, Muay Thai, K-1 i MMA w stójce. Aplikacja powstaje w ramach pracy inżynierskiej. Temat i wymagania opisuje `docs/thesis-card.md`.
+Progresywna aplikacja internetowa (PWA) do ewidencji i analizy treningów sportów walki: boks, kickboxing, Muay Thai, K-1 i MMA w stójce. Temat i wymagania pracy inżynierskiej opisuje [karta pracy](docs/thesis-card.md).
 
-Stos: React, TypeScript, Vite, Tailwind CSS, docelowo Firebase (Authentication, Firestore, Hosting).
+Aplikacja korzysta z Reacta, TypeScriptu, Vite i Tailwind CSS. Firebase Authentication obsługuje logowanie e-mailem i hasłem oraz kontem Google. Plany i historia są zapisywane w Cloud Firestore na koncie użytkownika, z pamięcią podręczną w IndexedDB. Aplikacja nie przechowuje planów ani historii w `localStorage`. Tam są m.in. ustawienia urządzenia i migawka aktywnego treningu do wznowienia. Szczegóły opisuje [model danych](docs/database-model.md).
 
 ## Uruchomienie
 
-Wymagany Node.js 24.12.0 lub nowszy i npm (także pakiety Firebase wymagają tej wersji).
-
-Przed uruchomieniem ustaw konfigurację według `.env.example`. Brak konfiguracji
-wyświetla polski komunikat zamiast pustej strony. Właściciel sam podłącza prawdziwy
-projekt i włącza dostawcę Email/Password; agent i testy nie korzystają z tego projektu.
-Lokalne testy używają wyłącznie emulatora Authentication.
+W katalogu `combat-training-app/` użyj Node.js 24.12.0 lub nowszego i npm. Konfigurację do pracy lokalnej opisuje `.env.example`. Przy braku konfiguracji aplikacja wyświetla komunikat.
 
 ```bash
 npm ci
 npm run dev
 ```
 
+`npm run demo` uruchamia lokalny pokaz na emulatorach Auth i Firestore z fikcyjnymi danymi. `npm run showcase` służy właścicielowi do przygotowania osobnych kont pokazowych w produkcji i wymaga jawnego wybrania celu oraz potwierdzenia zapisu. Oba polecenia opisuje [instrukcja pokazu](docs/demo.md).
+
 ## Sprawdzanie jakości
 
 ```bash
-npm run typecheck   # TypeScript
-npm run lint        # ESLint
-npm test            # testy jednostkowe (Vitest)
-npm run build       # build produkcyjny
+npm run typecheck
+npm run lint
+npm test
+npm run build
 ```
 
-Te same kroki uruchamia CI przy każdym pull requeście.
+`npm test` obejmuje testy jednostkowe aplikacji, danych pokazowych i narzędzi wydajnościowych. Osobny `npm run test:rules` uruchamia testy reguł w emulatorze Firestore. Oba zestawy oraz E2E mają własne kroki w CI.
 
-## Wdrożenie
+### Testy przeglądarkowe (E2E)
 
-Firebase Hosting, wdrażany ręcznie przez właściciela: `npx firebase deploy --only hosting -P prod`. Kroki, zabezpieczenia i test na telefonie opisuje `docs/deployment.md`.
-
-## Testy przeglądarkowe (E2E)
-
-Z katalogu `combat-training-app/`, w PowerShell:
+Po zainstalowaniu zależności uruchom w katalogu aplikacji:
 
 ```powershell
 & {
-  npm ci
   npx playwright install --with-deps chromium
   npm run test:e2e
 }
 ```
 
-`test:e2e` uruchamia `firebase emulators:exec --only auth --project demo-combat-training`.
-W CI przed testami instalowana jest Java 21, tak jak w eksperymencie Firestore.
-Sam emulator Authentication może działać bez Javy; emulatory Firestore jej wymagają.
-Porty emulatora (9099 i 4400) muszą być wolne. Nie trzeba logować się do Firebase CLI.
+Skrypt uruchamia emulatory Auth i Firestore z projektem `demo-combat-training`. Potrzebne są Java 21 i wolne porty 8080 oraz 9099. Playwright buduje wersję z konfiguracją demo, uruchamia `vite preview` na `127.0.0.1:4173` i testuje Chromium na telefonie 360×800, tablecie 768×1024 oraz komputerze 1440×900.
 
-Playwright sam buduje aplikację z jawną konfiguracją demo i uruchamia `vite preview` pod adresem
-`http://127.0.0.1:4173` (port musi być wolny). Nie wymaga osobnego serwera deweloperskiego.
-Uruchamia Chromium w trzech rozmiarach: telefon 360×800, tablet 768×1024 i komputer 1440×900.
-Każdy test ma osobny kontekst, pusty localStorage i własny adres testowy. Service worker
-działa tylko w teście offline. `WorkoutApp.open()` tworzy konto przez REST emulatora,
-oznacza adres jako potwierdzony i loguje przez interfejs aplikacji.
+W CI każdy rozmiar ma osobny job i jedno automatyczne ponowienie nieudanego testu. Lokalnie domyślnie nie ma ponowień. Raport HTML można otworzyć przez `npx playwright show-report`. CI przez 14 dni przechowuje raporty i wyniki w artefaktach `playwright-report-phone`, `playwright-report-tablet` i `playwright-report-desktop`.
 
-Testy obejmują kreator, edycję i usuwanie planu z zachowaniem historii, odtwarzacz
-z kontrolowanym zegarem, zapamiętywanie motywu i uruchomienie `/workouts` offline.
-Nowe scenariusze obejmują rejestrację i lokalny link weryfikacyjny, blokadę ponownej wysyłki
-przez 60 s, błędny login, powrót na chronioną stronę, reset hasła, wylogowanie oraz utratę
-sesji w drugiej karcie podczas treningu. axe sprawdza także cztery ekrany logowania.
-W obu motywach naruszenia `moderate`, `serious` i `critical` blokują test.
-Do raportu trafiają wyniki axe i zrzuty ekranów.
-Automatyczne skany nie zastępują ręcznej oceny dostępności.
+## Firebase Hosting
 
-Raport HTML: `npx playwright show-report`. Wyniki JSON są w `test-results/e2e-results.json`.
-CI uruchamia osobny job `e2e`; zawsze udostępnia raport HTML, wyniki, zrzuty i ślady błędów
-jako artefakt `playwright-report` przechowywany przez 14 dni. Testy nie są automatycznie ponawiane.
+- **Live** po udanym CI dla aktualnego `main`. Workflow `Hosting live deploy` wdraża kanał `live`, jeśli reguły Firestore odpowiadają wersji potwierdzonej przez właściciela.
+- **Podgląd PR** dla gałęzi z tego repozytorium. `Hosting preview build` buduje artefakt, a `Hosting preview deploy` wgrywa go na kanał `pr-<numer>`. Kanał wygasa po dwóch dniach. Link pojawia się w komentarzu w PR.
 
-## Ograniczenie danych lokalnych
+Szczegóły, w tym ręczne wdrożenie awaryjne i osobne wdrażanie reguł, opisuje [instrukcja wdrożenia](docs/deployment.md).
 
-Logowanie chroni wejście do aplikacji, ale plany i historia nadal są w localStorage,
-bez powiązania z kontem. Konta używane w tej samej przeglądarce widzą te same dane.
-Wylogowanie ich nie usuwa. Firestore i logowanie Google są osobnymi zadaniami.
+## Zrzuty i dokumentacja
 
-## Zasady pracy
-
-- Zasady dla agentów i ludzi: `../AGENTS.md`.
-- Dokumentacja produktu i decyzje: `docs/` (zacznij od `docs/START-HERE.md`).
-- Kod, nazwy i baza danych są po angielsku, interfejs po polsku.
+- [Katalog zrzutów ekranu](docs/screenshots/README.md), [ekrany konta](docs/screenshots/auth/) i [przykładowe ekrany aplikacji](docs/screenshots/ui-audit-2026-11-07/).
+- [Mapa dokumentacji](docs/START-HERE.md), [zakres wersji finalnej](docs/mvp-scope.md) i [zasady pracy](../AGENTS.md).

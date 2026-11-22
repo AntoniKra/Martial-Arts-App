@@ -35,21 +35,15 @@ X „Zakończ trening” w prawym górnym rogu otwiera to samo okno „Zakończy
 
 N liczy pozostałe etapy pracy bieżącego ćwiczenia, także aktualną niedokończoną rundę, bez odpoczynków. Podczas odpoczynku liczy tylko kolejne rundy; dla pracy ciągłej wynosi 1. Samodzielna przerwa nie pokazuje pomijania ćwiczenia. Pominięcie zamyka okno i przechodzi do następnego elementu, zachowując wcześniejszą pauzę. „Zakończ i zapisz” bez kolejnego pytania zapisuje częściowy trening, jeśli była dokończona praca (`adr/0005-journal-entry-definitions.md`). Tylko „Porzuć bez zapisu…” otwiera dodatkowe potwierdzenie „Porzucić trening? Dane z tego treningu przepadną. Tej operacji nie można cofnąć.” z przyciskami „Porzuć” i „Wróć”. „Wróć” i Escape w potwierdzeniu wracają do okna zakończenia bez porzucenia danych. Zasady są wspólne dla planu i szybkiego stopera (issue #166, 15 listopada 2026).
 
-## Informacja o kolejnym elemencie
+## Zapowiedź kolejnego etapu (v8)
 
-Podczas rundy i przerwy pokazuj następny element. Po zakończeniu ćwiczenia nie przypominaj poprzedniego zadania.
-
-Przykład:
-
-- „Następnie: Tarcze”;
-- „Jab → prawy prosty → low kick”;
-- „Start za 01:24”.
+Pasek pod timerem zapowiada bezpośrednio kolejny etap osi. W trakcie przygotowania zapowiada pierwszy etap. Dla odpoczynku między rundami pokazuje „Następnie: Odpoczynek (MM:SS)”. Dla pozostałych etapów pokazuje nazwę, krótki typ i, gdy etap jest rundą, numer rundy. W ostatnim etapie pasek pokazuje „Koniec treningu”. Jeśli pasek pokazuje znaczniki rund, w trakcie odpoczynku między rundami wyróżnia nadchodzącą rundę.
 
 ## Oceny po treningu
 
 Oceny ćwiczeń są zbierane po treningu na ekranie podsumowania (decyzja P1 z issue #72). W odtwarzaczu, także podczas przerwy, nie ma przycisku „Oceń”. Po ukończeniu albo wcześniejszym zakończeniu treningu z wykonaną pracą aplikacja zapisuje sesję, a następnie otwiera `/workout-sessions/:sessionId/feedback`.
 
-Podsumowanie pokazuje ćwiczenia celu z kryterium i skalą 1–5 lub opcją „Nie umiem ocenić”. Pozostałe ćwiczenia można opcjonalnie ocenić w rozwijanej sekcji „Oceń pozostałe ćwiczenia”; oceny trafiają do `exerciseRatings[].rating`. Oceniać można ćwiczenia z co najmniej jednym ukończonym etapem pracy. „Gotowe” dopisuje oceny i notatkę do istniejącej sesji, po czym otwiera Historię. Do podsumowania można wrócić z wpisu w Historii.
+Podsumowanie pokazuje elementy do poprawy z celem i skalą 1–5 lub opcją „Nie umiem ocenić”. Pozostałe ćwiczenia można opcjonalnie ocenić w rozwijanej sekcji „Pozostałe ćwiczenia”. Oceny trafiają do `exerciseRatings[].rating`. Oceniać można ćwiczenia z co najmniej jednym ukończonym etapem pracy. „Zapisz oceny” dopisuje oceny i notatkę do istniejącej sesji, po czym otwiera Historię. Do podsumowania można wrócić z wpisu w Historii.
 
 ## Gong i ekran
 
@@ -88,7 +82,7 @@ Decyzje właściciela i techniczne z 8 listopada 2026, issue #65 (Q8):
 
 - Repozytorium z `src/application` ma implementację w `src/infrastructure/storage`. Dane trafiają do `localStorage` pod kluczem `combat-training.activeWorkout.<uid>`, z `schemaVersion: 1` i walidacją `zod/mini`. Błędny, niezgodny ze schematem lub nieczytelny zapis jest usuwany bez komunikatu; niedostępna pamięć nie zatrzymuje odtwarzacza.
 - Zapis zawiera niezmienną kopię planu, bieżący etap, status (także `preparing`), termin końca lub dokładny czas pauzy oraz stan rejestratora: identyfikator sesji, `startedAt`, strefę czasową, próby, wyniki etapów, pominięcia i oceny. Zachowuje też `lastSeenAt` oraz zakończoną sesję oczekującą na zapis. Edycja lub usunięcie planu nie wpływa na wznowienie; lokalny odtwarzacz nie czeka na załadowanie Firestore.
-- Stan jest zapisywany przy zmianach odtwarzacza i rejestratora (start, pauza, wznowienie, przejście, pominięcie, ocena), przy `visibilitychange` do `hidden` i przy `pagehide`, z `lastSeenAt = now`. Odliczanie w ukrytej karcie nie nadpisuje zapisu ostatniej widocznej aktywności.
+- Przy zmianach stanu odtwarzania w widocznej karcie aplikacja zapisuje migawkę odtwarzacza i rejestratora z aktualnym `lastSeenAt`. Zapis wykonuje też przy `visibilitychange` do `hidden` oraz przy `pagehide`. Odliczanie w ukrytej karcie nie wywołuje zapisu na każdą zmianę stanu.
 - Zapis znika po przyjęciu wpisu przez lokalną pamięć Firestore, bez czekania na serwer, po „Porzuć”, po wylogowaniu (razem z czyszczeniem pamięci Firestore) i przy wyjściu z przygotowania. Błąd zapisu wpisu pozostawia możliwość ponowienia z tym samym identyfikatorem sesji.
 - Po wznowieniu widoczny jest przycisk „Dźwięk wyłączony — stuknij, aby włączyć”. Stuknięcie wywołuje `unlockGong` i usuwa przycisk. Inne sterowanie wymagające dźwięku również może go odblokować gestem użytkownika.
 - Kilka kart z tym samym treningiem i synchronizacja między urządzeniami pozostają poza zakresem: wygrywa ostatni zapis. Powrót z ukrytej karty bez przeładowania zachowuje dotychczasowe zasady nadrabiania czasu.

@@ -7,9 +7,9 @@ Issue #164: trening własny w planie tygodnia może wskazywać zatwierdzony plan
 - dyscyplina — wymagana;
 - nazwa — opcjonalna;
 - główny cel — opcjonalny;
-- data i godzina nie są wybierane; `startedAt` zapisuje się przy rozpoczęciu.
+- data i godzina nie są wybierane w kreatorze; `createdAt` powstaje przy utworzeniu szkicu, a `startedAt` sesji przy rozpoczęciu pierwszego etapu.
 
-Nazwa automatyczna po rozpoczęciu: „{Dyscyplina} — {data}”.
+Jeśli użytkownik nie wpisze nazwy, kreator i podgląd pokazują „{Dyscyplina} — {DD.MM.RRRR}”. Data pochodzi z `createdAt` szkicu, w UTC. Edycja zachowuje pierwotne `createdAt` planu. Jeśli daty nie da się odczytać, nazwa ma postać „{Dyscyplina} — plan treningu”.
 
 ## Oś treningu
 
@@ -97,17 +97,15 @@ Dla ćwiczenia rundowego:
 Podgląd pokazuje:
 
 - dyscyplinę, nazwę i cel;
-- ćwiczenia i przerwy;
-- aktywną pracę, odpoczynek i czas całkowity;
-- liczbę ćwiczeń i rund.
+- liczbę bloków, ćwiczeń, rund i elementów do poprawy oraz jeden szacowany łączny czas treningu;
+- kolejność bloków, ćwiczeń i samodzielnych przerw. Przy ćwiczeniu rundowym widać liczbę rund, czas rundy i odpoczynku między rundami. Przy ćwiczeniu ciągłym i samodzielnej przerwie widać czas trwania. Jeśli dodano instrukcję, podgląd ją wyświetla.
 
 Działania:
 
-- Wróć do edycji;
-- Zapisz na później;
-- Zapisz i rozpocznij.
+- „Zapisz plan” zatwierdza plan. Przy tworzeniu wraca do listy planów, a przy edycji otwiera szczegóły zapisanego planu. Uruchomienie treningu jest osobną akcją.
+- „Wróć do edycji” lub przycisk cofania w nagłówku wraca do bieżącego szkicu.
 
-Niezakończony formularz może być zachowany lokalnie. Zapis w chmurze następuje po świadomej akcji użytkownika.
+Szkic pozostaje w stanie kreatora do zapisu lub opuszczenia ekranu. Zapis w Firestore następuje po świadomej akcji użytkownika.
 
 Edycja istniejącego planu ma obok podglądu przycisk „Zapisz zmiany”. Zapisuje od razu, z tą samą walidacją co podgląd, i jest aktywny tylko wtedy, gdy plan został zmieniony. Nowy plan nadal przechodzi przez podgląd.
 

@@ -1,6 +1,6 @@
 # Oceny po treningu i analiza postępu
 
-Aktualizacja #187 (17 listopada 2026): nazwy UI to **Cel**, **Błąd** i **Wskazówka**. Pytania: „Czy ten błąd dziś się powtarzał?” (Rzadziej / Tak samo / Nie sprawdzałem) oraz „Jak dobrze ci wychodziło?”. Klucze `criterion`, `problem`, `fix`, `better`, `same`, `notChecked`, dane, reguły i obliczenia pozostają bez zmian. Natywne radia są ukryte wizualnie za kafelkami z widocznym zaznaczeniem i fokusem; „Nie sprawdzałem” i „Nie umiem ocenić” mają formę tekstową. Pominięte ćwiczenie ma plakietkę i wyjaśnienie braku wpływu na średnią. Przycisk „Pozostałe ćwiczenia” rozwija opcjonalne oceny. „Zapisz oceny” zapisuje formularz. Nagłówek „Podsumowanie” ma przycisk „Wstecz”: poprzedni ekran aplikacji lub Historia, gdy brak takiego wpisu.
+Nazwy w interfejsie to **Cel**, **Błąd** i **Wskazówka** (#187). Pytania to „Czy ten błąd dziś się powtarzał?” (Rzadziej / Tak samo / Nie sprawdzałem) oraz „Jak dobrze ci wychodziło?”. Klucze danych to `criterion`, `problem`, `fix`, `better`, `same` i `notChecked`. Przycisk „Pozostałe ćwiczenia” rozwija opcjonalne oceny. „Zapisz oceny” zapisuje formularz.
 
 Stan wcześniejszych decyzji: 10 listopada 2026. Decyzje właściciela z 4–10 listopada (Q1–Q5, R1–R4, issue #76). Uzasadnienie: research A i C w projekcie pracy. Pola w bazie: `database-model.md`.
 
@@ -15,6 +15,8 @@ Zasada: każda funkcja ma pomagać kontrolować postęp. Jakość wykonania i il
 1. **Wpis zapisuje się od razu** po zakończeniu treningu (ADR 0005). Oceny i RPE dopisujemy później do tego samego wpisu, więc zamknięcie aplikacji w trakcie podsumowania nie gubi treningu.
 2. **Podsumowanie** pokazuje oceny ćwiczeń celu, notatkę i intensywność sparingu.
 3. **RPE po 10 minutach wyciszenia.** Podsumowanie odlicza 10 minut i kończy odliczanie gongiem. Można odpowiedzieć wcześniej albo pominąć pytanie (Q2).
+
+**Nagłówek v2 dla sesji z planu (PR #216).** Tytuł to „Trening ukończony” lub „Trening częściowy”. Pod nim widać zapisaną nazwę planu i komunikat „Zapisane w dzienniku. Oceny dopiszą się do wpisu.”. Z boku pojawia się plakietka „Zapisane” lub „Czeka na wysłanie”. „Wstecz” wraca do poprzedniego ekranu aplikacji lub do Historii. Osobna karta wyróżnia „Czas czystej pracy”, a niżej pokazuje czas treningu i realizację ćwiczeń.
 
 Wyjście z podsumowania treningu z planu lub szybkiego stopera z niezapisanymi zmianami formularza wymaga potwierdzenia odrzucenia ocen i notatki; RPE zapisuje się osobno i nie uruchamia ostrzeżenia.
 
@@ -54,7 +56,7 @@ Do tego **„Nie umiem ocenić”**. Ta odpowiedź zostaje zapisana, ale nie wch
 
 ### Trend
 
-- Zakładka **Postęp** pokazuje aktywne ćwiczenia celu alfabetycznie, liczbę ocen według obecnego celu i ostatnią taką ocenę z datą oraz miejscem. Schowane ćwiczenia są w osobnej, zwiniętej sekcji.
+- Zakładka **Postęp** pokazuje aktywne elementy alfabetycznie. Karta pokazuje ostatnią i do trzech ostatnich ocen liczbowych według aktualnego celu oraz zmianę względem poprzedniej oceny. Schowane elementy są w osobnej, zwijanej sekcji.
 - Ekran ćwiczenia celu pokazuje cel, otwartą notatkę „błąd i wskazówka”, wykres i wszystkie oceny od najnowszej. Wiersz oceny prowadzi do podsumowania treningu; lista jest też tekstową wersją wykresu.
 - Wykres to punkty bez linii łączących. Oś X: dzień treningu (`workoutDate`), oś Y: ocena 1–5. Każde miejsce (typ bloku) ma własny kształt punktu z legendą, niezależnie od koloru. Gdy liczba punktów przekracza pojemność szerokości ekranu, wykres pokazuje ostatnie 12 tygodni do daty ostatniej oceny; lista nadal zawiera wszystkie oceny.
 - Podsumowanie liczymy **osobno dla każdego miejsca**, tylko z ocen 1–5 według obecnego celu (`criterionSnapshot === criterion`). Dwa wystąpienia w jednym treningu są osobnymi ocenami.
@@ -136,11 +138,9 @@ Przy RPE podsumowania planu, szybkiego stopera, formularza ręcznego wpisu i szc
 
 ## Podsumowanie tygodnia (Q5, R3)
 
-Zaimplementowany moduł R3 to lista celów na tydzień bez przypisywania dni: konkretne plany (także powtórzone) lub rodzaje treningu. Home pokazuje skrót, a „Postęp” szczegóły, wybór tygodnia, edycję i świadome kopiowanie wybranych lub wszystkich pozycji poprzedniego planu, także ukończonych. Kopia ma nowe ID i nie przenosi sesji ani statusów; niewykonane pozycje nie przechodzą automatycznie. Limit to 14 pozycji. Można zmienić dawny cel; trwała flaga `editedAfterWeekEnd` daje oznaczenie „Plan zmieniony po zakończeniu tygodnia”.
+**Cel v1.** Starsza lista do 14 pozycji nie przypisuje dni. Pozycja oznacza konkretny plan albo rodzaj treningu. Pasek liczy ukończone dopasowania względem liczby pozycji, więc dwa ukończone i jedno częściowe wykonanie dają 2 z 3. Kolejność dopasowania to ukończony dokładny plan, ukończony rodzaj, częściowy dokładny plan, częściowy rodzaj. Odczyt wyświetla starszy plan w widoku tygodnia. Pierwsza zmiana zapisuje v2 atomowo i zachowuje pierwotne cele jako `legacyGoal`. Dopóki tydzień zawiera takie pozycje, pasek liczy ukończone dopasowania.
 
-Pasek R3 pokazuje **tylko ukończone pozycje**: dwa ukończone i jeden częściowy przy celu trzech dają 2 z 3. Najpierw dopasowujemy ukończone sesje do dokładnych planów, potem pozostałe ukończone do rodzaju. Dopiero potem częściowe: dokładny plan, następnie rodzaj. W fazach porządek to `workoutDate`, `startedAt` lub `createdAt` dla ręcznych, następnie `id`; pozycje zachowują kolejność listy. Sesja zalicza najwyżej jedną pozycję. Ukończony w piątek ma pierwszeństwo przed częściowym we wtorek; wtorkowy staje się dodatkowy. Dla ręcznego wpisu v2 cel rodzaju pasuje do dowolnej wskazanej części (sesja nadal zalicza najwyżej jedną pozycję). W każdej fazie przypisanie daje maksymalną liczbę dopasowań; w razie potrzeby przesuwamy wcześniejsze przypisania tej samej fazy. Kolejność różnych celów nie ogranicza liczby zaliczeń. Zakończone fazy (w tym dokładne plany) pozostają zarezerwowane. Przykład: cele Technika/Tarcze, poniedziałek Technika + Tarcze, wtorek Technika dają 2/2 także po zamianie kolejności celów. Dla pozostałych wpisów kategorie muszą być identyczne (`mixed` nie jest dowolnym rodzajem), ID planu nie zastępujemy nazwą. Szczegóły modelu: `database-model.md`.
-
-Ukończone, częściowe, niewykonane i dodatkowe mają osobne liczniki; pasek nie przekracza 100%. Bez ustalonego celu (brak dokumentu lub pusta lista po poprawnym odczycie) pokazujemy liczbę treningów i ułożenie planu, bez paska i „dodatkowych”. Dane niepełne, loading i błąd nie są zerem. Liczenie opiera się wyłącznie na zapisanym `workoutDate`, bez przesuwania historii przy zmianie strefy. Edycja celu przelicza dotychczasowe sesje, nie zmieniając dziennika.
+**Cel v2.** Datowany plan może powstać ze stałego tygodnia, a `targetCount` jest osobnym celem liczby treningów. W planie bez `legacyGoal` każdy wpis z danego tygodnia liczy się do tego celu, również częściowy i „Poza planem”. Osobno dopasowujemy sesje do pozycji klubowych i własnych według daty i rodzaju lub części. Klub wymaga też zgodnej dyscypliny. Sesja i pozycja mogą uczestniczyć najwyżej w jednym dopasowaniu. Odpoczynek i „Nie byłem” są wyłączone z dopasowania. Pasek jest ograniczony do 100%. Używamy zapisanego `workoutDate`. Dane niepełne lub błąd nie dają pozornych zer. Szczegóły opisują [ADR 0018](adr/0018-recurring-and-scheduled-weeks.md) i [model danych](database-model.md).
 
 Wdrożony **Q5 etap 1**: na ekranie wybranego tygodnia, także podczas edycji celu, podsumowanie treningów z dziennika pokazuje liczbę wszystkich, ukończonych i częściowych sesji, sumę czasu treningu, czas pracy i sparingu z pokryciem danych oraz „RPE w X z Y treningów” (0 jest oceną). Liczymy zapisany `workoutDate` od poniedziałku do niedzieli, niezależnie od celu. Nieznane czasy nie są zerami; niepełna lub błędna historia blokuje sumy, a lokalne zapisy zachowują oznaczenie oczekiwania na wysłanie.
 
@@ -150,16 +150,15 @@ Wdrożony **Q5 etap 3**: pod podsumowaniem jest wykres 12 tygodni kończących s
 
 Wdrożony **Q5 etap 4**: pod wierszami podsumowania, przed szczegółami obciążenia, tabela „Na tle 3 poprzednich tygodni” zestawia wybrany tydzień ze średnią liczby treningów, czasu treningu i obciążenia z trzech bezpośrednio poprzedzających tygodni. Bieżący tydzień ma dopisek „trwa”. Liczymy wszystkie źródła i oba statusy według zapisanego `workoutDate`, tą samą funkcją co podsumowanie. Najwcześniejszy dzień treningu musi sięgać poniedziałku pierwszego z trzech tygodni; wcześniej pokazujemy „Porównanie pojawi się po 3 pełnych tygodniach treningów.”. Tygodnie bez treningów liczą się jako 0. Obciążenie „Zwykle” wymaga RPE dla każdego treningu w tym okresie, inaczej pokazujemy „Brak pełnych danych”. Liczba treningów „Zwykle” ma jedną cyfrę po przecinku, a czas i obciążenie korzystają z formatowania podsumowania. Tabela korzysta ze stanu historii: ładowanie, błąd i niepełne dane blokują porównanie. To opis, nie ocena: bez słów „więcej/mniej niż zwykle”, strzałek, kolorów oceniających i procentów.
 
-Dalszy zakres Q5 poniżej pozostaje niezrealizowany: kompletność ocen ćwiczeń celu. Etapy 1–4 nie oznaczają ukończenia całego Q5; twarde rundy wdrożono w ramach Q4.
+Decyzja właściciela z 22.11 usuwa licznik ocen elementów do poprawy z wymagań podsumowania tygodnia. Postęp elementów do poprawy pokazuje trend według celu ([#225](https://github.com/AntoniKra/Martial-Arts-App/issues/225)).
 
 Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 
-- **plan tygodnia, czyli cel:** np. „zaplanowane 3: ukończone 2, częściowe 1, niewykonane 0, dodatkowe 1”, z paskiem 2 z 3, najwyżej 100%;
 - liczbę treningów;
 - czas treningu, pracy i sparingu;
 - sumę obciążenia, obok czas i RPE;
 - liczbę twardych rund;
-- **kompletność danych**, np. „RPE w 4 z 5 treningów”, „oceny ćwiczeń celu w 2 z 3”. Dzień bez treningu to odpoczynek, a nie brak danych;
+- **pokrycie danych**, np. „RPE w 4 z 5 treningów” oraz liczba wpisów ze znanym czasem pracy i sparingu;
 - wdrożone porównanie liczb w tabeli „Ten tydzień” i „Zwykle”: liczba treningów, czas treningu i obciążenie obok średniej z 3 poprzednich tygodni; bez słownej oceny i arbitralnego progu „więcej niż zwykle”, dopiero gdy historia sięga początku tego okresu;
 - wdrożony wykres ostatnich 12 tygodni: liczba treningów lub minuty czasu treningu (ADR 0011), bez obciążenia.
 
@@ -167,7 +166,11 @@ Wdrożone (issue #127): pod liczbami w podsumowaniu treningu z planu pokazujemy 
 
 Nie pokazujemy: ACWR, monotonii i strain Fostera, wyniku 0–100, prognoz.
 
-## Testy kontrolne (R4)
+## Kierunki rozwoju
+
+### Testy kontrolne (R4)
+
+Decyzją właściciela z 22.11 cały moduł R4 przechodzi z rdzenia MVP do kierunków rozwoju. Poniżej zachowano założenia na przyszłość. Stan decyzji zapisuje [ADR 0021](adr/0021-control-tests-deferred.md).
 
 - **Test własny** ze stałym protokołem i dopiskiem „pewność nieznana”.
 - **Burpees 3 min:** zmiana o 6 powtórzeń lub więcej to prawdziwa zmiana. To test ogólnej sprawności, nie techniki.
@@ -175,7 +178,7 @@ Nie pokazujemy: ACWR, monotonii i strain Fostera, wyniku 0–100, prognoz.
 - Każdy test ma **paszport**: miejsce, sprzęt, rozgrzewkę, porę dnia. Przy wyniku zaznaczasz, czy warunki się zgadzały.
 - Zalecany odstęp między testami fizycznymi: 4–8 tygodni (AIBA zaleca ocenę 3–4 razy w roku).
 
-## Kierunki rozwoju
+### Pozostałe oceny
 
 Koncentracja 1–5, dyskomfort, realizacja celu 1–5 i odczuwany postęp 1–7 z opcją „Nie mam punktu odniesienia”. Nie wchodzą do wersji finalnej.
 
