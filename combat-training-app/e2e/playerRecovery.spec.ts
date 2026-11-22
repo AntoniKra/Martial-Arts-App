@@ -5,6 +5,40 @@ import AxeBuilder from '@axe-core/playwright'
 const time = Date.parse('2026-11-08T10:00:00.000Z')
 test.use({ screenshot: 'off' })
 
+test('acquires a screen wake lock on opening the player and releases it on exit', async ({ app, page }) => {
+  const planUrl = await app.createPlan('Wake Lock')
+  const events: string[] = []
+  await page.exposeFunction('recordScreenLockEvent', (event: string) => { events.push(event) })
+  await page.evaluate(() => {
+    const { recordScreenLockEvent } = window as typeof window & {
+      recordScreenLockEvent: (event: string) => Promise<void>
+    }
+    class ScreenLock extends EventTarget {
+      released = false
+
+      async release() {
+        this.released = true
+        this.dispatchEvent(new Event('release'))
+        await recordScreenLockEvent('release')
+      }
+    }
+    Object.defineProperty(navigator, 'wakeLock', {
+      value: {
+        async request(type: string) {
+          await recordScreenLockEvent(type)
+          return new ScreenLock()
+        },
+      },
+    })
+  })
+
+  await app.openPlayer()
+  await expect.poll(() => events).toEqual(['screen'])
+  await page.getByRole('button', { name: 'Zakończ trening', exact: true }).click()
+  await expect(page).toHaveURL(planUrl)
+  await expect.poll(() => events).toEqual(['screen', 'release'])
+})
+
 test('recovers the same round after reload and redirects home to its running timer', async ({ app, page }) => {
   const warnings: string[] = []
   page.on('console', (message) => {

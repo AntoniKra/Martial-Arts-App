@@ -1,15 +1,16 @@
 import { useEffect } from 'react'
 
-import { createBrowserScreenWakeLock } from '@/infrastructure/wake-lock/browserScreenWakeLock'
+import { useScreenWakeLockFactory } from '@/application/wake-lock/screenWakeLockContext'
 
 export function useWorkoutScreenWakeLock(enabled: boolean): void {
+  const createWakeLock = useScreenWakeLockFactory()
   useEffect(() => {
     if (!enabled) {
       return
     }
 
-    const wakeLock = createBrowserScreenWakeLock()
+    const wakeLock = createWakeLock()
     wakeLock.activate()
     return () => wakeLock.dispose()
-  }, [enabled])
+  }, [enabled, createWakeLock])
 }

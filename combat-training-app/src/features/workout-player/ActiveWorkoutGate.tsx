@@ -1,18 +1,23 @@
 import { useMemo, useState, type PropsWithChildren } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { routes } from '@/app/routes'
+import type { CompletedWorkoutStorage } from '@/application/workout-session/completedWorkoutRecovery'
+import type { ActiveWorkoutRepository } from '@/application/workout/activeWorkoutRepository'
 import { useAuth } from '@/features/auth/authContext'
-import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
-import { createCompletedWorkoutStorage } from '@/infrastructure/storage/completedWorkoutStorage'
 import { ActiveWorkoutContext } from './activeWorkoutContext'
 import { resolveActiveWorkout } from './utils/resolveActiveWorkout'
 
-function AccountActiveWorkout({ uid, children }: PropsWithChildren<{ uid: string }>) {
+interface ActiveWorkoutGateProps {
+  createRepository: (uid: string) => ActiveWorkoutRepository
+  createCompletedStorage: (uid: string) => CompletedWorkoutStorage
+}
+
+function AccountActiveWorkout({ uid, createRepository, createCompletedStorage, children }: PropsWithChildren<ActiveWorkoutGateProps & { uid: string }>) {
   const location = useLocation()
-  const [storage] = useState(() => createActiveWorkoutRepository(uid))
+  const [storage] = useState(() => createRepository(uid))
   const [recovery, setRecovery] = useState(() => {
     const saved = storage.read()
-    const completed = createCompletedWorkoutStorage(uid)
+    const completed = createCompletedStorage(uid)
     if (saved && completed.readAll().some((session) => session.id === saved.recorder.sessionId)) {
       // The app can close after staging the entry and before clearing the player snapshot.
       storage.clear()
@@ -43,10 +48,10 @@ function AccountActiveWorkout({ uid, children }: PropsWithChildren<{ uid: string
   return <ActiveWorkoutContext.Provider value={{ recovery, repository }}>{children}</ActiveWorkoutContext.Provider>
 }
 
-export function ActiveWorkoutGate() {
+export function ActiveWorkoutGate(props: ActiveWorkoutGateProps) {
   const { state } = useAuth()
   const currentUid = state.status === 'ready' && state.session?.emailVerified ? state.session.uid : null
   const [uid, setUid] = useState(currentUid)
   if (currentUid && currentUid !== uid) setUid(currentUid)
-  return uid ? <AccountActiveWorkout key={uid} uid={uid}><Outlet /></AccountActiveWorkout> : <Outlet />
+  return uid ? <AccountActiveWorkout key={uid} uid={uid} {...props}><Outlet /></AccountActiveWorkout> : <Outlet />
 }

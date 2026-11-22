@@ -4,7 +4,6 @@ import { WorkoutDataProvider } from '@/app/WorkoutDataProvider'
 import { AppRoot } from '@/app/AppRoot'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
-import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { WorkoutsPage } from '@/pages/WorkoutsPage'
 import { AuthGate } from '@/features/auth/AuthGate'
 import { AuthFormPage } from '@/features/auth/AuthFormPage'
@@ -12,6 +11,8 @@ import { VerifyEmailPage } from '@/features/auth/VerifyEmailPage'
 import { ActiveWorkoutGate } from '@/features/workout-player/ActiveWorkoutGate'
 import { AuthLoadingScreen } from '@/features/auth/AuthLoadingScreen'
 import { RouteErrorScreen } from '@/app/RouteErrorScreen'
+import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
+import { createCompletedWorkoutStorage } from '@/infrastructure/storage/completedWorkoutStorage'
 
 export const router = createBrowserRouter([
   {
@@ -26,7 +27,7 @@ export const router = createBrowserRouter([
           { path: '/register', element: <AuthFormPage key="register" mode="register" /> },
           { path: '/forgot-password', element: <AuthFormPage key="forgot-password" mode="forgot-password" /> },
           { path: '/verify-email', element: <VerifyEmailPage /> },
-          { element: <ActiveWorkoutGate />, children: [
+          { element: <ActiveWorkoutGate createRepository={createActiveWorkoutRepository} createCompletedStorage={createCompletedWorkoutStorage} />, children: [
           {
             element: <WorkoutDataProvider><Outlet /></WorkoutDataProvider>,
             children: [
@@ -51,8 +52,6 @@ export const router = createBrowserRouter([
               { path: '/workouts/new', lazy: () => import('@/pages/NewWorkoutPage') },
               { path: '/workouts/:workoutId', lazy: () => import('@/pages/WorkoutDetailsPage') },
               { path: '/workouts/:workoutId/edit', lazy: () => import('@/pages/EditWorkoutPage') },
-              { path: '/workouts/:workoutId/preview', element: <PlaceholderPage title="Podgląd treningu" /> },
-              { path: '/workouts/:workoutId/report', element: <PlaceholderPage title="Raport treningu" /> },
             ],
           },
           { path: '/quick-timer/active', lazy: () => import('@/pages/QuickTimerPlayerPage') },
