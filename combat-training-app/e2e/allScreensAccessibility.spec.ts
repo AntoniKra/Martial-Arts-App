@@ -135,7 +135,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.seedSession(current)
     await app.open(`/workout-sessions/${current.id}/feedback`)
     await app.setTheme(theme)
-    await expect(page.getByRole('heading', { name: /Poprzednio ten plan/ })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Poprzednie wykonanie planu', exact: true }).locator('dt')).toHaveText(['Trening', 'Praca', 'Ćwiczenia'])
     await expect(page.getByRole('article', { name: skill.name, exact: true }).getByRole('radio', { name: /^4 / })).toBeChecked()
     await page.getByRole('button', { name: /^Pozostałe ćwiczenia/ }).click()
     await expect(page.getByRole('article', { name: 'Praca na nogach', exact: true })).toBeVisible()

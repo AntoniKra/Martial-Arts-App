@@ -319,8 +319,8 @@ test('seeded personal norms, neutral chart data and wellbeing beside RPE for all
   await page.getByRole('article').filter({ has: page.locator(`a[href="/workout-sessions/${current.id}/feedback"]`) }).locator('.disclosure-trigger').first().click()
   await page.locator(`a[href="/workout-sessions/${current.id}/feedback"]`).click()
   await expect(page.getByText('Dziś rano: sen gorzej niż zwykle', { exact: true })).toBeVisible()
-  const previous = page.getByRole('region', { name: /Poprzednio ten plan/ })
-  await expect(previous).toContainText('RPE: 6')
+  const previous = page.getByRole('region', { name: 'Poprzednie wykonanie planu', exact: true })
+  await expect(previous.getByText('RPE: 6', { exact: true })).toHaveCount(0)
   await expect(previous.getByText('Tamtego dnia: typowo dla Ciebie', { exact: true })).toBeVisible()
   const { workoutPlanId: _id, workoutPlanNameSnapshot: _name, focusRatings: _focus, exerciseRatings: _ratings, ...timed } = current
   const quick: QuickTimerWorkoutSession = { ...timed, id: 'wellbeing-quick', source: 'quickTimer', completion: { completed: 1, planned: 1, unit: 'round' } }

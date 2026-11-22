@@ -14,7 +14,6 @@ import { AssessmentScale, FocusCard } from './FocusCard'
 import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
 import { formatWorkoutFeedbackMetrics, workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
 import { PreviousPlanRunSummary } from './PreviousPlanRunSummary'
-import { rpeLabels } from './rpeLabels'
 import { hasUnsavedWorkoutFeedback } from './unsavedWorkoutFeedback'
 
 export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, previousRun, sessions = [] }: {
@@ -55,34 +54,31 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
   }
 
   return <UnsavedPlanChangesGuard isDirty={hasUnsavedWorkoutFeedback(draft, initial)} allowLeaveRef={allowLeave} description={labels.discardDescription}>
-    <div className="motion-controls mx-auto w-full max-w-xl space-y-3 px-4 pt-3 pb-9">
-    <div className="feedback-header">
-      <RouteScreenHeader title={labels.status[session.status]} fallback={routes.progressHistory}
+    <div className="motion-controls mx-auto w-full max-w-xl space-y-5 px-4 pt-3 pb-9">
+    <div className="space-y-4">
+      <RouteScreenHeader title={labels.status[session.status]} variant="summary" fallback={routes.progressHistory}
         action={pending
           ? <span role="status" className="feedback-badge is-countdown">{workoutDataLabels.pending}</span>
           : <span className="feedback-badge is-saved"><FeedbackIcon kind="check" size={12} />{labels.savedBadge}</span>}
-        subtitle={<>
-          <h2 className="wrap-anywhere font-display text-base font-extrabold tracking-tight text-ink">{session.workoutPlanNameSnapshot}</h2>
-          <p className="mt-0.5 text-xs leading-snug">{labels.savedEntry}</p>
-        </>} />
+        subtitle={<h2 className="wrap-anywhere font-display text-base font-extrabold tracking-tight text-ink">{session.workoutPlanNameSnapshot}</h2>} />
+      <section aria-label={labels.metricsHeading} className="feedback-surface">
+        <dl className="grid grid-cols-2">
+          <div className="feedback-work-time col-span-2 space-y-0.5 rounded-t-sm px-4 pt-4 pb-3.5">
+            <dt className="feedback-eyebrow flex items-center gap-1.5"><FeedbackIcon kind="clock" size={13} />{labels.workTime}</dt>
+            <dd className="font-display text-[36px] leading-[1.05] font-black tracking-tight tabular-nums text-ink">{work}</dd>
+          </div>
+          {[[labels.metrics[0], duration], [labels.metrics[2], completion]].map(([name, value], index) => <div key={name}
+            className={`flex min-w-0 flex-col border-t border-bd px-3.5 py-2.5 ${index === 0 ? 'border-r' : ''}`}>
+            <dt className="order-last text-[10px] font-bold tracking-wider text-muted uppercase">{name}</dt>
+            <dd className="font-display text-lg font-extrabold tabular-nums text-ink">{value}</dd>
+          </div>)}
+        </dl>
+        {previousRun && <PreviousPlanRunSummary previous={previousRun} />}
+      </section>
     </div>
-    <section aria-label={labels.metricsHeading} className="feedback-surface">
-      <dl className="grid grid-cols-2">
-        <div className="feedback-work-time col-span-2 space-y-0.5 rounded-t-sm px-4 pt-4 pb-3.5">
-          <dt className="feedback-eyebrow flex items-center gap-1.5"><FeedbackIcon kind="clock" size={13} />{labels.workTime}</dt>
-          <dd className="font-display text-[36px] leading-[1.05] font-black tracking-tight tabular-nums text-ink">{work}</dd>
-        </div>
-        {[[labels.metrics[0], duration], [labels.metrics[2], completion]].map(([name, value], index) => <div key={name}
-          className={`flex min-w-0 flex-col border-t border-bd px-3.5 py-2.5 ${index === 0 ? 'border-r' : ''}`}>
-          <dt className="order-last text-[10px] font-bold tracking-wider text-muted uppercase">{name}</dt>
-          <dd className="font-display text-lg font-extrabold tabular-nums text-ink">{value}</dd>
-        </div>)}
-      </dl>
-      {previousRun && <PreviousPlanRunSummary previous={previousRun} />}
-    </section>
     {rpeCard}
-    <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-3">
-      <fieldset disabled={saving} className="min-w-0 space-y-3">
+    <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-5">
+      <fieldset disabled={saving} className="min-w-0 space-y-5">
         {draft.focusRatings.length > 0 && <section aria-labelledby="focus-feedback-heading" className="space-y-2">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="focus-feedback-heading" className="font-display text-base font-extrabold text-ink">{labels.focusHeading}</h2>
@@ -113,9 +109,10 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
           </fieldset>)}
           <div className="rounded-sm border border-bd bg-elevated">
             <button type="button" aria-expanded={othersOpen} aria-controls="other-exercises" onClick={() => setOthersOpen(!othersOpen)}
-              className="flex min-h-touch w-full items-center justify-between gap-2 rounded-sm px-3 py-1.5 text-left text-[12.5px] text-ink">
-              <span><strong>{labels.othersWithCount(others.length)}</strong> · <span className="tabular-nums">{labels.optional} · {labels.assessed(assessedOthers, others.length)}</span></span>
-              <FeedbackIcon kind="chevron" size={16} className={`feedback-others-chevron ${othersOpen ? 'rotate-180' : ''}`} />
+              className="flex min-h-touch w-full items-center gap-2 rounded-sm px-3 py-1.5 text-left text-[12.5px] text-ink">
+              <strong className="mr-auto">{labels.othersHeading}</strong>
+              <span className="feedback-badge is-assessed tabular-nums">{labels.othersAssessed(assessedOthers, others.length)}</span>
+              <FeedbackIcon kind="chevron" size={16} className={`feedback-others-chevron shrink-0 ${othersOpen ? 'rotate-180' : ''}`} />
             </button>
             <div id="other-exercises" hidden={!othersOpen} className="space-y-2.5 rounded-b-sm border-t border-bd bg-surface p-3">{others.map((exercise) => <article key={exercise.workoutItemId} aria-label={exercise.nameSnapshot} className="space-y-1.5">
               <h3 className="wrap-anywhere font-display text-[13.5px] font-extrabold text-ink">{exercise.nameSnapshot}</h3>
@@ -139,7 +136,6 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
       </fieldset>
       {saveError && <p role="alert" className="text-[13px] text-crimson-ink">{labels.saveError}</p>}
       <Button type="submit" loading={saving} size="lg" className="feedback-submit w-full uppercase">{labels.done}</Button>
-      <p className="px-2 text-center text-[11px] leading-snug text-muted">{rpeLabels.reminderHint}</p>
     </form>
   </div>
   </UnsavedPlanChangesGuard>

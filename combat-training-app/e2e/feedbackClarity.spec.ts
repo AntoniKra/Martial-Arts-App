@@ -20,6 +20,64 @@ const current = workoutSession({ id: 'clarity', status: 'partial', rpe: 5, rpeRe
 const previous = { ...current, id: 'old', workoutDate: '2026-11-01', startedAt: instant, completedAt: instant,
   focusRatings: [{ ...focus, assessment: 5 as const }] }
 
+test('lays out the simplified plan summary in both themes', async ({ app, page }, info) => {
+  await app.open('/workouts')
+  await app.seedFocusSkill(skill)
+  const completed = { ...current, id: 'completed', status: 'completed' as const }
+  await app.seedSession(current)
+  await app.seedSession(completed)
+
+  for (const [session, title, theme, width] of [
+    [current, 'Trening częściowy', 'dark', 360],
+    [completed, 'Trening ukończony', 'light', 390],
+  ] as const) {
+    if (info.project.name === 'phone') await page.setViewportSize({ width, height: 800 })
+    await app.open(`/workout-sessions/${session.id}/feedback`)
+    await app.setTheme(theme)
+    const heading = page.getByRole('heading', { name: title, exact: true, level: 1 })
+    const back = page.getByRole('button', { name: 'Wstecz', exact: true })
+    const saved = page.getByText('Zapisane', { exact: true })
+    const planName = page.getByRole('heading', { name: session.workoutPlanNameSnapshot, exact: true, level: 2 })
+    const metrics = page.getByRole('region', { name: 'Podsumowanie czasu sesji', exact: true })
+    const rpe = page.getByRole('region', { name: 'RPE · zmęczenie całym treningiem', exact: true })
+    const focusSection = page.getByRole('region', { name: 'Elementy do poprawy', exact: true })
+    await expect(heading).toHaveCSS('font-family', /^"?Archivo Variable"?,/)
+    await expect(heading).toHaveCSS('font-size', '20px')
+    await expect(heading).toHaveCSS('font-weight', '600')
+    await expect(heading).toHaveCSS('white-space', 'nowrap')
+    await expect(heading).toHaveCSS('text-overflow', 'ellipsis')
+    await expect(back).toHaveCSS('width', '44px')
+    await expect(back).toHaveCSS('height', '44px')
+    await expect(saved).toBeVisible()
+    await page.evaluate(async () => { await document.fonts.ready })
+    expect(await heading.evaluate((element) => element.scrollWidth)).toBeLessThanOrEqual(await heading.evaluate((element) => element.clientWidth))
+    const headingBox = (await heading.boundingBox())!
+    const backBox = (await back.boundingBox())!
+    const savedBox = (await saved.boundingBox())!
+    const planBox = (await planName.boundingBox())!
+    const metricsBox = (await metrics.boundingBox())!
+    const rpeBox = (await rpe.boundingBox())!
+    const focusBox = (await focusSection.boundingBox())!
+    expect(headingBox.x).toBeGreaterThanOrEqual(backBox.x + backBox.width)
+    expect(savedBox.x).toBeGreaterThanOrEqual(headingBox.x + headingBox.width)
+    for (const box of [headingBox, savedBox]) {
+      expect(box.y).toBeGreaterThanOrEqual(backBox.y)
+      expect(box.y + box.height).toBeLessThanOrEqual(backBox.y + backBox.height)
+    }
+    expect(planBox.y - backBox.y - backBox.height).toBe(10)
+    expect(metricsBox.y - planBox.y - planBox.height).toBe(16)
+    expect(rpeBox.y - metricsBox.y - metricsBox.height).toBe(20)
+    expect(focusBox.y - rpeBox.y - rpeBox.height).toBe(20)
+    await expect(page.getByText('Zapisane w dzienniku. Oceny dopiszą się do wpisu.', { exact: true })).toHaveCount(0)
+    await expect(page.getByText('RPE przypomnimy na stronie głównej, jeśli zamkniesz ekran wcześniej.', { exact: true })).toHaveCount(0)
+
+    const others = page.getByRole('button', { name: 'Pozostałe ćwiczenia 0/1 ocenione', exact: true })
+    await expect(others.getByText('0/1 ocenione', { exact: true })).toHaveCSS('border-radius', '0px')
+    await expect(others.getByText('Pozostałe ćwiczenia', { exact: true })).toBeVisible()
+    await expect(others.getByText(/opcjonalnie|oceniono/)).toHaveCount(0)
+  }
+})
+
 for (const theme of ['dark', 'light'] as const) {
   test(`chooses feedback tiles with keyboard, explains skipped work and saves unchanged keys in ${theme}`, async ({ app, page }) => {
     await app.open('/workouts')
@@ -70,7 +128,7 @@ for (const theme of ['dark', 'light'] as const) {
     await others.click()
     await page.getByRole('article', { name: 'Praca na nogach', exact: true }).getByRole('radio', { name: /^4 / }).check()
     await expect(page.getByRole('article', { name: 'Praca na nogach', exact: true }).getByText('Poziom 4: Dobrze i powtarzalnie.')).toBeVisible()
-    await expect(others).toContainText('oceniono 1 z 1')
+    await expect(others).toHaveAccessibleName('Pozostałe ćwiczenia 1/1 ocenione')
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()

@@ -4,12 +4,6 @@
   background: var(--app-surface);
 }
 
-.feedback-header h1 {
-  font-size: 22px;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-}
-
 .feedback-eyebrow,
 .feedback-badge {
   color: var(--app-muted);
@@ -40,6 +34,10 @@
   border-color: color-mix(in srgb, var(--app-success) 35%, var(--app-border));
   background: color-mix(in srgb, var(--app-success) 15%, var(--app-surface));
   color: var(--app-success-ink);
+}
+
+.feedback-badge.is-assessed {
+  text-transform: none;
 }
 
 .feedback-badge.is-countdown,
@@ -259,6 +257,7 @@
 
 .feedback-textarea::placeholder {
   color: var(--app-faint);
+  font-size: 13px;
 }
 
 .feedback-submit {
