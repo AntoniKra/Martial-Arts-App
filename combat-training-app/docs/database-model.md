@@ -50,6 +50,7 @@ Wdrożony profil oraz dwie niezależne zgody: na pomiary masy ciała z kategori�
 | --- | --- | --- |
 | `schemaVersion` | `1` | |
 | `healthDataConsent` | `{ grantedAt, noticeVersion, adultConfirmed: true }` albo `null` | Wyraźna zgoda 18+; wersja informacji `2026-11` |
+| `bodyWeightWithdrawal` | `{ generation: number, pending: boolean }`, `null` lub brak pola | Blokada zapisów masy ciała i trwały licznik wycofań. Brak pola lub `null` oznacza początkowe 0 (issue #226) |
 | `wellbeingConsent` | taka sama mapa albo `null`; pole opcjonalne | Osobna zgoda 18+ na Samopoczucie; wersja `2026-11`; brak pola w starym profilu oznacza brak zgody |
 | `wellbeingWithdrawal` | `{ generation: number, pending: boolean }`, `null` lub brak pola | Wspólna blokada i trwały licznik wycofań (dodatnia bezpieczna liczba całkowita); po zakończeniu zachowujemy numer i `pending: false`, brak/null oznacza początkowe 0 (ADR 0015) |
 | `weightClassLabel` | tekst 1–20 znaków albo `null` | Etykieta użytkownika, wyłącznie przy zgodzie |
@@ -59,7 +60,7 @@ Wdrożony profil oraz dwie niezależne zgody: na pomiary masy ciała z kategori�
 - Domyślnie zgody nie ma. Oba pola wyboru na osobnym ekranie są niezaznaczone; zgoda wymaga potwierdzenia pełnoletności. Statystyki i treningi działają bez zgody.
 - Obecnie istnieje tylko wersja informacji `2026-11`; nie wdrażamy przejść między wersjami. Zgoda jest ważna, gdy nie jest `null` i ma `adultConfirmed: true`.
 - Reguły chronią `createdAt` oraz istniejącą mapę zgody: można zmienić kategorię, ale nową zgodę ustawia się tylko z `null` (lub tworząc dokument).
-- **Wycofanie zgody wymaga sieci:** `getDocsFromServer` pobiera wszystkie pomiary, a `writeBatch` usuwa je partiami do 499 operacji. Dopiero ostatnia partia ustawia `healthDataConsent: null`, `weightClassLabel: null` i nowe `updatedAt`. Ostatnia partia może zawierać do 498 usunięć i zmianę profilu; po pełnej partii 499 usunięć profil trafia do osobnej partii. Przerwany proces można powtórzyć. Błąd odczytu z serwera niczego nie zmienia.
+- **Wycofanie zgody na pomiary wymaga sieci.** Najpierw transakcja zapisuje `bodyWeightWithdrawal: { generation, pending: true }`. Pierwsza generacja to 1, następna to poprzedni numer + 1, a ponowienie używa aktywnej generacji. Dopiero po potwierdzeniu transakcji `getDocsFromServer` pobiera wszystkie pomiary. Każda paczka zawiera do 498 usunięć i aktualizację profilu z aktywną generacją, dzięki czemu reguły odrzucają spóźnione paczki po ponownym udzieleniu zgody. Ostatnia paczka zeruje `healthDataConsent` i `weightClassLabel`, ustawia `pending: false` i zachowuje numer generacji. Po przerwaniu blokada pozostaje do dokończenia.
 - Samopoczucie najpierw ustawia w transakcji `wellbeingWithdrawal: { generation, pending: true }` i czeka na potwierdzenie serwera; rozpoczęcie wymaga dokładnie poprzedniej generacji + 1 (pierwsza to 1), a ponowienie podejmuje tę samą aktywną generację. Potem odczytuje całą kolekcję `readiness` i usuwa najwyżej 498 wpisów w partii, dodając do każdej partii aktualizację profilu z aktualną aktywną generacją. Ostatnia partia zeruje `wellbeingConsent` i ustawia `pending: false`, zachowując numer również po kolejnym włączeniu. Licznika nie można usunąć ani cofnąć. Reguły blokują zapisy wpisów podczas wycofywania i odrzucają spóźnione partie z dowolnej wcześniejszej operacji, również po zakończeniu nowszego wycofania i ponownym włączeniu zgody. Odczyt i każda partia sprawdzają sieć; utrata połączenia zwraca błąd, zwalnia dialog i pozwala ponowić. Wspólna blokada pozostaje do dokończenia. Zgody są niezależne; pomiary masy ciała nie są zmieniane.
 - Motyw (D4) zostaje na urządzeniu, nie w tym dokumencie.
 
@@ -255,7 +256,7 @@ Wdrożone pomiary z datą jako kluczem dokumentu.
 | `createdAt`, `updatedAt` | chwila | `createdAt` nie zmienia się przy zastąpieniu pomiaru |
 
 - Jeden wpis na dzień; zastąpienie po ostrzeżeniu. Data może być dowolnie wsteczna, ale nie przyszła. Przecinek i kropka są akceptowane w formularzu; zapis zaokrąglamy do 0,1 kg.
-- Schemat `zod/mini` sprawdza prawdziwą datę i krok 0,1 z tolerancją błędu zmiennoprzecinkowego. Reguły sprawdzają zakres 30–250, format daty, zgodność z ID, dokładne klucze i znaczniki czasu; przy zmianie chronią `createdAt`. Zapis wymaga zgody sprawdzanej przez `get()` dokumentu profilu. Odczyt i usunięcie są dozwolone właścicielowi także po wycofaniu.
+- Schemat `zod/mini` sprawdza prawdziwą datę i krok 0,1 z tolerancją błędu zmiennoprzecinkowego. Reguły sprawdzają zakres 30–250, format daty, zgodność z ID, dokładne klucze i znaczniki czasu; przy zmianie chronią `createdAt`. Utworzenie i zmiana wymagają zgody i braku aktywnej blokady sprawdzanych przez `get()` dokumentu profilu. Odczyt i usunięcie są dozwolone właścicielowi także podczas wycofywania i po jego zakończeniu.
 - Średnia z 7 dni obejmuje dziś i 6 poprzednich dni w strefie urządzenia; wykres pokazuje 12 średnich tygodniowych (poniedziałek–niedziela), z przerwami zamiast zer. Kategoria pozostaje wyłącznie etykietą.
 - Statystyki profilu liczymy z całego dziennika po zapisanym `workoutDate`, dla wszystkich źródeł i obu statusów; nieznane rundy nie są zerami.
 
@@ -318,4 +319,4 @@ Profil i pomiary mają wspólnego providera danych z pozostałymi kolekcjami. `h
   5. Zamknięcie nasłuchów i wyczyszczenie Firestore; usunięcie wszystkich kluczy `localStorage` pasujących do `combat-training.*.{uid}` oraz znacznika przekierowania. Klucze innego konta i ustawienia bez `uid` (motyw, przygotowanie, sygnał 10 s) zostają. Sprzątanie jest niezależne od odmontowania ekranu.
   6. Jednorazowy komunikat na logowaniu. Trasa usuwania nigdy nie jest celem powrotu po logowaniu.
 
-  Przerwany proces można powtórzyć. Znane ograniczenie: token innego urządzenia może być ważny do godziny i wysłać zaległy dokument po usunięciu. UI prosi o połączenie i wylogowanie innych urządzeń. Ręczną kontrolę właściciela opisuje `deployment.md`.
+  Przerwany proces można powtórzyć. Na planie Spark bez Cloud Functions zaległy zapis offline z innego urządzenia może odtworzyć dokument po usunięciu konta, dopóki jego token pozostaje ważny (do godziny). Blokada `bodyWeightWithdrawal` działa w trakcie wycofywania zgody i jest przechowywana w usuwanym profilu. UI prosi o połączenie i wylogowanie innych urządzeń. Ręczną kontrolę właściciela opisuje `deployment.md`.

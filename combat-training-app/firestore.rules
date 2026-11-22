@@ -286,12 +286,14 @@ service cloud.firestore {
 
     function isProfile(data) {
       return data.keys().hasAll(['schemaVersion', 'healthDataConsent', 'weightClassLabel', 'createdAt', 'updatedAt'])
-        && data.keys().hasOnly(['schemaVersion', 'healthDataConsent', 'wellbeingConsent', 'wellbeingWithdrawal', 'weightClassLabel', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['schemaVersion', 'healthDataConsent', 'bodyWeightWithdrawal', 'wellbeingConsent', 'wellbeingWithdrawal', 'weightClassLabel', 'createdAt', 'updatedAt'])
         && data.schemaVersion is int && data.schemaVersion == 1
         && isInstant(data.createdAt) && isInstant(data.updatedAt)
         && isHealthConsent(data.healthDataConsent)
         && isHealthConsent(data.get('wellbeingConsent', null))
-        && isWellbeingWithdrawal(data.get('wellbeingWithdrawal', null))
+        && isConsentWithdrawal(data.get('bodyWeightWithdrawal', null))
+        && (data.get('bodyWeightWithdrawal', null) == null || !data.bodyWeightWithdrawal.pending || data.healthDataConsent != null)
+        && isConsentWithdrawal(data.get('wellbeingWithdrawal', null))
         && (data.get('wellbeingWithdrawal', null) == null || !data.wellbeingWithdrawal.pending || data.get('wellbeingConsent', null) != null)
         && (data.weightClassLabel == null || isBoundedText(data.weightClassLabel, 20))
         && (data.healthDataConsent != null || data.weightClassLabel == null);
@@ -303,6 +305,12 @@ service cloud.firestore {
         && data.date is string && data.date == date && data.date.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
         && data.weightKg is number && data.weightKg >= 30 && data.weightKg <= 250
         && isInstant(data.createdAt) && isInstant(data.updatedAt);
+    }
+
+    function canWriteBodyWeight(uid) {
+      let profile = get(/databases/$(database)/documents/users/$(uid)).data;
+      let withdrawal = profile.get('bodyWeightWithdrawal', null);
+      return profile.healthDataConsent != null && (withdrawal == null || !withdrawal.pending);
     }
 
     function isWellbeingRating(value) {
@@ -328,17 +336,17 @@ service cloud.firestore {
         && (withdrawal == null || !withdrawal.pending);
     }
 
-    function isWellbeingWithdrawal(value) {
+    function isConsentWithdrawal(value) {
       return value == null || (value is map && hasExactKeys(value, ['generation', 'pending'])
         && value.generation is int && value.generation >= 1 && value.generation <= 9007199254740991
         && value.pending is bool);
     }
 
-    function isWellbeingConsentTransition(before, after) {
-      let previous = before.get('wellbeingWithdrawal', null);
-      let next = after.get('wellbeingWithdrawal', null);
-      let consent = before.get('wellbeingConsent', null);
-      let nextConsent = after.get('wellbeingConsent', null);
+    function isConsentTransition(before, after, withdrawalField, consentField) {
+      let previous = before.get(withdrawalField, null);
+      let next = after.get(withdrawalField, null);
+      let consent = before.get(consentField, null);
+      let nextConsent = after.get(consentField, null);
       let pending = previous != null && previous.pending;
       let generation = previous == null ? 0 : previous.generation;
       // Keep the completed counter: no earlier batch may restart or finish a later generation.
@@ -353,12 +361,12 @@ service cloud.firestore {
     match /users/{uid} {
       allow read, delete: if isVerifiedOwner(uid);
       allow create: if isVerifiedOwner(uid) && isProfile(request.resource.data)
+        && request.resource.data.get('bodyWeightWithdrawal', null) == null
         && request.resource.data.get('wellbeingWithdrawal', null) == null;
       allow update: if isVerifiedOwner(uid) && isProfile(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt
-        && (resource.data.healthDataConsent == null || request.resource.data.healthDataConsent == null
-          || request.resource.data.healthDataConsent == resource.data.healthDataConsent)
-        && isWellbeingConsentTransition(resource.data, request.resource.data);
+        && isConsentTransition(resource.data, request.resource.data, 'bodyWeightWithdrawal', 'healthDataConsent')
+        && isConsentTransition(resource.data, request.resource.data, 'wellbeingWithdrawal', 'wellbeingConsent');
     }
 
     match /users/{uid}/readiness/{date} {
@@ -371,12 +379,8 @@ service cloud.firestore {
 
     match /users/{uid}/bodyWeights/{date} {
       allow read, delete: if isVerifiedOwner(uid);
-      allow create: if isVerifiedOwner(uid)
-        && get(/databases/$(database)/documents/users/$(uid)).data.healthDataConsent != null
-        && isBodyWeight(request.resource.data, date);
-      allow update: if isVerifiedOwner(uid)
-        && get(/databases/$(database)/documents/users/$(uid)).data.healthDataConsent != null
-        && isBodyWeight(request.resource.data, date)
+      allow create: if isVerifiedOwner(uid) && canWriteBodyWeight(uid) && isBodyWeight(request.resource.data, date);
+      allow update: if isVerifiedOwner(uid) && canWriteBodyWeight(uid) && isBodyWeight(request.resource.data, date)
         && request.resource.data.createdAt == resource.data.createdAt;
     }
 

@@ -11,6 +11,12 @@ describe('profile document boundary', () => {
     expect(profileDocumentSchema.safeParse({ ...profile, weightClassLabel: '−77 kg' }).success).toBe(true)
     expect(profileDocumentSchema.safeParse({ ...profile, healthDataConsent: null }).success).toBe(true)
   })
+  it.each([undefined, null, { generation: 1, pending: true }, { generation: Number.MAX_SAFE_INTEGER, pending: false }])(
+    'accepts missing, null and valid withdrawal markers: %j', (bodyWeightWithdrawal) => {
+      const document = bodyWeightWithdrawal === undefined ? profile : { ...profile, bodyWeightWithdrawal }
+      expect(profileDocumentSchema.safeParse(document).success).toBe(true)
+    },
+  )
   it.each([
     { healthDataConsent: { ...consent, adultConfirmed: false } },
     { healthDataConsent: { grantedAt: instant, noticeVersion: '2026-11' } },
@@ -18,6 +24,12 @@ describe('profile document boundary', () => {
     { healthDataConsent: { ...consent, noticeVersion: 'November' } },
     { healthDataConsent: { ...consent, grantedAt: '2026-11-13' } },
     { healthDataConsent: null, weightClassLabel: '−77 kg' },
+    { healthDataConsent: null, bodyWeightWithdrawal: { generation: 1, pending: true } },
+    { bodyWeightWithdrawal: { generation: 0, pending: true } },
+    { bodyWeightWithdrawal: { generation: 1.5, pending: true } },
+    { bodyWeightWithdrawal: { generation: Number.MAX_SAFE_INTEGER + 1, pending: true } },
+    { bodyWeightWithdrawal: { generation: 1, pending: 'true' } },
+    { bodyWeightWithdrawal: { generation: 1, pending: true, extra: true } },
     { weightClassLabel: '' }, { weightClassLabel: 'x'.repeat(21) }, { extra: true },
     { schemaVersion: 2 }, { updatedAt: null },
   ])('rejects invalid profile fields %j', (patch) => {

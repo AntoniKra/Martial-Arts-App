@@ -221,8 +221,11 @@ describe('health consent and body weights', () => {
     await assertFails(ref.update({ healthDataConsent: { ...consent, grantedAt: '2026-11-13T09:00:00.000Z' } }))
     await assertFails(ref.update({ healthDataConsent: { ...consent, noticeVersion: '2026-12' } }))
     await assertFails(ref.update({ createdAt: '2026-11-13T09:00:00.000Z' }))
-    await assertSucceeds(ref.update({ healthDataConsent: null, weightClassLabel: null }))
+    await assertFails(ref.update({ healthDataConsent: null, weightClassLabel: null }))
+    await assertSucceeds(ref.update({ bodyWeightWithdrawal: { generation: 1, pending: true } }))
+    await assertSucceeds(ref.update({ healthDataConsent: null, weightClassLabel: null, bodyWeightWithdrawal: { generation: 1, pending: false } }))
     await assertSucceeds(ref.update({ healthDataConsent: { ...consent, grantedAt: '2026-11-13T09:00:00.000Z' } }))
+    expect((await ref.get()).data()?.bodyWeightWithdrawal).toEqual({ generation: 1, pending: false })
     await assertSucceeds(ref.delete())
   })
 
@@ -246,7 +249,8 @@ describe('health consent and body weights', () => {
     const ref = ownerDatabase().doc(profilePath)
     await assertFails(ref.set({ ...profileDocument(), healthDataConsent: null, weightClassLabel: '−77 kg' }))
     await assertSucceeds(ref.set({ ...profileDocument(), weightClassLabel: 'x'.repeat(20) }))
-    await assertFails(ref.update({ healthDataConsent: null }))
+    await ref.update({ bodyWeightWithdrawal: { generation: 1, pending: true } })
+    await assertFails(ref.update({ healthDataConsent: null, bodyWeightWithdrawal: { generation: 1, pending: false } }))
   })
 
   it('requires consent for writes, but permits reads and deletion after withdrawal', async () => {
@@ -259,11 +263,82 @@ describe('health consent and body weights', () => {
     await assertSucceeds(ref.update({ weightKg: 30 }))
     await assertSucceeds(ref.update({ weightKg: 250 }))
     await assertFails(ref.update({ createdAt: '2026-11-13T09:00:00.000Z' }))
-    await db.doc(profilePath).update({ healthDataConsent: null })
+    await db.doc(profilePath).update({ bodyWeightWithdrawal: { generation: 1, pending: true } })
+    await db.doc(profilePath).update({ healthDataConsent: null, bodyWeightWithdrawal: { generation: 1, pending: false } })
     await assertFails(ref.update({ weightKg: 77 }))
     await assertSucceeds(ref.get())
     expect((await assertSucceeds(db.collection(`${profilePath}/bodyWeights`).get())).size).toBe(1)
     await assertSucceeds(ref.delete())
+  })
+
+  it('blocks measurement writes in both owner contexts during withdrawal and lets the second finish it', async () => {
+    const first = ownerDatabase(), second = ownerDatabase()
+    const profile = first.doc(profilePath)
+    const weights = `${profilePath}/bodyWeights`, lateDate = '2026-11-14'
+    await profile.set({ ...profileDocument(), bodyWeightWithdrawal: null, wellbeingConsent: consent })
+    await first.doc(weightPath).set(weightDocument())
+    await assertSucceeds(profile.update({ bodyWeightWithdrawal: { generation: 1, pending: true } }))
+
+    const snapshot = await assertSucceeds(second.collection(weights).get())
+    expect(snapshot.docs.map((document) => document.ref.path)).toEqual([weightPath])
+    for (const db of [first, second]) {
+      await assertFails(db.doc(`${weights}/${lateDate}`).set({ ...weightDocument(), date: lateDate }))
+      await assertFails(db.doc(weightPath).update({ weightKg: 77 }))
+    }
+    const batch = second.batch()
+    for (const document of snapshot.docs) batch.delete(document.ref)
+    batch.update(second.doc(profilePath), {
+      healthDataConsent: null, weightClassLabel: null, bodyWeightWithdrawal: { generation: 1, pending: false },
+    })
+    await assertSucceeds(batch.commit())
+    expect((await second.collection(weights).get()).size).toBe(0)
+    expect((await profile.get()).data()).toMatchObject({
+      healthDataConsent: null, bodyWeightWithdrawal: { generation: 1, pending: false }, wellbeingConsent: consent,
+    })
+  })
+
+  it('only permits starting the next generation and finishing the current generation', async () => {
+    const profile = ownerDatabase().doc(profilePath)
+    const pending = { generation: 1, pending: true }
+    await assertFails(profile.set({ ...profileDocument(), bodyWeightWithdrawal: pending }))
+    await profile.set(profileDocument())
+    for (const generation of [0, 1.5, 2, Number.MAX_SAFE_INTEGER + 1]) {
+      await assertFails(profile.update({ bodyWeightWithdrawal: { generation, pending: true } }))
+    }
+    await assertSucceeds(profile.update({ bodyWeightWithdrawal: pending }))
+    await assertFails(profile.update({ healthDataConsent: null }))
+    await assertFails(profile.update({ bodyWeightWithdrawal: null }))
+    await assertFails(profile.update({ bodyWeightWithdrawal: { ...pending, pending: false } }))
+    await assertFails(profile.update({ healthDataConsent: null, bodyWeightWithdrawal: { generation: 2, pending: false } }))
+    await assertSucceeds(profile.update({ healthDataConsent: null, bodyWeightWithdrawal: { ...pending, pending: false } }))
+    await assertFails(profile.update({ bodyWeightWithdrawal: null }))
+  })
+
+  it('rejects an old deletion batch atomically after a later withdrawal and new consent', async () => {
+    const first = ownerDatabase(), second = ownerDatabase(), profile = second.doc(profilePath)
+    await profile.set(profileDocument())
+    await first.doc(weightPath).set(weightDocument())
+    await profile.update({ bodyWeightWithdrawal: { generation: 1, pending: true } })
+    const delayed = first.batch()
+    delayed.delete(first.doc(weightPath))
+    delayed.update(first.doc(profilePath), { bodyWeightWithdrawal: { generation: 1, pending: true } })
+
+    const finish = second.batch()
+    finish.delete(second.doc(weightPath))
+    finish.update(profile, { healthDataConsent: null, bodyWeightWithdrawal: { generation: 1, pending: false } })
+    await assertSucceeds(finish.commit())
+    await profile.update({ healthDataConsent: consent })
+    await profile.update({ bodyWeightWithdrawal: { generation: 2, pending: true } })
+    await profile.update({ healthDataConsent: null, bodyWeightWithdrawal: { generation: 2, pending: false } })
+    await profile.update({ healthDataConsent: consent })
+    const fresh = { ...weightDocument(), weightKg: 81 }
+    await second.doc(weightPath).set(fresh)
+
+    await assertFails(delayed.commit())
+    expect((await second.doc(weightPath).get()).data()).toEqual(fresh)
+    expect((await profile.get()).data()).toMatchObject({
+      healthDataConsent: consent, bodyWeightWithdrawal: { generation: 2, pending: false },
+    })
   })
 
   it('rejects granting consent and creating a body weight in the same batch without changing either document', async () => {
