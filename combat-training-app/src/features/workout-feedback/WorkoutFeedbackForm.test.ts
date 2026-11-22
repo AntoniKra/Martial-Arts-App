@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import { workoutSession } from '@/test/workoutSessionBuilders'
 import { WorkoutFeedbackForm } from './WorkoutFeedbackForm'
-import { sparringIntensityLabels } from './sparringIntensityLabels'
+import { workoutFeedbackLabels } from './workoutFeedbackLabels'
 
 function FeedbackTestRouter({ children }: { children?: ReactNode }) {
   return createElement(RouterProvider, { router: createMemoryRouter([{ path: '/', element: children }]) })
@@ -35,13 +35,16 @@ it('prefills saved intensity, leaves unknown intensity empty, and excludes entri
   const html = renderToStaticMarkup(createElement(FeedbackTestRouter, {}, createElement(WorkoutFeedbackForm, {
     session, skills: [], pending: false, rpeCard: null, onSave: async () => {},
   })))
+  expect(html.match(/class="grid grid-cols-3 gap-1.5"/g)).toHaveLength(2)
   expect(html).toContain('Sparing 1 · intensywność (opcjonalnie)')
   expect(html).toContain('Sparing 2 · intensywność (opcjonalnie)')
   expect(html).not.toContain('Sparing 3')
   expect(html.match(/aria-pressed="true"/g)).toHaveLength(1)
   expect(html.match(/aria-pressed="false"/g)).toHaveLength(5)
-  expect(html).toMatch(new RegExp(`aria-pressed="true"[^>]*><span[^>]*>✓ </span>${sparringIntensityLabels.technical}`))
-  for (const label of Object.values(sparringIntensityLabels)) expect(html.split(label)).toHaveLength(3)
+  expect(html).toMatch(/aria-pressed="true"[^>]*><span[^>]*><span[^>]*>✓ <\/span>Techniczny/)
+  for (const { name, description } of Object.values(workoutFeedbackLabels.sparringOptions)) {
+    expect(html.split(`>${name}</span> <span class="feedback-sparring-description">${description}<`)).toHaveLength(3)
+  }
 })
 
 it('uses the same metrics for both runs and shows the previous date, missing RPE, notice and link without previous ratings', () => {
@@ -53,6 +56,8 @@ it('uses the same metrics for both runs and shows the previous date, missing RPE
     previousRun: { session: previous, planChanged: true }, onSave: async () => {},
   })))
   for (const value of ['52:10', '15:00', '5/5']) expect(html.split(`>${value}<`)).toHaveLength(3)
+  expect(html).toMatch(/<h1[^>]*>Trening ukończony<\/h1>.*Podsumowanie czasu sesji.*Czas czystej pracy<\/dt><dd[^>]*>15:00<\/dd>/)
+  expect(html).toMatch(/Czas czystej pracy.*>Trening<\/dt><dd[^>]*>52:10<\/dd>.*>Ćwiczenia<\/dt><dd[^>]*>5\/5<\/dd>.*Poprzednio ten plan/)
   expect(html).toContain('Poprzednio ten plan: 6 lis')
   expect(html).toContain('RPE: brak')
   expect(html).toContain('Plan zmieniono po tamtym treningu.')

@@ -22,6 +22,15 @@ test('changes planned sparring intensity offline and includes saved hard rounds 
   const first = page.getByRole('group', { name: 'Sparing 1 · intensywność (opcjonalnie)', exact: true })
   const second = page.getByRole('group', { name: 'Sparing 2 · intensywność (opcjonalnie)', exact: true })
   await expect(first.getByRole('button', { name: /^Techniczny/ })).toHaveAttribute('aria-pressed', 'true')
+  await expect(first.locator('.feedback-sparring-title')).toHaveText(['Lekki', '✓ Techniczny', 'Twardy'])
+  await expect(first.getByRole('button', { name: 'Techniczny kontrolowana siła, praca nad konkretnymi elementami', exact: true })).toBeVisible()
+  await expect(first.getByText('kontrolowana siła, praca nad konkretnymi elementami', { exact: true })).toBeVisible()
+  const tiles = await first.getByRole('button').evaluateAll((buttons) => buttons.map((button) => {
+    const { top, left, height, width } = button.getBoundingClientRect()
+    return { top, left, height, width }
+  }))
+  expect(tiles.every((tile) => tile.top === tiles[0].top && tile.height >= 44 && tile.width >= 44)).toBe(true)
+  expect(tiles.map(({ left }) => left)).toEqual([...tiles].sort((a, b) => a.left - b.left).map(({ left }) => left))
   await expect(second.getByRole('button', { pressed: true })).toHaveCount(0)
   // Selecting the active option again restores the optional empty value.
   await second.getByRole('button', { name: /^Lekki/ }).click()

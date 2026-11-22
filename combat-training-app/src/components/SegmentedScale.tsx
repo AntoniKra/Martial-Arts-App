@@ -1,7 +1,7 @@
-import type { PointerEvent } from 'react'
+import type { PointerEvent, ReactNode } from 'react'
 import { scaleValueFromKey, scaleValueFromPosition } from './scaleValue'
 
-export function SegmentedScale({ value, onChange, min, max, label, valueText, describedBy, disabled = false, uniformFill = false, className = 'h-16' }: {
+export function SegmentedScale({ value, onChange, min, max, label, valueText, describedBy, disabled = false, uniformFill = false, className = 'h-16', children }: {
   value: number | null
   onChange: (value: number) => void
   min: number
@@ -12,6 +12,7 @@ export function SegmentedScale({ value, onChange, min, max, label, valueText, de
   disabled?: boolean
   uniformFill?: boolean
   className?: string
+  children?: ReactNode
 }) {
   function selectPosition(event: PointerEvent<HTMLDivElement>) {
     if (disabled) return
@@ -47,7 +48,7 @@ export function SegmentedScale({ value, onChange, min, max, label, valueText, de
         event.currentTarget.releasePointerCapture(event.pointerId)
       }
     }}>
-    {Array.from({ length: max - min + 1 }, (_, index) => min + index).map((segment) => <span key={segment} aria-hidden="true"
+    {children ?? Array.from({ length: max - min + 1 }, (_, index) => min + index).map((segment) => <span key={segment} aria-hidden="true"
       className={`flex min-w-0 flex-1 items-center justify-center rounded-[2px] border ${value === segment ? 'border-ink' : 'border-bd'}`}
       style={{ backgroundColor: value !== null && segment <= value
         ? `color-mix(in srgb, var(--app-crimson) ${uniformFill ? 20 : 20 + (segment - min) * 8}%, var(--app-surface))`
