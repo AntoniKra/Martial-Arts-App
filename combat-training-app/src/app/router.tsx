@@ -12,6 +12,7 @@ import { ActiveWorkoutGate } from '@/features/workout-player/ActiveWorkoutGate'
 import { AuthLoadingScreen } from '@/features/auth/AuthLoadingScreen'
 import { RouteErrorScreen } from '@/app/RouteErrorScreen'
 import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
+import { createCompletedWorkoutStorage } from '@/infrastructure/storage/completedWorkoutStorage'
 
 export const router = createBrowserRouter([
   {
@@ -26,7 +27,7 @@ export const router = createBrowserRouter([
           { path: '/register', element: <AuthFormPage key="register" mode="register" /> },
           { path: '/forgot-password', element: <AuthFormPage key="forgot-password" mode="forgot-password" /> },
           { path: '/verify-email', element: <VerifyEmailPage /> },
-          { element: <ActiveWorkoutGate createRepository={createActiveWorkoutRepository} />, children: [
+          { element: <ActiveWorkoutGate createRepository={createActiveWorkoutRepository} createCompletedStorage={createCompletedWorkoutStorage} />, children: [
           {
             element: <WorkoutDataProvider><Outlet /></WorkoutDataProvider>,
             children: [

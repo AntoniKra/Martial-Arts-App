@@ -4,6 +4,7 @@ import { BottomNavigation } from '@/components/layout/BottomNavigation'
 import { DesktopNavigation } from '@/components/layout/DesktopNavigation'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
+import { CompletedWorkoutRecoveryNotice } from '@/features/workout-player/components/CompletedWorkoutRecoveryNotice'
 
 export function AppLayout() {
   const { exercises, retryExercises } = useWorkoutData()
@@ -16,6 +17,7 @@ export function AppLayout() {
           {exercises.status === 'error' && <div role="alert" className="px-4 text-sm text-crimson-ink">
             <p>{workoutDataLabels.exercisesLoadError}</p><button type="button" className="min-h-touch" onClick={retryExercises}>Spróbuj ponownie</button>
           </div>}
+          <CompletedWorkoutRecoveryNotice />
           <Outlet />
         </main>
         <BottomNavigation />

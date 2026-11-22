@@ -26,7 +26,7 @@ describe('deferred workout repositories', () => {
       bodyWeights: { subscribe, save: async () => {}, delete: async () => {} },
       wellbeing: { subscribe, save: async () => {}, withdrawConsent: async () => {} },
       weekPlans: { subscribe, save: async () => {}, reconcile: async () => {} }, plans: { subscribe, save: async () => {}, delete: async () => {} },
-      sessions: { subscribe, save: async () => {}, saveManual: async () => {}, delete: async () => true, updateNote: async () => true, saveFeedback: async () => true, saveQuickTimerFeedback: async () => true, saveRpe: async () => true },
+      sessions: { subscribe, save: async () => {}, saveRecorded: async () => {}, saveManual: async () => {}, delete: async () => true, updateNote: async () => true, saveFeedback: async () => true, saveQuickTimerFeedback: async () => true, saveRpe: async () => true },
       focusSkills: { subscribe, save: async () => {}, archive: async () => {}, deleteUnused: async () => {}, restore: async () => {} } })
     await ready
     expect(subscriptions).toBe(0)

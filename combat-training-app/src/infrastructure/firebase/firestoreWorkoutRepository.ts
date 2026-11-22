@@ -72,7 +72,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
     this.writes.clear()
   }
 
-  private write(action: () => Promise<void>, matches: PendingWrite<T>['matches']): Promise<void> {
+  private write(action: () => Promise<void>, matches: PendingWrite<T>['matches'], onServerRejection?: (error: unknown) => void): Promise<void> {
     if (!this.reportError) return Promise.reject(new Error('Repository is not subscribed'))
     if (this.collectionName === 'recurringWeeks' && this.writeFailed) return Promise.reject(new Error('Recurring week requires a retry'))
     return new Promise((resolve, reject) => {
@@ -87,7 +87,8 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
           this.writes.delete(pending)
           reject(error)
           if (this.collectionName === 'recurringWeeks') { this.writeFailed = true; this.readable = false }
-          this.reportError?.(error)
+          if (onServerRejection) onServerRejection(error)
+          else this.reportError?.(error)
         })
         // An identical document is already durable locally, even if its server write is still queued.
         if (matches(this.items)) { this.writes.delete(pending); resolve() }
@@ -95,7 +96,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
     })
   }
 
-  async save(value: T, action?: () => Promise<void>): Promise<void> {
+  async save(value: T, action?: () => Promise<void>, onServerRejection?: (error: unknown) => void): Promise<void> {
     const schemaVersion = workoutDocumentVersion(value)
     const item = this.parse({ ...value, schemaVersion })
     const expected = JSON.stringify(item)
@@ -104,7 +105,7 @@ export class FirestoreWorkoutRepository<T extends { id: string; updatedAt: strin
     }
     try {
       await this.write(action ?? (() => setDoc(doc(this.path, item.id), { ...item, schemaVersion })),
-        (items) => JSON.stringify(items.get(item.id)) === expected)
+        (items) => JSON.stringify(items.get(item.id)) === expected, onServerRejection)
     } catch (error) {
       if (this.collectionName === 'workoutSessions') reportPerformanceEvent({ type: 'save-error', id: item.id })
       throw error

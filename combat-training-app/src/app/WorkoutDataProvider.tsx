@@ -1,4 +1,4 @@
-import { useEffect, useState, type PropsWithChildren } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type PropsWithChildren } from 'react'
 import { createDeferredWorkoutRepositories, type WorkoutRepositories } from '@/application/deferredWorkoutRepositories'
 import { WorkoutDataContext } from '@/application/workoutDataContext'
 import { useRepositoryCollection } from '@/application/useRepositoryCollection'
@@ -12,6 +12,9 @@ import type { SubscribableRepository } from '@/application/repositorySubscriptio
 import type { BodyWeight } from '@/domain/profile/profile.types'
 import type { WellbeingEntry } from '@/domain/wellbeing/wellbeing'
 import { hasWellbeingConsent } from '@/domain/wellbeing/wellbeingConsent'
+import { CompletedWorkoutRecovery } from '@/application/workout-session/completedWorkoutRecovery'
+import type { RecordedWorkoutSession, WorkoutSessionRepository } from '@/application/workout-session/workoutSessionRepository'
+import { createCompletedWorkoutStorage } from '@/infrastructure/storage/completedWorkoutStorage'
 
 const inactiveWeights: SubscribableRepository<BodyWeight> = {
   subscribe: (onChange) => {
@@ -24,7 +27,9 @@ const inactiveWellbeing: SubscribableRepository<WellbeingEntry> = { subscribe: (
   return () => {}
 } }
 
-function SubscribedData({ repositories, retry, children }: PropsWithChildren<{ repositories: WorkoutRepositories; retry: () => void }>) {
+function SubscribedData({ repositories, recovery, retry, children }: PropsWithChildren<{
+  repositories: WorkoutRepositories; recovery: CompletedWorkoutRecovery; retry: () => void
+}>) {
   const [recurringAttempt, setRecurringAttempt] = useState(0)
   const recurringWeeks = useRepositoryCollection(repositories.recurringWeeks, recurringAttempt)
   const [sessionAttempt, setSessionAttempt] = useState(0)
@@ -39,7 +44,25 @@ function SubscribedData({ repositories, retry, children }: PropsWithChildren<{ r
   const bodyWeights = useRepositoryCollection(consented ? repositories.bodyWeights : inactiveWeights, weightAttempt)
   const wellbeing = useRepositoryCollection(profile.status === 'ready' && hasWellbeingConsent(profile.items[0]) ? repositories.wellbeing : inactiveWellbeing, wellbeingAttempt)
   const plans = useRepositoryCollection(repositories.plans)
-  const sessions = useRepositoryCollection(repositories.sessions, sessionAttempt)
+  const sessionRepository = useMemo<WorkoutSessionRepository>(() => ({
+    ...repositories.sessions,
+    subscribe: (onChange, onError) => repositories.sessions.subscribe((snapshot) => {
+      recovery.observe(snapshot)
+      onChange(snapshot)
+    }, (error) => {
+      recovery.observeReadFailure()
+      onError(error)
+    }),
+    delete: async (id) => {
+      const removed = await repositories.sessions.delete(id)
+      if (removed) recovery.discard(id)
+      return removed
+    },
+  }), [repositories, recovery])
+  const sessions = useRepositoryCollection(sessionRepository, sessionAttempt)
+  const completedWorkoutRetries = useSyncExternalStore(recovery.subscribe, recovery.getRetries)
+  const saveRecordedSession = useCallback((session: RecordedWorkoutSession) =>
+    recovery.save(session, sessionRepository), [recovery, sessionRepository])
   const focusSkills = useRepositoryCollection(repositories.focusSkills, focusAttempt)
   const currentWeek = useCurrentWeek()
   const { state: weekPlans, retry: retryWeekPlans } = useWeekPlanCollection(repositories.weekPlans, currentWeek, retry)
@@ -52,12 +75,14 @@ function SubscribedData({ repositories, retry, children }: PropsWithChildren<{ r
   return <WorkoutDataContext.Provider value={{ recurringWeeks, recurringWeekRepository: repositories.recurringWeeks, retryRecurringWeeks: () => setRecurringAttempt((value) => value + 1), exercises, exerciseRepository: repositories.exercises, retryExercises: () => setExerciseAttempt((value) => value + 1), profile, bodyWeights, profileRepository: repositories.profile, bodyWeightRepository: repositories.bodyWeights,
     wellbeing, wellbeingRepository: repositories.wellbeing, retryWellbeing: () => setWellbeingAttempt((value) => value + 1),
     retryProfile: () => setProfileAttempt((value) => value + 1), retryBodyWeights: () => setWeightAttempt((value) => value + 1),
-    plans, sessions, focusSkills, weekPlans, currentWeek, retryWeekPlans, retrySessions: () => setSessionAttempt((value) => value + 1), retryFocusSkills: () => setFocusAttempt((value) => value + 1), weekPlanRepository: repositories.weekPlans, planRepository: repositories.plans, sessionRepository: repositories.sessions, focusSkillRepository: repositories.focusSkills, retry }}>
+    plans, sessions, focusSkills, weekPlans, currentWeek, retryWeekPlans, retrySessions: () => setSessionAttempt((value) => value + 1), retryFocusSkills: () => setFocusAttempt((value) => value + 1), weekPlanRepository: repositories.weekPlans, planRepository: repositories.plans, sessionRepository, completedWorkoutRetries, saveRecordedSession, focusSkillRepository: repositories.focusSkills, retry }}>
     {children}
   </WorkoutDataContext.Provider>
 }
 
-function LoadingAccountData({ uid, retry, children }: PropsWithChildren<{ uid: string; retry: () => void }>) {
+function LoadingAccountData({ uid, recovery, retry, children }: PropsWithChildren<{
+  uid: string; recovery: CompletedWorkoutRecovery; retry: () => void
+}>) {
   const [boot] = useState(() => {
     let connect!: (repositories: WorkoutRepositories) => void
     let fail!: (error: unknown) => void
@@ -74,12 +99,14 @@ function LoadingAccountData({ uid, retry, children }: PropsWithChildren<{ uid: s
     }).catch((error: unknown) => { if (!cancelled) boot.fail(error) })
     return () => { cancelled = true }
   }, [uid, boot])
-  return <SubscribedData repositories={boot.repositories} retry={retry}>{children}</SubscribedData>
+  return <SubscribedData repositories={boot.repositories} recovery={recovery} retry={retry}>{children}</SubscribedData>
 }
 
 function AccountData({ uid, children }: PropsWithChildren<{ uid: string }>) {
   const [attempt, setAttempt] = useState(0)
-  return <WorkoutGongProvider><LoadingAccountData key={attempt} uid={uid} retry={() => setAttempt((value) => value + 1)}>{children}</LoadingAccountData></WorkoutGongProvider>
+  const [recovery] = useState(() => new CompletedWorkoutRecovery(createCompletedWorkoutStorage(uid)))
+  return <WorkoutGongProvider><LoadingAccountData key={attempt} uid={uid} recovery={recovery}
+    retry={() => setAttempt((value) => value + 1)}>{children}</LoadingAccountData></WorkoutGongProvider>
 }
 
 export function WorkoutDataProvider({ children }: PropsWithChildren) {

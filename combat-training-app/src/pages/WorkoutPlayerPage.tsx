@@ -5,7 +5,6 @@ import { routes } from '@/app/routes'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
-import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { WorkoutPlayerView } from '@/features/workout-player/components/WorkoutPlayerView'
 import { useActiveWorkout } from '@/features/workout-player/activeWorkoutContext'
 import { InterruptedWorkoutDialog } from '@/features/workout-player/components/InterruptedWorkoutDialog'
@@ -40,8 +39,7 @@ export function Component() {
   const loadState = snapshot.id === workoutId && snapshot.plan && snapshot.skills === null
     ? { status: 'loading' as const }
     : snapshot.id === workoutId && snapshot.plan ? { status: 'success' as const, plan: snapshot.plan } : latest
-  const { sessionRepository } = useWorkoutData()
-  const saveWorkoutSession = useCallback((session: WorkoutSession) => sessionRepository.save(session), [sessionRepository])
+  const { saveRecordedSession: saveWorkoutSession } = useWorkoutData()
   const onSessionSaved = useCallback((id: string) => { void navigate(routes.workoutFeedback(id), { replace: true }) }, [navigate])
   if (restored?.kind === 'interrupted') return <InterruptedWorkoutDialog
     planName={restored.workout.plan.nameSnapshot} lastSeenAt={restored.workout.lastSeenAt}

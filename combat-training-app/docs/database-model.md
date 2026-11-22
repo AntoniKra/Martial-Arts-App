@@ -273,6 +273,7 @@ Nazwy są zarezerwowane dla kierunku rozwoju R4. Bieżący model nie ma dla nich
 | Ostatnie ustawienia szybkiego stopera | `localStorage`, klucz `combat-training.quickTimer.{uid}` | Dyscyplina, rodzaj, format, liczba rund, czas pracy i przerwy na następny raz; zostają po wylogowaniu, usuwane razem z kontem |
 | Zamknięte przypomnienia RPE | `localStorage`, klucz `combat-training.rpeDismissals.{uid}` | ID wpisów, przy których zamknięto przypomnienie o RPE na Start; zostają po wylogowaniu, usuwane razem z kontem |
 | Trwający trening do wznowienia (Q8) | `localStorage`, klucz `combat-training.activeWorkout.<uid>`, wersja 1 | Migawka odtwarzania i rejestratora jest zapisywana przy zmianach stanu w widocznej karcie, przy przejściu do ukrytej karty i przy `pagehide`. Po udanym zapisie wpisu jest usuwana. |
+| Zakończony trening oczekujący na potwierdzenie (#222) | `localStorage`, osobny klucz `combat-training.completedWorkout.<sessionId>.<uid>` dla każdej sesji | Kopia wpisu jest walidowana tym samym schematem co dokument Firestore. Pozostaje do czasu, aż nasłuch z serwera pokaże ten wpis bez oczekujących zapisów. Po odrzuceniu można ponowić zapis pod tym samym ID. |
 | Szkic kreatora | stan Reacta na ekranie kreatora | Świadomy zapis tworzy lub aktualizuje plan w Firestore. |
 | Pamięć podręczna Firestore | IndexedDB (`persistentLocalCache`) | Czyszczona przy wylogowaniu |
 

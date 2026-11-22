@@ -11,6 +11,7 @@ import type { AuthService, AuthSession } from '@/application/auth/authService'
 import { chooseGoogleSignInMethod, type SignInEnvironment } from '@/application/auth/chooseGoogleSignInMethod'
 import type { FirebaseConfig } from './firebaseConfig'
 import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
+import { createCompletedWorkoutStorage } from '@/infrastructure/storage/completedWorkoutStorage'
 
 function toSession(user: User | null): AuthSession | null {
   if (!user) return null
@@ -62,6 +63,7 @@ export function createFirebaseAuthService(
     },
     async hasUnsentWrites() {
       try {
+        if (auth.currentUser && createCompletedWorkoutStorage(auth.currentUser.uid).readAll().length > 0) return true
         const { hasUnsentWrites } = await import('./createFirestoreRepositories')
         return await hasUnsentWrites()
       } catch {
@@ -69,7 +71,11 @@ export function createFirebaseAuthService(
       }
     },
     async signOut() {
-      if (auth.currentUser) createActiveWorkoutRepository(auth.currentUser.uid).clear()
+      if (auth.currentUser) {
+        createActiveWorkoutRepository(auth.currentUser.uid).clear()
+        const completed = createCompletedWorkoutStorage(auth.currentUser.uid)
+        for (const session of completed.readAll()) completed.remove(session.id)
+      }
       try {
         const { clearFirestoreCache } = await import('./createFirestoreRepositories')
         await clearFirestoreCache()
