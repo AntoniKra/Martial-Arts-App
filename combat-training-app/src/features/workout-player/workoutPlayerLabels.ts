@@ -1,3 +1,5 @@
+import { MAX_WORKOUT_SESSION_STEPS } from '@/domain/workout-session/workoutSessionLimits'
+
 export const workoutPlayerLabels = {
   focusSkillsUnavailable: 'Nie udało się wczytać elementów do poprawy. W tym treningu elementy do poprawy nie zostaną ocenione.',
   enableSound: 'Dźwięk wyłączony — stuknij, aby włączyć',
@@ -22,6 +24,11 @@ export const workoutPlayerLabels = {
   previousStep: 'Poprzedni etap',
   nextStep: 'Następny etap',
   start: 'Rozpocznij trening',
+  sessionStepLimitHeading: 'Trening ma za dużo etapów',
+  sessionStepLimitExceeded: (stepCount: number) =>
+    `Ten trening ma ${stepCount} etapów. Maksimum to ${MAX_WORKOUT_SESSION_STEPS}. Zmniejsz liczbę rund lub ćwiczeń, aby rozpocząć trening.`,
+  editPlan: 'Edytuj plan',
+  editQuickTimer: 'Wróć do ustawień stopera',
   pause: 'Pauza',
   resume: 'Wznów',
   startNow: 'Zacznij teraz',

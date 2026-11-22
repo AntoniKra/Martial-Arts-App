@@ -1,5 +1,6 @@
 import * as z from 'zod/mini'
 import { MANUAL_WORKOUT_PARTS } from '@/domain/workout-session/workoutSession.types'
+import { MAX_WORKOUT_SESSION_STEPS } from '@/domain/workout-session/workoutSessionLimits'
 import { manualWorkoutCategory } from '@/domain/workout-session/manualWorkoutParts'
 
 export const instantSchema = z.iso.datetime({ precision: 3 })
@@ -69,7 +70,7 @@ const common = {
 const timed = {
   startedAt: instantSchema, completedAt: instantSchema, status: z.enum(['completed', 'partial']),
   workSeconds: integer, sparringSeconds: integer,
-  stepResults: z.array(sessionStepSchema).check(z.maxLength(500)),
+  stepResults: z.array(sessionStepSchema).check(z.maxLength(MAX_WORKOUT_SESSION_STEPS)),
 }
 const correctionText = z.string().check(z.minLength(1), z.maxLength(200))
 const focusRating = z.strictObject({

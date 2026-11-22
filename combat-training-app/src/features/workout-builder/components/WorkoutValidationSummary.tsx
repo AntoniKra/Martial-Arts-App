@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 
 import type { WorkoutPlanValidationIssue } from '@/domain/workout/workoutValidation'
+import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderLabels'
 
 interface WorkoutValidationSummaryProps {
   issues: WorkoutPlanValidationIssue[]
@@ -25,7 +26,9 @@ export const WorkoutValidationSummary = forwardRef<HTMLDivElement, WorkoutValida
         <ul className="mt-3 list-disc space-y-2 pl-5 text-[13px] leading-relaxed text-muted">
           {issues.map((issue, index) => (
             <li key={`${issue.code}-${issue.blockId ?? 'global'}-${issue.itemId ?? index}`}>
-              {issue.messagePl}
+              {issue.code === 'session_step_limit_exceeded'
+                ? workoutBuilderLabels.sessionStepLimitExceeded(issue.stepCount)
+                : issue.messagePl}
             </li>
           ))}
         </ul>

@@ -122,7 +122,7 @@ Issue #149 / ADR 0016: nowy lub świadomie poprawiony ręczny wpis ma `schemaVer
 | `focusRatings` (lista, ≤ 3) | tak | brak | tak, wymagana, może być pusta |
 | `exerciseRatings` (lista) | tak | brak | brak |
 
-`stepResults` mają kształt i inwarianty z `domain-model.md` (`WorkoutSessionStepResult`).
+`stepResults` mają kształt i inwarianty z `domain-model.md` (`WorkoutSessionStepResult`). Limit z reguł Firestore odpowiada `MAX_WORKOUT_SESSION_STEPS` w `src/domain/workout-session/workoutSessionLimits.ts`, używanemu przez walidację planu, oś odtwarzania i schemat sesji.
 
 Ręczny wpis ma `status: 'completed'`, `completion: null`, `workSeconds: null` i `sparringSeconds: null` (nieznane czasy, a nie zera). Data przy tworzeniu: od dziś − 7 dni do dziś w strefie urządzenia. Edycja może pozostawić starszą zapisaną datę; nowa data musi być z tego zakresu. Nowy wpis otrzymuje UUID, strefę urządzenia i `createdAt = updatedAt = rpeRecordedAt = now`. Edycja zachowuje ID, `createdAt` i `timezone`. Pierwsza wersja ręcznego wpisu z 12 listopada pozostaje obsługiwana; części zajęć od 14 listopada używają wersji 2.
 

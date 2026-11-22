@@ -37,6 +37,11 @@ describe('quick timer configuration and one-off plan', () => {
     const plan = quickTimerPlan({ format: 'custom', roundCount: 50, restBetweenRoundsSeconds: 0 })
     expect(createWorkoutPlaybackTimeline(plan).steps).toHaveLength(50)
   })
+  it('plays the maximum 50 rounds with 49 rests within the session step limit', () => {
+    const plan = quickTimerPlan({ format: 'custom', roundCount: 50, restBetweenRoundsSeconds: 300 })
+
+    expect(createWorkoutPlaybackTimeline(plan).steps).toHaveLength(99)
+  })
   it.each([[55, 1, 60], [60, 1, 75], [75, -1, 60], [60, -1, 55], [5, -1, 5], [600, 1, 600]] as const)('adjusts %s by direction %s to %s', (value, direction, expected) => {
     expect(adjustQuickTimerSeconds(value, direction, 5, 600)).toBe(expected)
   })

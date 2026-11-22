@@ -1,9 +1,23 @@
 import { describe, expect, it } from 'vitest'
 
-import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
-import { block, continuousExercise, roundsExercise, workoutBreak, workoutPlan } from '@/test/workoutBuilders'
+import { createWorkoutPlaybackTimeline, tryCreateWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
+import { block, continuousExercise, roundsExercise, workoutBreak, workoutPlan, workoutPlanAtSessionStepLimit } from '@/test/workoutBuilders'
 
 describe('createWorkoutPlaybackTimeline', () => {
+  it('creates all 500 steps at the session limit', () => {
+    const plan = workoutPlanAtSessionStepLimit()
+
+    expect(createWorkoutPlaybackTimeline(plan).steps).toHaveLength(500)
+  })
+
+  it('rejects a timeline of 501 steps without returning a partial timeline', () => {
+    const plan = workoutPlanAtSessionStepLimit()
+    plan.blocks.push(block('extra', [continuousExercise('extra', 60)]))
+
+    expect(tryCreateWorkoutPlaybackTimeline(plan)).toEqual({ ok: false, stepCount: 501 })
+    expect(() => createWorkoutPlaybackTimeline(plan)).toThrow(RangeError)
+  })
+
   it('interleaves rounds with rest and adds no rest after the last round', () => {
     const plan = workoutPlan([block('b1', [roundsExercise('jab-cross', 3, 60, 30)])])
 
