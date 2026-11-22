@@ -61,7 +61,7 @@ it('uses the same metrics for both runs and preserves the plan-edit notice witho
   expect(html).not.toContain('Poprzednio ten plan')
   expect(html).not.toContain('RPE: brak')
   expect(html).toContain('Plan zmieniono po tamtym treningu.')
-  expect(html).not.toContain('href="/workout-sessions/previous/feedback"')
+  expect(html).toMatch(/<dl id="([^"]+)"[^>]*>.*?<\/dl><a[^>]*aria-label="Zobacz poprzedni trening z tym planem"[^>]*aria-describedby="\1"[^>]*href="\/workout-sessions\/previous\/feedback"/)
   expect(html).not.toContain('Hidden previous exercise')
 })
 

@@ -15,6 +15,7 @@ export const workoutFeedbackLabels = {
   rpeRange: '0 Odpoczynek ··· 10 Maksimum',
   rpeValue: (value: number) => `RPE ${value}`,
   previousPlanRunMetrics: 'Poprzednie wykonanie planu',
+  viewPreviousPlanRun: 'Zobacz poprzedni trening z tym planem',
   planChanged: 'Plan zmieniono po tamtym treningu.',
   focusHeading: 'Elementy do poprawy',
   sparringIntensity: (number: number) => `Sparing ${number} · intensywność (opcjonalnie)`,

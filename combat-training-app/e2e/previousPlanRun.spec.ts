@@ -21,6 +21,7 @@ const second = { ...first, id: 'second', status: 'partial' as const, startedAt: 
   exerciseRatings: [], note: 'Notatka drugiego treningu.',
 }
 const previousRegion = 'Poprzednie wykonanie planu'
+const previousLinkName = 'Zobacz poprzedni trening z tym planem'
 
 test('compares seeded plan run metrics without repeating the previous date or RPE', async ({ app, page }) => {
   await app.open('/workouts')
@@ -29,17 +30,28 @@ test('compares seeded plan run metrics without repeating the previous date or RP
   await app.open(`/workout-sessions/${second.id}/feedback`)
   const hero = page.getByRole('region', { name: 'Podsumowanie czasu sesji', exact: true })
   const previous = hero.getByRole('region', { name: previousRegion, exact: true })
+  const previousLink = previous.getByRole('link', { name: previousLinkName, exact: true })
   const metrics = hero.locator(':scope > dl')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Trening częściowy')
   await expect(previous).toBeVisible()
   await expect(metrics.locator('dt')).toHaveText(['Czas czystej pracy', 'Trening', 'Ćwiczenia'])
   await expect(metrics.locator('dd')).toHaveText(['12:00', '55:00', '4/5'])
   await expect(metrics.locator('dd').first()).toHaveCSS('font-size', '36px')
+  await expect(previous.getByRole('link')).toHaveCount(1)
+  await expect(previousLink).toHaveAttribute('href', `/workout-sessions/${first.id}/feedback`)
+  await expect(previousLink).toHaveAccessibleDescription(/Trening\s+52:10\s+Praca\s+15:00\s+Ćwiczenia\s+5\/5/)
   await expect(previous.locator('dd')).toHaveText(['52:10', '15:00', '5/5'])
   await expect(previous.locator('dt')).toHaveText(['Trening', 'Praca', 'Ćwiczenia'])
+  const linkBox = (await previousLink.boundingBox())!
+  const metricsBox = (await previous.locator('dl').boundingBox())!
+  expect(linkBox.height).toBeGreaterThanOrEqual(44)
+  expect(linkBox.x).toBeLessThanOrEqual(metricsBox.x)
+  expect(linkBox.x + linkBox.width).toBeGreaterThanOrEqual(metricsBox.x + metricsBox.width)
+  expect(linkBox.y).toBeLessThanOrEqual(metricsBox.y)
+  expect(linkBox.y + linkBox.height).toBeGreaterThanOrEqual(metricsBox.y + metricsBox.height)
   await expect(hero.getByText(/Poprzednio ten plan:/)).toHaveCount(0)
   await expect(previous.getByText('RPE: 7', { exact: true })).toHaveCount(0)
-  await expect(previous.getByRole('link', { name: 'Zobacz', exact: true })).toHaveCount(0)
+  await expect(previous.getByText('Zobacz', { exact: true })).toHaveCount(0)
   await expect(page.getByText('Zapisano RPE 8', { exact: true })).toBeAttached()
   await expect(previous.getByText('Plan zmieniono po tamtym treningu.', { exact: true })).toHaveCount(0)
   await expect(previous.getByRole('radio')).toHaveCount(0)
@@ -61,7 +73,12 @@ test('compares seeded plan run metrics without repeating the previous date or RP
   await app.seedPlan({ ...plan, blocks: [block('bag', Array.from({ length: 5 }, (_, index) => continuousExercise(`exercise-${index}`, index === 0 ? 195 : 180)), 'bag')],
     updatedAt: '2026-11-07T10:00:00.000Z' })
   await expect(previous.getByText('Plan zmieniono po tamtym treningu.', { exact: true })).toBeVisible()
-  await app.open(`/workout-sessions/${first.id}/feedback`)
+  await page.getByRole('button', { name: 'Wstecz', exact: true }).press('Tab')
+  await expect(previousLink).toBeFocused()
+  await expect(previousLink).toHaveCSS('outline-style', 'solid')
+  await expect(previousLink).toHaveCSS('outline-width', '2px')
+  await previousLink.press('Enter')
+  await expect(page).toHaveURL(`/workout-sessions/${first.id}/feedback`)
   await expect(page.getByText('Zapisano RPE 7', { exact: true })).toBeAttached()
   await expect(page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })).toHaveValue('Notatka pierwszego treningu.')
   await expect(page.getByRole('region', { name: previousRegion, exact: true })).toHaveCount(0)
@@ -81,7 +98,8 @@ test('compares deleted plans by run layout without showing absent or zero previo
   await expect(previous.getByText('RPE: 0', { exact: true })).toHaveCount(0)
   await app.seedSession({ ...second, stepResults: [second.stepResults[1], second.stepResults[0], ...second.stepResults.slice(2)] })
   await expect(previous.getByText('Plan zmieniono po tamtym treningu.', { exact: true })).toBeVisible()
-  await app.open(`/workout-sessions/${first.id}/feedback`)
+  await previous.getByRole('link', { name: previousLinkName, exact: true }).click()
+  await expect(page).toHaveURL(`/workout-sessions/${first.id}/feedback`)
   await expect(page.getByText('Zapisano RPE 0', { exact: true })).toBeAttached()
   await expect(page.getByRole('region', { name: previousRegion, exact: true })).toHaveCount(0)
 })
