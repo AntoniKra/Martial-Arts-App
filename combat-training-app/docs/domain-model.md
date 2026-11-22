@@ -2,16 +2,9 @@
 
 ## Trening
 
-Issue #164 / ADR 0018: plan tygodnia v2 ma stały tydzień i niezależne migawki konkretnych tygodni, z dniami lub treningiem własnym bez dnia. Sesja według zapisanej daty i rodzaju/części zalicza najwyżej jedną pozycję, z maksymalną liczbą dopasowań. Każdy zapisany trening, także częściowy i poza planem, liczy się do osobnego celu liczby treningów. Świadome „Nie byłem” wyłącza pozycję z dopasowania; miniony dzień bez wpisu daje „Opuszczone”. Odpoczynek nie liczy się do celu. Issue #176: v1 jest pokazywany w układzie dni, bez zapisu podczas odczytu; pierwsza zmiana migruje go atomowo do v2. Zmiany stałego tygodnia trafiają do bieżącego od dziś (Europe/Warsaw), z ochroną dni minionych i ręcznych wyjątków; szczegóły ADR 0018. Dokładny model i zapis fizyczny opisuje `database-model.md`.
+Plan tygodnia v2 ma stały tydzień i niezależne migawki konkretnych tygodni. Sesja według zapisanej daty i rodzaju lub części zalicza najwyżej jedną pozycję, z maksymalną liczbą dopasowań. W tygodniu bez przeniesionych pozycji `legacyGoal` każdy zapisany trening liczy się do osobnego celu liczby treningów, także częściowy i „Poza planem”. Odczyt v1 pokazuje starsze pozycje w układzie dni, a pierwsza zmiana zapisuje v2 z zachowaniem starszych zasad. Zmiany stałego tygodnia trafiają do bieżącego tygodnia od dziś (Europe/Warsaw), z ochroną dni minionych i ręcznych wyjątków. Zasady opisuje [ADR 0018](adr/0018-recurring-and-scheduled-weeks.md), a zapis fizyczny [model Firestore](database-model.md).
 
-Trening przechodzi przez statusy:
-
-- `draft` — lokalny lub rozpoczęty szkic;
-- `planned` — zapisany plan;
-- `in_progress` — rozpoczęty trening;
-- `completed` — zakończona jednostka.
-
-W MVP docelowo rozpoczęcie planu tworzy aktywny trening, a ukończona sesja trafia do Historii. Fundament `WorkoutSession` i lokalnego repozytorium jest zaimplementowany, ale integracja z playerem i listą historii jest realizowana w osobnym etapie. Reużywalne szablony są funkcją przyszłą.
+Kreator trzyma szkic w stanie ekranu, a zatwierdzony `WorkoutPlan` zapisuje w Firestore. Trwający trening istnieje jako stan odtwarzacza z lokalną migawką do odzyskania. Po ukończeniu lub wcześniejszym zakończeniu z wykonaną pracą odtwarzacz zapisuje `WorkoutSession` do dziennika. Wpis ręczny trafia do tego samego dziennika z formularza.
 
 ## Dyscyplina
 
@@ -92,9 +85,7 @@ Issue #156 / ADR 0017: prywatne definicje „Moje ćwiczenia” mają stałe ID,
 
 ## Wersja w Firestore
 
-Issue #149 / ADR 0016: ręczne wpisy w wersji 2 mają 1–6 unikalnych części zajęć (`parts`), bez podziału minut i RPE. `category` jest polem zgodnościowym; kilka części lub „Inne” daje `mixed`. Wersję 1, także „Mieszany”, czytamy bez zmiany historii. Szczegóły sparingu występują dokładnie wtedy, gdy lista zawiera `sparring`. Zasady odtwarzacza i stopera pozostają bez zmian.
-
-Po przejściu na Firestore obowiązuje `database-model.md` (ADR 0008). Najważniejsze zmiany wobec opisu poniżej: wpis jest unią według źródła (`plan`, `quickTimer`, `manual`), `completion` ma postać `{ completed, planned, unit }`, a sesja przechowuje RPE, intensywność sparingu i oceny ćwiczeń celu. Sekcje o wersjach v1–v3 opisują dawny `localStorage`.
+Wersje dokumentów według kolekcji opisuje [model danych w Firestore](database-model.md). Ręczny wpis v2 ma 1–6 unikalnych części zajęć (`parts`), z jednym czasem i RPE dla całych zajęć. `category` służy zgodności: kilka części lub „Inne” daje `mixed`. Wersję 1, także „Mieszany”, aplikacja odczytuje bez przepisywania historii. W v2 szczegóły sparingu występują, gdy lista zawiera `sparring` (ADR 0016).
 
 ## WorkoutPlan i WorkoutSession
 
@@ -106,49 +97,19 @@ Po przejściu na Firestore obowiązuje `database-model.md` (ADR 0008). Najważni
 - sesja zachowuje snapshot planu i kroków niezależnie od przyszłych zmian planu;
 - samo istnienie `WorkoutSession` nie oznacza ukończenia całego planu; nadal nie zapisujemy draftów, porzuconych ani trwających sesji.
 
-## WorkoutSession — minimalny model v1
+## Dane wpisu w dzienniku
 
-- `id`;
-- `workoutPlanId`;
-- `workoutPlanNameSnapshot`;
-- `disciplineKey`;
-- `startedAt`;
-- `completedAt`;
-- `stepResults`.
+- `source`: `plan`, `quickTimer` albo `manual`.
+- `status`: `completed` albo `partial`. Wpis ręczny ma zawsze `completed`. W odtwarzaczu pominięcie samej przerwy lub odpoczynku nie obniża statusu.
+- `durationSeconds`: czas treningu. W odtwarzaczu obejmuje również przerwane próby, odpoczynek, przerwy i powtórzenia, z pominięciem pauz. Może zawierać ułamki sekund.
+- `workSeconds` i `sparringSeconds`: czas dokończonej pracy oraz dokończonej pracy w sparingu. We wpisie ręcznym oba pola mają wartość `null`, czyli czas jest nieznany.
+- `completion`: `{ completed, planned, unit }`. Jednostka to `exercise` dla planu i `round` dla szybkiego stopera. Wpis ręczny ma `null`.
+- `workoutDate` i `timezone`: dzień `YYYY-MM-DD` i strefa IANA. Dla odtwarzacza dniem jest dzień rozpoczęcia.
+- `note`: opcjonalna notatka do 1000 znaków, a brak treści to `null`. RPE, intensywność sparingu i oceny są częścią wpisu zależnie od źródła.
 
-Nie zapisujemy w v1: statusu `abandoned`, draftu sesji, `pausedAt`, RPE, ocen, feedbacku, kalorii ani etykiet UI.
-
-## WorkoutSession — model v2
-
-Model v2 rozszerza v1 o:
-
-- `note: string | null` — opcjonalna notatka użytkownika do ukończonej sesji.
-
-Zasady notatki:
-
-- `null` oznacza brak notatki;
-- pusty string lub sam whitespace są normalizowane do `null`;
-- zapisujemy wartość po trimie;
-- maksymalna długość: 1000 znaków;
-- notatka nie ma osobnego statusu ani encji.
-
-Lokalny storage v2 zachowuje kompatybilność wsteczną: dokumenty `schemaVersion: 1` są odczytywane z `note: null` w pamięci, ale nie są migrowane automatycznie podczas samego `list()` ani `getById()`. Kolejny zapis, `updateNote` lub `delete` zapisuje pełny envelope v2.
-
-## WorkoutSession — model v3 (ADR 0005)
-
-- `source`: `plan`, `quickTimer` lub `manual`; odtwarzacz zapisuje `plan` i `quickTimer`;
-- `status`: `completed`, gdy wszystkie ćwiczenia ukończono, albo `partial`, gdy pominięto ćwiczenie lub zakończono wcześniej; pominięcie odpoczynku lub przerwy nie obniża statusu;
-- `durationSeconds`: rzeczywisty czas etapów, wraz z odpoczynkami, przerwami i powtórzeniami, bez pauz;
-- `workSeconds`: czas wyłącznie dokończonych etapów ćwiczeń; `sparringSeconds`: wyłącznie dokończone ćwiczenia w blokach `sparring`;
-- `completion`: `{ completedExercises, plannedExercises }`, liczone po ćwiczeniach, nie rundach, czasie ani ocenach; `null` oznacza „nie dotyczy” dla przyszłego ręcznego wpisu;
-- `workoutDate`: dzień startu `YYYY-MM-DD` w zapisanej strefie IANA `timezone`;
-- `category`: wspólny typ bloków bez rozgrzewki i rozluźnienia albo `mixed`; plan z samą rozgrzewką, samym rozluźnieniem albo tylko z tych dwóch bloków także dostaje `mixed`.
-
-Czas treningu v3 może zawierać ułamki sekund, aby zachować realny czas przerwanych prób w `durationSeconds`. Dla przyszłego ręcznego wpisu `workSeconds` i `sparringSeconds` mogą być `null` (nieznane). Odtwarzacz zwraca jawny wynik „nie zapisuj”, gdy żaden etap ćwiczenia nie został dokończony, i pokazuje komunikat zamiast dodawać wpis.
+Odtwarzacz wyświetla komunikat, gdy brakuje choć jednego dokończonego etapu pracy, i nie dodaje wtedy wpisu.
 
 Decyzja z 6 listopada 2026: etap ćwiczenia dostaje `completed` tylko po upływie pełnego czasu (`elapsed`). Zakończenie przez `next` lub `previous` daje `skipped` i `performedDurationSeconds: 0`. Rzeczywisty czas próby wchodzi wyłącznie do `durationSeconds`, bez wkładu do pracy i sparingu. Każda powtórzona i dokończona runda liczy się do pracy osobno. Zasady etapów odpoczynku i przerw nie zmieniają się.
-
-Odczyt v1/v2 wylicza pola z zachowanych wyników kroków, licząc pracę wyłącznie dla ćwiczeń `completed`; nie zmienia zapisanych wyników etapów, w tym historycznych `partial`. Próbuje utrwalić envelope v3. Jeśli zapis migracji się nie uda, odczyt nadal zwraca zmigrowane wpisy w pamięci, a następny odczyt ponawia migrację. Strefa urządzenia w chwili migracji zastępuje nieznaną strefę historyczną. Starsze dane nie zawierają czasu dodatkowych prób ani powtórzeń; nie można go odzyskać. Istniejące wpisy bez pracy pozostają zachowane. Po udanym utrwaleniu kolejne odczyty nie zmieniają daty ani strefy.
 
 ## WorkoutSessionStepResult
 
@@ -183,16 +144,17 @@ Sesja zachowuje snapshot niezbędny do historii i podsumowania nawet po zmianie 
 - identyfikatory bloku i elementu;
 - typ bloku;
 - nazwa kroku;
+- opcjonalne `combinationId` z biblioteki w migawce etapu;
 - informacje o rundzie;
 - planowany czas.
 
-Nie zapisujemy pełnego `WorkoutPlan` jako zagnieżdżonego dokumentu ani instrukcji ćwiczenia w storage v1.
+Wpis z planu zawiera te migawki oraz wyniki etapów. Pełna kopia planu służy do odzyskiwania trwającej sesji i jest częścią osobnego zapisu urządzenia.
 
 ## Czas sesji
 
 `startedAt` i `completedAt` są ISO 8601. `completedAt` nie może być wcześniejsze niż `startedAt`.
 
-W v1/v2 `activeDurationSeconds` wyliczano jako sumę `performedDurationSeconds` wszystkich kroków. W v3 podsumowanie używa zapisanego `durationSeconds`, które obejmuje również czas powtórzonych prób. Czas działania stopera:
+Podsumowanie używa zapisanego `durationSeconds`. Czas działania stopera:
 
 - obejmuje wykonane ćwiczenia, odpoczynki między rundami i przerwy;
 - nie obejmuje czasu pauzy;

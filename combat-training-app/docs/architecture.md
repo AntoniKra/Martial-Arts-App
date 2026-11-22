@@ -19,7 +19,7 @@ src/
 
 ## Granice odpowiedzialności
 
-- komponent UI nie wywołuje Firebase;
+- wywołania Firebase należą do infrastruktury;
 - logika czasu i średnich nie znajduje się w JSX;
 - typy domenowe nie zależą od Reacta;
 - infrastruktura implementuje interfejsy repozytoriów i usług z `src/application`;
@@ -32,14 +32,15 @@ Warstwa `src/application/` definiuje interfejsy repozytoriów planów, sesji, ć
 
 ### Znany dług techniczny
 
-Granica między funkcjami a infrastrukturą nie jest wszędzie zachowana. Bezpośrednie importy z `src/infrastructure/` występują w:
+Bezpośrednie zależności od infrastruktury w kodzie aplikacji poza modułem składania `src/app`:
 
-- `features/workout-details/components/WorkoutPlanDetailsView.tsx` i `features/workout-player/components/WorkoutPlayerView.tsx`: pamięć ustawienia przygotowania;
-- `features/workout-player/ActiveWorkoutGate.tsx`: lokalny zapis aktywnego treningu;
-- `features/home/components/RpeReminder.tsx` i `features/workout-feedback/WorkoutRpeSummary.tsx`: pamięć odłożenia przypomnienia RPE;
-- `features/workout-player/hooks/useWorkoutScreenWakeLock.ts`: implementacja przeglądarkowego Wake Lock.
+- **Odtwarzacz i Profil.** `WorkoutPlayerView.tsx` i `TrainingSettings.tsx` importują magazyny przygotowania i sygnałów. `ActiveWorkoutGate.tsx` tworzy lokalne repozytorium sesji. `useWorkoutScreenWakeLock.ts` tworzy usługę Wake Lock, a `useWorkoutSignalPreview.ts` tworzy gong Web Audio.
+- **Przypomnienia.** `HomeTodoCard.tsx` i `WorkoutRpeSummary.tsx` importują magazyn odłożenia RPE, a `WellbeingHomeCard.tsx` magazyn „Nie dziś”.
+- **Konto.** `AuthFormPage.tsx` i `DeleteAccountPage.tsx` korzystają z infrastruktury lokalnych znaczników usuwania konta. `useAccountService.ts` importuje adapter Firebase, a `AccountExportButtons.tsx` importuje schematy dokumentów i funkcję pobrania pliku.
+- **Trasy formularzy i stopera.** `ManualWorkoutPage.tsx` używa parsera podpowiedzi z adresu. `QuickTimerPage.tsx` tworzy magazyn ostatnich ustawień, a `QuickTimerPlayerPage.tsx` waliduje przekazany plan schematem dokumentu Firestore.
+- **Pomiary wydajności.** `application/performance/performanceNetwork.ts` importuje adapter sieci Firestore.
 
-Ponadto `features/theme/themeStorage.ts` czyta i zapisuje motyw bezpośrednio w `localStorage`. To opis istniejących odstępstw od docelowej architektury; ich usunięcie wymaga osobnego zadania.
+Motyw ma bezpośredni dostęp do `localStorage` w `features/theme/themeStorage.ts` i w skrypcie startowym `public/theme-bootstrap.js`.
 
 ## Podział kodu
 
@@ -47,7 +48,7 @@ Trasy kreatora (`/workouts/new`, `/workouts/:workoutId/edit`), odtwarzacza (`/wo
 
 Ręczny wpis treningu korzysta z dwóch leniwych tras: `/workout-sessions/new` i `/workout-sessions/:sessionId/edit`, współdzielących `ManualWorkoutPage` z eksportem `Component`. Formularz, karta oceny celu i skala RPE są ładowane poza głównym plikiem. Błędy importu obsługuje nadrzędny ekran błędu, a nowe pliki trafiają do precache PWA. Czysta walidacja dat, czasu, ocen i dubli znajduje się w `src/domain/workout-session/manualWorkoutEntry.ts`; pełny dokument sprawdza `zod/mini` na granicy infrastruktury. `saveManual` zapisuje wpis oraz zmiany otwartych notatek jednym `writeBatch`; potwierdzenie pochodzi z lokalnych subskrypcji, bez czekania na serwer.
 
-Issue #149: walidacja i kopiowanie części zajęć pozostają w domenie, a `manualWorkoutParts.ts` udostępnia zgodnościowe mapowanie rodzaju. `workoutDocumentVersion` w infrastrukturze wybiera wersję 2 tylko dla ręcznego wpisu z częściami; odczyt nie migruje historii (ADR 0016). Postęp i Profil współdzielą prezentację liczników części oraz minut z `calculateProfileStatistics`, z objaśnieniem zakresu minut. Startowy JS w takich samych lokalnych buildach bez `.env` (suma gzip skryptów i modulepreload z `dist/index.html`, istniejący `measureBundle`): **171 003 B przed → 171 432 B po**, wzrost **429 B**, poniżej budżetu około 200 kB. Bez nowych zależności.
+Walidacja i kopiowanie części zajęć pozostają w domenie, a `manualWorkoutParts.ts` udostępnia zgodnościowe mapowanie rodzaju. `workoutDocumentVersion.ts` wybiera wersję według rodzaju dokumentu i zawartości, zgodnie z [modelem danych](database-model.md). Odczyt wpisów w dzienniku przez repozytorium nie migruje historii. Postęp i Profil korzystają z `calculateProfileStatistics` do prezentacji liczników części i minut.
 
 Profil ma osobne leniwe trasy `/profile` (`ProfilePage`) i `/profile/consent` (`ProfileConsentPage`) z eksportem `Component`. Widoki, formularze, statystyki i SVG nie trafiają do głównego pliku; oba ekrany są w precache PWA i korzystają z istniejącej obsługi błędów importu. `WorkoutDataProvider` słucha dokumentu profilu zawsze po zalogowaniu, a pomiarów tylko przy zgodzie; oba źródła obejmuje ostrzeżenie `SignOutButton` o niewysłanych danych. Czyste obliczenia i podział wycofania na partie znajdują się w `src/domain/profile`, interfejsy repozytoriów w `src/application/profile`, a schematy i integracja Firestore w infrastrukturze. Pomiar startowego JS w PR obejmuje główny plik oraz jego statyczne zależności ładowane na starcie, zgodnie z pomiarem 167,08 kB gzip sprzed issue #100.
 
@@ -56,9 +57,8 @@ Profil ma osobne leniwe trasy `/profile` (`ProfilePage`) i `/profile/consent` (`
 - routing: React Router;
 - dane z Firestore: subskrypcje `onSnapshot` w repozytoriach i mały własny hook, bez TanStack Query (ADR 0007);
 - formularze: kontrolowane pola Reacta i walidacja w czystej funkcji ze schematami `zod/mini` (ADR 0006);
-- kreator: reducer lub wyspecjalizowany hook domenowy;
-- aktywny timer: osobny moduł stanów, nie ogólny globalny store;
-- szkic lokalny: storage adapter.
+- kreator: szkic w `useReducer`, zapis planu przez repozytorium;
+- aktywny timer: stan odtwarzania w `useWorkoutPlayback`. `useActiveWorkoutPersistence` zapisuje migawkę przy zmianach tego stanu w widocznej karcie oraz podczas przejścia w tło i `pagehide`. Adapter `activeWorkoutStorage` przechowuje migawkę urządzenia osobno dla każdego konta.
 
 ## Moje ćwiczenia (issue #156)
 
@@ -73,13 +73,13 @@ Pomiar porównawczy (`git show HEAD` dla bazowych źródeł `ac0618a`, bez nowyc
 - `features/week-plan`: edycja planu tygodnia i prezentacja jego realizacji; szczegóły pokazuje `WeekPlanPage`;
 - `features/weekly-summary`: podsumowanie liczby treningów, czasu treningu, pracy i sparingu, obciążenia z RPE oraz wykres tygodni na ekranie `WeekPlanPage`.
 - `features/profile`: pomiary masy ciała i kategoria za zgodą 18+, wykres średnich tygodniowych, wycofanie online oraz statystyki dziennika bez zgody.
+- `features/wellbeing`: samooceny samopoczucia i prezentacja normy osobistej. Dokumenty są w kolekcji `readiness`.
 
 ## Rozbudowa
 
 Nowe moduły przyszłe trafiają do `features`, np.:
 
-- `readiness`;
-- `control-tests`;
+- `control-tests` (R4, [ADR 0021](adr/0021-control-tests-deferred.md));
 - `analytics` (dalsze analizy);
 - `strength-training` i `combination-builder` w kierunkach rozwoju.
 
