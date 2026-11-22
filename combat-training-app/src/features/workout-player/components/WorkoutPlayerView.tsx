@@ -341,6 +341,8 @@ function WorkoutPlayerRuntime({
   const isRoundRest = currentStep.kind === 'roundRest'
   const roundStep = isRoundRest ? timeline.steps[playback.currentStepIndex - 1] : currentStep
   const hasInstruction = Boolean(currentStep.instruction)
+  const instruction = isPreparing ? workoutPlayerLabels.preparationInstruction : currentStep.instruction
+  const lowerInstruction = isPreparing || currentStep.kind !== 'break'
 
   return (
     <main className="workout-player flex min-h-dvh flex-col" data-phase={phase}>
@@ -378,10 +380,9 @@ function WorkoutPlayerRuntime({
           {hasInstruction ? <h1 className="exercise-name">{currentStep.name}</h1> : null}
         </div>
         <div className="player-technique-slot">
-          {hasInstruction ? (
-            <p className="exercise-technique">{currentStep.instruction}</p>
-          ) : (
-            <h1 className="exercise-technique">{currentStep.name}</h1>
+          {!hasInstruction && <h1 className="exercise-technique">{currentStep.name}</h1>}
+          {instruction && (
+            <p className={lowerInstruction ? 'exercise-technique player-technique-cue' : 'exercise-technique'}>{instruction}</p>
           )}
         </div>
         <WorkoutCircularTimer

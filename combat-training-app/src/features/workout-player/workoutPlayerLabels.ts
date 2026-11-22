@@ -7,6 +7,7 @@ export const workoutPlayerLabels = {
   saving: 'Zapisywanie treningu…',
   preparationSetting: 'Przygotowanie przed startem',
   preparing: 'PRZYGOTUJ SIĘ',
+  preparationInstruction: 'Zajmij pozycję walki · ustaw gardę',
   work: 'Praca',
   roundRest: 'Odpoczynek',
   break: 'Przerwa',
