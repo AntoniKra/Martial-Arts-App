@@ -8,7 +8,7 @@ const iconButton = 'flex size-11 shrink-0 items-center justify-center text-ink f
 
 export function ScreenHeader({ title, variant = 'subscreen', subtitle, action, onBack, disabled = false, headingRef, headingLevel = 1 }: {
   title: string
-  variant?: 'main' | 'home' | 'subscreen' | 'form'
+  variant?: 'main' | 'home' | 'subscreen' | 'form' | 'summary'
   subtitle?: ReactNode
   action?: ReactNode
   onBack?: () => void
@@ -19,14 +19,15 @@ export function ScreenHeader({ title, variant = 'subscreen', subtitle, action, o
   const Heading = `h${headingLevel}` as const
   if (variant === 'home') return <Heading className="sr-only">{title}</Heading>
   const main = variant === 'main'
-  return <header className="w-full space-y-0.5">
+  const summary = variant === 'summary'
+  return <header className={`w-full ${summary ? 'space-y-2.5' : 'space-y-0.5'}`}>
     <div className={`flex min-h-11 items-center gap-1 ${main ? '' : '-ml-3'}`}>
       {!main && <button type="button" aria-label={variant === 'form' ? screenHeaderLabels.close : screenHeaderLabels.back} onClick={onBack} disabled={disabled} className={iconButton}>
         <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
-          <path d={variant === 'form' ? 'M6 6l12 12M18 6 6 18' : 'm15 18-6-6 6-6'} />
+          <path d={variant === 'form' ? 'M6 6l12 12M18 6 6 18' : summary ? 'M22 12H2m8-8-8 8 8 8' : 'm15 18-6-6 6-6'} />
         </svg>
       </button>}
-      <Heading ref={headingRef} tabIndex={headingRef ? -1 : undefined} className={`min-w-0 flex-1 break-words font-display font-extrabold leading-snug text-ink ${main ? 'text-[28px]' : 'text-[24px]'}`}>{title}</Heading>
+      <Heading ref={headingRef} tabIndex={headingRef ? -1 : undefined} className={`min-w-0 flex-1 font-display leading-snug text-ink ${summary ? 'truncate text-xl font-semibold' : `break-words font-extrabold ${main ? 'text-[28px]' : 'text-[24px]'}`}`}>{title}</Heading>
       {action}
     </div>
     {subtitle && <div className="break-words text-[13px] text-muted">{subtitle}</div>}

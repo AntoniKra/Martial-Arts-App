@@ -100,7 +100,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await expect(page.getByRole('region', { name: 'Historia treningów', exact: true }).getByRole('article')).toHaveCount(demoSessions.length)
     await capture(14, 'historia', 'Historia — 14 tygodni, dwa tygodnie przerwy')
     await open('/workout-sessions/plan-week-13/feedback', demoPlans[0].nameSnapshot)
-    await expect(page.getByRole('region', { name: /Poprzednio ten plan/ })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Poprzednie wykonanie planu', exact: true }).locator('dt')).toHaveText(['Trening', 'Praca', 'Ćwiczenia'])
     await expect(page.getByText('Zapisano RPE 6', { exact: true })).toBeVisible()
     await capture(11, 'podsumowanie-planu', 'Podsumowanie planu — poprzedni trening i RPE')
     await capture(15, 'szczegoly-wpisu', 'Szczegóły wpisu z ocenami i notatką')

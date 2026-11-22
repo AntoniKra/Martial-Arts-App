@@ -69,6 +69,11 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   await card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true }).click()
   const drawer = card(page).getByRole('group', { name: 'Notatka: jeden błąd i jedna wskazówka', exact: true })
   await expect(drawer.getByRole('textbox')).toHaveCount(2)
+  const workoutNote = page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })
+  for (const field of [workoutNote, ...await drawer.getByRole('textbox').all()]) {
+    await expect(field).toHaveCSS('font-size', '16px')
+    expect(await field.evaluate((element) => getComputedStyle(element, '::placeholder').fontSize)).toBe('13px')
+  }
   await card(page).getByRole('textbox', { name: 'Błąd', exact: true }).fill('Opuszczam prawą rękę po ciosie.')
   await card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true }).click()
   // Incomplete corrections are validated without submitting a partial batch.
@@ -78,7 +83,7 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   await card(page).getByRole('textbox', { name: 'Wskazówka', exact: true }).fill('Dotykam rękawicą policzka.')
   await page.getByRole('button', { name: /^Pozostałe ćwiczenia/ }).click()
   await page.getByRole('article', { name: 'Praca na nogach', exact: true }).getByRole('radio', { name: /^4 / }).check()
-  await page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true }).fill('Pilnuj powrotu do gardy.')
+  await workoutNote.fill('Pilnuj powrotu do gardy.')
   const firstSummary = new URL(page.url()).pathname
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
   await expect(page).toHaveURL(/\/progress\?tab=history$/)

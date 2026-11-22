@@ -31,7 +31,7 @@ test('ends early after a completed round, records every step and shows partial s
   await exitDialog(page).getByRole('button', { name: 'Zakończ i zapisz', exact: true }).click()
   await page.clock.resume()
   await expect(page.getByText('Trening częściowy', { exact: true })).toBeVisible()
-  await expect(page.getByText('Zapisane w dzienniku. Oceny dopiszą się do wpisu.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Zapisane', { exact: true })).toBeVisible()
   await expect.poll(async () => (await app.readSessions()).length).toBe(1)
   const sessions = await app.readSessions()
   expect(sessions).toHaveLength(1)

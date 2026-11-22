@@ -42,6 +42,7 @@ test('opens RPE at ten minutes and persists six with the response timestamp', as
   await page.clock.fastForward(untilDue - 1)
   await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toHaveCount(0)
   await expect(page.getByText(/Gong da znać\.$/)).toBeVisible()
+  await expect(page.getByText('RPE przypomnimy na stronie głównej, jeśli zamkniesz ekran wcześniej.', { exact: true })).toHaveCount(0)
   await page.clock.fastForward(1)
   await expect(page.getByRole('heading', { name: 'Jak ciężki był cały trening?', exact: true })).toBeVisible()
   await expect(page.getByText('Minęło 10 minut', { exact: true })).toBeVisible()
