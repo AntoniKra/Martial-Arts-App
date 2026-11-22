@@ -3,6 +3,7 @@ import type { ActiveWorkout, ActiveWorkoutRepository } from '@/application/worko
 import { useActiveWorkoutPersistence } from '../hooks/useActiveWorkoutPersistence'
 import { Link } from 'react-router-dom'
 
+import { routes } from '@/app/routes'
 import { LiveScreenHeader, RouteScreenHeader } from '@/components/ScreenHeader'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
@@ -22,7 +23,7 @@ import { useWorkoutScreenWakeLock } from '@/features/workout-player/hooks/useWor
 import type { WorkoutPlaybackEvent } from '@/features/workout-player/types/workoutPlaybackEvents.types'
 import type { WorkoutPlaybackStep, WorkoutPlaybackTimeline } from '@/domain/workout-playback/workoutPlayback.types'
 import type { WorkoutPlayerLoadState } from '@/features/workout-player/types/workoutPlayback.types'
-import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
+import { tryCreateWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 import { getWorkoutStepKindShortLabelPl, getWorkoutTimerPhase } from '@/features/workout-player/utils/workoutStepTimerPresentation'
 import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPreparationStorage'
 import { quickTimerLabels } from '@/features/quick-timer/quickTimerLabels'
@@ -446,7 +447,29 @@ function WorkoutPlayerActiveContent({
   workoutDetailsPath,
   saveWorkoutSession,
 }: WorkoutPlayerActiveContentProps) {
-  const timeline = useMemo(() => createWorkoutPlaybackTimeline(plan), [plan])
+  const result = useMemo(() => tryCreateWorkoutPlaybackTimeline(plan), [plan])
+
+  if (!result.ok) {
+    const isQuickTimer = source === 'quickTimer'
+    return (
+      <main className="flex min-h-dvh flex-col bg-bg">
+        <div className="mx-auto w-full max-w-lg px-4 py-6 md:py-8">
+          <StatusPanel>
+            <RouteScreenHeader title={workoutPlayerLabels.sessionStepLimitHeading} fallback={workoutDetailsPath} />
+            <p role="alert" className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted">
+              {workoutPlayerLabels.sessionStepLimitExceeded(result.stepCount)}
+            </p>
+            <Link to={isQuickTimer ? workoutDetailsPath : routes.workoutEdit(plan.id)}
+              className={getButtonClassName({ variant: 'primary', size: 'md', className: 'mt-5' })}>
+              {isQuickTimer ? workoutPlayerLabels.editQuickTimer : workoutPlayerLabels.editPlan}
+            </Link>
+          </StatusPanel>
+        </div>
+      </main>
+    )
+  }
+
+  const { timeline } = result
 
   return (
     <WorkoutPlayerRuntime

@@ -61,6 +61,18 @@ export function workoutPlan(blocks: WorkoutBlock[]): WorkoutPlan {
   }
 }
 
+export function workoutPlanAtSessionStepLimit(): WorkoutPlan {
+  return workoutPlan([
+    block('technique', [roundsExercise('first', 99, 60, 30), roundsExercise('second', 99, 60, 30)]),
+    block('bag', [
+      roundsExercise('third', 52, 60, 30),
+      roundsExercise('single', 1, 60, 30),
+      workoutBreak('pause', 30),
+      continuousExercise('continuous', 60),
+    ], 'bag'),
+  ])
+}
+
 /** Minimal playback step for timer tests; only the duration matters there. */
 export function playbackStep(id: string, durationSeconds: number): WorkoutPlaybackStep {
   return {

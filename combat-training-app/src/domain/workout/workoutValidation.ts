@@ -1,6 +1,8 @@
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { MAX_PLAN_FOCUS_EXERCISES, type FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { resolveWorkoutPlanDisplayName } from '@/domain/workout/workoutPlanDisplayName'
+import { countWorkoutPlaybackSteps } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
+import { MAX_WORKOUT_SESSION_STEPS } from '@/domain/workout-session/workoutSessionLimits'
 import type {
   ExerciseConfiguration,
   WorkoutBlock,
@@ -24,13 +26,15 @@ export type WorkoutPlanValidationIssueCode =
   | 'invalid_break_duration'
   | 'too_many_focus_exercises'
   | 'unknown_focus_skill'
+  | 'session_step_limit_exceeded'
 
-export interface WorkoutPlanValidationIssue {
-  code: WorkoutPlanValidationIssueCode
-  messagePl: string
+export type WorkoutPlanValidationIssue = {
   blockId?: string
   itemId?: string
-}
+} & (
+  | { code: Exclude<WorkoutPlanValidationIssueCode, 'session_step_limit_exceeded'>; messagePl: string }
+  | { code: 'session_step_limit_exceeded'; stepCount: number }
+)
 
 export interface WorkoutPlanValidationResult {
   isValid: boolean
@@ -270,6 +274,13 @@ export function validateWorkoutPlanDraft(
   draft.blocks.forEach((block, blockIndex) => {
     validateBlockStructure(block, blockIndex + 1, issues)
   })
+
+  if (!issues.some((issue) => issue.code === 'invalid_exercise_configuration')) {
+    const stepCount = countWorkoutPlaybackSteps(draft.blocks)
+    if (stepCount > MAX_WORKOUT_SESSION_STEPS) {
+      issues.push({ code: 'session_step_limit_exceeded', stepCount })
+    }
+  }
 
   return {
     isValid: issues.length === 0,

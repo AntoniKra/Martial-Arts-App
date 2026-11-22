@@ -2,7 +2,7 @@ import * as z from 'zod/mini'
 import type { ActiveWorkout, ActiveWorkoutRepository } from '@/application/workout/activeWorkoutRepository'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import { workoutPlanDocumentSchema } from '@/infrastructure/firebase/workoutDocumentSchemas'
-import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
+import { tryCreateWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 import { QUICK_TIMER_CATEGORIES } from '@/domain/quick-timer/quickTimer'
 
 export const ACTIVE_WORKOUT_STORAGE_PREFIX = 'combat-training.activeWorkout.'
@@ -47,14 +47,9 @@ const activeWorkoutSchema = z.strictObject({
     if (!timerBlock || otherBlocks.length > 0 || timerBlock.items.length !== 1 || !QUICK_TIMER_CATEGORIES.some((category) => category === timerBlock.blockType)
       || item?.type !== 'exercise' || item.configuration.mode !== 'rounds') return false
   }
-  // Bound expansion before building a timeline from externally supplied round counts.
-  const stepCount = workout.plan.blocks.flatMap((block) => block.items).reduce((count, item) => {
-    if (item.type === 'break' || item.configuration.mode === 'continuous') return count + 1
-    return count + item.configuration.roundCount * (item.configuration.restBetweenRoundsSeconds > 0 ? 2 : 1)
-      - (item.configuration.restBetweenRoundsSeconds > 0 ? 1 : 0)
-  }, 0)
-  if (stepCount < 1 || stepCount > 500) return false
-  const steps = createWorkoutPlaybackTimeline(workout.plan).steps
+  const result = tryCreateWorkoutPlaybackTimeline(workout.plan)
+  if (!result.ok || result.timeline.steps.length === 0) return false
+  const { steps } = result.timeline
   const { playback, recorder } = workout
   if (Object.keys(workout.stepDurations ?? {}).some((id) => !steps.some((step) => step.id === id))) return false
   if (!steps[playback.currentStepIndex]) return false

@@ -1,7 +1,26 @@
 import { describe, expect, it } from 'vitest'
 import { validateWorkoutPlanDraft } from './workoutValidation'
 import { finalizeWorkoutPlan } from './finalizeWorkoutPlan'
-import { block, continuousExercise, workoutBreak, workoutPlan } from '@/test/workoutBuilders'
+import { block, continuousExercise, workoutBreak, workoutPlan, workoutPlanAtSessionStepLimit } from '@/test/workoutBuilders'
+
+describe('workout plan session step limit', () => {
+  it('accepts a plan with exactly 500 playback steps', () => {
+    const draft = workoutPlanAtSessionStepLimit()
+
+    expect(validateWorkoutPlanDraft(draft)).toEqual({ isValid: true, issues: [] })
+    expect(finalizeWorkoutPlan(draft).ok).toBe(true)
+  })
+
+  it('rejects a plan with 501 playback steps', () => {
+    const draft = workoutPlanAtSessionStepLimit()
+    draft.blocks.push(block('extra', [continuousExercise('extra', 60)]))
+
+    expect(validateWorkoutPlanDraft(draft)).toEqual({
+      isValid: false, issues: [{ code: 'session_step_limit_exceeded', stepCount: 501 }],
+    })
+    expect(finalizeWorkoutPlan(draft).ok).toBe(false)
+  })
+})
 
 function focusedExercise(id: string, focusSkillId = 'guard') {
   return { ...continuousExercise(id, 60), focusSkillId }

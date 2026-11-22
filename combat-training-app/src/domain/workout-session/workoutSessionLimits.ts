@@ -1,0 +1,1 @@
+export const MAX_WORKOUT_SESSION_STEPS = 500

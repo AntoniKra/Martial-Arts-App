@@ -1,3 +1,5 @@
+import { MAX_WORKOUT_SESSION_STEPS } from '@/domain/workout-session/workoutSessionLimits'
+
 export const workoutBuilderLabels = {
   backToWorkouts: 'Wróć do treningów',
   previewPlan: 'Podgląd planu',
@@ -5,6 +7,8 @@ export const workoutBuilderLabels = {
   savePlan: 'Zapisz plan',
   saving: 'Zapisywanie…',
   saveFailed: 'Nie udało się zapisać planu',
+  sessionStepLimitExceeded: (stepCount: number) =>
+    `Plan ma za dużo etapów (${stepCount}). Maksimum to ${MAX_WORKOUT_SESSION_STEPS} – zmniejsz liczbę rund lub ćwiczeń.`,
   discardTitle: 'Odrzucić zmiany?',
   discardDescription: 'Zmiany w planie nie zostaną zapisane.',
   discardChanges: 'Odrzuć zmiany',
