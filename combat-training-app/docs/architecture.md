@@ -34,7 +34,7 @@ Warstwa `src/application/` definiuje interfejsy repozytoriów planów, sesji, ć
 
 Bezpośrednie zależności od infrastruktury w kodzie aplikacji poza modułem składania `src/app`:
 
-- **Odtwarzacz i Profil.** `WorkoutPlayerView.tsx` i `TrainingSettings.tsx` importują magazyny przygotowania i sygnałów. `ActiveWorkoutGate.tsx` tworzy lokalne repozytorium sesji. `useWorkoutScreenWakeLock.ts` tworzy usługę Wake Lock, a `useWorkoutSignalPreview.ts` tworzy gong Web Audio.
+- **Odtwarzacz i Profil.** `WorkoutPlayerView.tsx` i `TrainingSettings.tsx` importują magazyny przygotowania i sygnałów. `useWorkoutSignalPreview.ts` tworzy gong Web Audio.
 - **Przypomnienia.** `HomeTodoCard.tsx` i `WorkoutRpeSummary.tsx` importują magazyn odłożenia RPE, a `WellbeingHomeCard.tsx` magazyn „Nie dziś”.
 - **Konto.** `AuthFormPage.tsx` i `DeleteAccountPage.tsx` korzystają z infrastruktury lokalnych znaczników usuwania konta. `useAccountService.ts` importuje adapter Firebase, a `AccountExportButtons.tsx` importuje schematy dokumentów i funkcję pobrania pliku.
 - **Trasy formularzy i stopera.** `ManualWorkoutPage.tsx` używa parsera podpowiedzi z adresu. `QuickTimerPage.tsx` tworzy magazyn ostatnich ustawień, a `QuickTimerPlayerPage.tsx` waliduje przekazany plan schematem dokumentu Firestore.
