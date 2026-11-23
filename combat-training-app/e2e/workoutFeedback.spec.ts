@@ -57,7 +57,7 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   await app.startWorkout()
   await page.clock.fastForward(180_000)
   await app.expectWorkoutSaved()
-  await expect(page.getByText('oceniono 0 z 2', { exact: true })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Elementy do poprawy', exact: true }).getByText('0/2 ocenione', { exact: true })).toBeVisible()
   expect(await app.readSessions()).toMatchObject([{ source: 'plan', focusRatings: [
     { skillNameSnapshot: skills[0].name, criterionSnapshot: skills[0].criterion, blockType: 'bag', assessment: null },
     { skillNameSnapshot: skills[1].name, blockType: 'pads', assessment: null },
@@ -67,7 +67,8 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   await expect(card(page, skills[1].name).getByText('Wybrano odpowiedź: Nie umiem ocenić.', { exact: true })).toBeVisible()
   await expect(card(page, skills[1].name).getByRole('button', { name: 'Wyczyść ocenę', exact: true })).toHaveCSS('min-height', '44px')
   await card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true }).click()
-  const drawer = card(page).getByRole('group', { name: 'Notatka: jeden błąd i jedna wskazówka', exact: true })
+  const drawer = card(page).getByRole('group', { name: 'Notatka', exact: true })
+  await expect(drawer).toHaveAccessibleDescription('jeden błąd i jedna wskazówka')
   await expect(drawer.getByRole('textbox')).toHaveCount(2)
   const workoutNote = page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })
   for (const field of [workoutNote, ...await drawer.getByRole('textbox').all()]) {
@@ -75,7 +76,7 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
     expect(await field.evaluate((element) => getComputedStyle(element, '::placeholder').fontSize)).toBe('13px')
   }
   await card(page).getByRole('textbox', { name: 'Błąd', exact: true }).fill('Opuszczam prawą rękę po ciosie.')
-  await card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true }).click()
+  await expect(card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true })).toHaveCount(0)
   // Incomplete corrections are validated without submitting a partial batch.
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
   await expect(card(page).getByRole('alert')).toHaveText('Błąd i wskazówka muszą mieć po 1–200 znaków.')

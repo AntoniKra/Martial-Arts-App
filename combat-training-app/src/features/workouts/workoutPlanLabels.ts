@@ -8,4 +8,5 @@ export const workoutPlanLabels = {
   deleted: 'Plan został usunięty. Treningi w historii pozostają dostępne.',
   deleting: 'Usuwanie…',
   loading: 'Ładowanie planu…',
+  backToPlans: 'Wróć do planów',
 } as const

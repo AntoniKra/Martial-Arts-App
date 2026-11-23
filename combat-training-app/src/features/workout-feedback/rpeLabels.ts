@@ -6,7 +6,6 @@ export const rpeLabels = {
   rateNow: 'Oceń teraz',
   timingHint: 'Ocena ok. 10 minut po treningu jest pewniejsza. Gong da znać.',
   reminderHint: 'RPE przypomnimy na stronie głównej, jeśli zamkniesz ekran wcześniej.',
-  back: 'Podsumowanie',
   due: 'Minęło 10 minut',
   question: 'Jak ciężki był cały trening?',
   hint: 'Pomyśl o całym treningu, od rozgrzewki do ostatniej rundy, a nie tylko o końcówce.',

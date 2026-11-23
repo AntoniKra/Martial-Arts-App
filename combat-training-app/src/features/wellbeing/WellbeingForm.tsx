@@ -2,13 +2,14 @@ import { useEffect, useId, useReducer, useRef, useState } from 'react'
 import { validateWellbeing, WELLBEING_FIELDS, WELLBEING_NOTE_LIMIT, WELLBEING_QUESTIONS_VERSION, type WellbeingEntry } from '@/domain/wellbeing/wellbeing'
 import { wellbeingLabels as labels, wellbeingQuestions } from './wellbeingLabels'
 import { countWellbeingAnswers, startWellbeingWizard, wellbeingWizardReducer } from './wellbeingWizard'
+import { BackButton } from '@/components/ui/BackButton'
 
 function Check({ size }: { size: number }) {
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={size === 10 ? 3 : 2.5}><path d="m4 12 5 5L20 6" /></svg>
 }
 
-function Chevron({ back = false }: { back?: boolean }) {
-  return <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d={back ? 'm15 18-6-6 6-6' : 'm9 18 6-6-6-6'} /></svg>
+function NextChevron() {
+  return <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6" /></svg>
 }
 
 export function WellbeingForm({ date, entry, onSave, onClose, onSkip }: {
@@ -90,13 +91,11 @@ export function WellbeingForm({ date, entry, onSave, onClose, onSkip }: {
         <p id={`${id}-hint`} className="note-hint">{labels.noteHint}</p>
       </div>}
     <div className="wizard-nav-buttons">
-      <button type="button" className="btn-wizard-prev" disabled={step === 0 || busy} onClick={() => dispatch({ type: 'back' })}>
-        <Chevron back />{labels.previous}
-      </button>
+      <BackButton showLabel className="btn-wizard-prev" disabled={step === 0 || busy} onClick={() => dispatch({ type: 'back' })} />
       {question && <>
         <button type="button" className="btn-wizard-next" disabled={busy} aria-disabled={value === null || undefined}
           aria-describedby={value === null ? `${id}-next-hint` : undefined} onClick={() => dispatch({ type: 'next' })}>
-          {labels.next}<Chevron />
+          {labels.next}<NextChevron />
         </button>
         {value === null && <span id={`${id}-next-hint`} className="sr-only">{labels.nextDisabled}</span>}
       </>}

@@ -80,9 +80,9 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
     <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-5">
       <fieldset disabled={saving} className="min-w-0 space-y-5">
         {draft.focusRatings.length > 0 && <section aria-labelledby="focus-feedback-heading" className="space-y-2">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 id="focus-feedback-heading" className="font-display text-base font-extrabold text-ink">{labels.focusHeading}</h2>
-            <p className="text-[11px] tabular-nums text-muted">{labels.assessed(assessed, draft.focusRatings.length)}</p>
+            <span className="feedback-badge is-assessed tabular-nums">{labels.assessed(assessed, draft.focusRatings.length)}</span>
           </div>
           {draft.focusRatings.map((rating, index) => <FocusCard key={rating.workoutItemId} rating={rating} session={session} skills={skills}
             previousAssessment={findPreviousAssessment(session, rating.focusSkillId, rating.criterionSnapshot, sessions)}
@@ -111,7 +111,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
             <button type="button" aria-expanded={othersOpen} aria-controls="other-exercises" onClick={() => setOthersOpen(!othersOpen)}
               className="flex min-h-touch w-full items-center gap-2 rounded-sm px-3 py-1.5 text-left text-[12.5px] text-ink">
               <strong className="mr-auto">{labels.othersHeading}</strong>
-              <span className="feedback-badge is-assessed tabular-nums">{labels.othersAssessed(assessedOthers, others.length)}</span>
+              <span className="feedback-badge is-assessed tabular-nums">{labels.assessed(assessedOthers, others.length)}</span>
               <FeedbackIcon kind="chevron" size={16} className={`feedback-others-chevron shrink-0 ${othersOpen ? 'rotate-180' : ''}`} />
             </button>
             <div id="other-exercises" hidden={!othersOpen} className="space-y-2.5 rounded-b-sm border-t border-bd bg-surface p-3">{others.map((exercise) => <article key={exercise.workoutItemId} aria-label={exercise.nameSnapshot} className="space-y-1.5">

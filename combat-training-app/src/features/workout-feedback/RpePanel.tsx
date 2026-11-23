@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import { BackButton } from '@/components/ui/BackButton'
 import { rpeLabels as labels } from './rpeLabels'
 import { RpeScale } from './RpeScale'
 import { FeedbackIcon } from './FeedbackIcon'
@@ -21,7 +22,7 @@ export function RpePanel({ due, initialValue, onBack, onSave, onSkip }: {
     try { await onSave(value) } catch { setError(labels.saveError) } finally { busy.current = false; setSaving(false) }
   }
   return <section className="motion-controls mx-auto w-full max-w-xl px-4 py-3" aria-labelledby="rpe-question">
-    <button type="button" disabled={saving} onClick={onBack} className="min-h-touch text-[12px] font-semibold text-muted"><span aria-hidden="true">← </span>{labels.back}</button>
+    <BackButton disabled={saving} onClick={onBack} />
     <div className="feedback-surface space-y-2.5 p-3.5">
       <div className="flex items-center justify-between gap-2">
         <p className="feedback-eyebrow">{labels.heading}</p>
