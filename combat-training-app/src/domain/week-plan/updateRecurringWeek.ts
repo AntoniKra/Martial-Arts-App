@@ -1,6 +1,6 @@
 import { calculateWorkoutDate } from '@/domain/workout-session/workoutSessionDefinitions'
 import { changeScheduledWeek, generateScheduledWeek, recurringOccurrenceId } from './scheduledWeek'
-import { shiftCalendarDate, weekStartForDate } from './weekCalendar'
+import { shiftCalendarDate, weekStartForDate, WEEK_PLAN_TIME_ZONE } from './weekCalendar'
 import { WEEK_PLAN_ITEM_LIMIT, type RecurringWeek, type ScheduledWeekItem, type WeekPlan } from './weekPlan.types'
 
 /** Reading v1 is side-effect free. The first mutation saves this representation as v2. */
@@ -16,9 +16,9 @@ export function scheduledWeekFromLegacy(plan: WeekPlan): WeekPlan {
 
 /** Stable occurrence IDs link only untouched entries. Manual changes detach the ID. */
 export function updateCurrentWeekFromRecurring(previous: RecurringWeek | undefined, next: RecurringWeek, current: WeekPlan | undefined, now: Date): WeekPlan {
-  const today = calculateWorkoutDate(now.toISOString(), 'Europe/Warsaw')
+  const today = calculateWorkoutDate(now.toISOString(), WEEK_PLAN_TIME_ZONE)
   const weekStart = weekStartForDate(today)
-  const base = current ? scheduledWeekFromLegacy(current) : generateScheduledWeek(weekStart, previous, now)
+  const base = current ? scheduledWeekFromLegacy(current) : generateScheduledWeek(weekStart, previous, now, weekStart)
   if (base.weekStart !== weekStart) throw new Error('Expected current Warsaw week')
   const schedule = structuredClone(base.schedule ?? [])
   const upcoming = (day: number | null) => day === null || shiftCalendarDate(weekStart, day) >= today
@@ -63,6 +63,6 @@ export function updateCurrentWeekFromRecurring(previous: RecurringWeek | undefin
   if (schedule.length > WEEK_PLAN_ITEM_LIMIT) throw new Error('Week plan item limit exceeded')
   const oldCount = base.schedule!.filter((item) => item.kind !== 'rest').length
   const newCount = schedule.filter((item) => item.kind !== 'rest').length
-  return { ...changeScheduledWeek(base, schedule as ScheduledWeekItem[], Math.min(14, Math.max(0, (base.targetCount ?? 0) + newCount - oldCount)), now),
+  return { ...changeScheduledWeek(base, schedule as ScheduledWeekItem[], Math.min(14, Math.max(0, (base.targetCount ?? 0) + newCount - oldCount)), now, weekStart),
     appliedRecurringRevision: next.revision ?? 0, appliedRecurringIds: next.items.map((item) => item.id) }
 }

@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { generateScheduledWeek } from './scheduledWeek'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { changeScheduledWeek, generateScheduledWeek } from './scheduledWeek'
+import { currentWeekStart } from './weekCalendar'
 import { scheduledWeekFromLegacy, updateCurrentWeekFromRecurring } from './updateRecurringWeek'
 import type { RecurringWeek, ScheduledWeekItem, WeekActivity, WeekPlan } from './weekPlan.types'
 
@@ -7,8 +8,30 @@ const now = new Date('2026-11-17T10:00:00Z'), weekStart = '2026-11-16'
 const club: WeekActivity = { id: 'club', kind: 'club', day: 1, disciplineKey: 'boxing', startTime: '18:00', endTime: '19:30', parts: ['technique'], clubName: null }
 const recurring = (items: WeekActivity[]): RecurringWeek => ({ id: 'default', items, createdAt: now.toISOString(), updatedAt: now.toISOString() })
 const week = (items: WeekActivity[]) => generateScheduledWeek(weekStart, recurring(items), now)
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
 
 describe('recurring changes from today in Warsaw', () => {
+  it.each([
+    ['2026-03-29T22:00:00.000Z', '2026-03-23', '2026-03-30'],
+    ['2026-10-25T23:00:00.000Z', '2026-10-19', '2026-10-26'],
+    ['2026-11-22T23:00:00.000Z', '2026-11-16', '2026-11-23'],
+  ])('changes the history flag only at Warsaw midnight %s', (boundary, sundayWeek, mondayWeek) => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.spyOn(Intl.DateTimeFormat.prototype, 'resolvedOptions').mockReturnValue({ ...new Intl.DateTimeFormat().resolvedOptions(), timeZone: 'Asia/Tokyo' })
+    vi.setSystemTime(new Date(Date.parse(boundary) - 1))
+    expect(currentWeekStart()).toBe(mondayWeek)
+    const previous = recurring([{ ...club, day: 6 }])
+    const snapshot = generateScheduledWeek(sundayWeek, previous, new Date())
+    const next = recurring([{ ...club, day: 6, startTime: '17:00' }])
+    for (const current of [snapshot, undefined]) {
+      expect(updateCurrentWeekFromRecurring(previous, next, current, new Date())).toMatchObject({ weekStart: sundayWeek,
+        editedAfterWeekEnd: false, schedule: [{ startTime: '17:00' }] })
+    }
+    vi.setSystemTime(new Date(boundary))
+    expect(updateCurrentWeekFromRecurring(previous, next, undefined, new Date())).toMatchObject({ weekStart: mondayWeek, editedAfterWeekEnd: false })
+    expect(changeScheduledWeek(snapshot, snapshot.schedule!, 1, new Date()).editedAfterWeekEnd).toBe(true)
+  })
+
   it('creates a missing current snapshot from the previous template before applying a change', () => {
     const previous = recurring([club, { ...club, id: 'unchanged', day: 4 }])
     const next = recurring([{ ...club, startTime: '17:00' }, previous.items[1]])

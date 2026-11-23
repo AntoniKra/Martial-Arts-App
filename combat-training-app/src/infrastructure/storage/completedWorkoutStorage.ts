@@ -5,16 +5,23 @@ import { workoutDocumentVersion } from '@/infrastructure/firebase/workoutDocumen
 
 const prefix = 'combat-training.completedWorkout.'
 
-export function createCompletedWorkoutStorage(uid: string): CompletedWorkoutStorage {
+export function createCompletedWorkoutStorage(uid: string): CompletedWorkoutStorage & { clear(): void } {
   const keyFor = (id: string) => `${prefix}${encodeURIComponent(id).replaceAll('.', '%2E')}.${uid}`
+  function accountKeys(storage: Storage): string[] {
+    const keys: string[] = []
+    for (let index = 0; index < storage.length; index++) {
+      const key = storage.key(index)
+      if (!key?.startsWith(prefix)) continue
+      const accountSeparator = key.indexOf('.', prefix.length)
+      if (accountSeparator > prefix.length && key.slice(accountSeparator + 1) === uid) keys.push(key)
+    }
+    return keys
+  }
   return {
     readAll() {
       const sessions: RecordedWorkoutSession[] = []
       try {
-        for (const key of Object.keys(localStorage)) {
-          if (!key.startsWith(prefix)) continue
-          const accountSeparator = key.indexOf('.', prefix.length)
-          if (accountSeparator < 0 || key.slice(accountSeparator + 1) !== uid) continue
+        for (const key of accountKeys(localStorage)) {
           try {
             const parsed = workoutSessionDocumentSchema.safeParse(JSON.parse(localStorage.getItem(key) ?? 'null'))
             if (!parsed.success || parsed.data.source === 'manual' || key !== keyFor(parsed.data.id)) continue
@@ -31,6 +38,11 @@ export function createCompletedWorkoutStorage(uid: string): CompletedWorkoutStor
     },
     remove(id) {
       try { localStorage.removeItem(keyFor(id)) } catch { /* A confirmed copy can be reconciled at the next launch. */ }
+    },
+    clear() {
+      try {
+        for (const key of accountKeys(localStorage)) localStorage.removeItem(key)
+      } catch { /* Storage may be blocked. */ }
     },
   }
 }

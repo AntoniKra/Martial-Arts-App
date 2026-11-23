@@ -70,14 +70,14 @@ export function ScheduledWeekView({ weekStart, onRecurring }: { weekStart: strin
       const linked = old && recurring?.items.find((item, index) => old.id === recurringOccurrenceId(weekStart, item.id) || old.id === `${weekStart}:${index}`)
       const repeated = items.map((item) => ({ ...item, id: linked?.id ?? crypto.randomUUID() }))
       const repeatedSchedule = [...before.filter((item) => item.id !== old?.id), ...repeated.map((item) => ({ ...item, id: recurringOccurrenceId(weekStart, item.id), omitted: old?.omitted ?? false }))]
-      await recurringActions.save([...(recurring?.items ?? []).filter((item) => item.id !== linked?.id), ...repeated], (current) => {
-        if (current.weekStart !== weekStart) return changeScheduledWeek(plan, repeatedSchedule, target, new Date())
+      await recurringActions.save([...(recurring?.items ?? []).filter((item) => item.id !== linked?.id), ...repeated], (current, now) => {
+        if (current.weekStart !== weekStart) return changeScheduledWeek(plan, repeatedSchedule, target, now)
         const currentItems = current.schedule!.filter((item) => item.id !== old?.id)
         repeated.forEach((item) => {
           const id = recurringOccurrenceId(weekStart, item.id)
           if (!currentItems.some((entry) => entry.id === id)) currentItems.push({ ...item, id, omitted: false })
         })
-        return changeScheduledWeek(current, currentItems, target, new Date())
+        return changeScheduledWeek(current, currentItems, target, now)
       }, plan)
     } else if (!await save(schedule, target)) throw new Error('Week save failed')
     setOptions(null)

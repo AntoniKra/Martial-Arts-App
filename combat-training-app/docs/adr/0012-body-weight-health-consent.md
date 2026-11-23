@@ -1,3 +1,7 @@
 # ADR 0012: Zgoda 18+ na pomiary masy ciała
 
 Status: zaakceptowane, 13 listopada 2026 (issue #100 i doprecyzowanie Claude z 13.11). Pomiary masy ciała i opcjonalna kategoria są danymi o zdrowiu, zapisywanymi po osobnej, wyraźnej zgodzie i potwierdzeniu pełnoletności. Informacja `2026-11` opisuje wyłącznie istniejące pomiary i kategorię; gotowość jeszcze nie powstała. Dokument `users/{uid}` przechowuje zgodę z `grantedAt`, `noticeVersion` i `adultConfirmed: true`. Reguły przy zapisie pomiaru sprawdzają zgodę przez `get()` profilu; nie pozwalają podmienić istniejącej zgody, a nową można ustawić tylko z `null`. Wycofanie wymaga pełnego odczytu pomiarów z serwera i usuwania partiami po najwyżej 499 operacji; dopiero ostatnia partia zeruje zgodę i kategorię, a przerwany proces można powtórzyć. Statystyki dziennika działają bez zgody. Gdy powstanie gotowość (Q3) z nową wersją informacji, tamto issue doda w regułach przejście na nowszą zgodę (`noticeVersion` większe i `grantedAt` późniejsze od obecnych) z zachowaniem pomiarów, bez usuwania danych przy ponownej zgodzie.
+
+## Znane ograniczenie
+
+Reguły Firestore i klient nie sprawdzają, czy wersja informacji o pomiarach masy ciała jest honorowana. Dotąd obowiązywała wyłącznie wersja `2026-11`, więc żaden profil nie ma starszej zgody. Decyzją właściciela z punktu B1 (#241) sprawdzanie wersji odłożono przed zamrożeniem funkcji. Przy zmianie treści informacji trzeba dodać listę honorowanych wersji w interfejsie i regułach oraz ścieżkę ponownej zgody zachowującą dotychczasowe pomiary.

@@ -1,10 +1,27 @@
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures'
 import { manualWorkoutSession } from '../src/test/manualWorkoutBuilder'
+import { sessionStep, workoutSession } from '../src/test/workoutSessionBuilders'
 import { shiftCalendarDate } from '../src/domain/week-plan/weekCalendar'
 
 const instant = '2026-11-18T12:00:00.000Z', current = '2026-11-16'
 test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(instant)) })
+
+test.describe('history opened in New York', () => {
+  test.use({ timezoneId: 'America/New_York' })
+  test('shows the Sunday workout date and the Monday completion time in Warsaw', async ({ app, page }) => {
+    await page.clock.setFixedTime(new Date('2026-11-23T15:00:00.000Z'))
+    await app.open('/progress?tab=history')
+    const completedAt = '2026-11-22T23:10:00.000Z'
+    await app.seedSession(workoutSession({ workoutPlanNameSnapshot: 'Trening przez północ', workoutDate: '2026-11-22',
+      startedAt: '2026-11-22T22:50:00.000Z', completedAt, stepResults: [sessionStep()] }))
+    const card = page.getByRole('region', { name: '16–22 lis', exact: true }).getByRole('article')
+    await card.locator('.disclosure-trigger').click()
+    await expect(card.getByText('Dzień treningu 22 lis', { exact: true })).toBeVisible()
+    await expect(card.getByText('Zakończenie 00:10 CET', { exact: true })).toBeVisible()
+    await expect(card.getByText('00:10 CET', { exact: true })).toHaveAttribute('datetime', completedAt)
+  })
+})
 
 test('shows progress tiles, expands five to twelve weeks, and opens the selected journal week', async ({ app, page }) => {
   await app.open('/progress')

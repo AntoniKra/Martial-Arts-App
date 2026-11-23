@@ -6,7 +6,7 @@ export interface AuthSession {
 
 export type AuthState =
   | { status: 'loading' }
-  | { status: 'ready'; session: AuthSession | null }
+  | { status: 'ready'; session: AuthSession | null; cacheCleanupPending?: true }
   | { status: 'error' }
 
 export interface AuthService {

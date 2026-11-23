@@ -1,5 +1,7 @@
 import { calculateWorkoutDate } from '@/domain/workout-session/workoutSessionDefinitions'
 
+export const WEEK_PLAN_TIME_ZONE = 'Europe/Warsaw'
+
 /** Calendar arithmetic in UTC avoids DST and never reinterprets a saved workoutDate. */
 export function shiftCalendarDate(date: string, days: number): string {
   const value = new Date(`${date}T12:00:00.000Z`)

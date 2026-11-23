@@ -1,23 +1,23 @@
 import type { WorkoutSession, WorkoutSessionCategory } from '@/domain/workout-session/workoutSession.types'
-import { currentWeekStart, shiftCalendarDate } from './weekCalendar'
+import { currentWeekStart, shiftCalendarDate, WEEK_PLAN_TIME_ZONE } from './weekCalendar'
 import type { RecurringWeek, ScheduledWeekItem, WeekPlan, Weekday } from './weekPlan.types'
 import { calculateLegacyWeekProgress } from './legacyWeekProgress'
 import { scheduledWeekFromLegacy } from './updateRecurringWeek'
 
-export function generateScheduledWeek(weekStart: string, recurring: RecurringWeek | undefined, now: Date): WeekPlan {
+export function generateScheduledWeek(weekStart: string, recurring: RecurringWeek | undefined, now: Date, currentWeek = currentWeekStart(now, WEEK_PLAN_TIME_ZONE)): WeekPlan {
   return {
     weekStart, items: [], schedule: (recurring?.items ?? []).map((item) => ({ ...structuredClone(item), id: recurringOccurrenceId(weekStart, item.id), omitted: false })),
     targetCount: recurring?.items.filter((item) => item.kind !== 'rest').length ?? 0,
     appliedRecurringRevision: recurring?.revision ?? 0, appliedRecurringIds: recurring?.items.map((item) => item.id) ?? [],
-    createdAt: now.toISOString(), updatedAt: now.toISOString(), editedAfterWeekEnd: weekStart < currentWeekStart(now),
+    createdAt: now.toISOString(), updatedAt: now.toISOString(), editedAfterWeekEnd: weekStart < currentWeek,
   }
 }
 
 export function recurringOccurrenceId(weekStart: string, id: string) { return `${weekStart}:${id}` }
 
-export function changeScheduledWeek(plan: WeekPlan, schedule: ScheduledWeekItem[], targetCount: number, now: Date): WeekPlan {
+export function changeScheduledWeek(plan: WeekPlan, schedule: ScheduledWeekItem[], targetCount: number, now: Date, currentWeek = currentWeekStart(now, WEEK_PLAN_TIME_ZONE)): WeekPlan {
   return { ...plan, schedule: structuredClone(schedule), targetCount, updatedAt: now.toISOString(),
-    editedAfterWeekEnd: plan.editedAfterWeekEnd || plan.weekStart < currentWeekStart(now) }
+    editedAfterWeekEnd: plan.editedAfterWeekEnd || plan.weekStart < currentWeek }
 }
 
 export function scheduledItemDate(weekStart: string, day: Weekday | null): string | null {

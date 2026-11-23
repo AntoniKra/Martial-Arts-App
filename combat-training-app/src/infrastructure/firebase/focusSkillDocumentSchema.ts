@@ -1,13 +1,14 @@
 import * as z from 'zod/mini'
 import { FOCUS_SKILL_CRITERION_MAX_LENGTH, FOCUS_SKILL_NAME_MAX_LENGTH } from '@/domain/focus-skill/focusSkill.types'
 import { instantSchema } from './workoutDocumentSchemas'
+import { exerciseIdSchema } from './exerciseDocumentSchema'
 
 const id = z.string().check(z.minLength(1), z.refine((value) => !value.includes('/')))
 
 export const focusSkillDocumentSchema = z.strictObject({
   schemaVersion: z.union([z.literal(1), z.literal(2)]),
   id,
-  exerciseId: z.optional(z.nullable(id)),
+  exerciseId: z.optional(z.nullable(exerciseIdSchema)),
   name: z.string().check(z.minLength(1), z.maxLength(FOCUS_SKILL_NAME_MAX_LENGTH)),
   criterion: z.string().check(z.minLength(1), z.maxLength(FOCUS_SKILL_CRITERION_MAX_LENGTH)),
   openCorrection: z.nullable(z.strictObject({

@@ -15,8 +15,7 @@ import { recurringWeekRecords } from '../src/infrastructure/firebase/recurringWe
 let environment: RulesTestEnvironment
 const uid = 'week-plan-concurrency', instant = '2026-11-15T10:00:00.000Z'
 const stops: (() => void)[] = [], databases: Firestore[] = []
-function useCurrentWeekOn(day: number) {
-  const weekStart = currentWeekStart(new Date(), 'Europe/Warsaw')
+function useCurrentWeekOn(day: number, weekStart = currentWeekStart(new Date(), 'Europe/Warsaw')) {
   const now = new Date(`${shiftCalendarDate(weekStart, day)}T09:00:00.000Z`)
   // Keep the repository clock on the scenario day, including when an offline write retries.
   vi.useFakeTimers({ toFake: ['Date'] })
@@ -176,7 +175,8 @@ it('reconciles a newer recurring revision on opening the current week without re
 })
 
 for (const kind of ['recurringWeeks', 'weekPlans'] as const) it.each([1, 0])(`${kind}: an offline full-state write removes every surplus slot when saving %i entries`, async (count) => {
-  const dbA = database(), dbB = database(), weekStart = currentWeekStart()
+  const { weekStart } = useCurrentWeekOn(6, '2026-11-16')
+  const dbA = database(), dbB = database()
   const b = subscribed(dbB, kind, weekStart)
   await vi.waitFor(() => expect(b.snapshot()).toMatchObject({ fromCache: false, invalidDocumentIds: [] }))
   await b.save(2, instant)

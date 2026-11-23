@@ -65,12 +65,15 @@ beforeEach(async () => {
   vi.stubGlobal('addEventListener', events.addEventListener.bind(events))
   vi.stubGlobal('removeEventListener', events.removeEventListener.bind(events))
   await environment.clearFirestore()
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-11-23T12:00:00.000Z'))
 })
 afterEach(async () => {
   hooks.afterRead = null; hooks.beforeCommit = null
   for (const stop of stops.splice(0)) stop()
   await Promise.all(databases.splice(0).map((db) => enableNetwork(db)))
   vi.unstubAllGlobals()
+  vi.useRealTimers()
 })
 afterAll(async () => { await environment?.cleanup() })
 
@@ -81,7 +84,8 @@ it('rejects the second session write between the server snapshot and the deletio
   const { repositories } = await subscribed(db)
   hooks.afterRead = async () => {
     expect((await getDocFromServer(doc(second, 'users', uid))).data()?.wellbeingWithdrawal.pending).toBe(true)
-    await assertFails(setDoc(doc(second, 'users', uid, 'readiness', today()), { ...entry(), schemaVersion: 1 }))
+    const value = entry()
+    await assertFails(setDoc(doc(second, 'users', uid, 'readiness', value.date), { ...value, schemaVersion: 1 }))
   }
   await repositories.wellbeing.withdrawConsent()
   expect((await getDocsFromServer(collection(second, 'users', uid, 'readiness'))).empty).toBe(true)
@@ -91,7 +95,8 @@ it('rejects the second session write between the server snapshot and the deletio
 it('rejects a real queued deletion on offline and permits retry when the queued batch commits later', async () => {
   const db = database()
   await setDoc(doc(db, 'users', uid), profile)
-  await setDoc(doc(db, 'users', uid, 'readiness', today()), { ...entry(), schemaVersion: 1 })
+  const value = entry()
+  await setDoc(doc(db, 'users', uid, 'readiness', value.date), { ...value, schemaVersion: 1 })
   const { repositories } = await subscribed(db)
   hooks.beforeCommit = async (commit) => {
     await disableNetwork(db)
@@ -119,7 +124,7 @@ it('creates today from cache after new repository subscriptions, preserving cach
   await repositories.wellbeing.save({ ...value, sleep: 4 })
   vi.stubGlobal('navigator', { onLine: true }); await enableNetwork(db)
   await vi.waitFor(() => expect(snapshot()?.hasPendingWrites).toBe(false))
-  expect((await getDocFromServer(doc(db, 'users', uid, 'readiness', today()))).data()).toMatchObject({ createdAt: value.createdAt, sleep: 4 })
+  expect((await getDocFromServer(doc(db, 'users', uid, 'readiness', value.date))).data()).toMatchObject({ createdAt: value.createdAt, sleep: 4 })
 })
 
 it('reports a late server creation conflict without replacing the server createdAt', async () => {
@@ -129,10 +134,10 @@ it('reports a late server creation conflict without replacing the server created
   for (const stop of stops.splice(0)) stop()
   await disableNetwork(db); vi.stubGlobal('navigator', { onLine: false })
   const existing = { ...entry(), createdAt: consent.grantedAt, schemaVersion: 1 }
-  await setDoc(doc(second, 'users', uid, 'readiness', today()), existing)
+  await setDoc(doc(second, 'users', uid, 'readiness', existing.date), existing)
   const { repositories, error } = await subscribed(db, true)
   await repositories.wellbeing.save(entry())
   vi.stubGlobal('navigator', { onLine: true }); await enableNetwork(db)
   await vi.waitFor(() => expect(error).toHaveBeenCalled())
-  expect((await getDocFromServer(doc(second, 'users', uid, 'readiness', today()))).data()).toEqual(existing)
+  expect((await getDocFromServer(doc(second, 'users', uid, 'readiness', existing.date))).data()).toEqual(existing)
 })

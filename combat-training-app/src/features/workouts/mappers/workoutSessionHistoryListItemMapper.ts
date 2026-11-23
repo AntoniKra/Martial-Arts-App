@@ -13,7 +13,11 @@ import {
   formatWorkoutSessionTimePl,
 } from '@/features/workouts/utils/formatWorkoutSessionLabels'
 
-export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession, hasPendingWrites = false): WorkoutHistoryListItem {
+export function mapWorkoutSessionToHistoryListItem(
+  session: WorkoutSession,
+  hasPendingWrites = false,
+  deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+): WorkoutHistoryListItem {
   const summary = calculateWorkoutSessionSummary(session)
   const hasRounds = summary.plannedRoundCount > 0
 
@@ -29,8 +33,8 @@ export function mapWorkoutSessionToHistoryListItem(session: WorkoutSession, hasP
     status: session.status,
     name: workoutSessionName(session),
     disciplineKey: session.disciplineKey,
-    dateLabelPl: formatWorkoutSessionDatePl(workoutSessionDate(session)),
-    timeLabelPl: session.source === 'manual' ? '' : formatWorkoutSessionTimePl(session.completedAt),
+    dateLabelPl: formatWorkoutSessionDatePl(session.workoutDate),
+    timeLabelPl: session.source === 'manual' ? '' : formatWorkoutSessionTimePl(session.completedAt, session.timezone, deviceTimeZone),
     completedAt: workoutSessionDate(session),
     durationLabelPl: formatActiveDurationSecondsPl(summary.activeDurationSeconds),
     roundsOnly: session.source === 'quickTimer',
@@ -48,7 +52,8 @@ export function mapWorkoutSessionsToHistoryListItems(
   sessions: readonly WorkoutSession[],
   pendingIds: ReadonlySet<string> = new Set(),
 ): WorkoutHistoryListItem[] {
+  const deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   return [...sessions]
-    .map((session) => mapWorkoutSessionToHistoryListItem(session, pendingIds.has(session.id)))
+    .map((session) => mapWorkoutSessionToHistoryListItem(session, pendingIds.has(session.id), deviceTimeZone))
     .sort((left, right) => right.completedAt.localeCompare(left.completedAt))
 }

@@ -98,6 +98,23 @@ describe('Firestore unsent writes', () => {
 })
 
 describe('Firestore sign-out lifecycle', () => {
+  it('bounds a blocked deletion and lets the next account use a fresh instance', async () => {
+    vi.useFakeTimers()
+    let finishDeletion = () => {}
+    sdk.clear.mockImplementationOnce(() => new Promise<void>((resolve) => { finishDeletion = resolve }))
+    const { getAccountDatabase, clearFirestoreCache } = await import('./createFirestoreRepositories')
+    const first = getAccountDatabase()
+    const cleaning = expect(clearFirestoreCache(3000)).rejects.toThrow('Firestore cache cleanup timed out')
+    await vi.advanceTimersByTimeAsync(3000)
+    await cleaning
+    const next = getAccountDatabase()
+    expect(next).not.toBe(first)
+    finishDeletion()
+    await Promise.resolve()
+    expect(getAccountDatabase()).toBe(next)
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
   it('initializes, terminates and clears an unopened database, then resets the instance', async () => {
     let finishTermination = () => {}
     sdk.terminate.mockImplementationOnce(() => new Promise((resolve) => { finishTermination = resolve }))
