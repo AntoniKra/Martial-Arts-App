@@ -63,9 +63,9 @@ export function Component() {
   const lastNote = ready ? latestOpenCorrection(focusSkills.items, sessions.items) : null
   const active = selectAvailableFocusSkills(focusSkills.items)
   const archived = focusSkills.items.filter((skill) => skill.archivedAt !== null).sort((a, b) => a.name.localeCompare(b.name, 'pl'))
-  return <div className={`${history ? 'pb-6 pt-14' : 'progress-charts pb-7 pt-3'} space-y-[18px] px-4 md:px-0 md:pt-0`}>
+  return <div className={"space-y-[18px] px-4 pb-6 pt-14 md:px-0 md:pt-0"}>
     <ScreenHeader variant="main" title={labels.title} subtitle={<>{new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', timeZone: 'UTC' }).formatRange(new Date(`${currentWeek}T12:00:00Z`), new Date(`${shiftCalendarDate(currentWeek, 6)}T12:00:00Z`))} · ten tydzień</>} />
-    <SegmentedControl className="progress-tabs" ariaLabel={labels.tabs} options={[{ label: labels.charts, value: 'charts' }, { label: labels.history, value: 'history' }]} value={history ? 'history' : 'charts'}
+    <SegmentedControl ariaLabel={labels.tabs} options={[{ label: labels.charts, value: 'charts' }, { label: labels.history, value: 'history' }]} value={history ? 'history' : 'charts'}
       onChange={(nextTab) => {
         setSelection({ routeTab, tab: nextTab })
         const next = new URLSearchParams(params)

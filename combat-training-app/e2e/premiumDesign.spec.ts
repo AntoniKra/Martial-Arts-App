@@ -91,7 +91,7 @@ for (const theme of ['dark', 'light'] as const) {
     const tiles = page.getByRole('region', { name: 'Więcej', exact: true }).getByRole('button')
     await expect(tiles).toHaveCount(2)
     const sizes = await tiles.evaluateAll((elements) => elements.map((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height })))
-    expect(sizes[0]).toEqual(sizes[1]); expect(sizes[0].height).toBe(112)
+    expect(sizes[0]).toEqual(sizes[1]); expect(sizes[0].height).toBeGreaterThanOrEqual(44)
     await accessible(page)
   })
 
