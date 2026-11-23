@@ -92,6 +92,7 @@ test('plays, pauses and resumes through rounds and rest with correct history tot
   // UI rounds up to 4 min; including the pause would incorrectly show 5 min.
   await expect(history.getByText('4 min', { exact: true })).toBeVisible()
   await expect(history.getByText('11:05', { exact: true })).toBeVisible()
+  await expect(history.getByText('Zakończenie 11:05', { exact: true })).toBeVisible()
   await expect(history.getByText('2/2 ćwiczeń', { exact: true })).toBeVisible()
   await expect(history.getByText('2/2 rund', { exact: true })).toBeVisible()
 })

@@ -9,14 +9,16 @@ import { manualWorkoutSession } from '@/test/manualWorkoutBuilder'
 afterEach(() => vi.useRealTimers())
 
 it.each([
-  ['2026-03-29T00:30:00Z', '2026-03-29T01:30:00Z', '2026-03-29', '29 mar', '03:30 CEST'],
-  ['2026-10-24T23:30:00Z', '2026-10-25T02:30:00Z', '2026-10-25', '25 paź', '03:30 CET'],
-  ['2026-11-22T22:50:00Z', '2026-11-22T23:10:00Z', '2026-11-22', '22 lis', '00:10 CET'],
-])('keeps the saved workout day and uses the session zone at %s', (startedAt, completedAt, workoutDate, dateLabelPl, timeLabelPl) => {
+  ['2026-03-29T00:30:00Z', '2026-03-29T01:30:00Z', '2026-03-29', '29 mar', '03:30', 'CEST'],
+  ['2026-10-24T23:30:00Z', '2026-10-25T02:30:00Z', '2026-10-25', '25 paź', '03:30', 'CET'],
+  ['2026-11-22T22:50:00Z', '2026-11-22T23:10:00Z', '2026-11-22', '22 lis', '00:10', 'CET'],
+])('keeps the workout day and labels the session zone only when it differs at %s', (startedAt, completedAt, workoutDate, dateLabelPl, timeLabelPl, zoneLabel) => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(completedAt))
   const session = workoutSession({ startedAt, completedAt: new Date().toISOString(), workoutDate })
-  expect(mapWorkoutSessionToHistoryListItem(session)).toMatchObject({ workoutDate, dateLabelPl, timeLabelPl, completedAt: new Date().toISOString() })
+  const expected = { workoutDate, dateLabelPl, completedAt: new Date().toISOString() }
+  expect(mapWorkoutSessionToHistoryListItem(session, false, 'Europe/Warsaw')).toMatchObject({ ...expected, timeLabelPl })
+  expect(mapWorkoutSessionToHistoryListItem(session, false, 'Asia/Tokyo')).toMatchObject({ ...expected, timeLabelPl: `${timeLabelPl} ${zoneLabel}` })
 })
 
 it('has no completion time for a manual workout', () => {

@@ -16,11 +16,15 @@ export function formatWorkoutSessionDatePl(isoTimestamp: string): string {
     : workoutSessionDateFormatter.format(new Date(isoTimestamp))
 }
 
-export function formatWorkoutSessionTimePl(isoTimestamp: string, timeZone: string): string {
-  let formatter = workoutSessionTimeFormatters.get(timeZone)
+export function formatWorkoutSessionTimePl(isoTimestamp: string, timeZone: string, deviceTimeZone: string): string {
+  const showTimeZone = timeZone !== deviceTimeZone
+  const key = `${timeZone}:${showTimeZone}`
+  let formatter = workoutSessionTimeFormatters.get(key)
   if (!formatter) {
-    formatter = new Intl.DateTimeFormat('pl-PL', { hour: '2-digit', minute: '2-digit', timeZone, timeZoneName: 'short' })
-    workoutSessionTimeFormatters.set(timeZone, formatter)
+    formatter = new Intl.DateTimeFormat('pl-PL', {
+      hour: '2-digit', minute: '2-digit', timeZone, timeZoneName: showTimeZone ? 'short' : undefined,
+    })
+    workoutSessionTimeFormatters.set(key, formatter)
   }
   return formatter.format(new Date(isoTimestamp))
 }
