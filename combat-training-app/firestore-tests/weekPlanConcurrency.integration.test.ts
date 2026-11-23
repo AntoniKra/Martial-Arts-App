@@ -6,7 +6,7 @@ import type { RepositorySnapshot } from '../src/application/repositorySubscripti
 import type { RecurringWeek, ScheduledWeekItem, WeekPlan } from '../src/domain/week-plan/weekPlan.types'
 import { changeScheduledWeek, generateScheduledWeek } from '../src/domain/week-plan/scheduledWeek'
 import { updateCurrentWeekFromRecurring } from '../src/domain/week-plan/updateRecurringWeek'
-import { currentWeekStart } from '../src/domain/week-plan/weekCalendar'
+import { currentWeekStart, shiftCalendarDate } from '../src/domain/week-plan/weekCalendar'
 import { createFirestoreRecurringWeekRepository } from '../src/infrastructure/firebase/firestoreRecurringWeekRepository'
 import { FirestoreWeekPlanRepository } from '../src/infrastructure/firebase/firestoreWeekPlanRepository'
 import { combineWeekPlanDocuments, storedWeekPlanDocuments } from '../src/infrastructure/firebase/weekPlanDocumentSchema'
@@ -15,6 +15,14 @@ import { recurringWeekRecords } from '../src/infrastructure/firebase/recurringWe
 let environment: RulesTestEnvironment
 const uid = 'week-plan-concurrency', instant = '2026-11-15T10:00:00.000Z'
 const stops: (() => void)[] = [], databases: Firestore[] = []
+function useCurrentWeekOn(day: number) {
+  const weekStart = currentWeekStart(new Date(), 'Europe/Warsaw')
+  const now = new Date(`${shiftCalendarDate(weekStart, day)}T09:00:00.000Z`)
+  // Keep the repository clock on the scenario day, including when an offline write retries.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(now)
+  return { weekStart, now }
+}
 function database() {
   // RulesTestContext exposes the compat SDK; production repositories use its modular delegate.
   const db = (environment.authenticatedContext(uid, { email_verified: true }).firestore() as unknown as { _delegate: Firestore })._delegate
@@ -53,7 +61,8 @@ afterEach(async () => {
 afterAll(async () => { await environment?.cleanup() })
 
 it('rejects stale offline propagation, reconciles once, and preserves the other device manual changes', async () => {
-  const dbA = database(), dbB = database(), now = new Date('2026-11-17T10:00:00Z'), weekStart = '2026-11-16'
+  const { weekStart, now } = useCurrentWeekOn(1)
+  const dbA = database(), dbB = database()
   const a = new FirestoreWeekPlanRepository(dbA, uid), b = new FirestoreWeekPlanRepository(dbB, uid)
   let snapshotA: RepositorySnapshot<WeekPlan> | undefined, snapshotB: RepositorySnapshot<WeekPlan> | undefined
   let sourceB: RepositorySnapshot<RecurringWeek> | undefined
@@ -94,10 +103,11 @@ it('rejects stale offline propagation, reconciles once, and preserves the other 
   expect(snapshotA?.items[0].revision).toBe(3)
 })
 
-it.each(['original', 'unmatched', 'manual-edit', 'omitted'] as const)('reconciles a pre-176 saved week on November 24: %s', async (scenario) => {
-  vi.useFakeTimers({ toFake: ['Date'] })
-  vi.setSystemTime(new Date('2026-11-17T10:00:00Z'))
-  const start = '2026-11-23', savedAt = new Date().toISOString()
+it.each(['original', 'unmatched', 'manual-edit', 'omitted'] as const)('reconciles a pre-176 saved week after it becomes current: %s', async (scenario) => {
+  const { weekStart: start, now } = useCurrentWeekOn(1)
+  const previousWeek = shiftCalendarDate(start, -7)
+  const savedAt = `${shiftCalendarDate(previousWeek, 1)}T09:00:00.000Z`
+  vi.setSystemTime(new Date(savedAt))
   const club = { id: 'boxing', kind: 'club' as const, day: 4 as const, disciplineKey: 'boxing' as const,
     startTime: '18:00', endTime: '19:30', parts: [], clubName: null }
   const original: ScheduledWeekItem = { ...club, id: `${start}:0`, omitted: scenario === 'omitted' }
@@ -116,7 +126,7 @@ it.each(['original', 'unmatched', 'manual-edit', 'omitted'] as const)('reconcile
   const db = database(), repository = new FirestoreWeekPlanRepository(db, uid)
   const recurringRepository = createFirestoreRecurringWeekRepository(db, uid), errors = vi.fn()
   let weeks: RepositorySnapshot<WeekPlan> | undefined, recurring: RepositorySnapshot<RecurringWeek> | undefined
-  stops.push(repository.subscribe('2026-11-16', (snapshot) => { weeks = snapshot }, errors))
+  stops.push(repository.subscribe(previousWeek, (snapshot) => { weeks = snapshot }, errors))
   stops.push(recurringRepository.subscribe((snapshot) => { recurring = snapshot }, errors))
   await vi.waitFor(() => {
     expect(weeks).toMatchObject({ fromCache: false, invalidDocumentIds: [], items: [old] })
@@ -127,7 +137,7 @@ it.each(['original', 'unmatched', 'manual-edit', 'omitted'] as const)('reconcile
   await vi.waitFor(() => expect(recurring).toMatchObject({ hasPendingWrites: false, items: [{ revision: 1 }] }))
   expect(weeks?.items[0]).toEqual(old)
 
-  vi.setSystemTime(new Date('2026-11-24T10:00:00Z'))
+  vi.setSystemTime(now)
   await repository.reconcile(recurring!.items[0], new Date())
   await waitForPendingWrites(db)
   const expected = scenario === 'omitted' ? old.schedule : [{ ...club, id: `${start}:boxing`, startTime: '17:00', omitted: false }, ...extra]
@@ -145,7 +155,8 @@ it.each(['original', 'unmatched', 'manual-edit', 'omitted'] as const)('reconcile
 })
 
 it('reconciles a newer recurring revision on opening the current week without re-adding a manual deletion', async () => {
-  const db = database(), now = new Date('2026-11-17T10:00:00Z'), start = '2026-11-16'
+  const { weekStart: start, now } = useCurrentWeekOn(1)
+  const db = database()
   const repository = new FirestoreWeekPlanRepository(db, uid)
   let snapshot: RepositorySnapshot<WeekPlan> | undefined
   const errors = vi.fn()
@@ -202,7 +213,9 @@ for (const kind of ['recurringWeeks', 'weekPlans'] as const) it.each([1, 0])(`${
 
 
 it('propagates recurring add, edit and delete in one offline batch and preserves manual entries on reconnect', async () => {
-  const db = database(), now = new Date('2026-11-22T10:00:00Z'), weekStart = '2026-11-16'
+  const { weekStart, now } = useCurrentWeekOn(6)
+  const sunday = shiftCalendarDate(weekStart, 6)
+  const db = database()
   const repository = new FirestoreWeekPlanRepository(db, uid)
   const recurringRepository = createFirestoreRecurringWeekRepository(db, uid)
   let weeks: RepositorySnapshot<WeekPlan> | undefined
@@ -225,11 +238,11 @@ it('propagates recurring add, edit and delete in one offline batch and preserves
     expect(recurringSnapshot).toMatchObject({ hasPendingWrites: true, invalidDocumentIds: [], items: [source] })
   })
   await enableNetwork(db); await waitForPendingWrites(db)
-  const edit = { ...source, revision: 2, updatedAt: '2026-11-22T11:00:00.000Z', items: source.items.map((item) => item.kind === 'club' ? { ...item, startTime: '09:00' } : item) }
+  const edit = { ...source, revision: 2, updatedAt: `${sunday}T10:00:00.000Z`, items: source.items.map((item) => item.kind === 'club' ? { ...item, startTime: '09:00' } : item) }
   next = updateCurrentWeekFromRecurring(source, edit, weeks!.items[0], new Date(edit.updatedAt))
   await repository.save({ ...next, revision: weeks?.items[0]?.revision }, edit); await waitForPendingWrites(db)
   expect(weeks?.items[0].schedule?.[1]).toMatchObject({ id: `${weekStart}:sunday`, startTime: '09:00' })
-  const empty = { ...edit, revision: 3, items: [], updatedAt: '2026-11-22T12:00:00.000Z' }
+  const empty = { ...edit, revision: 3, items: [], updatedAt: `${sunday}T11:00:00.000Z` }
   next = updateCurrentWeekFromRecurring(edit, empty, weeks!.items[0], new Date(empty.updatedAt))
   await repository.save({ ...next, revision: weeks?.items[0]?.revision }, empty); await waitForPendingWrites(db)
   expect(weeks?.items[0].schedule).toEqual(initial.schedule)
