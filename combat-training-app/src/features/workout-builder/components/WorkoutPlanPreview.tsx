@@ -202,7 +202,9 @@ export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPrev
               </Button>
 
               <Button type="button" variant="secondary" className="w-full" disabled={isSaving} onClick={onBack}>
-                <BackIcon size={16} />{workoutBuilderLabels.returnToEditing}
+                <span className="inline-flex items-center gap-2">
+                  <BackIcon size={16} />{workoutBuilderLabels.returnToEditing}
+                </span>
               </Button>
             </section>
           </div>

@@ -12,9 +12,9 @@ export function MultiChoiceChip({ children, className = '', ...props }: Props) {
       <span aria-hidden="true" className="multi-chip-mark" />{children}
     </button>
   }
-  const { as: _as, ...inputProps } = props
+  const { as: _as, checked, ...inputProps } = props
   return <label className={`multi-chip ${className}`}>
-    <input {...inputProps} type="checkbox" className="control-input" />
+    <input {...inputProps} type="checkbox" checked={checked} aria-checked={checked} className="control-input" />
     <span className="multi-chip-face"><span aria-hidden="true" className="multi-chip-mark" />{children}</span>
   </label>
 }

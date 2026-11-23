@@ -150,7 +150,7 @@
 }
 
 .feedback-sparring-option[aria-pressed='true'] {
-  border-color: var(--app-crimson-ink);
+  border: 2px solid var(--app-crimson-ink);
   background: color-mix(in srgb, var(--app-crimson) 16%, var(--app-surface));
   color: var(--app-ink);
 }
@@ -170,28 +170,11 @@
   color: var(--app-ink);
 }
 
-.feedback-rating-grid .choice-option input:checked + .choice-face {
-  border-width: 2px;
-}
-
 .feedback-repeat-grid .choice-option .choice-face {
   flex-direction: row;
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
-}
-
-.feedback-repeat-grid .choice-check {
-  position: static;
-  order: -1;
-  width: auto;
-  height: auto;
-  background: transparent;
-  color: inherit;
-}
-
-.feedback-repeat-grid input:not(:checked) + .choice-face .choice-check {
-  display: none;
 }
 
 .feedback-repeat-grid .col-span-2 input:not(:checked) + .choice-face {

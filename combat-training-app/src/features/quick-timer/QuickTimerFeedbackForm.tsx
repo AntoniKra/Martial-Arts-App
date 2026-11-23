@@ -72,8 +72,8 @@ export function QuickTimerFeedbackForm({ session, pending, rpeCard, onSave }: {
         {category === 'sparring' && <fieldset className="min-w-0 space-y-2">
           <legend className="mb-2 text-sm font-semibold text-ink">{labels.intensity} <span className="text-xs font-normal text-muted">({labels.optional})</span></legend>
           {(['light', 'technical', 'hard'] as const).map((value) => <button key={value} type="button" aria-pressed={intensity === value} onClick={() => setIntensity(intensity === value ? null : value)}
-            className={`block min-h-touch w-full border p-3 text-left text-sm leading-relaxed ${intensity === value ? 'border-crimson bg-elevated font-semibold text-ink' : 'border-bd bg-surface text-muted'}`}>
-            {intensity === value && <span aria-hidden="true">✓ </span>}{sparringIntensityLabels[value]}
+            className={`block min-h-touch w-full p-3 text-left text-sm leading-relaxed ${intensity === value ? 'border-2 border-crimson bg-elevated font-semibold text-ink' : 'border border-bd bg-surface text-muted'}`}>
+            {sparringIntensityLabels[value]}
           </button>)}
         </fieldset>}
         <label className="block font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{feedbackLabels.noteHeading}
