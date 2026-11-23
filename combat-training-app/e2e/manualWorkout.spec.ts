@@ -41,6 +41,24 @@ async function capture(page: Page, info: TestInfo, name: string) {
 }
 test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(now)) })
 
+for (const [date, weekStart, minutes] of [
+  ['2026-03-29', '2026-03-23', '60'], ['2026-10-25', '2026-10-19', '180'],
+]) {
+  test(`prefills Warsaw club minutes across the clock change on ${date}`, async ({ app, page }) => {
+    const instant = `${date}T10:00:00.000Z`
+    await page.clock.setFixedTime(new Date(instant))
+    await app.open(`/progress/week/${weekStart}`)
+    await app.seedWeekPlan({ weekStart, items: [], schedule: [{ id: 'sunday-club', kind: 'club', day: 6,
+      disciplineKey: 'boxing', startTime: '01:30', endTime: '03:30', parts: ['technique'], clubName: null, omitted: false }],
+      targetCount: 1, createdAt: instant, updatedAt: instant, editedAfterWeekEnd: false })
+    await page.getByRole('button', { name: 'Opcje: Boks', exact: true }).click()
+    await page.getByRole('link', { name: 'Wpisz trening po zajęciach', exact: true }).click()
+    await expect(form(page).getByLabel('Data', { exact: true })).toHaveValue(date)
+    if (minutes === '60') await expect(form(page).getByRole('radio', { name: '60 min', exact: true })).toBeChecked()
+    else await expect(form(page).getByRole('spinbutton', { name: 'Czas w minutach', exact: true })).toHaveValue(minutes)
+  })
+}
+
 test('saves three club parts with sparring, custom minutes and one session load', async ({ app, page }, info) => {
   await app.open('/')
   await app.seedWeekPlan({ weekStart: '2026-11-09', createdAt: now, updatedAt: now, editedAfterWeekEnd: false,

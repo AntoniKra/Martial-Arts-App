@@ -46,15 +46,24 @@ export async function hasUnsentWrites(): Promise<boolean> {
   }
 }
 
-export async function clearFirestoreCache(): Promise<void> {
+export async function clearFirestoreCache(timeoutMs?: number): Promise<void> {
   const current = getAccountDatabase()
   for (const stop of subscriptions) stop()
+  let timeout: ReturnType<typeof setTimeout> | undefined
   try {
-    await terminate(current)
-    await clearIndexedDbPersistence(current)
+    const cleanup = (async () => {
+      await terminate(current)
+      await clearIndexedDbPersistence(current)
+    })()
+    if (timeoutMs === undefined) await cleanup
+    else await Promise.race([cleanup, new Promise<never>((_resolve, reject) => {
+      // An IndexedDB deletion blocked by another tab may leave the SDK promise pending.
+      timeout = setTimeout(() => reject(new Error('Firestore cache cleanup timed out')), timeoutMs)
+    })])
   } finally {
+    clearTimeout(timeout)
     // The next signed-in account needs a fresh instance, including its memory cache.
-    database = undefined
+    if (database === current) database = undefined
   }
 }
 

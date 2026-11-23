@@ -2,7 +2,7 @@ import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, where, w
 import type { WeekPlanRepository, WeekPlanSnapshot, WeekPlanSaveIntent } from '@/application/week-plan/weekPlanRepository'
 import type { RecurringWeek, WeekPlan } from '@/domain/week-plan/weekPlan.types'
 import { WEEK_PLAN_HISTORY_WEEKS, WEEK_PLAN_ITEM_LIMIT } from '@/domain/week-plan/weekPlan.types'
-import { currentWeekStart, isMonday, shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
+import { currentWeekStart, isMonday, shiftCalendarDate, WEEK_PLAN_TIME_ZONE } from '@/domain/week-plan/weekCalendar'
 import { combineWeekPlanDocuments, parseWeekPlanDocument, storedWeekPlanDocuments } from './weekPlanDocumentSchema'
 import { combineRecurringWeekRecords, recurringWeekRecords, recurringWeekRecordSchema } from './recurringWeekDocumentSchema'
 import { updateCurrentWeekFromRecurring } from '@/domain/week-plan/updateRecurringWeek'
@@ -95,7 +95,7 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
     this.reportError?.(error)
   }
 
-  private validateSave(value: WeekPlan) {
+  private validateSave(value: WeekPlan, currentWeek: string) {
     const schemaVersion = value.schedule === undefined ? 1 : 2
     const plan = parseWeekPlanDocument({ ...value, schemaVersion })
     const previous = this.items.get(plan.weekStart)
@@ -104,16 +104,16 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
     if (previous && (previous.createdAt !== plan.createdAt || previous.editedAfterWeekEnd && !plan.editedAfterWeekEnd)) {
       throw new Error('Week plan history must be preserved')
     }
-    if (plan.weekStart < currentWeekStart() && !plan.editedAfterWeekEnd) throw new Error('Historical edit must be marked')
+    if (plan.weekStart < currentWeek && !plan.editedAfterWeekEnd) throw new Error('Historical edit must be marked')
     return plan
   }
 
   async reconcile(recurring: RecurringWeek, now: Date): Promise<void> {
-    const start = currentWeekStart(now, 'Europe/Warsaw')
+    const start = currentWeekStart(now, WEEK_PLAN_TIME_ZONE)
     const current = this.items.get(start)
     if (this.recovering || this.pendingCommits || !current || (recurring.revision ?? 0) <= (current.appliedRecurringRevision ?? 0)) return
     const next = updateCurrentWeekFromRecurring(undefined, recurring, current, now)
-    await this.save(next, undefined, undefined, { reconcileOnly: true })
+    await this.save(next, undefined, undefined, { reconcileOnly: true, operationTime: now })
   }
 
   private async freshState() {
@@ -141,7 +141,7 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
       this.invalidIds.clear()
       this.complete = true
       const now = new Date()
-      const start = currentWeekStart(now, 'Europe/Warsaw')
+      const start = currentWeekStart(now, WEEK_PLAN_TIME_ZONE)
       if (recurring) {
         const next: RecurringWeek = { ...recurring, createdAt: fresh.recurring?.createdAt ?? recurring.createdAt,
           updatedAt: now.toISOString(), revision: (fresh.recurring?.revision ?? 0) + 1,
@@ -151,32 +151,33 @@ export class FirestoreWeekPlanRepository implements WeekPlanRepository {
         let displayed: WeekPlan | undefined
         if (change?.after.weekStart === start) current = rebaseWeekChange(change.before, change.after, current, now)
         else if (change) displayed = rebaseWeekChange(change.before, change.after, fresh.items.get(change.after.weekStart) ?? generateScheduledWeek(change.after.weekStart, fresh.recurring, now), now)
-        await this.write(displayed ?? current, next, displayed ? current : undefined, undefined, true)
+        await this.write(displayed ?? current, next, displayed ? current : undefined, undefined, true, now)
       } else if (intent?.reconcileOnly && fresh.recurring) {
         const current = fresh.items.get(start)
         if (current && (fresh.recurring.revision ?? 0) > (current.appliedRecurringRevision ?? 0)) {
-          await this.write(updateCurrentWeekFromRecurring(undefined, fresh.recurring, current, now), undefined, undefined, undefined, true)
+          await this.write(updateCurrentWeekFromRecurring(undefined, fresh.recurring, current, now), undefined, undefined, undefined, true, now)
         }
       } else {
         if (!before) throw new Error('Concurrent creation requires a fresh edit')
         const current = fresh.items.get(desired.weekStart)
         if (!current) throw new Error('Week removed on another device')
-        await this.write(rebaseWeekChange(before, desired, current, now), undefined, undefined, undefined, true)
+        await this.write(rebaseWeekChange(before, desired, current, now), undefined, undefined, undefined, true, now)
       }
     } catch (error) { if (generation === this.generation && !this.failed) this.fail(error) }
     finally { this.recovering = false }
   }
 
   save(value: WeekPlan, recurring?: RecurringWeek, additionalWeek?: WeekPlan, intent?: WeekPlanSaveIntent): Promise<void> {
-    return this.write(value, recurring, additionalWeek, intent, false)
+    return this.write(value, recurring, additionalWeek, intent, false, intent?.operationTime ?? new Date())
   }
 
-  private async write(value: WeekPlan, recurring: RecurringWeek | undefined, additionalWeek: WeekPlan | undefined, intent: WeekPlanSaveIntent | undefined, retrying: boolean): Promise<void> {
+  private async write(value: WeekPlan, recurring: RecurringWeek | undefined, additionalWeek: WeekPlan | undefined, intent: WeekPlanSaveIntent | undefined, retrying: boolean, now: Date): Promise<void> {
     const before = this.items.get(value.weekStart)
     const normalize = (week: WeekPlan) => ({ ...week, revision: (week.revision ?? 0) + 1,
       ...(week.schedule === undefined ? {} : { appliedRecurringRevision: week.appliedRecurringRevision ?? 0, appliedRecurringIds: week.appliedRecurringIds ?? [] }) })
-    const plan = this.validateSave(normalize(value))
-    const additional = additionalWeek ? this.validateSave(normalize(additionalWeek)) : undefined
+    const currentWeek = currentWeekStart(now, WEEK_PLAN_TIME_ZONE)
+    const plan = this.validateSave(normalize(value), currentWeek)
+    const additional = additionalWeek ? this.validateSave(normalize(additionalWeek), currentWeek) : undefined
     if (recurring) recurring = { ...recurring, revision: recurring.revision ?? 1 }
     if (additional?.weekStart === plan.weekStart) throw new Error('Duplicate week in batch')
     const recurringRecords = recurring ? recurringWeekRecords(recurring) : undefined

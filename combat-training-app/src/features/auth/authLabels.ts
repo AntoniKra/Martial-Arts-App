@@ -1,5 +1,6 @@
 export const authLabels = {
   cleanupError: 'Konto usunięte, ale nie udało się wyczyścić pamięci urządzenia. Zamknij inne karty aplikacji i wyczyść dane witryny.',
+  logoutCleanupPending: 'Nie udało się wyczyścić pamięci aplikacji. Zamknij pozostałe karty aplikacji. Ponowimy czyszczenie przy następnym uruchomieniu.',
   accountDeleted: 'Konto zostało usunięte.',
   brand: 'Combat Training',
   login: 'Zaloguj się',

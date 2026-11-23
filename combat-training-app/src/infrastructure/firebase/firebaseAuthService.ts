@@ -13,6 +13,13 @@ import type { FirebaseConfig } from './firebaseConfig'
 import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
 import { createCompletedWorkoutStorage } from '@/infrastructure/storage/completedWorkoutStorage'
 
+const cacheCleanupKey = 'combat-training.firestoreCacheCleanupPending'
+const cacheCleanupTimeoutMs = 3000
+
+function readCacheCleanupPending(): boolean {
+  try { return localStorage.getItem(cacheCleanupKey) === 'pending' } catch { return false }
+}
+
 function isOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false
 }
@@ -64,6 +71,23 @@ export function createFirebaseAuthService(
 
   const refreshAttempts = new WeakMap<User, Promise<void>>()
   let verificationCheck: { user: User; result: Promise<AuthSession | null> } | undefined
+  let cacheCleanupPending = readCacheCleanupPending()
+  const startupCleanup = cacheCleanupPending ? clearLocalCache() : undefined
+
+  async function clearLocalCache() {
+    try {
+      const { clearFirestoreCache } = await import('./createFirestoreRepositories')
+      await clearFirestoreCache(cacheCleanupTimeoutMs)
+      cacheCleanupPending = false
+    } catch {
+      cacheCleanupPending = true
+      console.error('Failed to clear Firestore cache')
+    }
+    try {
+      if (cacheCleanupPending) localStorage.setItem(cacheCleanupKey, 'pending')
+      else if (readCacheCleanupPending()) localStorage.removeItem(cacheCleanupKey)
+    } catch { /* The in-memory notice is still available if storage is blocked. */ }
+  }
 
   async function checkSession(
     user: User, isCurrent = () => auth.currentUser === user, onChecking?: () => void,
@@ -126,15 +150,10 @@ export function createFirebaseAuthService(
     async signOut() {
       if (auth.currentUser) {
         createActiveWorkoutRepository(auth.currentUser.uid).clear()
-        const completed = createCompletedWorkoutStorage(auth.currentUser.uid)
-        for (const session of completed.readAll()) completed.remove(session.id)
+        createCompletedWorkoutStorage(auth.currentUser.uid).clear()
       }
-      try {
-        const { clearFirestoreCache } = await import('./createFirestoreRepositories')
-        await clearFirestoreCache()
-      } catch (error) {
-        console.error('Failed to clear Firestore cache during sign-out', error)
-      }
+      if (startupCleanup) await startupCleanup
+      await clearLocalCache()
       await signOut(auth)
     },
     async sendVerificationEmail() {
@@ -174,8 +193,10 @@ export function createFirebaseAuthService(
         const check = ++revision
         const isCurrent = () => check === revision && auth.currentUser === user
         try {
+          if (startupCleanup) await startupCleanup
+          if (!isCurrent()) return
           const session = user && await checkSession(user, isCurrent, () => onState({ status: 'loading' }))
-          if (isCurrent()) onState({ status: 'ready', session })
+          if (isCurrent()) onState(cacheCleanupPending ? { status: 'ready', session, cacheCleanupPending: true } : { status: 'ready', session })
         } catch {
           if (isCurrent()) onState({ status: 'error' })
         }

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as sdk from 'firebase/auth'
 import { initializeApp } from 'firebase/app'
+import { createMemoryStorage } from '@/test/memoryStorage'
 import { createFirebaseAuthService, readSignInEnvironment } from './firebaseAuthService'
 
 const fake = vi.hoisted(() => ({
@@ -47,7 +48,7 @@ function observeSession(service = createFirebaseAuthService(config)) {
   vi.mocked(sdk.onIdTokenChanged).mockReturnValue(unsubscribeSdk)
   const onState = vi.fn<Parameters<typeof service.subscribe>[0]>()
   const unsubscribe = service.subscribe(onState)
-  const onTokenChanged = vi.mocked(sdk.onIdTokenChanged).mock.calls[0][1] as (user: unknown) => Promise<void>
+  const onTokenChanged = vi.mocked(sdk.onIdTokenChanged).mock.lastCall![1] as (user: unknown) => Promise<void>
   return { onState, onTokenChanged, unsubscribe, unsubscribeSdk }
 }
 
@@ -74,16 +75,17 @@ describe('Firebase AuthService', () => {
     await expect(createFirebaseAuthService(config).hasUnsentWrites()).resolves.toBe(true)
     expect(sdk.signOut).not.toHaveBeenCalled()
   })
-  it('clears only the signing-out account active workout', async () => {
-    const values = new Map([
-      ['combat-training.activeWorkout.athlete', '{}'], ['combat-training.activeWorkout.other', '{}'],
-    ])
-    vi.stubGlobal('localStorage', { removeItem: (key: string) => { values.delete(key) } })
-    try {
-      await createFirebaseAuthService(config).signOut()
-      expect(values.has('combat-training.activeWorkout.athlete')).toBe(false)
-      expect(values.has('combat-training.activeWorkout.other')).toBe(true)
-    } finally { vi.unstubAllGlobals() }
+  it('clears only the signing-out account workouts, including unreadable completed copies', async () => {
+    const storage = createMemoryStorage()
+    vi.stubGlobal('localStorage', storage)
+    const ownKeys = ['combat-training.activeWorkout.athlete', 'combat-training.completedWorkout.one.athlete',
+      'combat-training.completedWorkout.two%2Ewith%2Edots.athlete']
+    const unrelatedKeys = ['combat-training.activeWorkout.other', 'combat-training.completedWorkout.one.other.athlete',
+      'combat-training.completedWorkout.one.athlete.other', 'combat-training.quickTimer.athlete']
+    for (const key of [...ownKeys, ...unrelatedKeys]) storage.setItem(key, 'unreadable')
+    await createFirebaseAuthService(config).signOut()
+    for (const key of ownKeys) expect(storage.getItem(key)).toBeNull()
+    for (const key of unrelatedKeys) expect(storage.getItem(key)).toBe('unreadable')
   })
   it('uses only IndexedDB persistence and explicitly connects the emulator', () => {
     createFirebaseAuthService(config)
@@ -286,14 +288,32 @@ describe('Firebase AuthService', () => {
     await signingOut
     expect(sdk.signOut).toHaveBeenCalledOnce()
   })
-  it('logs a cleanup failure and still signs out', async () => {
-    const error = new Error('Cache is held by another tab')
-    fake.clearCache.mockRejectedValue(error)
+  it('signs out with a notice after cleanup fails and retries once per start until it succeeds', async () => {
+    vi.stubGlobal('localStorage', createMemoryStorage())
+    fake.clearCache.mockRejectedValueOnce(new Error('Cache is held by another tab'))
+      .mockRejectedValueOnce(new Error('Still blocked')).mockResolvedValue(undefined)
     const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     try {
-      await expect(createFirebaseAuthService(config).signOut()).resolves.toBeUndefined()
-      expect(log).toHaveBeenCalledWith('Failed to clear Firestore cache during sign-out', error)
+      const service = createFirebaseAuthService(config)
+      const first = observeSession(service)
+      await expect(service.signOut()).resolves.toBeUndefined()
       expect(sdk.signOut).toHaveBeenCalledOnce()
+      fake.auth.currentUser = null
+      await first.onTokenChanged(null)
+      expect(first.onState).toHaveBeenLastCalledWith({ status: 'ready', session: null, cacheCleanupPending: true })
+
+      const restarted = observeSession()
+      await restarted.onTokenChanged(null)
+      expect(restarted.onState).toHaveBeenLastCalledWith({ status: 'ready', session: null, cacheCleanupPending: true })
+      expect(fake.clearCache).toHaveBeenCalledTimes(2)
+
+      const unblocked = observeSession()
+      await unblocked.onTokenChanged(null)
+      expect(unblocked.onState).toHaveBeenLastCalledWith({ status: 'ready', session: null })
+      expect(fake.clearCache).toHaveBeenCalledTimes(3)
+      createFirebaseAuthService(config)
+      expect(fake.clearCache).toHaveBeenCalledTimes(3)
+      expect(log).toHaveBeenCalledTimes(2)
     } finally { log.mockRestore() }
   })
   it('handles a missing session', async () => {

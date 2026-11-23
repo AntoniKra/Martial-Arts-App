@@ -6,6 +6,7 @@ import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 const sdk = vi.hoisted(() => ({
   listeners: new Map<string, (value: unknown) => void>(),
   update: vi.fn(), delete: vi.fn(), commit: vi.fn<() => Promise<void>>(() => new Promise(() => {})),
+  set: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
 }))
 vi.mock('firebase/app', () => ({ getApp: () => 'app' }))
 vi.mock('./firebaseConfig', () => ({ readFirebaseConfig: () => ({ projectId: 'demo-combat-training', firestoreEmulatorHost: '127.0.0.1:8080' }) }))
@@ -14,7 +15,7 @@ vi.mock('firebase/firestore', () => ({
   persistentMultipleTabManager: vi.fn(), terminate: vi.fn(), clearIndexedDbPersistence: vi.fn(),
   collection: (_db: unknown, ...path: string[]) => path.join('/'), doc: (path: string, id: string) => `${path}/${id}`,
   onSnapshot: (path: string, _options: unknown, change: (value: unknown) => void) => { sdk.listeners.set(path, change); return () => sdk.listeners.delete(path) },
-  setDoc: vi.fn(), updateDoc: vi.fn(), deleteDoc: vi.fn(),
+  setDoc: sdk.set, updateDoc: vi.fn(), deleteDoc: vi.fn(),
   writeBatch: () => ({ update: sdk.update, delete: sdk.delete, commit: sdk.commit }),
 }))
 import { createFirestoreRepositories, clearFirestoreCache } from './createFirestoreRepositories'
@@ -43,6 +44,15 @@ function subscribed() {
 afterEach(async () => { await clearFirestoreCache(); vi.clearAllMocks() })
 
 describe('focus skill lifecycle batch', () => {
+  it('saves linked exercise IDs up to 128 characters and rejects longer links before writing', async () => {
+    const { focusSkills } = subscribed()
+    const exerciseId = 'a'.repeat(128)
+    await expect(focusSkills.save({ ...skill, exerciseId: `${exerciseId}a` })).rejects.toThrow()
+    expect(sdk.set).not.toHaveBeenCalled()
+    await focusSkills.save({ ...skill, exerciseId })
+    expect(sdk.set).toHaveBeenCalledExactlyOnceWith('users/athlete/focusSkills/guard', expect.objectContaining({ schemaVersion: 2, exerciseId }))
+  })
+
   it('archives and detaches two plans in one batch, resolving after every local snapshot before the server', async () => {
     const repositories = subscribed()
     const saved = repositories.focusSkills.archive(skill.id, changedAt)

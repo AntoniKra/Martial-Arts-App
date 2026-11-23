@@ -19,6 +19,7 @@ import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedba
 import { RpeRecallBadge } from '@/features/workout-feedback/RpeRecallBadge'
 import { manualWorkoutLabels } from '@/features/manual-workout/manualWorkoutLabels'
 import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWorkoutLine'
+import { workoutHistoryLabels } from '@/features/workouts/workoutHistoryLabels'
 
 const NOTE_SAVE_ERROR_MESSAGE = 'Nie udało się zapisać notatki.'
 const DELETE_ERROR_MESSAGE = 'Nie udało się usunąć wpisu.'
@@ -194,12 +195,10 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
         <div className="mb-1 flex items-start justify-between gap-3">
           <DisciplineBadge disciplineKey={session.disciplineKey} />
           <div className="shrink-0 text-right text-[10px] text-muted">
-            <time className="block" dateTime={session.completedAt}>
-              {session.dateLabelPl}
-            </time>
-            {session.timeLabelPl && <time className="block tabular-nums" dateTime={session.completedAt}>
+            <div>{workoutHistoryLabels.workoutDate} <time dateTime={session.workoutDate ?? session.completedAt}>{session.dateLabelPl}</time></div>
+            {session.timeLabelPl && <div>{workoutHistoryLabels.completedAt} <time className="tabular-nums" dateTime={session.completedAt}>
               {session.timeLabelPl}
-            </time>}
+            </time></div>}
           </div>
         </div>
         <p className="mt-1 font-display text-[14px] font-semibold text-ink">

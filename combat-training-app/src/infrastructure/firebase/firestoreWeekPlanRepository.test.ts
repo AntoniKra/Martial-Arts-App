@@ -39,6 +39,21 @@ beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date(instant)); sdk.
 afterEach(() => { vi.useRealTimers(); vi.clearAllMocks() })
 
 describe('date-keyed weekly repository', () => {
+  it('validates both snapshots against the Warsaw week at the start of a recurring save', async () => {
+    const operationTime = new Date('2026-11-22T22:59:59.999Z')
+    vi.setSystemTime(new Date('2026-11-22T23:00:00.000Z'))
+    const repository = create(), current = { ...plan, weekStart: '2026-11-16', items: [], schedule: [], targetCount: 0, updatedAt: operationTime.toISOString() }
+    const future = { ...current, weekStart: '2026-11-23' }
+    const recurring = { id: 'default' as const, items: [], createdAt: instant, updatedAt: current.updatedAt }
+    repository.subscribe(current.weekStart, vi.fn(), vi.fn())
+    emit([current, future])
+    const saving = repository.save(future, recurring, current, { operationTime })
+    emit([current, future], true, true)
+    await saving
+    expect(sdk.batchSet).toHaveBeenCalledWith('users/athlete/weekPlans/2026-11-16', expect.objectContaining({ editedAfterWeekEnd: false }))
+    await expect(repository.save(current)).rejects.toThrow('Historical edit')
+  })
+
   it('writes recurring records and two complete weeks atomically, resolving after both local weeks arrive', async () => {
     const repository = create()
     repository.subscribe(plan.weekStart, vi.fn(), vi.fn())

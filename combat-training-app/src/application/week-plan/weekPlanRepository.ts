@@ -13,6 +13,7 @@ export interface WeekPlanRepository {
 }
 
 export interface WeekPlanSaveIntent {
+  operationTime?: Date
   previousRecurring?: RecurringWeek
   displayedChange?: { before: WeekPlan; after: WeekPlan }
   reconcileOnly?: boolean

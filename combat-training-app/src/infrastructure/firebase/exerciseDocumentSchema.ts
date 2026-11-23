@@ -2,12 +2,12 @@ import * as z from 'zod/mini'
 import { EXERCISE_TYPES } from '@/domain/exercise/exercise'
 import { instantSchema } from './workoutDocumentSchemas'
 
-const id = z.string().check(z.minLength(1), z.maxLength(128), z.refine((value) => !value.includes('/')))
+export const exerciseIdSchema = z.string().check(z.minLength(1), z.maxLength(128), z.refine((value) => !value.includes('/')))
 const unique = (values: readonly string[]) => new Set(values).size === values.length
 const positive = (max: number) => z.number().check(z.int(), z.minimum(1), z.maximum(max))
 
 export const exerciseDocumentSchema = z.strictObject({
-  schemaVersion: z.literal(1), id,
+  schemaVersion: z.literal(1), id: exerciseIdSchema,
   namePl: z.string().check(z.minLength(1), z.maxLength(100), z.refine((name) => name.trim() === name && name.length > 0)),
   type: z.enum(EXERCISE_TYPES),
   disciplines: z.array(z.enum(['boxing', 'kickboxing', 'muay_thai', 'k1', 'mma_striking'])).check(z.minLength(1), z.maxLength(5), z.refine(unique)),
@@ -17,7 +17,7 @@ export const exerciseDocumentSchema = z.strictObject({
       restBetweenRoundsSeconds: z.number().check(z.int(), z.minimum(0), z.maximum(86400)) }),
     z.strictObject({ mode: z.literal('continuous'), durationSeconds: positive(86400) }),
   ]),
-  copiedFromId: z.optional(id),
+  copiedFromId: z.optional(exerciseIdSchema),
   archivedAt: z.nullable(instantSchema), favorite: z.boolean(), lastUsedAt: z.nullable(instantSchema),
   createdAt: instantSchema, updatedAt: instantSchema,
 })

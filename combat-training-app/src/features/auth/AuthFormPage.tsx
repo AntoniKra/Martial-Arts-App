@@ -87,6 +87,7 @@ export function AuthFormPage({ mode }: { mode: AuthFormMode }) {
   return (
     <AuthFrame title={title}>
       {cleanupError && <p role="alert" className="mb-4 text-sm text-crimson-ink">{labels.cleanupError}</p>}
+      {auth.state.status === 'ready' && auth.state.cacheCleanupPending && <p role="alert" className="mb-4 text-sm text-crimson-ink">{labels.logoutCleanupPending}</p>}
       {accountDeleted && <p role="status" className="mb-4 text-sm">{labels.accountDeleted}</p>}
       <form noValidate onSubmit={submit} className="flex flex-col gap-4">
         <div>
