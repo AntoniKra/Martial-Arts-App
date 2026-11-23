@@ -9,6 +9,7 @@ it.each([true, false])('keeps a chip as a focusable native checkbox, checked=%s'
   const html = renderToStaticMarkup(createElement(MultiChoiceChip, { checked, onChange: () => {}, children: 'Technika', 'aria-controls': 'technique' }))
   expect(html).toContain('type="checkbox"')
   expect(html.includes('checked=""')).toBe(checked)
+  expect(html).toContain(`aria-checked="${checked}"`)
   expect(html).toContain('aria-controls="technique"')
   expect(html).toContain('aria-hidden="true" class="multi-chip-mark"')
   expect(html).not.toContain('tabindex="-1"')

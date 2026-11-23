@@ -48,6 +48,8 @@ Plan otwiera bieżący Plan tygodnia (`/progress/week`); datowane adresy `/progr
 
 Trening otwiera dotychczasowy arkusz wyboru z dostępem do stopera, wpisu spoza aplikacji, biblioteki ćwiczeń, kreatora „Nowy plan treningowy” i listy „Moje plany”. Lista, szczegóły i kreator zachowują adresy `/workouts…`; biblioteka działa pod `/exercises` i `/my-exercises`. Lista i biblioteka są podekranami z powrotem. Karta Startu „Stoper i inne plany” jest opisana poniżej w Start v2 — wg makiety A.
 
+Aktywna pozycja **Trening** w dolnym menu wyróżnia się kolorem etykiety i ma `aria-current="page"`. Romb ma kryjące wypełnienie i leży nad dekoracjami paska. Górna linia aktywności dotyczy pozostałych pozycji (#245).
+
 ## Light mode
 
 Light mode używa przewagi jasnej szarości i bieli, grafitowego tekstu oraz tej samej czerwieni. Komponenty nie mogą zakładać na stałe ciemnego tła.
@@ -98,13 +100,15 @@ Karta Startu ma padding `18px 16px 16px`, odstęp 12 px i minimalną wysokość 
 
 Issue #189 ujednolica wygląd kontrolek bez zmiany danych, reguł, obliczeń ani zachowania formularzy. Makieta „Szablony komponentów” jest wzorcem wizualnym; pierwszeństwo ma treść issue.
 
-- Jedna opcja: wspólny `ChoiceTile` z natywnym radiem w DOM. Zaznaczenie ma ramkę `crimson-ink`, tło crimson około 14%, dolny pasek i ✓ w rogu. Krótkie etykiety są w jednej linii; dłuższa opcja pominięcia jest wariantem tekstowym pod kafelkami. Skale z opisami zachowują opisy i numer w kwadracie.
-- Wiele opcji: `MultiChoiceChip` z natywnym checkboxem oraz symbolem ✓ / +, ramką i delikatnym tłem. Minimalny obszar dotyku 44 px. Opisy pomocnicze mogą zawijać się pod etykietą.
+- Jedna opcja: wspólny `ChoiceTile` z natywnym radiem w DOM, stanem `aria-checked`, ramką 1 px bez zaznaczenia oraz 2 px `crimson-ink` i tłem crimson po zaznaczeniu. Wariant kafelkowy zachowuje dolny pasek. Krótkie etykiety są w jednej linii; dłuższa opcja pominięcia jest wariantem tekstowym pod kafelkami. Skale z opisami zachowują opisy i numer w kwadracie.
+- Wiele opcji: `MultiChoiceChip` ma natywny checkbox z `aria-checked` lub przycisk z `aria-pressed`. Ramka ma 1 px bez zaznaczenia i 2 px z delikatnym tłem po zaznaczeniu. Symbol + jest widoczny przy niezaznaczonej opcji. Minimalny obszar dotyku 44 px. Opisy pomocnicze mogą zawijać się pod etykietą.
 - Włączanie i wyłączanie: `Switch` z natywnym checkboxem o roli `switch`. Tor ma 48×28 px, obszar dotyku co najmniej 44 px wysokości; włączenie przesuwa uchwyt i nadaje gradient główny. Zgody zdrowotne i potwierdzenie 18+ zachowują pełne teksty, początkowe wyłączenie i dotychczasowy zapis oraz warunki aktywowania przycisku.
 - Rozwijanie: `CollapsibleCard` z natywnym przyciskiem, `aria-expanded`, `aria-controls` i chevronem. Opis pokazuje dostępne podsumowanie danych; zawartość pozostaje zamontowana i jest ukryta do rozwinięcia. Początkowy stan pozostaje zwinięty. Klawisze Enter i Spacja obsługuje przeglądarka.
 - Akcje tekstowe nie mają podkreślenia; działania drugorzędne mogą używać ramki i ikony. Linki wewnątrz treści mogą zachować podkreślenie.
 
 Kontrolki używają tokenów obu motywów, widocznej obwódki fokusu i tekstowych lub geometrycznych oznaczeń stanu, niezależnych od koloru. Natywne radio zachowuje wybór strzałkami, checkbox i przełącznik — Spacją.
+
+Ptaszek oznacza status, np. wykonany dzień lub zapisany wynik. Zaznaczenie w formularzu pokazują grubsza ramka i tło (#245).
 
 ## Ruch
 
@@ -121,7 +125,7 @@ Ruch przekazuje informację po działaniu użytkownika lub zmianie statusu. Nie 
 
 Animujemy wyłącznie `transform` i `opacity`; kolor tekstu, tła i obramowania może mieć przejście koloru. Bez animowania `width`, `height`, `top`, `left`, `box-shadow` ani `filter`. `will-change` tylko punktowo, gdy potwierdzono potrzebę. Bez migania częściej niż 3 razy na sekundę (zwłaszcza czerwieni), kaskad wejścia (stagger), liczników od zera i dekoracyjnych animacji przy wejściu na ekran.
 
-Przycisk główny, kafelek wyboru i karta będąca przyciskiem lub linkiem przy wciśnięciu zmniejszają się do `scale(0.98)` w `--motion-fast` z `--ease-standard`. Zaznaczenie `ChoiceTile`, `MultiChoiceChip` i `Switch` zmienia kolory w 100 ms; znacznik ✓ przenika i skaluje się od 0.9 do 1. Uchwyt przełącznika przesuwa się przez `transform`. Nowa plakietka statusu Planu tygodnia i kółko dnia po zmianie stanu przenikają i skalują się od 0.9 do 1 w `--motion-fast`, bez animacji początkowego stanu.
+Przycisk główny, kafelek wyboru i karta będąca przyciskiem lub linkiem przy wciśnięciu zmniejszają się do `scale(0.98)` w `--motion-fast` z `--ease-standard`. Zaznaczenie `ChoiceTile`, `MultiChoiceChip` i `Switch` zmienia kolory w 100 ms. Ramka wyboru zmienia grubość od razu. Uchwyt przełącznika przesuwa się przez `transform`. Nowa plakietka statusu Planu tygodnia i kółko dnia po zmianie stanu przenikają i skalują się od 0.9 do 1 w `--motion-fast`, bez animacji początkowego stanu.
 
 Postęp przy „Pokaż 12 tygodni” / „Pokaż mniej” używa jednego przejścia `--motion-slow`. Dotychczasowe słupki zmieniają wysokość przez `scaleY()` z początkiem na dole, a dodatkowe kolumny pojawiają się przez `opacity`. Wszystkie jednocześnie, bez animowania szerokości ani odstępów. Przy wejściu wykres jest od razu gotowy. Oba warianty ogłaszają „Pokazano 12 tygodni” / „Pokazano 5 tygodni” przez `aria-live="polite"`.
 

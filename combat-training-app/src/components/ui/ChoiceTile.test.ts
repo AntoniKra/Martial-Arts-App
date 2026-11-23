@@ -10,7 +10,8 @@ it.each([true, false])('exposes selection through a visually hidden native radio
   expect(html).toContain('type="radio"')
   expect(html).toContain('class="choice-radio"')
   expect(html.includes('checked=""')).toBe(checked)
-  expect(html).toContain('choice-check')
+  expect(html).toContain(`aria-checked="${checked}"`)
+  expect(html).not.toContain('✓')
   expect(html).not.toContain('aria-hidden="true" type="radio"')
 })
 

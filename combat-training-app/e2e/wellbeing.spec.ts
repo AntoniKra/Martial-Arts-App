@@ -234,7 +234,8 @@ for (const method of ['touch', 'keyboard'] as const) {
         }
         await expect(radio(score)).toBeChecked()
         await expect(group.locator('.is-selected')).toHaveCount(1)
-        await expect(group.locator('.is-selected svg')).toHaveCSS('height', '10px')
+        await expect(group.locator('.is-selected svg')).toHaveCount(0)
+        await expect(group.locator('.is-selected')).toHaveCSS('border-top-width', '2px')
         await expect(form.locator('.scale-1a-selected-banner')).toHaveText(answerName(field, score))
         await checkProgress(index + 1)
         const lineCounts = await form.locator('.scale-1a-meta-row span, .scale-1a-selected-banner span, .layout-c-progress-meta span')

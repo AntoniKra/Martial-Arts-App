@@ -41,7 +41,8 @@ it('prefills saved intensity, leaves unknown intensity empty, and excludes entri
   expect(html).not.toContain('Sparing 3')
   expect(html.match(/aria-pressed="true"/g)).toHaveLength(1)
   expect(html.match(/aria-pressed="false"/g)).toHaveLength(5)
-  expect(html).toMatch(/aria-pressed="true"[^>]*><span[^>]*><span[^>]*>✓ <\/span>Techniczny/)
+  expect(html).toMatch(/aria-pressed="true"[^>]*><span[^>]*>Techniczny<\/span>/)
+  expect(html).not.toContain('✓')
   for (const { name, description } of Object.values(workoutFeedbackLabels.sparringOptions)) {
     expect(html.split(`>${name}</span> <span class="feedback-sparring-description">${description}<`)).toHaveLength(3)
   }

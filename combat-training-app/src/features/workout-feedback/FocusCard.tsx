@@ -27,7 +27,7 @@ export function AssessmentScale({ question, descriptions, value, onChange, unabl
         const level = index + 1
         const wasPrevious = !summary && previousValue === level
         return <ChoiceTile key={description} name={name} value={level}
-          checked={value === level} onChange={() => onChange(level)} showCheck={!summary}
+          checked={value === level} onChange={() => onChange(level)}
           ariaLabel={`${level} ${description}${wasPrevious ? ` · ${labels.lastRating}` : ''}`}>
           {summary ? <span className="font-display text-[15px] font-extrabold tabular-nums">{level}</span> : <>
             <span className={`choice-number ${wasPrevious ? 'is-previous' : ''}`}>{level}</span>

@@ -46,8 +46,8 @@ export function WorkoutsFilters({ filters, onChange, idPrefix, addAction, histor
         <div ref={strip} className="relative flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-px-1 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {WORKOUTS_DISCIPLINE_FILTER_OPTIONS.map((option) => <button key={option.value} type="button"
             aria-pressed={filters.discipline === option.value} onClick={() => onChange({ ...filters, discipline: option.value })}
-            className={`min-h-touch shrink-0 snap-start whitespace-nowrap rounded-[2px] border px-3 text-[13px] ${filters.discipline === option.value ? 'border-crimson bg-elevated font-semibold text-ink' : 'border-bd bg-surface text-muted'}`}>
-            {filters.discipline === option.value && <span aria-hidden="true">✓ </span>}{option.labelPl}
+            className={`min-h-touch shrink-0 snap-start whitespace-nowrap rounded-[2px] px-3 text-[13px] ${filters.discipline === option.value ? 'border-2 border-crimson bg-elevated font-semibold text-ink' : 'border border-bd bg-surface text-muted'}`}>
+            {option.labelPl}
           </button>)}
         </div>
       </div>

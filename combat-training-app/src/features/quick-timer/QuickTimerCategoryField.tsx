@@ -12,8 +12,8 @@ export function QuickTimerCategoryField({ value, onChange, error }: {
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
       {QUICK_TIMER_CATEGORIES.map((category) => <button key={category} type="button" aria-pressed={value === category}
         aria-invalid={!!error} aria-describedby={error ? errorId : undefined} onClick={() => onChange(category)}
-        className={`min-h-touch border px-3 py-3 text-sm font-semibold ${value === category ? 'border-crimson bg-elevated text-ink' : 'border-bd bg-surface text-muted'}`}>
-        {value === category && <span aria-hidden="true">✓ </span>}{getWorkoutBlockLabelPl(category)}
+        className={`min-h-touch px-3 py-3 text-sm font-semibold ${value === category ? 'border-2 border-crimson bg-elevated text-ink' : 'border border-bd bg-surface text-muted'}`}>
+        {getWorkoutBlockLabelPl(category)}
       </button>)}
     </div>
     {error && <p id={errorId} role="alert" className="text-xs text-crimson-ink">{error}</p>}

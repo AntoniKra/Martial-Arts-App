@@ -4,8 +4,8 @@ import { wellbeingLabels as labels, wellbeingQuestions } from './wellbeingLabels
 import { countWellbeingAnswers, startWellbeingWizard, wellbeingWizardReducer } from './wellbeingWizard'
 import { BackButton } from '@/components/ui/BackButton'
 
-function Check({ size }: { size: number }) {
-  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={size === 10 ? 3 : 2.5}><path d="m4 12 5 5L20 6" /></svg>
+function Check() {
+  return <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m4 12 5 5L20 6" /></svg>
 }
 
 function NextChevron() {
@@ -62,11 +62,10 @@ export function WellbeingForm({ date, entry, onSave, onClose, onSkip }: {
             {question.options.map((option, index) => {
               const score = index + 1
               return <label key={score} className="scale-1a-option">
-                <input className="choice-radio" type="radio" name={`${id}-${field}`} value={score} checked={value === score}
+                <input className="choice-radio" type="radio" name={`${id}-${field}`} value={score} checked={value === score} aria-checked={value === score}
                   aria-label={`${score} · ${option}`} disabled={busy} onChange={() => dispatch({ type: 'answer', field, value: score })} />
                 <span className={`scale-1a-btn${value === score ? ' is-selected' : ''}`} aria-hidden="true">
                   <span className="btn-num">{score}</span>
-                  {value === score && <Check size={10} />}
                 </span>
               </label>
             })}
@@ -104,7 +103,7 @@ export function WellbeingForm({ date, entry, onSave, onClose, onSkip }: {
     {question && onSkip && <button type="button" disabled={busy} className="btn-skip-3a self-center" onClick={onSkip}>{labels.skip}</button>}
     {error && <p role="alert" className="text-sm">{error}</p>}
     {!question && <div className="save-variant-3a">
-      <button type="submit" disabled={busy} className="btn-save-3a"><Check size={16} />{labels.save}</button>
+      <button type="submit" disabled={busy} className="btn-save-3a"><Check />{labels.save}</button>
       {onSkip && <button type="button" className="btn-skip-3a" onClick={onSkip}>{labels.skip}</button>}
     </div>}
     {onClose && <button type="button" disabled={busy} className="btn-skip-3a self-center" onClick={onClose}>{labels.cancel}</button>}

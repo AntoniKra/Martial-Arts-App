@@ -181,21 +181,13 @@ export function RatingScale({
               tabIndex={getTabIndex(optionValue)}
               onClick={() => selectAndFocus(optionValue)}
               className={[
-                'relative min-h-touch min-w-touch border py-3 font-display text-[13px] font-bold tabular-nums transition-colors',
+                'min-h-touch min-w-touch py-3 font-display text-[13px] font-bold tabular-nums transition-colors',
                 'cursor-pointer disabled:cursor-not-allowed disabled:opacity-40',
                 selected
                   ? 'border-2 border-crimson bg-crimson font-extrabold text-on-accent shadow-[inset_0_0_0_2px_var(--app-on-accent)]'
                   : 'border border-bd text-muted hover:border-muted hover:text-ink active:border-muted',
               ].join(' ')}
             >
-              {selected ? (
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-1 right-1 text-[9px] leading-none text-on-accent"
-                >
-                  ✓
-                </span>
-              ) : null}
               {optionValue}
             </button>
           )

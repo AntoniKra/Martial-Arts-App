@@ -49,11 +49,9 @@ export function SegmentedScale({ value, onChange, min, max, label, valueText, de
       }
     }}>
     {children ?? Array.from({ length: max - min + 1 }, (_, index) => min + index).map((segment) => <span key={segment} aria-hidden="true"
-      className={`flex min-w-0 flex-1 items-center justify-center rounded-[2px] border ${value === segment ? 'border-ink' : 'border-bd'}`}
+      className={`min-w-0 flex-1 rounded-[2px] ${value === segment ? 'border-2 border-ink' : 'border border-bd'}`}
       style={{ backgroundColor: value !== null && segment <= value
         ? `color-mix(in srgb, var(--app-crimson) ${uniformFill ? 20 : 20 + (segment - min) * 8}%, var(--app-surface))`
-        : 'var(--app-surface)' }}>
-      {value === segment && <span className="flex size-5 items-center justify-center rounded-[2px] bg-surface font-bold text-ink">✓</span>}
-    </span>)}
+        : 'var(--app-surface)' }} />)}
   </div>
 }

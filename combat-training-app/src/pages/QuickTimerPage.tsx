@@ -68,8 +68,8 @@ function QuickTimerSettings({ uid }: { uid: string }) {
         <legend className="mb-2 font-display text-[11px] font-semibold uppercase tracking-[0.1em] text-muted">{labels.format}</legend>
         {[...ROUND_FORMAT_PRESETS.map((preset) => ({ ...preset, description: 'description' in preset ? preset.description : null })), { id: 'custom' as const, label: labels.custom, description: null }].map((preset) => <button key={preset.id} type="button" aria-pressed={draft.format === preset.id}
           onClick={() => update('roundCount' in preset ? { format: preset.id, roundCount: preset.roundCount, roundDurationSeconds: preset.roundDurationSeconds, restBetweenRoundsSeconds: preset.restBetweenRoundsSeconds } : { format: 'custom' })}
-          className={`block min-h-touch w-full border p-3 text-left text-sm ${draft.format === preset.id ? 'border-crimson bg-elevated font-semibold text-ink' : 'border-bd bg-surface text-muted'}`}>
-          {draft.format === preset.id && <span aria-hidden="true">✓ </span>}{preset.label}
+          className={`block min-h-touch w-full p-3 text-left text-sm ${draft.format === preset.id ? 'border-2 border-crimson bg-elevated font-semibold text-ink' : 'border border-bd bg-surface text-muted'}`}>
+          {preset.label}
           {preset.description && <span className="mt-1 block text-xs font-normal text-muted">{preset.description}</span>}
         </button>)}
       </fieldset>

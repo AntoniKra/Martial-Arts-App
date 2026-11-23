@@ -100,9 +100,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
                 onClick={() => setDraft((current) => ({ ...current, sparring: current.sparring.map((value, valueIndex) => valueIndex === index
                   ? { ...value, intensity: value.intensity === intensity ? null : intensity } : value) }))}
                 className="feedback-sparring-option motion-press">
-                <span className="feedback-sparring-title">
-                  {entry.intensity === intensity && <span aria-hidden="true">✓ </span>}{labels.sparringOptions[intensity].name}
-                </span>{' '}
+                <span className="feedback-sparring-title">{labels.sparringOptions[intensity].name}</span>{' '}
                 <span className="feedback-sparring-description">{labels.sparringOptions[intensity].description}</span>
               </button>)}
             </div>

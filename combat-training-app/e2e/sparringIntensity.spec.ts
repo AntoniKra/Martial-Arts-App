@@ -22,7 +22,8 @@ test('changes planned sparring intensity offline and includes saved hard rounds 
   const first = page.getByRole('group', { name: 'Sparing 1 · intensywność (opcjonalnie)', exact: true })
   const second = page.getByRole('group', { name: 'Sparing 2 · intensywność (opcjonalnie)', exact: true })
   await expect(first.getByRole('button', { name: /^Techniczny/ })).toHaveAttribute('aria-pressed', 'true')
-  await expect(first.locator('.feedback-sparring-title')).toHaveText(['Lekki', '✓ Techniczny', 'Twardy'])
+  await expect(first.locator('.feedback-sparring-title')).toHaveText(['Lekki', 'Techniczny', 'Twardy'])
+  await expect(first.getByRole('button', { name: /^Techniczny/ })).toHaveCSS('border-top-width', '2px')
   await expect(first.getByRole('button', { name: 'Techniczny kontrolowana siła, praca nad konkretnymi elementami', exact: true })).toBeVisible()
   await expect(first.getByText('kontrolowana siła, praca nad konkretnymi elementami', { exact: true })).toBeVisible()
   const tiles = await first.getByRole('button').evaluateAll((buttons) => buttons.map((button) => {
