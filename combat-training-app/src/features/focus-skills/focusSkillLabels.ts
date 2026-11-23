@@ -1,3 +1,4 @@
+import { actionLabels } from '@/components/ui/actionLabels'
 import { formatPolishCount } from '@/domain/language/polishPlural'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 
@@ -21,7 +22,7 @@ export const focusSkillLabels = {
   hint: 'Jedna rzecz, którą widać albo czuć. Po treningu ocenisz właśnie ją, w skali 1–5. Ten element do poprawy przyda się też w innych planach.',
   save: 'Zapisz ćwiczenie',
   saving: 'Zapisywanie…',
-  cancel: 'Anuluj',
+  cancel: actionLabels.cancel,
   invalidName: 'Podaj nazwę od 1 do 80 znaków.',
   invalidCriterion: 'Podaj cel od 1 do 200 znaków.',
   saveError: 'Nie udało się zapisać elementu do poprawy. Spróbuj ponownie.',

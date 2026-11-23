@@ -255,9 +255,3 @@
     transition: rotate var(--motion-med) var(--ease-standard);
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .feedback-submit .animate-spin {
-    animation: none;
-  }
-}

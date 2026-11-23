@@ -112,7 +112,7 @@ test('review regression: legacy exact-plan credits agree on Start, Progress and 
   await app.seedSession(manualWorkoutSession({ workoutDate: '2026-11-17', category: 'bag', parts: ['bag'] }))
   await expect(weekCard(page)).toContainText('Ukończone: 0 z 1 jednostki')
   await weekCard(page).getByRole('link', { name: 'Plan tygodnia →', exact: true }).click()
-  await expect(page.getByText('0 z 1 treningów', { exact: true })).toBeVisible()
+  await expect(page.getByText('0 z 1 treningu', { exact: true })).toBeVisible()
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
   await expect(page.locator('.status-badge').filter({ hasText: /^Plan$/ })).toBeVisible()
   expect((await app.readWeekPlans())[0].schedule).toBeUndefined()

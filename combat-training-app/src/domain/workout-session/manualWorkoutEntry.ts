@@ -1,6 +1,6 @@
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import type { SparringIntensity } from '@/domain/workout/workout.types'
-import { shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
+import { isCalendarDate, shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
 import { MANUAL_WORKOUT_PARTS, type ManualWorkoutPart, type ManualFocusRating, type ManualWorkoutSession, type WorkoutSession, type WorkoutSessionCategory } from './workoutSession.types'
 import { manualDraftParts, manualSessionParts, manualWorkoutCategory } from './manualWorkoutParts'
 
@@ -32,10 +32,6 @@ function isIntegerInRange(value: unknown, minimum: number, maximum: number): val
   return typeof value === 'number' && Number.isInteger(value) && value >= minimum && value <= maximum
 }
 function isCorrectionText(value: string): boolean { return value.length >= 1 && value.length <= 200 }
-function isCalendarDate(value: string): boolean {
-  const timestamp = Date.parse(`${value}T12:00:00Z`)
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value
-}
 
 export function manualFocusPlace(category: ManualWorkoutDraft['category']): ManualFocusRating['blockType'] | null {
   return category === '' || category === 'mixed' || category === 'conditioning' ? null : category

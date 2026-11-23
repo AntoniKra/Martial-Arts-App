@@ -1,3 +1,4 @@
+import { actionLabels } from '@/components/ui/actionLabels'
 import type { Dispatch } from 'react'
 import { useId } from 'react'
 
@@ -150,7 +151,7 @@ export function WorkoutBlockCard({
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button type="button" size="sm" variant="ghost" onClick={() => onCloseInlinePanel()}>
-              Anuluj
+              {actionLabels.cancel}
             </Button>
             <Button
               type="button"

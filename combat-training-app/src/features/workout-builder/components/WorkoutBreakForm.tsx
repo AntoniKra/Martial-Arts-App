@@ -1,3 +1,4 @@
+import { actionLabels } from '@/components/ui/actionLabels'
 import { useId, useRef, useState, type FormEvent } from 'react'
 
 import { Button } from '@/components/ui/Button'
@@ -127,7 +128,7 @@ export function WorkoutBreakForm({
           {mode === 'add' ? 'Dodaj przerwę' : 'Zapisz przerwę'}
         </Button>
         <Button type="button" size="sm" variant="ghost" onClick={onCancel}>
-          Anuluj
+          {actionLabels.cancel}
         </Button>
       </div>
     </form>
