@@ -26,7 +26,7 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
         aria-current={active ? 'page' : undefined}
         className={[
           'relative flex min-h-touch flex-1 flex-col items-center justify-center gap-0.5 transition-colors',
-          active ? 'text-crimson-ink' : 'text-faint hover:text-muted',
+          active ? 'text-crimson-ink' : 'text-muted hover:text-ink',
         ].join(' ')}
       >
         <span className="relative z-10 -mt-[26px] flex size-[50px] items-center justify-center">
@@ -34,7 +34,7 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
           <span className="relative text-on-accent [&>svg]:size-6">{icon}</span>
         </span>
         {/* Sits 4 px lower than the other labels so it clears the diamond. */}
-        <span className="relative top-1 font-display text-[9px] font-semibold uppercase tracking-[0.1em]">{item.label}</span>
+        <span className="relative top-1 font-display text-[10px] font-bold uppercase tracking-[0.05em]">{item.label}</span>
       </NavigationControl>
     )
   }
@@ -65,11 +65,11 @@ export function NavigationLink({ item, variant }: NavigationLinkProps) {
       aria-current={active ? 'page' : undefined}
       className={[
         'relative flex min-h-touch flex-1 flex-col items-center justify-center gap-1 transition-colors',
-        active ? 'font-semibold text-ink' : 'text-faint hover:text-muted',
+        active ? 'text-ink' : 'text-muted hover:text-ink',
       ].join(' ')}
     >
       <span className={active ? 'text-crimson-ink' : ''}>{icon}</span>
-      <span className="font-display text-[9px] font-semibold uppercase tracking-[0.1em]">{item.label}</span>
+      <span className="font-display text-[10px] font-bold uppercase tracking-[0.05em]">{item.label}</span>
       {active ? (
         <span
           aria-hidden="true"

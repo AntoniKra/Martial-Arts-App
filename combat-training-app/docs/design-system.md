@@ -50,6 +50,8 @@ Trening otwiera dotychczasowy arkusz wyboru z dostępem do stopera, wpisu spoza 
 
 Aktywna pozycja **Trening** w dolnym menu wyróżnia się kolorem etykiety i ma `aria-current="page"`. Romb ma kryjące wypełnienie i leży nad dekoracjami paska. Górna linia aktywności dotyczy pozostałych pozycji (#245).
 
+Etykiety dolnego menu: Archivo 10 px, grubość 700, odstęp liter 0,05 em, wielkie litery. Ikony 20 px, kreska 2,25. Pozycje nieaktywne mają kolor `--app-muted` (wcześniej `--app-faint`), aktywna `--app-ink` z ikoną w `--app-crimson-ink` (decyzja właściciela 24.11, panel porównawczy).
+
 ## Light mode
 
 Light mode używa przewagi jasnej szarości i bieli, grafitowego tekstu oraz tej samej czerwieni. Komponenty nie mogą zakładać na stałe ciemnego tła.
