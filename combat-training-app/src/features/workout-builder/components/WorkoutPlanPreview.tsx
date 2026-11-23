@@ -1,6 +1,7 @@
 import { forwardRef, type RefObject } from 'react'
 
 import { ScreenHeader } from '@/components/ScreenHeader'
+import { BackIcon } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { RedAccent } from '@/components/ui/RedAccent'
@@ -201,7 +202,7 @@ export const WorkoutPlanPreview = forwardRef<HTMLHeadingElement, WorkoutPlanPrev
               </Button>
 
               <Button type="button" variant="secondary" className="w-full" disabled={isSaving} onClick={onBack}>
-                {workoutBuilderLabels.returnToEditing}
+                <BackIcon size={16} />{workoutBuilderLabels.returnToEditing}
               </Button>
             </section>
           </div>

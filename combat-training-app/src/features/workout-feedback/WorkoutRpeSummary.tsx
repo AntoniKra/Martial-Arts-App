@@ -46,9 +46,9 @@ export function WorkoutRpeSummary({ session, uid, initialOpen, onSave, children 
       </button>
       {remaining > 0 && <p className="text-[11.5px] leading-snug text-muted">{labels.timingHint}</p>}
     </> : <div className="space-y-2 rounded-sm border border-bd bg-elevated px-3 py-2.5">
-      <p role="status" className="font-display text-[15px] font-extrabold tracking-wide uppercase tabular-nums text-ink">
+      <p role="status" className="text-[15px] text-ink">
         <span className="sr-only">{labels.saved(session.rpe)}</span>
-        <span aria-hidden="true">{workoutFeedbackLabels.rpeValue(session.rpe)}</span>
+        <strong aria-hidden="true" className="font-display font-extrabold tabular-nums">{workoutFeedbackLabels.rpeValue(session.rpe)}</strong>
         <span> · {labels.descriptions[session.rpe] || labels.between[session.rpe]}</span>
       </p>
       <RpeSegments value={session.rpe} />

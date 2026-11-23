@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 import { RouteScreenHeader } from '@/components/ScreenHeader'
+import { BackIcon } from '@/components/ui/BackButton'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
@@ -17,6 +18,7 @@ import { profileSettingsLabels } from '@/features/profile/profileSettingsLabels'
 import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
 import { FocusSkillBadge } from '@/features/focus-skills/FocusSkillBadge'
 import { focusSkillLabels } from '@/features/focus-skills/focusSkillLabels'
+import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 
 interface WorkoutPlanDetailsViewProps {
   correctionNotes?: ReactNode
@@ -95,7 +97,7 @@ export function WorkoutPlanDetailsNotFoundState({
       </p>
       <div className="mt-5 flex flex-col items-center gap-3">
         <Link to={workoutsListPath} className={getButtonClassName({ variant: 'primary', size: 'md' })}>
-          Wróć do planów
+          <BackIcon size={16} />{workoutPlanLabels.backToPlans}
         </Link>
         <Link to={newWorkoutPath} className={getButtonClassName({ variant: 'secondary', size: 'md' })}>
           Utwórz nowy plan

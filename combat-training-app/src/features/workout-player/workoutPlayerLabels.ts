@@ -31,6 +31,8 @@ export const workoutPlayerLabels = {
     `Ten trening ma ${stepCount} etapów. Maksimum to ${MAX_WORKOUT_SESSION_STEPS}. Zmniejsz liczbę rund lub ćwiczeń, aby rozpocząć trening.`,
   editPlan: 'Edytuj plan',
   editQuickTimer: 'Wróć do ustawień stopera',
+  backToPlan: 'Wróć do planu',
+  backWithoutSave: 'Wróć bez zapisu',
   pause: 'Pauza',
   resume: 'Wznów',
   startNow: 'Zacznij teraz',

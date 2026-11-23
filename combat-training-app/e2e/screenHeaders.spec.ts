@@ -12,6 +12,11 @@ const instant = '2026-11-17T10:00:00Z', weekStart = '2026-11-16'
 const plan = { ...workoutPlan([block('bag', [continuousExercise('exercise', 60)], 'bag')]), id: 'bag', nameSnapshot: 'Moj worek' }
 const back = (page: Page) => page.getByRole('button', { name: 'Wstecz', exact: true })
 const close = (page: Page) => page.getByRole('button', { name: 'Zamknij', exact: true })
+async function expectBackChevron(page: Page) {
+  await expect(back(page)).toHaveCSS('width', '44px')
+  await expect(back(page)).toHaveCSS('height', '44px')
+  await expect(back(page).locator('svg[aria-hidden="true"] path')).toHaveAttribute('d', 'm15 18-6-6 6-6')
+}
 async function accessible(page: Page) {
   await expect(page.locator('h1')).toHaveCount(1)
   // Colour transitions (motion tokens) must settle before axe samples contrast.
@@ -40,10 +45,11 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/')
     await page.getByRole('link', { name: 'Stoper', exact: true }).click()
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Szybki stoper')
-    await expect(back(page)).toHaveCSS('width', '44px')
+    await expectBackChevron(page)
     await accessible(page)
     await back(page).click(); await expect(page).toHaveURL('/')
     await app.open('/exercises')
+    await expectBackChevron(page)
     await accessible(page)
     await back(page).click(); await expect(page).toHaveURL('/workouts')
     await page.getByRole('link', { name: 'Postęp', exact: true }).click()
@@ -59,6 +65,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/workouts'); await app.setTheme(theme); await app.seedPlan(plan)
     await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(plan.nameSnapshot)
+    await expectBackChevron(page)
     await accessible(page)
     await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
     await expect(close(page)).toHaveCSS('height', '44px')

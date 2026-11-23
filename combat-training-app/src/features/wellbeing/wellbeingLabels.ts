@@ -2,7 +2,7 @@ import type { WellbeingCategory, WellbeingField } from '@/domain/wellbeing/wellb
 
 export const wellbeingLabels = {
   title: 'Samopoczucie', save: 'Zapisz samopoczucie', skip: 'Nie dziś',
-  previous: 'Wstecz', next: 'Dalej', cancel: 'Anuluj',
+  next: 'Dalej', cancel: 'Anuluj',
   nextDisabled: 'Wybierz odpowiedź, aby przejść dalej.',
   progress: 'Postęp kwestionariusza:',
   progressValue: (answered: number, total: number) => `${answered} z ${total} odpowiedzi`,

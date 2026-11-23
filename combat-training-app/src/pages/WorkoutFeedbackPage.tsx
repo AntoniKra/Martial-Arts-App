@@ -7,6 +7,7 @@ import { WorkoutFeedbackForm } from '@/features/workout-feedback/WorkoutFeedback
 import { workoutFeedbackLabels as labels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import { WorkoutDataWarning } from '@/features/workouts/components/WorkoutDataWarning'
 import { Button } from '@/components/ui/Button'
+import { BackIcon } from '@/components/ui/BackButton'
 import { useAuth } from '@/features/auth/authContext'
 import { prepareQuickTimerFeedback } from '@/domain/quick-timer/quickTimerFeedback'
 import { QuickTimerFeedbackForm } from '@/features/quick-timer/QuickTimerFeedbackForm'
@@ -25,7 +26,8 @@ export function Component() {
   </div>
   const session = sessions.items.find((value) => value.id === sessionId)
   if (!session || session.source === 'manual') return <div className="space-y-4 p-4">
-    <h1 className="font-display text-lg text-ink">{labels.unavailable}</h1><Link to={routes.progressHistory}>{labels.back}</Link>
+    <h1 className="font-display text-lg text-ink">{labels.unavailable}</h1>
+    <Link to={routes.progressHistory} className="inline-flex min-h-touch min-w-touch items-center gap-1"><BackIcon size={16} />{labels.back}</Link>
   </div>
   if (session.source === 'plan' && focusSkills.status === 'loading') return <p role="status" className="p-4 text-muted">{labels.loading}</p>
   if (session.source === 'plan' && focusSkills.status === 'error') return <div className="space-y-4 p-4"><h1 className="font-display text-lg text-ink">{labels.loadError}</h1><Button onClick={retry}>Spróbuj ponownie</Button></div>

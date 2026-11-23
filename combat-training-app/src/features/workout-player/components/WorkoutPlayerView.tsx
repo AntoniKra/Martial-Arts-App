@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
 import { LiveScreenHeader, RouteScreenHeader } from '@/components/ScreenHeader'
+import { BackIcon } from '@/components/ui/BackButton'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
@@ -15,6 +16,7 @@ import { WorkoutPlayerControls } from '@/features/workout-player/components/Work
 import { WorkoutPlayerNextPreview } from '@/features/workout-player/components/WorkoutPlayerNextPreview'
 import { WorkoutPlayerExitControls } from '@/features/workout-player/components/WorkoutPlayerExitControls'
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
+import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 import { useWorkoutSessionAutoSave, type WorkoutSessionSaveState } from '@/features/workout-player/hooks/useWorkoutSessionAutoSave'
 import { useWorkoutSessionRecorder, WORKOUT_SESSION_NO_WORK_MESSAGE, WORKOUT_SESSION_RECORDER_ERROR_MESSAGE } from '@/features/workout-player/hooks/useWorkoutSessionRecorder'
 import { useWorkoutPlayback } from '@/features/workout-player/hooks/useWorkoutPlayback'
@@ -98,7 +100,7 @@ function WorkoutPlayerNotFoundState({ workoutsListPath }: { workoutsListPath: st
     <StatusPanel>
       <RouteScreenHeader title="Nie znaleziono planu" fallback={workoutsListPath} />
       <Link to={workoutsListPath} className={getButtonClassName({ variant: 'primary', size: 'md', className: 'mt-5' })}>
-        Wróć do planów
+        <BackIcon size={16} />{workoutPlanLabels.backToPlans}
       </Link>
     </StatusPanel>
   )
@@ -238,7 +240,7 @@ function WorkoutPlayerCompletedPanel({
               className: 'w-full uppercase tracking-[0.06em]',
             })}
           >
-            {showBackWithoutSave ? 'Wróć bez zapisu' : source === 'quickTimer' ? quickTimerLabels.back : 'Wróć do planu'}
+            <BackIcon size={16} />{showBackWithoutSave ? workoutPlayerLabels.backWithoutSave : source === 'quickTimer' ? quickTimerLabels.back : workoutPlayerLabels.backToPlan}
           </Link>
         </div>
       </div>
@@ -461,7 +463,7 @@ function WorkoutPlayerActiveContent({
             </p>
             <Link to={isQuickTimer ? workoutDetailsPath : routes.workoutEdit(plan.id)}
               className={getButtonClassName({ variant: 'primary', size: 'md', className: 'mt-5' })}>
-              {isQuickTimer ? workoutPlayerLabels.editQuickTimer : workoutPlayerLabels.editPlan}
+              {isQuickTimer ? <><BackIcon size={16} />{workoutPlayerLabels.editQuickTimer}</> : workoutPlayerLabels.editPlan}
             </Link>
           </StatusPanel>
         </div>

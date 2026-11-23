@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react'
+import { useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { FocusRating, PlanWorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { ManualFocusRatingDraft } from '@/domain/workout-session/manualWorkoutEntry'
@@ -25,14 +25,11 @@ export function AssessmentScale({ question, descriptions, value, onChange, unabl
     <div className={summary ? 'feedback-rating-grid grid grid-cols-5 gap-1.5' : 'space-y-1.5'}>
       {descriptions.map((description, index) => {
         const level = index + 1
-        const wasPrevious = previousValue === level
+        const wasPrevious = !summary && previousValue === level
         return <ChoiceTile key={description} name={name} value={level}
-          checked={value === level} onChange={() => onChange(level)}
+          checked={value === level} onChange={() => onChange(level)} showCheck={!summary}
           ariaLabel={`${level} ${description}${wasPrevious ? ` · ${labels.lastRating}` : ''}`}>
-          {summary ? <>
-            <span className="font-display text-[15px] font-extrabold tabular-nums">{level}</span>
-            {wasPrevious && <span className="feedback-last-rating">{labels.lastRating}</span>}
-          </> : <>
+          {summary ? <span className="font-display text-[15px] font-extrabold tabular-nums">{level}</span> : <>
             <span className={`choice-number ${wasPrevious ? 'is-previous' : ''}`}>{level}</span>
             <span className="flex min-w-0 flex-col gap-1">{description}
               {wasPrevious && <span className="w-max rounded-sm border border-bd px-1.5 py-0.5 text-[11px] text-muted">{labels.lastRating}</span>}
@@ -61,6 +58,9 @@ export function FocusCard<T extends FocusRating | ManualFocusRatingDraft>({ sess
   const id = useId()
   const [expanded, setExpanded] = useState(rating.correction !== null)
   const correctionVisible = expanded || !!error
+  const addNoteButton = useRef<HTMLButtonElement>(null)
+  const problemInput = useRef<HTMLTextAreaElement>(null)
+  const moveCorrectionFocus = useRef(false)
   const previous = first ? getPreviousCorrection(session, skills.find((skill) => skill.id === rating.focusSkillId)) : null
   const summary = 'stepResults' in session
   const eligible = !summary || (rating.workoutItemId !== null && hasCompletedExercise(session, rating.workoutItemId))
@@ -70,6 +70,13 @@ export function FocusCard<T extends FocusRating | ManualFocusRatingDraft>({ sess
     formatCorrectionDate(previousAssessment.workoutDate),
     getWorkoutBlockLabelPl(previousAssessment.blockType),
   )
+  useLayoutEffect(() => {
+    if (!moveCorrectionFocus.current) return
+    moveCorrectionFocus.current = false
+    const target = correctionVisible ? problemInput.current : addNoteButton.current
+    target?.focus()
+  }, [correctionVisible])
+
   return <article aria-labelledby={`${id}-name`} className={`min-w-0 space-y-3 rounded-sm border border-bd bg-surface ${summary ? 'p-3.5' : 'p-4'}`}>
     {summary ? <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-1.5">
@@ -116,24 +123,34 @@ export function FocusCard<T extends FocusRating | ManualFocusRatingDraft>({ sess
       </fieldset>}
       <AssessmentScale question={labels.focusQuestion} descriptions={labels.focusScale} value={rating.assessment} previousValue={previousAssessment?.assessment} summary={summary}
         onChange={(assessment) => onChange({ ...rating, assessment })} unable />
-      <button type="button" aria-expanded={correctionVisible} aria-controls={`${id}-correction`} onClick={() => setExpanded(!expanded)}
+      {(!summary || !correctionVisible) && <button ref={addNoteButton} type="button" aria-expanded={correctionVisible}
+        aria-controls={correctionVisible ? `${id}-correction` : undefined} onClick={() => {
+          moveCorrectionFocus.current = summary
+          setExpanded(!expanded)
+        }}
         className={summary
           ? 'feedback-note-toggle motion-press'
-          : 'flex min-h-12 w-full items-center gap-2.5 rounded-sm border border-bd bg-surface px-3.5 py-2 text-left text-sm font-bold text-ink'}><FeedbackIcon kind="plus" size={summary ? 14 : 18} />{correctionLabel ?? labels.newCorrection}</button>
+          : 'flex min-h-12 w-full items-center gap-2.5 rounded-sm border border-bd bg-surface px-3.5 py-2 text-left text-sm font-bold text-ink'}><FeedbackIcon kind="plus" size={summary ? 14 : 18} />{correctionLabel ?? labels.newCorrection}</button>}
       {correctionVisible && <div className={summary ? 'rounded-sm border border-bd bg-elevated p-3' : ''}>
-        <fieldset id={`${id}-correction`} className={`min-w-0 ${summary ? 'space-y-2' : 'space-y-3 border-t border-bd pt-3'}`}>
-        <legend className={`max-w-full font-display uppercase ${summary
-          ? 'mb-2 text-xs font-extrabold tracking-wide text-ink'
-          : 'pt-3 text-[10px] font-semibold tracking-[0.08em] text-muted'}`}>{labels.correctionHeading}</legend>
+        <fieldset id={`${id}-correction`} aria-describedby={summary ? `${id}-correction-description` : undefined} className={`min-w-0 ${summary ? 'space-y-2' : 'space-y-3 border-t border-bd pt-3'}`}>
+        <legend className={summary ? 'max-w-full text-sm text-ink' : 'max-w-full pt-3 font-display text-[10px] font-semibold tracking-[0.08em] text-muted uppercase'}>
+          {summary ? labels.correctionTitle : labels.correctionHeading}
+        </legend>
+        {summary && <p id={`${id}-correction-description`} className="text-[11px] text-muted">{labels.correctionDescription}</p>}
         {(['problem', 'fix'] as const).map((field) => <label key={field} className="block text-[12px] font-semibold text-ink">
           {labels[field]}
-          <textarea rows={2} value={rating.correction?.[field] ?? ''} maxLength={200}
+          <textarea ref={field === 'problem' ? problemInput : undefined} rows={2} value={rating.correction?.[field] ?? ''} maxLength={200}
             aria-invalid={!!error && !isValidCorrectionText(rating.correction?.[field] ?? '')} aria-describedby={error ? `${id}-error` : undefined}
             placeholder={field === 'problem' ? labels.problemPlaceholder : labels.fixPlaceholder}
             className={summary ? 'feedback-textarea mt-1 min-h-touch' : 'mt-1 block min-h-touch w-full resize-none border border-bd bg-input p-3 text-[16px] font-normal text-ink'}
             onChange={(event) => onChange({ ...rating, correction: { problem: rating.correction?.problem ?? '', fix: rating.correction?.fix ?? '', [field]: event.target.value } })} />
         </label>)}
         <p className={summary ? 'text-[11px] leading-snug text-muted italic' : 'text-[12px] leading-relaxed text-muted'}>{labels.correctionHint}</p>
+        {summary && <button type="button" className="min-h-touch px-1 text-xs text-crimson-ink underline" onClick={() => {
+          moveCorrectionFocus.current = true
+          setExpanded(false)
+          onChange({ ...rating, correction: null })
+        }}>{labels.removeCorrection}</button>}
       </fieldset></div>}
       {error && <p id={`${id}-error`} role="alert" className="text-[12px] text-crimson-ink">{error}</p>}
     </>}
