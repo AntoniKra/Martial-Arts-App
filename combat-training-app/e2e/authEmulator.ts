@@ -13,12 +13,16 @@ export async function createVerifiedAccount(request: APIRequestContext) {
   })
   expect(created.ok()).toBe(true)
   const { localId } = await created.json() as { localId: string }
+  await verifyAccountEmail(request, localId)
+  return { email, password: testPassword, uid: localId }
+}
+
+export async function verifyAccountEmail(request: APIRequestContext, uid: string) {
   const verified = await request.post(`${identity}/projects/demo-combat-training/accounts:update`, {
     headers: { Authorization: 'Bearer owner' },
-    data: { localId, emailVerified: true },
+    data: { localId: uid, emailVerified: true },
   })
   expect(verified.ok()).toBe(true)
-  return { email, password: testPassword, uid: localId }
 }
 
 export async function signIn(page: Page, account: { email: string; password: string }) {

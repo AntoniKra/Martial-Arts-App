@@ -7,20 +7,23 @@ export function subscribeToAuthState(
   service: Pick<AuthService, 'subscribe'>,
   setState: Dispatch<SetStateAction<AuthState>>,
 ): () => void {
-  const timer = setTimeout(() => {
+  const onTimeout = () => {
     setState((current) => current.status === 'loading' ? { status: 'error' } : current)
-  }, AUTH_STARTUP_TIMEOUT_MS)
+  }
+  let checking = true
+  let timer = setTimeout(onTimeout, AUTH_STARTUP_TIMEOUT_MS)
 
-  const unsubscribe = service.subscribe(
-    (session) => {
+  const unsubscribe = service.subscribe((state) => {
+    if (state.status === 'loading') {
+      if (checking) return
+      checking = true
+      timer = setTimeout(onTimeout, AUTH_STARTUP_TIMEOUT_MS)
+    } else {
+      checking = false
       clearTimeout(timer)
-      setState({ status: 'ready', session })
-    },
-    () => {
-      clearTimeout(timer)
-      setState({ status: 'error' })
-    },
-  )
+    }
+    setState(state)
+  })
 
   return () => {
     clearTimeout(timer)
