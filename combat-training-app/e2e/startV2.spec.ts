@@ -34,7 +34,7 @@ async function expectSingleLineLabels(labels: Locator) {
 test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(instant)) })
 
 for (const theme of ['dark', 'light'] as const) {
-  test(`mockup A: card parameters, exact CSS, single timer row and unchanged Progress in ${theme}`, async ({ app, page }) => {
+  test(`mockup A: card parameters, exact CSS, single timer row and shared Progress checkmark in ${theme}`, async ({ app, page }) => {
     // Mockup A is a phone layout; its exact values (min-height 360 px and others) apply below md.
     await page.setViewportSize({ width: 390, height: 844 })
     await app.open('/workouts'); await app.setTheme(theme)
@@ -84,8 +84,7 @@ for (const theme of ['dark', 'light'] as const) {
     const progressDot = page.getByRole('img', { name: 'poniedziałek: wykonany', exact: true })
     await expect(progressDot).toHaveCSS('border-radius', '50%')
     await expect(progressDot).toHaveCSS('width', '26px')
-    await expect(progressDot.locator('svg')).toHaveCount(1)
-    await expect(page.locator('.home-week-day')).toHaveCount(0)
+    await expect(progressDot).toHaveText('✓')
     await accessible(page)
   })
 
@@ -130,8 +129,8 @@ test('review regression: legacy exact-plan credits agree on Start, Progress and 
   await app.open('/')
   await expect(weekCard(page)).toContainText('Ukończone: 1 z 2 jednostek')
   await app.open('/progress')
-  // Progress C (#180) shows completed vs planned workouts in the first tile instead of the old summary line.
-  await expect(page.getByLabel('Ten tydzień w liczbach', { exact: true })).toContainText('1 / 2')
+  const summary = page.getByRole('region', { name: 'Ten tydzień w liczbach', exact: true })
+  await expect(summary.getByRole('progressbar', { name: 'Plan tygodnia', exact: true })).toHaveAttribute('aria-valuetext', '1 z 2')
 })
 async function accessible(page: Page) {
   expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])

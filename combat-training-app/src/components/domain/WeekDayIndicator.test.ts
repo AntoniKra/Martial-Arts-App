@@ -5,7 +5,7 @@ import { WeekDayIndicator } from './WeekDayIndicator'
 import { weekDayState, type WeekDayState } from './weekDayPresentation'
 
 describe('week day presentation', () => {
-  it('uses the Start-only variant and checkmark while preserving the Progress variant', () => {
+  it('shares the checkmark and status between Start and Progress', () => {
     const props = { state: 'done' as const, name: 'Sobota', short: 'So', today: true }
     const home = renderToStaticMarkup(createElement(WeekDayIndicator, { ...props, variant: 'home' }))
     const progress = renderToStaticMarkup(createElement(WeekDayIndicator, props))
@@ -13,8 +13,8 @@ describe('week day presentation', () => {
     expect(home).toContain('aria-hidden="true">✓</span>')
     expect(home).toContain('sobota: wykonany, dziś')
     expect(home).not.toContain('motion-status-change')
-    expect(progress).not.toContain('home-week-day')
-    expect(progress).toContain('<svg')
+    expect(progress).toContain('progress-week-day')
+    expect(progress).toContain('aria-hidden="true">✓</span>')
     expect(progress).toContain('sobota: wykonany, dziś')
   })
   it.each([
@@ -33,7 +33,7 @@ describe('week day presentation', () => {
     const markup = renderToStaticMarkup(createElement(WeekDayIndicator, { state, name: 'Czwartek', short: 'Cz' }))
     expect(markup).toContain(`role="img" aria-label="czwartek: ${description}"`)
     expect(markup).toContain(`week-day-dot is-${state}`)
-    expect(markup.includes('<svg')).toBe(symbol)
+    expect(markup.includes(state === 'done' ? '✓' : '<svg')).toBe(symbol)
   })
 
   it('announces today together with the status', () => {

@@ -23,22 +23,21 @@ test.describe('history opened in New York', () => {
   })
 })
 
-test('shows progress tiles, expands five to twelve weeks, and opens the selected journal week', async ({ app, page }) => {
+test('shows the weekly goal, expands five to twelve weeks, and opens the selected journal week', async ({ app, page }) => {
   await app.open('/progress')
   for (const offset of [-77, -28, -21, -14, -7, 0]) {
     await app.seedSession(manualWorkoutSession({ id: `week${offset}`, workoutDate: shiftCalendarDate(current, offset),
       durationSeconds: 3600, rpe: 5, sparring: [], category: 'bag' }))
   }
   await app.seedWeekPlan({ weekStart: current, items: [], schedule: [], targetCount: 4, createdAt: instant, updatedAt: instant, editedAfterWeekEnd: false })
-  await expect(page.getByRole('definition').first()).toHaveText('1 / 4')
-  await expect(page.getByText('minut · zwykle 60', { exact: true })).toBeVisible()
+  const summary = page.getByRole('region', { name: 'Ten tydzień w liczbach', exact: true })
+  await expect(summary.getByRole('progressbar', { name: 'Plan tygodnia', exact: true })).toHaveAttribute('aria-valuetext', '1 z 4')
+  await expect(summary.getByRole('term')).toHaveText(['Plan tygodnia', 'minut', 'rund sparingu'])
   const chart = page.getByRole('region', { name: 'Ostatnie tygodnie', exact: true })
   await expect(chart.getByRole('link')).toHaveCount(5)
-  await expect(chart.locator('.is-current .progress-week-bar')).toHaveCSS('background-image', /linear-gradient.*rgb\(240, 117, 58\)/)
-  await expect(chart.locator('.progress-week-column:not(.is-current):not(.is-hidden) .progress-week-bar').first()).toHaveCSS('background-image', /linear-gradient.*rgb\(122, 26, 40\)/)
   await chart.getByRole('button', { name: 'Pokaż 12 tygodni', exact: true }).click()
   await expect(chart.getByRole('link')).toHaveCount(12)
-  await expect(chart.locator('.progress-week-column:visible')).toHaveCount(12)
+  await expect(chart.getByRole('status')).toHaveText('Pokazano 12 tygodni')
   await chart.getByRole('button', { name: 'Pokaż mniej', exact: true }).click()
   await expect(chart.getByRole('link')).toHaveCount(5)
   for (const theme of ['dark', 'light'] as const) {
@@ -162,11 +161,11 @@ test('offers expansion only when it adds columns and announces their actual coun
   await expect(chart.getByRole('button', { name: /^Pokaż/ })).toHaveCount(0)
   await app.seedSession(manualWorkoutSession({ id: 'seven', workoutDate: shiftCalendarDate(current, -42) }))
   await chart.getByRole('button', { name: 'Pokaż 7 tygodni', exact: true }).click()
-  await expect(chart.locator('.progress-week-column:visible')).toHaveCount(7)
-  await expect(chart.locator('[aria-live="polite"]')).toHaveText('Pokazano 7 tygodni')
+  await expect(chart.getByRole('list', { name: 'Wybierz tydzień w Historii', exact: true }).getByRole('link')).toHaveCount(7)
+  await expect(chart.getByRole('status')).toHaveText('Pokazano 7 tygodni')
   await chart.getByRole('button', { name: 'Pokaż mniej', exact: true }).click()
   await expect(chart.getByRole('link')).toHaveCount(5)
-  await expect(chart.locator('[aria-live="polite"]')).toHaveText('Pokazano 5 tygodni')
+  await expect(chart.getByRole('status')).toHaveText('Pokazano 5 tygodni')
 })
 
 test('redirects a dated History link to Monday and opens the local month without a week filter', async ({ app, page }) => {

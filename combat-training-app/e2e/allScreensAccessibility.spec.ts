@@ -85,7 +85,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/progress')
     await app.setTheme(theme)
     await expect(page.getByRole('link', { name: /Powrót do gardy/ })).toBeVisible()
-    await expect(page.getByRole('definition').first()).toHaveText('2 / 2') // plan credit, same as Start
+    await expect(page.getByRole('definition').first()).toHaveText('2 z 2') // plan credit, same as Start
     await audit(page, info, 'progress', theme)
 
     await page.getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()

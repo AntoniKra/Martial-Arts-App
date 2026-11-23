@@ -16,12 +16,13 @@ function SkillDialog({ children, onClose }: { children: React.ReactNode; onClose
     className="fixed inset-x-0 bottom-0 top-auto m-0 max-h-[90dvh] w-full max-w-none overflow-y-auto border border-bd bg-surface p-4 text-ink backdrop:bg-black/60 md:inset-auto md:m-auto md:max-w-lg">{children}</dialog>, document.body)
 }
 
-export function AddFocusSkill({ manual = false }: { manual?: boolean }) {
+export function AddFocusSkill({ manual = false, empty = false }: { manual?: boolean; empty?: boolean }) {
   const { focusSkillRepository } = useWorkoutData()
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   return <div>
-    <Button variant="secondary" aria-expanded={open} onClick={() => setOpen(!open)}>{manual ? '+ Dodaj element do poprawy' : '+ Dodaj'}</Button>
+    <Button variant={empty ? 'primary' : 'secondary'} size={manual || empty ? 'md' : 'sm'} className={manual ? undefined : 'progress-add-skill'}
+      aria-expanded={open} onClick={() => setOpen(!open)}>{manual || empty ? '+ Dodaj element do poprawy' : '+ Dodaj'}</Button>
     {open && <SkillDialog onClose={() => setOpen(false)}><FocusSkillForm busy={busy} onCancel={() => setOpen(false)} onSave={async (values) => {
       setBusy(true)
       try {

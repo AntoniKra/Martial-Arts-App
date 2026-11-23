@@ -111,23 +111,15 @@ test('uses the same discipline tiles in the weekly activity form', async ({ app,
   await expect(form.getByRole('radio', { name: 'Kickboxing', exact: true })).toBeChecked()
 })
 
-test('keeps progress counts in three columns at phone widths and opens the weekly plan', async ({ app, page }) => {
+test('shows the legacy goal in the Progress summary and opens the weekly plan', async ({ app, page }) => {
   await page.clock.setFixedTime(new Date('2026-11-10T10:00:00Z'))
   await app.open('/progress')
   await app.seedWeekPlan({ weekStart: '2026-11-09', items: [0, 1, 2].map((value) => ({ id: `goal-${value}`, kind: 'category', category: 'bag' })),
     createdAt: '2026-11-10T10:00:00.000Z', updatedAt: '2026-11-10T10:00:00.000Z', editedAfterWeekEnd: false })
   const card = page.getByRole('region', { name: 'Ten tydzień', exact: true })
-  const counts = page.locator('dl[aria-label="Ten tydzień w liczbach"]')
-  await expect(counts.getByRole('definition')).toHaveText(['0 / 3', '0', '0'])
-  await expect(counts.getByRole('term')).toHaveText(['treningi (plan)', 'minut', 'rund sparingu'])
-  for (const width of [360, 390]) {
-    await page.setViewportSize({ width, height: 800 })
-    const boxes = await counts.getByRole('definition').all()
-    const positions = await Promise.all(boxes.map((box) => box.boundingBox()))
-    expect(positions.every((box) => box && box.y === positions[0]?.y)).toBe(true)
-    expect(await counts.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
-    await expect(counts.getByRole('definition').first()).toHaveCSS('font-variant-numeric', 'tabular-nums')
-  }
+  const counts = page.getByRole('region', { name: 'Ten tydzień w liczbach', exact: true })
+  await expect(counts.getByRole('definition')).toHaveText(['0 z 3', '0', '0'])
+  await expect(counts.getByRole('term')).toHaveText(['Plan tygodnia', 'minut', 'rund sparingu'])
   await card.getByRole('link', { name: 'Plan tygodnia ›', exact: true }).click()
   await expect(page).toHaveURL('/progress/week/2026-11-09')
 })

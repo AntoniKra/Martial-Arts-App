@@ -24,17 +24,17 @@
 :root[data-theme-changing] *::after { transition: none !important; }
 
 
-.progress-weeks-chart { display: flex; border-bottom: 1px solid var(--app-border); padding-top: 4px; }
-.progress-week-column { display: flex; flex: 1 1 0%; min-width: 0; padding-inline: 4px; flex-direction: column; align-items: center; gap: 4px; color: var(--app-muted); }
+.progress-weeks-chart { display: flex; justify-content: space-between; height: 140px; padding: 10px 4px 0; border-bottom: 1px solid var(--app-border); }
+.progress-week-column { position: relative; display: flex; flex: 1 1 0%; min-width: var(--app-touch-min); max-width: 54px; flex-direction: column; align-items: center; justify-content: flex-end; }
 .progress-week-column.is-hidden { display: none; }
-.progress-week-track { position: relative; display: flex; align-items: flex-end; width: 100%; height: 120px; }
-.progress-week-bar { width: 100%; height: 100%; transform-origin: bottom; border-radius: 3px 3px 0 0; background: var(--app-grad-bar-past); }
-.progress-week-target { position: absolute; bottom: 0; left: -4px; right: -4px; border-top: 2px solid var(--app-ink); }
-.progress-week-date { height: 24px; white-space: nowrap; font-size: 11px; }
-.progress-week-column.is-below { color: var(--app-ink); }
-.progress-week-column.is-current { color: var(--app-ink); font-weight: 700; }
+.progress-week-track { position: relative; display: flex; flex-shrink: 0; align-items: flex-end; width: min(100%, 22px); border-radius: 2px 2px 0 0; background: color-mix(in srgb, var(--app-ink) 4%, var(--app-surface)); }
+[data-theme='light'] .progress-week-track { background: color-mix(in srgb, var(--app-ink) 3%, var(--app-surface)); }
+.progress-week-bar { width: 100%; height: 100%; transform-origin: bottom; border-radius: 2px 2px 0 0; background: var(--app-border); }
+.progress-week-target { position: absolute; bottom: 0; inset-inline: -4px; height: 2px; border-radius: 1px; background: var(--app-ember); }
+.progress-week-date { margin-top: 6px; color: var(--app-muted); white-space: nowrap; font-size: 10.5px; }
+.progress-week-column.is-current .progress-week-date { color: var(--app-ink); font-weight: 700; }
 .progress-week-column.is-current .progress-week-bar { background: var(--app-grad-bar-current); }
-.progress-weeks-chart.is-expanded .progress-week-column { padding-inline: 1.5px; }
+.progress-weeks-chart.is-expanded .progress-week-column { min-width: 0; padding-inline: 1.5px; }
 .progress-weeks-chart.is-expanded .progress-week-date { font-size: 9px; }
 
 @theme {

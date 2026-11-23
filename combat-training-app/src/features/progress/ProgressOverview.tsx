@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useWorkoutData } from '@/application/workoutDataContext'
@@ -22,15 +22,25 @@ import { WeekDayIndicator } from '@/components/domain/WeekDayIndicator'
 import { weekDayState } from '@/components/domain/weekDayPresentation'
 import { weekdays } from '@/features/week-plan/scheduleLabels'
 import { progressLabels as labels } from './progressLabels'
+import { formatSparringRounds, weekSummaryTile } from './progressPresentation'
+import { ProgressMoreIcon, type ProgressMoreIconKind } from './ProgressMoreIcon'
 
-export function MoreTile({ title, value, hint, children }: { title: string; value: string; hint: string; children: ReactNode }) {
+function MoreTile({ kind, title, value, hint, children }: {
+  kind: ProgressMoreIconKind; title: string; value: string; hint: string; children: ReactNode
+}) {
   const [open, setOpen] = useState(false)
-  return <div className={open ? 'col-span-2' : ''}>
-    <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="motion-press flex h-28 w-full flex-col gap-1 rounded-sm border border-bd bg-surface p-3 text-left">
-      <span className="text-[11px] font-bold uppercase tracking-widest text-muted">{title}</span>
-      <strong className="font-display text-2xl leading-tight tabular-nums">{value}</strong><span title={hint} className="mt-auto line-clamp-2 text-xs leading-tight text-muted">{hint}</span>
+  const id = useId()
+  return <div className="min-w-0 rounded-sm border border-bd bg-surface">
+    <button type="button" aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}
+      className="motion-press flex min-h-touch w-full items-center gap-2.5 px-3.5 py-3 text-left hover:bg-elevated">
+      <ProgressMoreIcon kind={kind} />
+      <span className="min-w-0 flex-1">
+        <span className="block font-display text-[13.5px] font-bold">{title}</span>
+        <span className="block text-[11px] text-muted">{hint}</span>
+      </span>
+      <strong className={`shrink-0 text-right font-display font-extrabold tabular-nums ${value === labels.noData ? 'text-sm text-muted' : 'text-base'}`}>{value}</strong>
     </button>
-    {open && <div className="space-y-4 border border-bd p-3">{children}</div>}
+    <div id={id} hidden={!open} className="space-y-4 border-t border-bd p-3">{open && children}</div>
   </div>
 }
 
@@ -41,30 +51,49 @@ export function ProgressOverview() {
   const selected = selectWeekPlan(weekPlans, currentWeek)
   if (unavailable) return <ProfileDataState state={unavailable} retry={retrySessions} />
   const summary = calculateWeeklySummary(currentWeek, sessions.items)
-  const typical = typicalProgress(sessions.items, currentWeek)
   const target = selected.status === 'ready' ? weekTarget(selected.plan) : null
   const schedule = selected.status === 'ready' && selected.plan ? calculateScheduledWeek(selected.plan, sessions.items, today) : null
-  // Same plan credit as Start and the week plan (legacy weeks count completed goals only), not all workouts.
-  const planTile = schedule && schedule.targetCount > 0 ? `${schedule.goalCount} / ${schedule.targetCount}` : target === null ? null : `${summary.workoutCount} / ${target}`
+  const planTile = weekSummaryTile(summary.workoutCount, target, schedule)
   const rounds = sparringOverview(sessions.items, currentWeek, shiftCalendarDate(currentWeek, 6))
+  const planLabel = planTile.target === null ? labels.weeklyWorkouts : labels.weekPlan
+  const planValue = planTile.target === null ? planTile.count.toLocaleString('pl-PL') : labels.planCount(planTile.count, planTile.target)
+  const planPercent = schedule?.percentage ?? (planTile.target ? Math.min(100, planTile.count / planTile.target * 100) : 0)
   return <>
-    <dl aria-label="Ten tydzień w liczbach" className="grid grid-cols-3 gap-2">
-      {[[planTile ?? `${summary.workoutCount}`, planTile === null ? labels.workoutCount(summary.workoutCount) : labels.plannedWorkouts],
-        [Math.ceil(summary.durationSeconds / 60).toLocaleString('pl-PL'), `minut${typical ? ` · zwykle ${typical.minutes.toLocaleString('pl-PL')}` : ''}`],
-        [`${rounds.unknown ? '≥ ' : ''}${rounds.rounds}`, 'rund sparingu']].map(([value, label]) => <div key={label} className="accent-tile flex min-w-0 flex-col-reverse justify-end gap-1 border border-bd bg-surface px-2 py-3">
-        <dt className="text-xs text-muted">{label}</dt><dd className="font-display text-[28px] font-extrabold tabular-nums">{value}</dd>
-      </div>)}
-    </dl>
-    {rounds.unknown > 0 && <p className="text-xs text-muted">{labels.unknownRounds(rounds.unknown)}</p>}
-    <section aria-label="Ten tydzień" className="space-y-3">
-      <div className="flex items-center justify-between gap-2"><h2 className="font-display text-lg font-bold">Ten tydzień</h2><Link to={routes.weekPlan(currentWeek)} className="inline-flex min-h-touch items-center text-sm text-muted">Plan tygodnia ›</Link></div>
+    <section aria-label={labels.weeklyNumbers}>
+      <div className="progress-summary">
+        <dl className="progress-summary-plan">
+          <dt className="text-[11px] font-bold uppercase text-muted">{planLabel}</dt>
+          <dd className="flex flex-1 flex-col justify-between">
+            <span className="mt-0.5 font-display text-[26px] leading-[1.1] font-extrabold tabular-nums">{planValue}</span>
+            {planTile.target !== null && <div role="progressbar" aria-label={labels.weekPlan} aria-valuemin={0} aria-valuemax={planTile.target}
+              aria-valuenow={Math.min(planTile.count, planTile.target)} aria-valuetext={planValue} className="progress-summary-track">
+              <div style={{ width: `${planPercent}%` }} />
+            </div>}
+          </dd>
+        </dl>
+        <div className="progress-summary-side">
+          <dl className="progress-summary-mini">
+            <dt>{labels.minutes}</dt><dd>{Math.ceil(summary.durationSeconds / 60).toLocaleString('pl-PL')}</dd>
+          </dl>
+          <dl className="progress-summary-mini">
+            <dt>{labels.sparringRounds}</dt><dd>{formatSparringRounds(rounds.rounds, rounds.unknown)}</dd>
+          </dl>
+        </div>
+      </div>
+      {rounds.unknown > 0 && <p className="mt-2 text-xs text-muted">{labels.unknownRounds(rounds.unknown)}</p>}
+    </section>
+    <section aria-label={labels.week}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h2 className="font-display text-base font-extrabold">{labels.week}</h2>
+        <Link to={routes.weekPlan(currentWeek)} className="inline-flex min-h-touch items-center text-[13px] text-muted hover:text-ink">{labels.weekPlan} ›</Link>
+      </div>
       {selected.status !== 'ready' && <p role="status" className="text-sm text-muted">Plan tygodnia jest niedostępny.</p>}
-      <div className="grid grid-cols-7 gap-1 text-center">{weekdays.map(({ short, name }, index) => {
+      <div className="progress-week-ribbon">{weekdays.map(({ short, name }, index) => {
         const date = shiftCalendarDate(currentWeek, index)
         const trained = sessions.items.some((session) => session.workoutDate === date)
         const planned = schedule?.matches.some(({ item }) => item.day === index && item.kind !== 'rest' && !item.omitted)
         const missed = schedule?.matches.some(({ item, status }) => item.day === index && (status === 'omitted' || status === 'missed'))
-        return <WeekDayIndicator key={date} short={short} name={name} today={date === today}
+        return <WeekDayIndicator key={date} short={index === 5 ? 'So' : short} name={name} today={date === today}
           state={weekDayState({ done: trained, planned: !!planned, missed: !!missed, available: selected.status === 'ready' })} />
       })}</div>
     </section>
@@ -85,23 +114,23 @@ export function ProgressMore() {
   const baseline = lastWellbeing && !profileDataUnavailable(wellbeing) ? wellbeingBaseline(wellbeing.items, lastWellbeing.date, lastWellbeing.questionsVersion) : null
   const loadHint = [typical?.load != null ? `zwykle ok. ${Math.round(typical.load).toLocaleString('pl-PL')}` : 'sRPE × min · ten tydzień',
     ready && summary.rpeCount < summary.workoutCount ? `RPE w ${summary.rpeCount} z ${summary.workoutCount} · suma tylko z RPE` : null].filter(Boolean).join(' · ')
-  return <section aria-label="Więcej" className="space-y-3">
-    <h2 className="font-display text-lg font-bold">Więcej</h2>
-    <div className="grid auto-rows-fr grid-cols-2 gap-2">
-      <MoreTile title="Sparing" value={ready ? `${sparring.unknown ? '≥ ' : ''}${sparring.rounds} rund` : 'Brak danych'} hint={ready ? labels.sparringWorkouts(sparring.workouts) : 'Historia niedostępna'}>
+  return <section aria-label={labels.more} className="space-y-2">
+    <h2 className="font-display text-base font-extrabold">{labels.more}</h2>
+    <div className="space-y-1.5">
+      <MoreTile kind="sparring" title={labels.sparring} value={ready ? `${formatSparringRounds(sparring.rounds, sparring.unknown)} rund` : labels.noData} hint={ready ? labels.sparringWorkouts(sparring.workouts) : labels.historyUnavailable}>
         {sparring.unknown > 0 && <p className="text-sm text-muted">{labels.unknownRounds(sparring.unknown)}</p>}
         <WeeklySummary weekStart={currentWeek} showTrends={false} /><ProfileStatistics today={today} recentOnly />
       </MoreTile>
-      <MoreTile title="Obciążenie" value={ready ? (summary.load.units === null ? 'Brak danych' : Math.round(summary.load.units).toLocaleString('pl-PL')) : 'Brak danych'}
+      <MoreTile kind="load" title={labels.trainingLoad} value={ready && summary.load.units !== null ? Math.round(summary.load.units).toLocaleString('pl-PL') : labels.noData}
         hint={loadHint}>
         <WeeklySummary weekStart={currentWeek} showTrends={false} />
       </MoreTile>
-      {profile.status === 'ready' && hasWellbeingConsent(athlete) && <MoreTile title="Samopoczucie"
-        value={profileDataUnavailable(wellbeing) ? 'Brak danych' : `${Math.min(14, baseline?.count ?? 0)}/14`}
+      {profile.status === 'ready' && hasWellbeingConsent(athlete) && <MoreTile kind="wellbeing" title={labels.wellbeing}
+        value={profileDataUnavailable(wellbeing) ? labels.noData : `${Math.min(14, baseline?.count ?? 0)}/14`}
         hint={baseline?.norms.sleep ? 'wpisów · norma dostępna' : 'wpisów do normy · wymagane 21 dni'}><WellbeingProgressCard /></MoreTile>}
-      {profile.status === 'ready' && athlete && hasValidHealthConsent(athlete) && <MoreTile title="Masa ciała"
-        value={!profileDataUnavailable(bodyWeights) && weight.averageKg !== null ? `${weight.averageKg.toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg` : 'Brak danych'}
-        hint="średnia 7 dni"><BodyWeightSection today={today} profile={athlete} /></MoreTile>}
+      {profile.status === 'ready' && athlete && hasValidHealthConsent(athlete) && <MoreTile kind="weight" title={labels.bodyWeight}
+        value={!profileDataUnavailable(bodyWeights) && weight.averageKg !== null ? `${weight.averageKg.toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg` : labels.noData}
+        hint="średnia krocząca 7 dni"><BodyWeightSection today={today} profile={athlete} /></MoreTile>}
     </div>
   </section>
 }
