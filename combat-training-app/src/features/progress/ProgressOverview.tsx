@@ -21,6 +21,7 @@ import { sparringOverview, typicalProgress, weekTarget } from '@/domain/weekly-s
 import { WeekDayIndicator } from '@/components/domain/WeekDayIndicator'
 import { weekDayState } from '@/components/domain/weekDayPresentation'
 import { weekdays } from '@/features/week-plan/scheduleLabels'
+import { progressLabels as labels } from './progressLabels'
 
 export function MoreTile({ title, value, hint, children }: { title: string; value: string; hint: string; children: ReactNode }) {
   const [open, setOpen] = useState(false)
@@ -48,13 +49,13 @@ export function ProgressOverview() {
   const rounds = sparringOverview(sessions.items, currentWeek, shiftCalendarDate(currentWeek, 6))
   return <>
     <dl aria-label="Ten tydzień w liczbach" className="grid grid-cols-3 gap-2">
-      {[[planTile ?? `${summary.workoutCount}`, 'treningi' + (planTile === null ? '' : ' (plan)')],
+      {[[planTile ?? `${summary.workoutCount}`, planTile === null ? labels.workoutCount(summary.workoutCount) : labels.plannedWorkouts],
         [Math.ceil(summary.durationSeconds / 60).toLocaleString('pl-PL'), `minut${typical ? ` · zwykle ${typical.minutes.toLocaleString('pl-PL')}` : ''}`],
         [`${rounds.unknown ? '≥ ' : ''}${rounds.rounds}`, 'rund sparingu']].map(([value, label]) => <div key={label} className="accent-tile flex min-w-0 flex-col-reverse justify-end gap-1 border border-bd bg-surface px-2 py-3">
         <dt className="text-xs text-muted">{label}</dt><dd className="font-display text-[28px] font-extrabold tabular-nums">{value}</dd>
       </div>)}
     </dl>
-    {rounds.unknown > 0 && <p className="text-xs text-muted">W {rounds.unknown} treningach liczba rund nieznana.</p>}
+    {rounds.unknown > 0 && <p className="text-xs text-muted">{labels.unknownRounds(rounds.unknown)}</p>}
     <section aria-label="Ten tydzień" className="space-y-3">
       <div className="flex items-center justify-between gap-2"><h2 className="font-display text-lg font-bold">Ten tydzień</h2><Link to={routes.weekPlan(currentWeek)} className="inline-flex min-h-touch items-center text-sm text-muted">Plan tygodnia ›</Link></div>
       {selected.status !== 'ready' && <p role="status" className="text-sm text-muted">Plan tygodnia jest niedostępny.</p>}
@@ -87,8 +88,8 @@ export function ProgressMore() {
   return <section aria-label="Więcej" className="space-y-3">
     <h2 className="font-display text-lg font-bold">Więcej</h2>
     <div className="grid auto-rows-fr grid-cols-2 gap-2">
-      <MoreTile title="Sparing" value={ready ? `${sparring.unknown ? '≥ ' : ''}${sparring.rounds} rund` : 'Brak danych'} hint={ready ? `${sparring.workouts} treningów ze sparingiem · 4 tyg.` : 'Historia niedostępna'}>
-        {sparring.unknown > 0 && <p className="text-sm text-muted">W {sparring.unknown} treningach liczba rund nieznana.</p>}
+      <MoreTile title="Sparing" value={ready ? `${sparring.unknown ? '≥ ' : ''}${sparring.rounds} rund` : 'Brak danych'} hint={ready ? labels.sparringWorkouts(sparring.workouts) : 'Historia niedostępna'}>
+        {sparring.unknown > 0 && <p className="text-sm text-muted">{labels.unknownRounds(sparring.unknown)}</p>}
         <WeeklySummary weekStart={currentWeek} showTrends={false} /><ProfileStatistics today={today} recentOnly />
       </MoreTile>
       <MoreTile title="Obciążenie" value={ready ? (summary.load.units === null ? 'Brak danych' : Math.round(summary.load.units).toLocaleString('pl-PL')) : 'Brak danych'}

@@ -1,3 +1,4 @@
+import { actionLabels } from '@/components/ui/actionLabels'
 import { useId, type RefObject } from 'react'
 
 import { Button } from '@/components/ui/Button'
@@ -69,7 +70,7 @@ export function WorkoutHistoryNoteEditor({
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" size="sm" variant="ghost" disabled={isSaving} onClick={onCancel}>
-          Anuluj
+          {actionLabels.cancel}
         </Button>
         <Button type="button" size="sm" variant="primary" loading={isSaving} disabled={!canSave} onClick={onSave}>
           Zapisz

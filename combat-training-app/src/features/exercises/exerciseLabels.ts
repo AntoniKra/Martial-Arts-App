@@ -1,3 +1,4 @@
+import { actionLabels } from '@/components/ui/actionLabels'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 
 export const exerciseLabels = {
@@ -6,7 +7,7 @@ export const exerciseLabels = {
   disciplines: 'Dyscypliny', blocks: 'Rodzaje bloku', defaults: 'Domyślne parametry',
   mode: 'Tryb', rounds: 'Rundowe', continuous: 'Ciągłe', roundCount: 'Liczba rund',
   work: 'Czas pracy (s)', rest: 'Przerwa między rundami (s)', duration: 'Czas trwania (s)',
-  save: 'Zapisz ćwiczenie', cancel: 'Anuluj', edit: 'Edytuj', create: 'Nowe ćwiczenie',
+  save: 'Zapisz ćwiczenie', cancel: actionLabels.cancel, edit: 'Edytuj', create: 'Nowe ćwiczenie',
   copy: 'Kopiuj do moich', copied: 'Ćwiczenie skopiowane do Moich.',
   archive: 'Archiwizuj', restore: 'Przywróć', archived: 'Zarchiwizowane',
   remove: 'Usuń trwale', confirmDelete: 'Potwierdź trwałe usunięcie',

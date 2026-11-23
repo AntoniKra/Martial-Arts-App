@@ -1,7 +1,9 @@
+import { actionLabels } from '@/components/ui/actionLabels'
+
 export const workoutPlanLabels = {
   edit: 'Edytuj plan',
   editHeading: 'Edycja planu',
-  cancel: 'Anuluj',
+  cancel: actionLabels.cancel,
   delete: 'Usuń plan',
   deleteWarning: 'Plan zostanie trwale usunięty. Treningi w historii pozostaną bez zmian.',
   deleteFailed: 'Nie udało się usunąć planu. Plan pozostał zapisany. Spróbuj ponownie.',

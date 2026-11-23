@@ -1,4 +1,6 @@
+import { actionLabels } from '@/components/ui/actionLabels'
 import { calculateWorkoutDate } from '@/domain/workout-session/workoutSessionDefinitions'
+import { workoutCountNoun } from '@/domain/workout/workoutCountLabels'
 
 export const profileLabels = {
   title: 'Profil', weight: 'Masa ciała', enable: 'Włącz zapisywanie masy ciała',
@@ -30,13 +32,15 @@ export const profileLabels = {
   chartHint: 'Daty poniedziałków. Przerwa oznacza tydzień bez pomiarów. Bieżący tydzień trwa.',
   noData: 'Brak danych', current: 'trwa', history: 'Lista pomiarów', all: 'Pokaż wszystkie', edit: 'Popraw', remove: 'Usuń',
   deleteTitle: 'Usunąć pomiar?', deleteConfirm: 'Usuń pomiar', withdrawTitle: 'Wycofać zgodę?',
-  withdraw: 'Wycofaj zgodę', withdrawConfirm: 'Usuń i wycofaj zgodę', cancel: 'Anuluj',
+  withdraw: 'Wycofaj zgodę', withdrawConfirm: 'Usuń i wycofaj zgodę', cancel: actionLabels.cancel,
   onlineRequired: 'Wycofanie wymaga połączenia z internetem, żeby usunąć wszystkie pomiary.',
   withdrawalFailed: 'Nie udało się zakończyć usuwania. Zgoda pozostaje aktywna do końca usuwania. Połącz się z internetem i ponów wycofanie.',
   saveFailed: 'Nie udało się zapisać danych. Sprawdź połączenie i ponów odczyt.',
   loading: 'Wczytywanie danych profilu…', error: 'Nie udało się odczytać lub zapisać danych profilu.',
   incomplete: 'Dane profilu są niepełne. Połącz się z internetem i ponów odczyt.', retry: 'Ponów odczyt',
   statistics: 'Statystyki', lifetime: 'Od początku', recent: 'Ostatnie 4 tygodnie', workouts: 'Treningi',
+  workoutCount: (count: number) => `${count} ${workoutCountNoun(count)}`,
+  unknownRoundWorkouts: (count: number) => `(w ${count} ${workoutCountNoun(count, 'locative')} liczba rund nieznana)`,
   duration: 'Czas treningu', rounds: 'Rundy sparingu', total: 'Suma',
   emptyStatistics: 'Statystyki pojawią się po pierwszym treningu.',
   noRecentWorkouts: 'Brak treningów z ostatnich 4 tygodni.',

@@ -1,8 +1,9 @@
+import { actionLabels } from '@/components/ui/actionLabels'
 import type { WellbeingCategory, WellbeingField } from '@/domain/wellbeing/wellbeing'
 
 export const wellbeingLabels = {
   title: 'Samopoczucie', save: 'Zapisz samopoczucie', skip: 'Nie dziś',
-  next: 'Dalej', cancel: 'Anuluj',
+  next: 'Dalej', cancel: actionLabels.cancel,
   nextDisabled: 'Wybierz odpowiedź, aby przejść dalej.',
   progress: 'Postęp kwestionariusza:',
   progressValue: (answered: number, total: number) => `${answered} z ${total} odpowiedzi`,

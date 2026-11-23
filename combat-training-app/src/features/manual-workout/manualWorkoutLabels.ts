@@ -1,3 +1,4 @@
+import { actionLabels } from '@/components/ui/actionLabels'
 import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import type { ManualWorkoutPart } from '@/domain/workout-session/workoutSession.types'
 import { categoryLabel } from '@/features/week-plan/weekPlanLabels'
@@ -23,7 +24,7 @@ export const manualWorkoutLabels = {
   noSkills: 'Nie masz elementów do poprawy. Dodaj jedną rzecz, nad którą pracujesz.', skillsError: 'Nie udało się wczytać elementów do poprawy. Możesz zapisać resztę wpisu bez zmian w ocenach.',
   skillsLoading: 'Wczytywanie elementów do poprawy…', place: 'Gdzie ćwiczyłeś?', choosePlace: 'Wybierz miejsce',
   newCorrection: workoutFeedbackLabels.newCorrection, retry: 'Spróbuj ponownie',
-  save: 'Zapisz', cancel: 'Anuluj', back: 'Wróć do historii', discard: 'Zmiany we wpisie nie zostaną zapisane.',
+  save: 'Zapisz', cancel: actionLabels.cancel, back: 'Wróć do historii', discard: 'Zmiany we wpisie nie zostaną zapisane.',
   duplicateTitle: 'Masz już trening z tego dnia',
   duplicate: (name: string) => `Masz już trening „${name}” z tego dnia. To osobny trening?`,
   duplicateHint: 'Jeśli część zajęć zapisała aplikacja, wpisz tylko resztę, np. sam sparing.',

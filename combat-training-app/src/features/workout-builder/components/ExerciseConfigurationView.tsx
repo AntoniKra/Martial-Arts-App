@@ -545,7 +545,7 @@ export function ExerciseConfigurationView({
         <div className="border-t border-bd bg-surface">
           <div className={`${contentContainerClass} py-4`}>
             {submitError && <p role="alert" className="mb-3 text-sm text-crimson-ink">{submitError}</p>}
-            <Button type="submit" variant="secondary" className="w-full" loading={submitPending} disabled={submitPending}>
+            <Button type="submit" variant="primary" className="w-full" loading={submitPending} disabled={submitPending}>
               {submitLabel}
             </Button>
           </div>

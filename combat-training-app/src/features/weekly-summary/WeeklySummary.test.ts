@@ -52,7 +52,7 @@ describe('WeeklySummary collection states', () => {
     expect(render()).not.toContain('Treningi:')
     data.sessions.status = 'ready'
     expect(render()).toContain('Treningi: 1')
-    expect(render()).toContain('RPE w 0 z 1 treningów')
+    expect(render()).toContain('RPE w 0 z 1 treningu')
     data.sessions.items = [entry, { ...entry, id: 'second', rpe: 0 }]
     expect(render()).toContain('Treningi: 2')
     expect(render()).toContain('RPE w 1 z 2 treningów')
@@ -151,7 +151,7 @@ describe('WeeklySummary sparring intensity', () => {
     const html = render()
     expect(row(html, 'Twarde rundy sparingu')).toBe('3')
     expect(html).toContain('Intensywność znana w 1 z 2 treningów ze sparingiem')
-    expect(html).toContain('Twardy sparing bez liczby rund w 1 treningach. Rund bez podanej liczby nie doliczamy.')
+    expect(html).toContain('Twardy sparing bez liczby rund w 1 treningu. Rund bez podanej liczby nie doliczamy.')
     expect(html.indexOf('Czas sparingu')).toBeLessThan(html.indexOf('Twarde rundy sparingu'))
     expect(html.indexOf('Twarde rundy sparingu')).toBeLessThan(html.indexOf('Zarejestrowane obciążenie'))
   })
