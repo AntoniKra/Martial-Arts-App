@@ -1,3 +1,5 @@
+import { actionLabels } from '@/components/ui/actionLabels'
+import { workoutCountNoun } from '@/domain/workout/workoutCountLabels'
 import { getDisciplineLabelPl } from '@/domain/discipline/disciplineLabels'
 import type { RecurringWeek, WeekActivity } from '@/domain/week-plan/weekPlan.types'
 import { categoryLabel } from './weekPlanLabels'
@@ -35,14 +37,16 @@ export const scheduleLabels = {
   types: 'Rodzaje w tym tygodniu (liczone same)', add: '+ Dodaj trening', addRest: 'Dodaj odpoczynek',
   saveRecurring: 'ZAPISZ STAŁE ZAJĘCIA', saveOwn: 'ZAPISZ TRENING WŁASNY', saveSingle: 'Zapisz w tym tygodniu',
   saveRest: 'ZAPISZ ODPOCZYNEK',
-  start: 'Start', entry: 'Wpisz trening', edit: 'Edytuj', remove: 'Usuń', cancel: 'Anuluj', back: '‹ Plan tygodnia',
+  start: 'Start', entry: 'Wpisz trening', edit: 'Edytuj', remove: 'Usuń', cancel: actionLabels.cancel, back: '‹ Plan tygodnia',
   backProgress: 'Wróć do Postępu', today: 'DZIŚ', thisWeek: 'ten tydzień', free: 'wolne', returnToday: 'Dziś', returnCurrent: 'Dziś — Wróć do bieżącego tygodnia',
   week: 'Tydzień',
   move: 'Przenieś na…', moved: 'Przeniesiono trening w tym tygodniu.', undo: 'Cofnij', undoUnavailable: 'Plan zmienił się po przeniesieniu. Cofnięcie jest niedostępne.',
   omit: 'Nie byłem', restore: 'Przywróć', options: 'Opcje treningu',
   statuses: { done: '✓ Zaliczone', partial: '◐ Częściowo', planned: 'Plan', missed: '– Opuszczone', omitted: '– Nie byłem', rest: 'Odpoczynek' },
   partial: '(częściowo)', extra: 'Poza planem', goal: 'Cel liczby treningów', goalSave: 'Zapisz cel',
-  goalProgress: (count: number, goal: number) => `${count} z ${goal} treningów`,
+  goalProgress: (count: number, goal: number) => `${count} z ${goal} ${workoutCountNoun(goal, 'genitive')}`,
+  summaryStats: (count: number, minutes: number, load: string, incomplete: boolean) =>
+    `${count} ${workoutCountNoun(count)} · ${minutes} min · obciążenie ${load}${incomplete ? ' (niepełne)' : ''}`,
   remaining: (count: number) => `${count === 1 ? 'został' : count >= 2 && count <= 4 ? 'zostały' : 'zostało'} ${count}`, workoutCount: (count: number) => `Treningi w tygodniu: ${count}`,
   plan: (name: string) => `plan „${name}” · własny`,
   emptyRecurring: 'Nie ma jeszcze stałych zajęć. Dodaj zajęcia w klubie lub trening własny.',

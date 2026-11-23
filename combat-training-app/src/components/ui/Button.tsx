@@ -13,7 +13,7 @@ function LoadingSpinner() {
   return (
     <span
       aria-hidden="true"
-      className="inline-block size-4 shrink-0 rounded-[1px] border-2 border-current border-r-transparent animate-spin"
+      className="inline-block size-4 shrink-0 rounded-[1px] border-2 border-current border-r-transparent motion-safe:animate-spin"
     />
   )
 }

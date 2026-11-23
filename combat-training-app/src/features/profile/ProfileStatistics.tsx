@@ -1,7 +1,6 @@
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { useState } from 'react'
 import { ProfileDisclosure } from './ProfileDisclosure'
-import { polishPlural } from '@/domain/language/polishPlural'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { calculateProfileStatistics } from '@/domain/profile/profileStatistics'
 import { categoryLabel } from '@/features/week-plan/weekPlanLabels'
@@ -17,7 +16,7 @@ export function ProfileStatistics({ today, recentOnly = false }: { today: string
   const summary = unavailable ? null : calculateProfileStatistics(sessions.items, today)
   const [open, setOpen] = useState(false)
   const headline = !summary ? weeklySummaryLabels[unavailable!] : summary.firstDate === null ? labels.emptyStatistics
-    : `${summary.workoutCount} ${polishPlural(summary.workoutCount, 'trening', 'treningi', 'treningów')} · ${formatProfileDurationSecondsPl(summary.durationSeconds)}`
+    : `${labels.workoutCount(summary.workoutCount)} · ${formatProfileDurationSecondsPl(summary.durationSeconds)}`
   return <ProfileDisclosure title={labels.statistics} summary={headline} open={open} onToggle={() => setOpen(!open)}>
     {unavailable ? <ProfileDataState state={unavailable} retry={retrySessions} message={weeklySummaryLabels[unavailable]} />
       : summary && (summary.firstDate === null ? <p className="text-sm text-muted">{labels.emptyStatistics}</p> : <>
@@ -29,7 +28,7 @@ export function ProfileStatistics({ today, recentOnly = false }: { today: string
           <div className="flex justify-between gap-4"><dt>{labels.duration}</dt><dd className="tabular-nums">{formatProfileDurationSecondsPl(summary.durationSeconds)}</dd></div>
           <div><dt>{labels.rounds}</dt><dd className="mt-1 tabular-nums">
             {summary.sparringRounds === null ? labels.noData : `${summary.unknownRoundWorkouts ? 'co najmniej ' : ''}${summary.sparringRounds}`}
-            {summary.unknownRoundWorkouts > 0 && <span className="block text-sm text-muted">(w {summary.unknownRoundWorkouts} {summary.unknownRoundWorkouts === 1 ? 'treningu' : 'treningach'} liczba rund nieznana)</span>}
+            {summary.unknownRoundWorkouts > 0 && <span className="block text-sm text-muted">{labels.unknownRoundWorkouts(summary.unknownRoundWorkouts)}</span>}
           </dd></div>
         </dl>
       </div>}

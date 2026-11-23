@@ -1,3 +1,4 @@
+import { actionLabels } from '@/components/ui/actionLabels'
 import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -286,7 +287,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
                 onClick={handleCancelDelete}
                 className={getButtonClassName({ variant: 'ghost', size: 'sm', disabled: isDeleting })}
               >
-                Anuluj
+                {actionLabels.cancel}
               </button>
               <Button
                 type="button"

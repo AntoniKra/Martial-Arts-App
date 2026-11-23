@@ -1,3 +1,5 @@
+import { actionLabels } from '@/components/ui/actionLabels'
+
 export const authLabels = {
   cleanupError: 'Konto usunięte, ale nie udało się wyczyścić pamięci urządzenia. Zamknij inne karty aplikacji i wyczyść dane witryny.',
   logoutCleanupPending: 'Nie udało się wyczyścić pamięci aplikacji. Zamknij pozostałe karty aplikacji. Ponowimy czyszczenie przy następnym uruchomieniu.',
@@ -20,7 +22,7 @@ export const authLabels = {
   logoutTitle: 'Wylogować się?',
   logoutPendingWarning: 'Masz dane, które nie zostały jeszcze wysłane. Po wylogowaniu przepadną.',
   logoutAnyway: 'Wyloguj mimo to',
-  cancelLogout: 'Anuluj',
+  cancelLogout: actionLabels.cancel,
   email: 'Adres e-mail',
   password: 'Hasło',
   continueWithGoogle: 'Kontynuuj z Google',

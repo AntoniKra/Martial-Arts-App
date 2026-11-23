@@ -34,6 +34,10 @@ export function normalizeSearchText(text: string): string {
   return text.trim().replace(/\s+/g, ' ').toLowerCase()
 }
 
+export function hasWorkoutHistoryContentFilter(filters: WorkoutsFilterState): boolean {
+  return filters.discipline !== 'all' || normalizeSearchText(filters.searchQuery) !== ''
+}
+
 function matchesDiscipline(item: { disciplineKey: string }, discipline: WorkoutsDisciplineFilter): boolean {
   return discipline === 'all' || item.disciplineKey === discipline
 }

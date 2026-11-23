@@ -1,4 +1,5 @@
 import type { WeeklySummary } from '@/domain/weekly-summary/weeklySummary'
+import { workoutCountNoun } from '@/domain/workout/workoutCountLabels'
 
 export const weeklySummaryLabels = {
   title: 'Podsumowanie treningów',
@@ -12,8 +13,8 @@ export const weeklySummaryLabels = {
   sparring: 'Czas sparingu',
   recordedSparring: 'Zarejestrowany czas sparingu',
   hardRounds: 'Twarde rundy sparingu',
-  intensityCoverage: (known: number, total: number) => `Intensywność znana w ${known} z ${total} treningów ze sparingiem`,
-  hardRoundsUnknown: (count: number) => `Twardy sparing bez liczby rund w ${count} treningach. Rund bez podanej liczby nie doliczamy.`,
+  intensityCoverage: (known: number, total: number) => `Intensywność znana w ${known} z ${total} ${workoutCountNoun(total, 'genitive')} ze sparingiem`,
+  hardRoundsUnknown: (count: number) => `Twardy sparing bez liczby rund w ${count} ${workoutCountNoun(count, 'locative')}. Rund bez podanej liczby nie doliczamy.`,
   load: 'Obciążenie tygodnia',
   recordedLoad: 'Zarejestrowane obciążenie',
   loadHint: 'Jednostki umowne: minuty treningu × RPE',
@@ -47,8 +48,8 @@ export const weeklySummaryLabels = {
   week: 'Tydzień',
   chartHint: 'Daty poniedziałków. Obrys kolumny oznacza wybrany tydzień; pusty słupek i „trwa” — bieżący.',
   chartDescription: (metric: string) => `Wykres słupkowy 12 tygodni. ${metric}, oś od zera. Tydzień bez treningu ma wartość 0. Bieżący tydzień trwa. Pełne wartości w tabeli „Pokaż dane”.`,
-  coverage: (known: number, total: number) => `Dane w ${known} z ${total} treningów`,
-  rpe: (known: number, total: number) => `RPE w ${known} z ${total} treningów`,
+  coverage: (known: number, total: number) => `Dane w ${known} z ${total} ${workoutCountNoun(total, 'genitive')}`,
+  rpe: (known: number, total: number) => `RPE w ${known} z ${total} ${workoutCountNoun(total, 'genitive')}`,
 } as const
 
 const loadFormatter = new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 1 })

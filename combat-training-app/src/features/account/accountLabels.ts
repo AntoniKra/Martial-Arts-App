@@ -1,3 +1,5 @@
+import { actionLabels } from '@/components/ui/actionLabels'
+
 export const accountLabels = {
   title: 'Twoje dane',
   download: 'Pobierz swoje dane',
@@ -14,7 +16,7 @@ export const accountLabels = {
   keepData: 'Jeśli chcesz zachować dane, najpierw je pobierz.',
   confirmPassword: 'Potwierdź hasłem', confirmGoogle: 'Potwierdź kontem Google',
   alternativeGoogle: 'Albo potwierdź kontem Google', forever: 'Usuń konto na zawsze',
-  cancel: 'Anuluj', deleting: 'Usuwam dane…',
+  cancel: actionLabels.cancel, deleting: 'Usuwam dane…',
   recent: 'Zaloguj się ponownie i spróbuj jeszcze raz.',
   interrupted: 'Usuwanie przerwane. Część danych mogła zostać usunięta. Spróbuj ponownie, żeby dokończyć.',
   unavailable: 'Nie udało się przygotować operacji. Odśwież stronę i spróbuj ponownie.',

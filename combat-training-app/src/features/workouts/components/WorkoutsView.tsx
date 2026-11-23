@@ -21,10 +21,12 @@ import {
   DEFAULT_WORKOUTS_FILTERS,
   filterWorkoutHistory,
   filterWorkoutPlans,
+  hasWorkoutHistoryContentFilter,
 } from '@/features/workouts/utils/workoutsFilters'
 
 interface WorkoutsViewProps {
   tab?: WorkoutsTab
+  historyWeek?: string | null
   planDeleted?: boolean
   plansSubscreen?: boolean
   plansLoadState: WorkoutPlansLoadState
@@ -97,6 +99,7 @@ function WorkoutHistoryErrorState({ message, onRetry }: WorkoutHistoryErrorState
 
 export function WorkoutsView({
   tab = 'plans',
+  historyWeek = null,
   planDeleted = false,
   plansSubscreen = false,
   plansLoadState,
@@ -191,16 +194,14 @@ export function WorkoutsView({
       )
     }
 
-    if (history.length === 0) {
+    if (history.length === 0 && historyWeek === null) {
       return <WorkoutsEmptyState variant="no-history" />
     }
 
-    if (filteredHistory.length === 0) {
-      return <WorkoutsEmptyState variant="no-results" />
-    }
-
     return (
-      <HistoryJournal history={filteredHistory} sortOrder={filters.sortOrder} onUpdateNote={onUpdateSessionNote} onDelete={onDeleteSession} />
+      <HistoryJournal week={historyWeek} history={history} matching={filteredHistory}
+        contentFiltered={hasWorkoutHistoryContentFilter(filters)} sortOrder={filters.sortOrder}
+        onUpdateNote={onUpdateSessionNote} onDelete={onDeleteSession} />
     )
   }
 

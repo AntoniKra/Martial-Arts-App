@@ -38,6 +38,7 @@ test('shows progress tiles, expands five to twelve weeks, and opens the selected
   await expect(chart.locator('.progress-week-column:not(.is-current):not(.is-hidden) .progress-week-bar').first()).toHaveCSS('background-image', /linear-gradient.*rgb\(122, 26, 40\)/)
   await chart.getByRole('button', { name: 'Pokaż 12 tygodni', exact: true }).click()
   await expect(chart.getByRole('link')).toHaveCount(12)
+  await expect(chart.locator('.progress-week-column:visible')).toHaveCount(12)
   await chart.getByRole('button', { name: 'Pokaż mniej', exact: true }).click()
   await expect(chart.getByRole('link')).toHaveCount(5)
   for (const theme of ['dark', 'light'] as const) {
@@ -45,7 +46,7 @@ test('shows progress tiles, expands five to twelve weeks, and opens the selected
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
   }
-  await chart.getByRole('link', { name: new RegExp(`Treningi w tygodniu ${current}: 1, plan 4$`) }).click()
+  await chart.getByRole('link', { name: `Treningi w tygodniu ${current}: 1 trening, plan 4`, exact: true }).click()
   await expect(page).toHaveURL(/tab=history&week=2026-11-16/)
   await expect(page.getByText('Ten tydzień · 16–22 lis', { exact: true })).toBeVisible()
   await expect(page.getByRole('article')).toHaveCount(1)
@@ -82,9 +83,102 @@ test('groups journal weeks, collapses gaps, searches notes and selects calendar 
   await expect(page.getByRole('article')).toHaveCount(1)
   await page.getByRole('searchbox').clear()
   await page.getByRole('radio', { name: 'Miesiąc', exact: true }).check()
-  await page.getByRole('button', { name: '2026-11-17: 1 treningów', exact: true }).click()
+  await page.getByRole('button', { name: '2026-11-17: 1 trening', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Treningi 2026-11-17', exact: true }).getByRole('article')).toHaveCount(1)
   await page.getByRole('region', { name: 'Treningi 2026-11-17', exact: true }).locator('.disclosure-trigger').first().click()
   await page.getByRole('link', { name: 'Popraw', exact: true }).click()
   await expect(page).toHaveURL(/workout-sessions\/new\/edit$/)
+})
+
+test('keeps filtered weeks distinct from training gaps and labels the full-week totals', async ({ app, page }) => {
+  await app.open('/progress?tab=history')
+  for (const [workoutDate, disciplineKey] of [['2026-10-26', 'boxing'], ['2026-11-03', 'kickboxing'], ['2026-11-16', 'boxing']] as const) {
+    await app.seedSession(manualWorkoutSession({ id: workoutDate, workoutDate, disciplineKey, durationSeconds: 3600 }))
+  }
+  const otherWeek = page.getByRole('region', { name: '2–8 lis', exact: true })
+  const gap = page.getByText(/9–15 lis · przerwa \(0 treningów\)/)
+  await expect(otherWeek.getByRole('article')).toHaveCount(1)
+  await expect(gap).toBeVisible()
+  await page.getByRole('button', { name: 'Filtry', exact: true }).click()
+  await page.getByLabel('Sortowanie', { exact: true }).selectOption('oldest')
+  await expect(page.getByText(/^Cały tydzień/)).toHaveCount(0)
+  await page.getByRole('button', { name: 'Boks', exact: true }).click()
+  await expect(otherWeek.getByText('Cały tydzień · 1 trening · 60 min', { exact: true })).toBeVisible()
+  await expect(otherWeek.getByText('Brak pasujących wpisów', { exact: true })).toBeVisible()
+  await expect(otherWeek.getByRole('article')).toHaveCount(0)
+  await expect(page.getByRole('article')).toHaveCount(2)
+  await expect(gap).toBeVisible()
+  await expect(page.getByText(/przerwa/)).toHaveCount(1)
+
+  await page.getByRole('searchbox').fill('Brakująca nazwa')
+  await expect(page.getByText('Brak pasujących wpisów', { exact: true })).toHaveCount(3)
+  await expect(gap).toBeVisible()
+  await expect(page.getByRole('article')).toHaveCount(0)
+})
+
+test('gives all twelve weeks separate touch targets below the expanded chart', async ({ app, page }, testInfo) => {
+  await app.open('/progress')
+  const dates = Array.from({ length: 12 }, (_, index) => shiftCalendarDate(current, (index - 11) * 7))
+  await app.seedSession(manualWorkoutSession({ id: 'oldest', workoutDate: dates[0] }))
+  await app.seedSession(manualWorkoutSession({ id: 'latest', workoutDate: current }))
+  const chart = page.getByRole('region', { name: 'Ostatnie tygodnie', exact: true })
+  await chart.getByRole('button', { name: 'Pokaż 12 tygodni', exact: true }).click()
+  const picker = chart.getByRole('list', { name: 'Wybierz tydzień w Historii', exact: true })
+  const links = picker.getByRole('link')
+  await expect(links).toHaveCount(12)
+  await expect(chart.getByRole('group').getByRole('link')).toHaveCount(0)
+  const viewport = page.viewportSize()!
+  for (const width of testInfo.project.name === 'phone' ? [360, 390] : [viewport.width]) {
+    await page.setViewportSize({ ...viewport, width })
+    for (const theme of ['dark', 'light'] as const) {
+      await app.setTheme(theme)
+      const targets = await links.evaluateAll((elements) => elements.map((element) => {
+        const { left, right, width, height } = element.getBoundingClientRect()
+        return { left, right, width, height, href: element.getAttribute('href') }
+      }))
+      expect(targets.map(({ href }) => href)).toEqual(dates.map((date) => `/progress?tab=history&week=${date}`))
+      expect(targets.every((target, index) => target.width >= 44 && target.height >= 44
+        && (index === 0 || targets[index - 1].right <= target.left))).toBe(true)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `${theme} at ${width}px`).toBeLessThanOrEqual(width)
+      expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
+    }
+  }
+  if (testInfo.project.name === 'phone') {
+    expect(await picker.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true)
+  }
+  await links.last().click()
+  await expect(page).toHaveURL(/tab=history&week=2026-11-16$/)
+  await expect(page.getByRole('article')).toHaveCount(1)
+})
+
+test('offers expansion only when it adds columns and announces their actual count', async ({ app, page }) => {
+  await app.open('/progress')
+  const chart = page.getByRole('region', { name: 'Ostatnie tygodnie', exact: true })
+  await app.seedSession(manualWorkoutSession({ id: 'three', workoutDate: shiftCalendarDate(current, -14) }))
+  await expect(chart.getByRole('link')).toHaveCount(3)
+  await expect(chart.getByRole('button', { name: /^Pokaż/ })).toHaveCount(0)
+  await app.seedSession(manualWorkoutSession({ id: 'five', workoutDate: shiftCalendarDate(current, -28) }))
+  await expect(chart.getByRole('link')).toHaveCount(5)
+  await expect(chart.getByRole('button', { name: /^Pokaż/ })).toHaveCount(0)
+  await app.seedSession(manualWorkoutSession({ id: 'seven', workoutDate: shiftCalendarDate(current, -42) }))
+  await chart.getByRole('button', { name: 'Pokaż 7 tygodni', exact: true }).click()
+  await expect(chart.locator('.progress-week-column:visible')).toHaveCount(7)
+  await expect(chart.locator('[aria-live="polite"]')).toHaveText('Pokazano 7 tygodni')
+  await chart.getByRole('button', { name: 'Pokaż mniej', exact: true }).click()
+  await expect(chart.getByRole('link')).toHaveCount(5)
+  await expect(chart.locator('[aria-live="polite"]')).toHaveText('Pokazano 5 tygodni')
+})
+
+test('redirects a dated History link to Monday and opens the local month without a week filter', async ({ app, page }) => {
+  await page.clock.setFixedTime(new Date('2026-04-01T12:00:00.000Z'))
+  await app.open('/progress?tab=history&week=2026-04-01&view=keep#example')
+  await expect(page).toHaveURL(/tab=history&week=2026-03-30&view=keep#example$/)
+  await app.seedSession(manualWorkoutSession({ id: 'april', workoutDate: '2026-04-01' }))
+  await expect(page.getByRole('article')).toHaveCount(1)
+  await page.getByRole('radio', { name: 'Miesiąc', exact: true }).check()
+  const calendar = page.getByRole('region', { name: 'Kalendarz treningów', exact: true })
+  await expect(calendar.getByRole('heading', { name: 'marzec 2026', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Wszystkie tygodnie', exact: true }).click()
+  await expect(calendar.getByRole('heading', { name: 'kwiecień 2026', exact: true })).toBeVisible()
+  await expect(calendar.getByRole('button', { name: '2026-04-01: 1 trening', exact: true })).toBeVisible()
 })

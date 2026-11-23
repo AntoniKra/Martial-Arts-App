@@ -18,9 +18,13 @@ export function currentWeekStart(now = new Date(), timezone = Intl.DateTimeForma
   return weekStartForDate(calculateWorkoutDate(now.toISOString(), timezone))
 }
 
-export function isMonday(date: string): boolean {
+export function isCalendarDate(date: string): boolean {
+  const timestamp = Date.parse(`${date}T12:00:00.000Z`)
   return /^\d{4}-\d{2}-\d{2}$/.test(date)
-    && Number.isFinite(Date.parse(`${date}T12:00:00.000Z`))
-    && new Date(`${date}T12:00:00.000Z`).toISOString().slice(0, 10) === date
-    && new Date(`${date}T12:00:00.000Z`).getUTCDay() === 1
+    && Number.isFinite(timestamp)
+    && new Date(timestamp).toISOString().slice(0, 10) === date
+}
+
+export function isMonday(date: string): boolean {
+  return isCalendarDate(date) && new Date(`${date}T12:00:00.000Z`).getUTCDay() === 1
 }

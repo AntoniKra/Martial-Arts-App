@@ -66,5 +66,5 @@ test('changes planned sparring intensity offline and includes saved hard rounds 
   const summary = page.getByRole('region', { name: 'Podsumowanie treningów', exact: true })
   const rounds = summary.locator('dl > div').filter({ has: page.locator('dt', { hasText: /^Twarde rundy sparingu$/ }) })
   await expect(rounds.getByRole('definition').first()).toHaveText('3')
-  await expect(rounds.getByText('Intensywność znana w 0 z 1 treningów ze sparingiem', { exact: true })).toBeVisible()
+  await expect(rounds.getByText('Intensywność znana w 0 z 1 treningu ze sparingiem', { exact: true })).toBeVisible()
 })
