@@ -52,6 +52,7 @@ function observeSession(service = createFirebaseAuthService(config)) {
 }
 
 const verifiedSession = { uid: 'athlete', email: 'athlete@example.test', emailVerified: true }
+const networkError = { code: 'auth/network-request-failed' }
 
 describe('Firebase AuthService', () => {
   it.each(['athlete-app.example.test', 'another-app.example.test'])('uses the configured app domain %s for both email actions', async (authDomain) => {
@@ -197,6 +198,66 @@ describe('Firebase AuthService', () => {
     await onTokenChanged(fake.user)
     expect(onState).toHaveBeenLastCalledWith({ status: 'error' })
     expect(fake.user.getIdToken).toHaveBeenCalledExactlyOnceWith(true)
+  })
+
+  it.each([false, true])('opens the cached session offline with emailVerified=%s without waiting for Auth', async (emailVerified) => {
+    vi.stubGlobal('navigator', { onLine: false })
+    fake.user.emailVerified = emailVerified
+    const service = createFirebaseAuthService(config)
+    const { onState, onTokenChanged } = observeSession(service)
+    const session = { ...verifiedSession, emailVerified }
+    await onTokenChanged(fake.user)
+    await expect(service.refreshVerification()).resolves.toEqual(session)
+    expect(onState).toHaveBeenCalledExactlyOnceWith({ status: 'ready', session })
+    expect(fake.user.getIdTokenResult).not.toHaveBeenCalled()
+    expect(fake.user.getIdToken).not.toHaveBeenCalled()
+    expect(sdk.reload).not.toHaveBeenCalled()
+  })
+
+  it('uses the cached session if a non-forced token read fails with a network error', async () => {
+    vi.stubGlobal('navigator', { onLine: true })
+    const { onState, onTokenChanged } = observeSession()
+    fake.user.emailVerified = true
+    fake.user.getIdTokenResult.mockRejectedValue(networkError)
+    await onTokenChanged(fake.user)
+    expect(fake.user.getIdTokenResult).toHaveBeenCalledExactlyOnceWith()
+    expect(fake.user.getIdToken).not.toHaveBeenCalled()
+    expect(onState).toHaveBeenCalledExactlyOnceWith({ status: 'ready', session: verifiedSession })
+  })
+
+  it('uses the cached session if the forced token refresh fails with a network error', async () => {
+    vi.stubGlobal('navigator', { onLine: true })
+    const { onState, onTokenChanged } = observeSession()
+    fake.user.emailVerified = true
+    fake.user.getIdToken.mockRejectedValue(networkError)
+    await onTokenChanged(fake.user)
+    expect(fake.user.getIdToken).toHaveBeenCalledExactlyOnceWith(true)
+    expect(onState.mock.calls).toEqual([[{ status: 'loading' }], [{ status: 'ready', session: verifiedSession }]])
+  })
+
+  it('does not start a forced token refresh if connectivity drops during the token read', async () => {
+    const browser = { onLine: true }
+    vi.stubGlobal('navigator', browser)
+    const { onState, onTokenChanged } = observeSession()
+    fake.user.emailVerified = true
+    fake.user.getIdTokenResult.mockImplementation(async () => {
+      browser.onLine = false
+      return { claims: { email_verified: false } }
+    })
+    await onTokenChanged(fake.user)
+    expect(fake.user.getIdToken).not.toHaveBeenCalled()
+    expect(onState).toHaveBeenCalledExactlyOnceWith({ status: 'ready', session: verifiedSession })
+  })
+
+  it('keeps the unverified session when reloading the profile fails with a network error', async () => {
+    const service = createFirebaseAuthService(config)
+    const { onState, onTokenChanged } = observeSession(service)
+    const session = { ...verifiedSession, emailVerified: false }
+    await onTokenChanged(fake.user)
+    vi.mocked(sdk.reload).mockRejectedValue(networkError)
+    await expect(service.refreshVerification()).resolves.toEqual(session)
+    expect(sdk.reload).toHaveBeenCalledOnce()
+    expect(onState).toHaveBeenCalledExactlyOnceWith({ status: 'ready', session })
   })
 
   it('ignores a stale claim read after a newer token event verifies the session', async () => {

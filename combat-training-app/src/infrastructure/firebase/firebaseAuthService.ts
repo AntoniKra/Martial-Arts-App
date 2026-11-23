@@ -13,6 +13,21 @@ import type { FirebaseConfig } from './firebaseConfig'
 import { createActiveWorkoutRepository } from '@/infrastructure/storage/activeWorkoutStorage'
 import { createCompletedWorkoutStorage } from '@/infrastructure/storage/completedWorkoutStorage'
 
+function isOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false
+}
+
+function isNetworkFailure(error: unknown): boolean {
+  return isOffline() || (typeof error === 'object' && error !== null && 'code' in error
+    && error.code === 'auth/network-request-failed')
+}
+
+function readCachedSession(user: User): AuthSession {
+  if (typeof user.uid !== 'string' || !user.uid || typeof user.email !== 'string' || !user.email
+    || typeof user.emailVerified !== 'boolean') throw new Error('Invalid authentication session')
+  return { uid: user.uid, email: user.email, emailVerified: user.emailVerified }
+}
+
 async function hasVerifiedEmailClaim(user: User): Promise<boolean> {
   return (await user.getIdTokenResult()).claims.email_verified === true
 }
@@ -50,29 +65,37 @@ export function createFirebaseAuthService(
   const refreshAttempts = new WeakMap<User, Promise<void>>()
   let verificationCheck: { user: User; result: Promise<AuthSession | null> } | undefined
 
-  async function toSession(
+  async function checkSession(
     user: User, isCurrent = () => auth.currentUser === user, onChecking?: () => void,
   ): Promise<AuthSession | null> {
-    if (typeof user.uid !== 'string' || !user.uid || typeof user.email !== 'string' || !user.email
-      || typeof user.emailVerified !== 'boolean') throw new Error('Invalid authentication session')
+    const cachedSession = readCachedSession(user)
+    // A non-forced token read can still make a network request when the token has expired.
+    if (isOffline()) return cachedSession
 
-    const emailVerified = await hasVerifiedEmailClaim(user)
-    if (!isCurrent()) return null
-    if (emailVerified || !user.emailVerified) {
-      refreshAttempts.delete(user)
-      return { uid: user.uid, email: user.email, emailVerified }
-    }
+    try {
+      const emailVerified = await hasVerifiedEmailClaim(user)
+      if (!isCurrent()) return null
+      if (isOffline()) return cachedSession
+      if (emailVerified || !cachedSession.emailVerified) {
+        refreshAttempts.delete(user)
+        return { ...cachedSession, emailVerified }
+      }
 
-    onChecking?.()
-    // getIdToken(true) can notify onIdTokenChanged again. Share the attempt, including a
-    // failure, until the mismatch clears or the app is reloaded via the session retry.
-    let attempt = refreshAttempts.get(user)
-    if (!attempt) {
-      attempt = refreshVerifiedEmailClaim(user)
-      refreshAttempts.set(user, attempt)
+      onChecking?.()
+      // A forced refresh can notify onIdTokenChanged again. Share the attempt, including
+      // a failure, until the mismatch clears or the app is reloaded via the session retry.
+      let attempt = refreshAttempts.get(user)
+      if (!attempt) {
+        attempt = refreshVerifiedEmailClaim(user)
+        refreshAttempts.set(user, attempt)
+      }
+      await attempt
+      return isCurrent() ? { ...cachedSession, emailVerified: true } : null
+    } catch (error) {
+      if (!isCurrent()) return null
+      if (isNetworkFailure(error)) return cachedSession
+      throw error
     }
-    await attempt
-    return isCurrent() ? { uid: user.uid, email: user.email, emailVerified: true } : null
   }
 
   let redirectResult: ReturnType<typeof getRedirectResult> | undefined
@@ -121,12 +144,14 @@ export function createFirebaseAuthService(
     async refreshVerification() {
       const user = auth.currentUser
       if (!user) return null
+      if (isOffline()) return readCachedSession(user)
       if (verificationCheck?.user === user) return verificationCheck.result
       // reload also notifies onIdTokenChanged, which publishes the checked session.
-      const result = reload(user).then(async () => auth.currentUser === user ? toSession(user) : null)
+      const result = reload(user).then(async () => auth.currentUser === user ? checkSession(user) : null)
         .catch((error: unknown) => {
-          if (auth.currentUser === user) throw error
-          return null
+          if (auth.currentUser !== user) return null
+          if (isNetworkFailure(error)) return readCachedSession(user)
+          throw error
         })
         .finally(() => {
           if (verificationCheck?.result === result) verificationCheck = undefined
@@ -149,7 +174,7 @@ export function createFirebaseAuthService(
         const check = ++revision
         const isCurrent = () => check === revision && auth.currentUser === user
         try {
-          const session = user && await toSession(user, isCurrent, () => onState({ status: 'loading' }))
+          const session = user && await checkSession(user, isCurrent, () => onState({ status: 'loading' }))
           if (isCurrent()) onState({ status: 'ready', session })
         } catch {
           if (isCurrent()) onState({ status: 'error' })

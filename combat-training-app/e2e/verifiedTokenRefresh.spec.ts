@@ -35,10 +35,14 @@ test('checks background verification when the verification screen regains focus'
   await expect(plan).toBeVisible()
 })
 
-test('offers a session retry when the token refresh fails', async ({ page }) => {
+test('offers a session retry when Auth rejects the token refresh', async ({ page }) => {
   const plan = await registerForPlans(page)
   await page.route((url) => url.origin === 'http://127.0.0.1:9099' && url.pathname === '/securetoken.googleapis.com/v1/token',
-    (route) => route.abort(), { times: 1 })
+    (route) => route.fulfill({
+      status: 400,
+      headers: { 'access-control-allow-origin': '*' },
+      json: { error: { message: 'INTERNAL_ERROR' } },
+    }), { times: 1 })
   await page.reload()
   await expect(page.getByRole('alert')).toContainText('Nie udało się odczytać sesji.')
   await page.getByRole('button', { name: 'Spróbuj ponownie', exact: true }).click()
