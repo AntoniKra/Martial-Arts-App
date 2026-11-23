@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { mapWorkoutSessionSaveError } from '@/app/mapWorkoutSessionSaveError'
-import type { WorkoutSession } from '@/domain/workout-session/workoutSession.types'
+import type { RecordedWorkoutSession } from '@/application/workout-session/workoutSessionRepository'
 
 export type WorkoutSessionSaveState =
   | { status: 'idle' }
@@ -9,9 +9,9 @@ export type WorkoutSessionSaveState =
   | { status: 'error'; message: string }
 
 interface UseWorkoutSessionAutoSaveOptions {
-  completedSession: WorkoutSession | null
+  completedSession: RecordedWorkoutSession | null
   runGeneration: number
-  saveWorkoutSession: (session: WorkoutSession) => Promise<void>
+  saveWorkoutSession: (session: RecordedWorkoutSession) => Promise<void>
 }
 
 export function useWorkoutSessionAutoSave({ completedSession, runGeneration, saveWorkoutSession }: UseWorkoutSessionAutoSaveOptions) {

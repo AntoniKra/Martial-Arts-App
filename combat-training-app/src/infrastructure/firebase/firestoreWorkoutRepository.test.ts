@@ -109,6 +109,23 @@ describe('Firestore collection repository', () => {
     rejectServer(new Error('permission-denied'))
     await vi.waitFor(() => expect(onError).toHaveBeenCalledOnce())
   })
+  it('routes a tracked late rejection to the write caller and keeps the collection readable', async () => {
+    let rejectServer!: (error: Error) => void
+    sdk.set.mockImplementation(() => new Promise((_resolve, reject) => { rejectServer = reject }))
+    const repository = new FirestoreWorkoutRepository({} as Firestore, 'athlete', 'workoutPlans', parse)
+    const onCollectionError = vi.fn()
+    const onServerRejection = vi.fn()
+    repository.subscribe(vi.fn(), onCollectionError)
+    const local = repository.save(plan, undefined, onServerRejection)
+    emit([document(undefined, true)], true)
+    await local
+    const rejection = new Error('permission-denied')
+    rejectServer(rejection)
+    emit([])
+    await vi.waitFor(() => expect(onServerRejection).toHaveBeenCalledWith(rejection))
+    expect(onCollectionError).not.toHaveBeenCalled()
+    expect(repository.getItems()).toEqual([])
+  })
   it('rejects an interrupted local save and closes the listener', async () => {
     const repository = new FirestoreWorkoutRepository({} as Firestore, 'athlete', 'workoutPlans', parse)
     const stop = repository.subscribe(vi.fn(), vi.fn())
