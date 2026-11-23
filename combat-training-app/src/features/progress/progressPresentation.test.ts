@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import { manualWorkoutSession } from '@/test/manualWorkoutBuilder'
-import { latestOpenCorrection, weekSummaryTile } from './progressPresentation'
+import { formatSparringRounds, latestOpenCorrection, weekSummaryTile } from './progressPresentation'
 
 const instant = '2026-11-18T12:00:00.000Z'
 
@@ -41,5 +41,14 @@ describe('latest open correction', () => {
     const late = manualWorkoutSession({ id: 'late', workoutDate: date, createdAt: `${date}T14:00:00Z` })
     expect(latestOpenCorrection([skill('early', date), skill('late', date)], [late, early]))
       .toMatchObject({ skillId: 'late', session: late })
+  })
+})
+
+describe('sparring rounds label', () => {
+  it('shows a plain count, a lower bound, or an unknown count', () => {
+    expect(formatSparringRounds(12, 0)).toBe('12')
+    expect(formatSparringRounds(12, 1)).toBe('≥ 12')
+    expect(formatSparringRounds(0, 1)).toBe('?')
+    expect(formatSparringRounds(0, 0)).toBe('0')
   })
 })

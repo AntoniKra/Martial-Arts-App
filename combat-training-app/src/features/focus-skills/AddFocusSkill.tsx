@@ -21,7 +21,7 @@ export function AddFocusSkill({ manual = false, empty = false }: { manual?: bool
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   return <div>
-    <Button variant={empty ? 'primary' : 'secondary'} className={manual ? undefined : 'progress-add-skill'}
+    <Button variant={empty ? 'primary' : 'secondary'} size={manual || empty ? 'md' : 'sm'} className={manual ? undefined : 'progress-add-skill'}
       aria-expanded={open} onClick={() => setOpen(!open)}>{manual || empty ? '+ Dodaj element do poprawy' : '+ Dodaj'}</Button>
     {open && <SkillDialog onClose={() => setOpen(false)}><FocusSkillForm busy={busy} onCancel={() => setOpen(false)} onSave={async (values) => {
       setBusy(true)

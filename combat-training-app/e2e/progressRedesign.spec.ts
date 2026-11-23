@@ -21,7 +21,7 @@ test('aligns the weekly tiles at both phone widths in both themes', async ({ app
   await expect(progress).toHaveAttribute('aria-valuetext', '1 z 3')
   const cards = ['Plan tygodnia', 'minut', 'rund sparingu'].map((label) =>
     summary.getByRole('term').filter({ hasText: new RegExp(`^${label}$`, 'i') }).locator('..'))
-  await expect(cards[2].getByRole('definition')).toHaveText('≥ 0')
+  await expect(cards[2].getByRole('definition')).toHaveText('?')
   const viewport = page.viewportSize()!
   for (const width of info.project.name === 'phone' ? [360, 390] : [viewport.width]) {
     await page.setViewportSize({ ...viewport, width })

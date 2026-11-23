@@ -22,7 +22,7 @@ import { WeekDayIndicator } from '@/components/domain/WeekDayIndicator'
 import { weekDayState } from '@/components/domain/weekDayPresentation'
 import { weekdays } from '@/features/week-plan/scheduleLabels'
 import { progressLabels as labels } from './progressLabels'
-import { weekSummaryTile } from './progressPresentation'
+import { formatSparringRounds, weekSummaryTile } from './progressPresentation'
 import { ProgressMoreIcon, type ProgressMoreIconKind } from './ProgressMoreIcon'
 
 function MoreTile({ kind, title, value, hint, children }: {
@@ -76,7 +76,7 @@ export function ProgressOverview() {
             <dt>{labels.minutes}</dt><dd>{Math.ceil(summary.durationSeconds / 60).toLocaleString('pl-PL')}</dd>
           </dl>
           <dl className="progress-summary-mini">
-            <dt>{labels.sparringRounds}</dt><dd>{`${rounds.unknown ? '≥ ' : ''}${rounds.rounds}`}</dd>
+            <dt>{labels.sparringRounds}</dt><dd>{formatSparringRounds(rounds.rounds, rounds.unknown)}</dd>
           </dl>
         </div>
       </div>
@@ -117,7 +117,7 @@ export function ProgressMore() {
   return <section aria-label={labels.more} className="space-y-2">
     <h2 className="font-display text-base font-extrabold">{labels.more}</h2>
     <div className="space-y-1.5">
-      <MoreTile kind="sparring" title={labels.sparring} value={ready ? `${sparring.unknown ? '≥ ' : ''}${sparring.rounds} rund` : labels.noData} hint={ready ? labels.sparringWorkouts(sparring.workouts) : labels.historyUnavailable}>
+      <MoreTile kind="sparring" title={labels.sparring} value={ready ? `${formatSparringRounds(sparring.rounds, sparring.unknown)} rund` : labels.noData} hint={ready ? labels.sparringWorkouts(sparring.workouts) : labels.historyUnavailable}>
         {sparring.unknown > 0 && <p className="text-sm text-muted">{labels.unknownRounds(sparring.unknown)}</p>}
         <WeeklySummary weekStart={currentWeek} showTrends={false} /><ProfileStatistics today={today} recentOnly />
       </MoreTile>

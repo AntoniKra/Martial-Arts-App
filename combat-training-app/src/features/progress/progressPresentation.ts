@@ -18,3 +18,9 @@ export function latestOpenCorrection(skills: readonly FocusSkill[], sessions: re
   }
   return latest
 }
+
+/** Round count for display; "?" when every sparring workout in the range has an unknown round count. */
+export function formatSparringRounds(rounds: number, unknown: number): string {
+  if (unknown > 0 && rounds === 0) return '?'
+  return `${unknown > 0 ? '≥ ' : ''}${rounds}`
+}
