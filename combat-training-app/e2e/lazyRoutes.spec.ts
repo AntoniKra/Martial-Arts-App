@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures'
 import { authLabels } from '../src/features/auth/authLabels'
 import { routeErrorLabels as labels } from '../src/app/routeErrorLabels'
+import { sessionStep, workoutSession } from '../src/test/workoutSessionBuilders'
 
 test.use({ screenshot: 'off' })
 
@@ -21,7 +22,7 @@ for (const theme of ['dark', 'light'] as const) {
     }
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) =>
       impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
-    if (testInfo.project.name === 'phone') {
+    if (testInfo.project.name === 'phone' && process.env.CAPTURE_SCREENSHOTS !== '0') {
       await page.evaluate(() => document.fonts.ready)
       await page.screenshot({ path: `docs/screenshots/issue-95/route-error-${theme}-360x800.png`, fullPage: true })
     }
@@ -30,6 +31,28 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.getByRole('textbox', { name: 'Nazwa planu' })).toBeVisible()
   })
 }
+
+test('defers Firestore until sign-in and the journal until opening history', async ({ app, page }) => {
+  const requested: string[] = []
+  page.on('request', (request) => requested.push(new URL(request.url()).pathname))
+  const firestore = /\/assets\/(createFirestoreRepositories|firestore-re2js)-.*\.js$/
+  const journal = /\/assets\/HistoryJournal-.*\.js$/
+
+  await page.goto('/login')
+  await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
+  expect(requested.filter((url) => firestore.test(url))).toEqual([])
+
+  await app.open('/workouts')
+  await app.seedSession(workoutSession({ workoutPlanNameSnapshot: 'Plan dziennika', stepResults: [sessionStep()] }))
+  await app.open('/progress')
+  expect(requested.some((url) => url.startsWith('/assets/createFirestoreRepositories-'))).toBe(true)
+  expect(requested.some((url) => url.startsWith('/assets/firestore-re2js-'))).toBe(true)
+  expect(requested.some((url) => journal.test(url))).toBe(false)
+
+  await page.getByRole('radio', { name: 'Historia', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Plan dziennika', exact: true })).toBeVisible()
+  expect(requested.some((url) => journal.test(url))).toBe(true)
+})
 
 test('covers existing progress routes and returns home after an import failure', async ({ app, page }) => {
   await app.open()

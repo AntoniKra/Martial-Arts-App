@@ -58,6 +58,20 @@ export default defineConfig({
       clientsClaim: true,
     },
   })],
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [{
+            // Separate Firestore's regex engine within the existing deferred import graph.
+            name: 'firestore-re2js',
+            test: /[/\\]node_modules[/\\]re2js[/\\]/,
+            includeDependenciesRecursively: false,
+          }],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),

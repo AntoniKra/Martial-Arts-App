@@ -1,12 +1,11 @@
 import { RouteScreenHeader } from '@/components/ScreenHeader'
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
 import { homeLabels } from '@/features/home/homeLabels'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
-import { HistoryJournal } from './HistoryJournal'
 import { workoutsFilterLabels } from '../workoutsFilterLabels'
 import { WorkoutPlanCard } from '@/features/workouts/components/WorkoutPlanCard'
 import { WorkoutsEmptyState } from '@/features/workouts/components/WorkoutsEmptyState'
@@ -22,6 +21,8 @@ import {
   filterWorkoutHistory,
   filterWorkoutPlans,
 } from '@/features/workouts/utils/workoutsFilters'
+
+const HistoryJournal = lazy(() => import('./HistoryJournal').then(({ HistoryJournal }) => ({ default: HistoryJournal })))
 
 interface WorkoutsViewProps {
   tab?: WorkoutsTab
@@ -200,7 +201,9 @@ export function WorkoutsView({
     }
 
     return (
-      <HistoryJournal history={filteredHistory} sortOrder={filters.sortOrder} onUpdateNote={onUpdateSessionNote} onDelete={onDeleteSession} />
+      <Suspense fallback={<WorkoutHistoryLoadingState />}>
+        <HistoryJournal history={filteredHistory} sortOrder={filters.sortOrder} onUpdateNote={onUpdateSessionNote} onDelete={onDeleteSession} />
+      </Suspense>
     )
   }
 
