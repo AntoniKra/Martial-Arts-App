@@ -88,7 +88,7 @@ for (const width of [360, 390]) {
       await expect(plannedToggle).toHaveAttribute('aria-expanded', 'true')
       await expect(plannedToggle.locator('.disclosure-chevron')).toHaveCSS('transform', 'none')
       await expect(planned.getByRole('term')).toHaveText(['Czas trwania', 'Odczucie RPE', 'Ćwiczenia', 'Sparing'])
-      await expect(planned.getByText('Bardzo ciężko', { exact: true })).toBeVisible()
+      await expect(planned.getByText('7 / 10 · Bardzo ciężko', { exact: true })).toBeVisible()
       await expect(planned.getByText('zakończenie 18:30', { exact: true })).toBeVisible()
       await expect(planned.getByText('Powrót do gardy.', { exact: true })).toBeVisible()
       await expectTouchTarget(planned.getByRole('button', { name: 'Edytuj notatkę', exact: true }))
