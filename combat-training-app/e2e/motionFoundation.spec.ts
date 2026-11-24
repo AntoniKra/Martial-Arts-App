@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
-import { test, expect } from './fixtures'
+import { test, expect, openProfile } from './fixtures'
 import { manualWorkoutSession } from '../src/test/manualWorkoutBuilder'
 import { generateScheduledWeek } from '../src/domain/week-plan/scheduledWeek'
 
@@ -57,8 +57,11 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
       await expect(collapsedLinks).toHaveCount(5)
       expect(await collapsedLinks.evaluateAll((links) => links.map((link) => link.getAttribute('aria-label')))).toEqual(values)
       await accessible(page)
-      // Navigating back creates a ready chart again, even after an earlier toggle.
-      await app.open('/profile'); await app.open('/progress')
+      // Keep the Firestore connection open while remounting the chart.
+      await openProfile(page)
+      const nav = page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).filter({ visible: true })
+      await nav.getByRole('link', { name: 'Postęp', exact: true }).click()
+      await expect(chart.locator('.is-current').getByRole('link', { name: /: 1 trening\b/ })).toBeVisible()
       await expect(chart.getByRole('link')).toHaveCount(5)
       await expect(bar).toHaveCSS('transition-duration', '0s')
     })
