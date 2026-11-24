@@ -12,7 +12,7 @@ export function PlayIcon({ className = '' }: PlayIconProps) {
       className={className}
       aria-hidden="true"
     >
-      <polygon points="5,3 19,12 5,21" />
+      <polygon points="6,4 20,12 6,20" />
     </svg>
   )
 }

@@ -7,19 +7,24 @@ async function checkGeometry(page: Page, label: string, bottomInset = 0) {
   const primary = page.getByRole('button', { name: label, exact: true })
   const footer = page.locator('.controls-bottom-bar')
   await expect(page.getByRole('main')).toHaveCSS('min-height', `${viewport.height}px`)
+  await expect(footer).toHaveCSS('padding-top', '8px')
   await expect(footer).toHaveCSS('padding-bottom', `${12 + bottomInset}px`)
   const box = (await primary.boundingBox())!
-  expect([box.width, box.height]).toEqual([88, 88])
+  expect([box.width, box.height]).toEqual([96, 96])
   expect(box.x).toBeGreaterThanOrEqual(0)
   expect(box.x + box.width).toBeLessThanOrEqual(viewport.width)
   expect(box.y + box.height).toBeCloseTo(viewport.height - bottomInset - 12)
-  await expect(primary.locator('.diamond-shape-3b')).toHaveCSS('width', '62px')
-  await expect(primary.locator('.diamond-shape-3b')).toHaveCSS('height', '62px')
-  await expect(primary.locator('svg')).toHaveCSS('width', '28px')
-  await expect(primary.locator('svg')).toHaveCSS('height', '28px')
+  const shape = primary.locator('.diamond-shape-3b')
+  await expect(shape).toHaveCSS('width', '68px')
+  await expect(shape).toHaveCSS('height', '68px')
+  await expect(shape).toHaveCSS('border-radius', '0px')
+  await expect(shape).toHaveCSS('border-width', '0px')
+  await expect(shape).toHaveCSS('box-shadow', 'rgba(184, 16, 42, 0.45) 0px 4px 18px 0px')
+  await expect(primary.locator('svg')).toHaveCSS('width', '31px')
+  await expect(primary.locator('svg')).toHaveCSS('height', '31px')
   for (const name of ['Poprzedni etap', 'Następny etap']) {
     const side = (await page.getByRole('button', { name, exact: true }).boundingBox())!
-    expect([side.width, side.height]).toEqual([52, 52])
+    expect([side.width, side.height]).toEqual([58, 58])
     expect(side.y + side.height / 2).toBe(box.y + box.height / 2)
   }
   const next = (await page.getByText('Następnie:', { exact: false }).last().boundingBox())!
@@ -47,6 +52,8 @@ for (const theme of ['dark', 'light'] as const) {
     await app.openPlayer()
     await app.freezeClock()
     await page.evaluate(() => document.fonts.ready)
+    const initialViewport = page.viewportSize()!
+    if (testInfo.project.name === 'phone') await page.setViewportSize({ width: 360, height: 640 })
     await checkGeometry(page, 'Rozpocznij trening')
     await page.getByRole('button', { name: 'Rozpocznij trening', exact: true }).click()
     await checkGeometry(page, 'Zacznij teraz')
@@ -54,21 +61,18 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(page.getByText('PRACA', { exact: true })).toBeVisible()
 
     const viewports = [page.viewportSize()!]
-    if (testInfo.project.name === 'phone') viewports.push({ width: 390, height: 844 })
+    if (testInfo.project.name === 'phone') viewports.push(initialViewport, { width: 390, height: 844 })
     for (const viewport of viewports) {
       await page.setViewportSize(viewport)
       const primary = page.getByRole('button', { name: 'Pauza', exact: true })
-      const shape = primary.locator('.diamond-shape-3b')
       const box = await checkGeometry(page, 'Pauza')
-      await expect(shape).toHaveCSS('border-top-width', '2px')
-      await expect(shape).toHaveCSS('border-top-color', 'rgb(255, 255, 255)')
       await page.getByRole('button', { name: 'Poprzedni etap', exact: true }).focus()
       await page.keyboard.press('Tab')
       await expect(primary).toBeFocused()
       await page.keyboard.press('Space')
       await expect(page.getByText('WSTRZYMANO', { exact: true })).toBeVisible()
       await checkGeometry(page, 'Wznów')
-      // The corner of the 88 px target and the bottom tip both belong to the button.
+      // The corner of the 96 px target and the bottom tip both belong to the button.
       await page.mouse.click(box.x + 1, box.y + 1)
       await expect(primary).toBeVisible()
       await page.mouse.click(box.x + box.width / 2, box.y + box.height - 1)

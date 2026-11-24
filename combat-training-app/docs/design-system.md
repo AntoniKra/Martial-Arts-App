@@ -52,6 +52,12 @@ Aktywna pozycja **Trening** w dolnym menu wyróżnia się kolorem etykiety i ma 
 
 Etykiety dolnego menu: Archivo 10 px, grubość 700, odstęp liter 0,05 em, wielkie litery. Ikony 20 px, kreska 2,25. Pozycje nieaktywne mają kolor `--app-muted` (wcześniej `--app-faint`), aktywna `--app-ink` z ikoną w `--app-crimson-ink` (decyzja właściciela 24.11, panel porównawczy).
 
+## Sterowanie odtwarzacza (#253)
+
+Wiersz sterowania ma 96 px wysokości i zachowuje 8 px górnego odstępu. Boczne przyciski „Poprzedni etap” i „Następny etap” (wariant E) mają obszary dotyku 58×58 px, romby z kwadratów 46×46 px obróconych o 45° i proste ikony 26 px. Tło rombu to `currentColor` z kryciem 9%. Każdy wierzchołek ma narożnik w kształcie L o wymiarach 12×2 px w kolorze `--app-ember`. Wyłączone przyciski są przygaszone.
+
+Środkowy przycisk (M5) ma obszar dotyku 96×96 px, ostro zakończony romb z kwadratu 68×68 px obróconego o 45° i prostą ikonę 31 px. Romb ma gradient odtwarzacza, czerwony cień i narożniki żaru 16×2,5 px na krawędzi. Wszystkie romby mają kształt bez obwódki. Środkowy pokazuje rombową obwódkę fokusu 2 px przy nawigacji klawiaturą. W przygotowaniu „Zacznij teraz” jest dostępną nazwą przycisku i nie pojawia się w plakietce. Układ mieści się bez przewijania na 360×640 i 390×844 w obu motywach, także z kartą elementu do poprawy w przerwie.
+
 ## Light mode
 
 Light mode używa przewagi jasnej szarości i bieli, grafitowego tekstu oraz tej samej czerwieni. Komponenty nie mogą zakładać na stałe ciemnego tła.

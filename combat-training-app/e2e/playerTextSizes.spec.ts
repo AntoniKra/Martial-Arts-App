@@ -135,7 +135,7 @@ for (const theme of ['dark', 'light'] as const) {
     await page.getByRole('button', { name: 'Wznów', exact: true }).click()
     await page.clock.setFixedTime(new Date(start + 55_000))
     await checkPhase('warning', 'OSTATNIE SEKUNDY')
-    await expect(page.locator('.diamond-shape-3b')).toHaveCSS('border-top-width', '2px')
+    await expect(page.getByRole('button', { name: 'Pauza', exact: true }).locator('.diamond-shape-3b')).toHaveCSS('border-width', '0px')
 
     const goNext = page.getByRole('button', { name: 'Następny etap', exact: true })
     await goNext.click()
