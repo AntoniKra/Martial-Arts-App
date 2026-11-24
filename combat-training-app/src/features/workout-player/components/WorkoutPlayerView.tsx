@@ -10,6 +10,7 @@ import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
+import { focusSkillLabels } from '@/features/focus-skills/focusSkillLabels'
 import type { RecordedWorkoutSession } from '@/application/workout-session/workoutSessionRepository'
 import { WorkoutCircularTimer } from '@/features/workout-player/components/WorkoutCircularTimer'
 import { WorkoutPlayerControls } from '@/features/workout-player/components/WorkoutPlayerControls'
@@ -31,11 +32,13 @@ import { readStoredWorkoutPreparation } from '@/infrastructure/storage/workoutPr
 import { quickTimerLabels } from '@/features/quick-timer/quickTimerLabels'
 import { readStoredWorkoutEndWarnings } from '@/infrastructure/storage/workoutEndWarningStorage'
 import { countRemainingExerciseRounds } from '@/features/workout-player/utils/countRemainingExerciseRounds'
+import { selectWorkoutFocusCue } from '@/features/workout-player/utils/selectWorkoutFocusCue'
 import './workoutPlayer.css'
 
 interface WorkoutSummaryOptions {
   source?: 'plan' | 'quickTimer'
   focusSkills?: readonly FocusSkill[]
+  focusCueSkills?: readonly FocusSkill[]
   focusSkillsUnavailable?: boolean
   onSessionSaved?: (sessionId: string) => void
 }
@@ -251,6 +254,7 @@ function WorkoutPlayerCompletedPanel({
 function WorkoutPlayerRuntime({
   source = 'plan',
   focusSkills,
+  focusCueSkills = [],
   focusSkillsUnavailable,
   onSessionSaved,
   initialWorkout,
@@ -346,10 +350,11 @@ function WorkoutPlayerRuntime({
   const hasInstruction = Boolean(currentStep.instruction)
   const instruction = isPreparing ? workoutPlayerLabels.preparationInstruction : currentStep.instruction
   const lowerInstruction = isPreparing || currentStep.kind !== 'break'
+  const focusCue = selectWorkoutFocusCue(playback.status, currentStep, nextStep, plan.blocks, focusCueSkills)
 
   return (
     <main className="workout-player flex min-h-dvh flex-col" data-phase={phase}>
-      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col safe-area-pt">
+      <div className="mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col safe-area-pt">
         {focusSkillsUnavailable && <p role="status" className="player-focus-notice px-5 pt-3 text-sm leading-relaxed">{workoutPlayerLabels.focusSkillsUnavailable}</p>}
         <LiveScreenHeader
           title={plan.nameSnapshot}
@@ -387,6 +392,11 @@ function WorkoutPlayerRuntime({
           {instruction && (
             <p className={lowerInstruction ? 'exercise-technique player-technique-cue' : 'exercise-technique'}>{instruction}</p>
           )}
+          {focusCue?.kind === 'badge' && (
+            <p className="player-focus-badge" title={focusCue.skill.name}>
+              <span aria-hidden="true">★</span>{' '}{focusCue.skill.name}
+            </p>
+          )}
         </div>
         <WorkoutCircularTimer
           key={`${currentStep.id}:${playback.stepRevision}`}
@@ -402,6 +412,13 @@ function WorkoutPlayerRuntime({
             })
           } : undefined}
         />
+        {focusCue?.kind === 'card' && (
+          <div className="player-focus-card" role="note" aria-label={focusSkillLabels.title}>
+            <p className="player-focus-card-label"><span aria-hidden="true">★</span> {focusSkillLabels.title}</p>
+            <p className="player-focus-card-name" title={focusCue.skill.name}>{focusCue.skill.name}</p>
+            <p className="player-focus-card-criterion" title={focusCue.skill.criterion}>{focusCue.skill.criterion}</p>
+          </div>
+        )}
         <WorkoutPlayerNextPreview roundStep={isRoundRest ? nextStep ?? undefined : roundStep} nextStep={nextStep} isLastStep={isLastStep} />
 
         <WorkoutPlayerControls
@@ -441,6 +458,7 @@ function WorkoutPlayerRuntime({
 function WorkoutPlayerActiveContent({
   source,
   focusSkills,
+  focusCueSkills,
   focusSkillsUnavailable,
   onSessionSaved,
   initialWorkout,
@@ -477,6 +495,7 @@ function WorkoutPlayerActiveContent({
     <WorkoutPlayerRuntime
       source={source}
       focusSkills={focusSkills}
+      focusCueSkills={focusCueSkills}
       focusSkillsUnavailable={focusSkillsUnavailable}
       onSessionSaved={onSessionSaved}
       initialWorkout={initialWorkout}
@@ -493,6 +512,7 @@ function WorkoutPlayerActiveContent({
 export function WorkoutPlayerView({
   source,
   focusSkills,
+  focusCueSkills,
   focusSkillsUnavailable,
   onSessionSaved,
   initialWorkout,
@@ -526,6 +546,7 @@ export function WorkoutPlayerView({
       <WorkoutPlayerActiveContent
         source={source}
         focusSkills={focusSkills}
+        focusCueSkills={focusCueSkills}
         focusSkillsUnavailable={focusSkillsUnavailable}
         onSessionSaved={onSessionSaved}
         initialWorkout={initialWorkout}

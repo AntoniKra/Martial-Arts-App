@@ -15,6 +15,7 @@
   --player-paused-ring: #71717a;
   --player-arc-track: rgb(255 255 255 / .18);
   --player-panel-border: rgb(255 255 255 / .12);
+  --player-focus-badge-border: rgb(255 255 255 / .28);
   --player-next-bg: rgb(0 0 0 / .22);
   --player-controls-bg: rgb(0 0 0 / .28);
   --player-control-bg: rgb(255 255 255 / .08);
@@ -60,6 +61,7 @@
   --player-paused-ring: #848490;
   --player-arc-track: rgb(0 0 0 / .12);
   --player-panel-border: rgb(0 0 0 / .08);
+  --player-focus-badge-border: rgb(0 0 0 / .18);
   --player-next-bg: rgb(255 255 255 / .55);
   --player-controls-bg: rgb(255 255 255 / .5);
   --player-control-bg: rgb(0 0 0 / .04);
@@ -203,6 +205,33 @@
   min-height: 188px;
 }
 
+.player-technique-slot:has(.player-focus-badge) {
+  align-content: end;
+  row-gap: 8px;
+}
+
+.player-technique-slot:has(.player-focus-badge) .player-technique-cue,
+.workout-player[data-phase='preparing']:has(.player-focus-card) .player-technique-cue {
+  position: static;
+}
+
+.player-focus-badge {
+  max-width: min(100%, 330px);
+  overflow: hidden;
+  padding: 4px 10px;
+  border: 1px solid var(--player-focus-badge-border);
+  border-radius: var(--app-radius-sm);
+  font: 600 13px/1.2 var(--font-sans);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workout-player[data-phase='preparing']:has(.player-focus-card) .player-technique-slot {
+  min-height: 0;
+  align-content: center;
+  row-gap: 4px;
+}
+
 .timer-center-area {
   position: relative;
   display: flex;
@@ -311,14 +340,52 @@
 
 .next-preview-area { padding: 0 16px 8px; }
 
+.player-focus-card,
+.next-bar-4b {
+  border: 1px solid var(--player-panel-border);
+  border-radius: var(--app-radius-sm);
+  background: var(--player-next-bg);
+}
+
+.player-focus-card {
+  margin: 0 16px 8px;
+  padding: 10px 14px;
+  border-inline-start: 3px solid var(--app-ember);
+}
+
+.player-focus-card-label {
+  font: 800 11px var(--font-display);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .85;
+}
+
+.player-focus-card-name,
+.player-focus-card-criterion {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+}
+
+.player-focus-card-name {
+  margin-top: 3px;
+  font: 800 17px var(--font-display);
+  -webkit-line-clamp: 2;
+}
+
+.player-focus-card-criterion {
+  margin-top: 2px;
+  font: 400 14px/1.35 var(--font-sans);
+  opacity: .95;
+  -webkit-line-clamp: 3;
+}
+
 .next-bar-4b {
   display: flex;
   flex-direction: column;
   gap: 5px;
   padding: 8px 14px;
-  border: 1px solid var(--player-panel-border);
-  border-radius: var(--app-radius-sm);
-  background: var(--player-next-bg);
 }
 
 .round-dots-row {
@@ -488,6 +555,41 @@
     --player-phase-bottom: 12px;
     --player-technique-size: 22px;
     --player-technique-max: 310px;
+  }
+}
+
+@media (max-height: 720px) {
+  .workout-player:has(.player-focus-card, .player-focus-badge) {
+    height: 100dvh;
+  }
+
+  .workout-player:has(.player-focus-card) .player-technique-slot { min-height: 0; }
+
+  .workout-player:has(.player-focus-card, .player-focus-badge) .timer-center-area {
+    /* Fit the arc to the remaining height after the cue and controls take their space. */
+    --player-timer-padding: 12px;
+    --player-min-arc-size: 140px;
+    --player-adjust-notice-space: 22px;
+    flex: 0 1 calc(var(--player-arc-size) + var(--player-timer-padding) + var(--player-adjust-notice-space));
+    min-height: calc(var(--player-min-arc-size) + var(--player-timer-padding) + var(--player-adjust-notice-space));
+    container-type: size;
+  }
+
+  .workout-player:has(.player-focus-card, .player-focus-badge) .timer-wrap-2b {
+    flex-shrink: 0;
+    width: min(var(--player-arc-size), 100cqw - 80px, 100cqh - var(--player-adjust-notice-space));
+  }
+
+  .workout-player[data-phase='preparing']:has(.player-focus-card) .timer-center-area {
+    --player-timer-padding: 4px;
+    --player-min-arc-size: 116px;
+    --player-adjust-notice-space: 0px;
+    padding-block: 0 var(--player-timer-padding);
+  }
+
+  .workout-player[data-phase='preparing']:has(.player-focus-card) .player-adjust-notice {
+    min-height: 0;
+    margin-top: 0;
   }
 }
 
