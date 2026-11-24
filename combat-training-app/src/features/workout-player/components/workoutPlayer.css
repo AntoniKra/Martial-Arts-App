@@ -19,11 +19,9 @@
   --player-next-bg: rgb(0 0 0 / .22);
   --player-controls-bg: rgb(0 0 0 / .28);
   --player-control-bg: rgb(255 255 255 / .08);
-  --player-control-hover: rgb(255 255 255 / .15);
   --player-control-border: rgb(255 255 255 / .15);
   --player-primary-gradient: linear-gradient(120deg, #b8102a 0%, #cb1531 55%, #f0753a 100%);
-  --player-primary-shadow: 0 4px 18px rgb(184 16 42 / .45), 0 0 12px rgb(240 117 58 / .3);
-  --player-bright-primary-shadow: 0 4px 22px rgb(0 0 0 / .65), 0 0 16px rgb(255 255 255 / .45);
+  --player-primary-shadow: 0 4px 18px rgb(184 16 42 / .45);
   --player-sheet-bg: #18181c;
   --player-sheet-border: #2e2e38;
   --player-sheet-button-border: rgb(255 255 255 / .12);
@@ -65,10 +63,8 @@
   --player-next-bg: rgb(255 255 255 / .55);
   --player-controls-bg: rgb(255 255 255 / .5);
   --player-control-bg: rgb(0 0 0 / .04);
-  --player-control-hover: rgb(0 0 0 / .1);
   --player-control-border: rgb(0 0 0 / .1);
   --player-primary-gradient: linear-gradient(120deg, #a01027 0%, #b5122b 55%, #c24b10 100%);
-  --player-bright-primary-shadow: 0 4px 18px rgb(184 16 42 / .5), 0 0 12px rgb(240 117 58 / .4);
   --player-sheet-bg: var(--player-white);
   --player-sheet-border: #e2e2e8;
   --player-sheet-button-border: rgb(0 0 0 / .12);
@@ -430,6 +426,7 @@
 }
 
 .controls-bottom-bar {
+  flex-shrink: 0;
   border-top: 1px solid var(--player-panel-border);
   background: var(--player-controls-bg);
   padding: 8px 20px calc(12px + env(safe-area-inset-bottom, 0px));
@@ -440,44 +437,70 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 88px;
-}
-
-.player-start-now {
-  margin-bottom: 4px;
-  text-align: center;
-  font: 600 12px/1.5 var(--font-display);
+  height: 96px;
 }
 
 .side-control-btn {
-  width: 52px;
-  height: 52px;
-  min-width: 52px;
-  min-height: 52px;
-  border: 1px solid var(--player-control-border);
-  background: var(--player-control-bg);
-  transition: background-color calc(var(--motion-fast) * 1.5) ease;
+  position: relative;
+  width: 58px;
+  height: 58px;
 }
 
-.side-control-btn:not(:disabled):hover { background: var(--player-control-hover); }
 .side-control-btn:disabled { cursor: not-allowed; opacity: .4; }
 
-.diamond-wrapper-3b { width: 88px; height: 88px; }
+.side-control-btn::before,
+.diamond-shape-3b::before {
+  --player-corner-fill: linear-gradient(var(--app-ember), var(--app-ember));
+  content: '';
+  position: absolute;
+  background:
+    var(--player-corner-fill) left top / var(--player-corner-length) var(--player-corner-thickness) no-repeat,
+    var(--player-corner-fill) left top / var(--player-corner-thickness) var(--player-corner-length) no-repeat,
+    var(--player-corner-fill) right top / var(--player-corner-length) var(--player-corner-thickness) no-repeat,
+    var(--player-corner-fill) right top / var(--player-corner-thickness) var(--player-corner-length) no-repeat,
+    var(--player-corner-fill) left bottom / var(--player-corner-length) var(--player-corner-thickness) no-repeat,
+    var(--player-corner-fill) left bottom / var(--player-corner-thickness) var(--player-corner-length) no-repeat,
+    var(--player-corner-fill) right bottom / var(--player-corner-length) var(--player-corner-thickness) no-repeat,
+    var(--player-corner-fill) right bottom / var(--player-corner-thickness) var(--player-corner-length) no-repeat,
+    var(--player-diamond-fill, transparent);
+  pointer-events: none;
+}
+
+.side-control-btn::before {
+  --player-corner-length: 12px;
+  --player-corner-thickness: 2px;
+  --player-diamond-fill: color-mix(in srgb, currentColor 9%, transparent);
+  width: 46px;
+  height: 46px;
+  transform: rotate(45deg);
+}
+
+.side-control-btn svg {
+  position: relative;
+  width: 26px;
+  height: 26px;
+}
+
+.diamond-wrapper-3b { width: 96px; height: 96px; }
 
 .diamond-wrapper-3b:focus-visible { outline: none; }
 
 .diamond-shape-3b {
-  --app-grad-primary: var(--player-primary-gradient);
   display: grid;
   place-items: center;
-  width: 62px;
-  height: 62px;
+  width: 68px;
+  height: 68px;
   transform: rotate(45deg);
-  border: 1px solid var(--app-ember);
-  border-radius: var(--app-radius-sm);
-  background: var(--app-grad-primary);
+  background: var(--player-primary-gradient);
   box-shadow: var(--player-primary-shadow);
-  transition: transform var(--motion-fast) ease, border-color calc(var(--motion-fast) * 2) ease;
+  pointer-events: none;
+  transition: transform var(--motion-fast) ease;
+}
+
+.diamond-shape-3b::before {
+  --player-corner-length: 16px;
+  --player-corner-thickness: 2.5px;
+  inset: 0;
 }
 
 .diamond-wrapper-3b:focus-visible .diamond-shape-3b::after {
@@ -494,9 +517,9 @@
   color: var(--player-white);
 }
 
-.workout-player:is([data-phase='work'], [data-phase='warning']) .diamond-shape-3b {
-  border: 2px solid var(--player-white);
-  box-shadow: var(--player-bright-primary-shadow);
+.diamond-icon-3b svg {
+  width: 31px;
+  height: 31px;
 }
 
 .player-exit-sheet {
@@ -559,14 +582,14 @@
 }
 
 @media (max-height: 720px) {
-  .workout-player:has(.player-focus-card, .player-focus-badge) {
+  .workout-player {
     height: 100dvh;
   }
 
   .workout-player:has(.player-focus-card) .player-technique-slot { min-height: 0; }
 
-  .workout-player:has(.player-focus-card, .player-focus-badge) .timer-center-area {
-    /* Fit the arc to the remaining height after the cue and controls take their space. */
+  .timer-center-area {
+    /* Keep the controls in view when the content above or below the arc grows. */
     --player-timer-padding: 12px;
     --player-min-arc-size: 140px;
     --player-adjust-notice-space: 22px;
@@ -575,7 +598,7 @@
     container-type: size;
   }
 
-  .workout-player:has(.player-focus-card, .player-focus-badge) .timer-wrap-2b {
+  .timer-wrap-2b {
     flex-shrink: 0;
     width: min(var(--player-arc-size), 100cqw - 80px, 100cqh - var(--player-adjust-notice-space));
   }

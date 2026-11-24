@@ -8,7 +8,9 @@ export function PauseIcon({ className = '' }: PauseIconProps) {
       width={22}
       height={22}
       viewBox="0 0 24 24"
-      fill="currentColor"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
       className={className}
       aria-hidden="true"
     >

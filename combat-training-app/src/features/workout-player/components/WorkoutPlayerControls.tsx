@@ -67,7 +67,6 @@ export function WorkoutPlayerControls({
 
   return (
     <div className="controls-bottom-bar">
-      {status === 'preparing' ? <p className="player-start-now" aria-hidden="true">{workoutPlayerLabels.startNow}</p> : null}
       <div className="controls-row-3b">
         <button
           type="button"
@@ -87,7 +86,7 @@ export function WorkoutPlayerControls({
         >
           <span className="diamond-shape-3b">
             <span className="diamond-icon-3b">
-              {showPause ? <PauseIcon className="size-7" /> : <PlayIcon className="ml-0.5 size-7" />}
+              {showPause ? <PauseIcon /> : <PlayIcon className="ml-0.5" />}
             </span>
           </span>
         </button>
