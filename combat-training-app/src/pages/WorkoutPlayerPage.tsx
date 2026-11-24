@@ -52,6 +52,7 @@ export function Component() {
   />
   return <WorkoutPlayerView loadState={loadState} workoutsListPath={routes.workouts}
     focusSkills={snapshot.skills ?? []} focusSkillsUnavailable={snapshot.focusSkillsUnavailable} onSessionSaved={onSessionSaved}
+    focusCueSkills={focusSkills.status === 'error' ? undefined : focusSkills.items}
     initialWorkout={restored?.kind === 'resume' ? restored.workout : undefined} activeWorkoutRepository={repository}
     workoutDetailsPath={routes.workoutDetails(workoutId)} onRetry={retry} saveWorkoutSession={saveWorkoutSession} />
 }
