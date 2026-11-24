@@ -181,8 +181,12 @@ test('updates RPE and load locally offline, confirms after reconnect, and clears
   await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
   const second = await createVerifiedAccount(page.request)
   await signIn(page, second)
-  await expect(page.getByRole('link', { name: 'Profil', exact: true })).toBeVisible()
-  await page.goto(`/progress/week/${weekStart}`)
+  // Keep the new account's Firestore connection alive. Progress renders the
+  // week link only once the sessions snapshot is ready.
+  await nav.getByRole('link', { name: 'Postęp', exact: true }).click()
+  const weekLink = page.getByRole('link', { name: 'Plan tygodnia ›', exact: true })
+  await expect(weekLink).toHaveAttribute('href', `/progress/week/${weekStart}`)
+  await weekLink.click()
   await page.getByRole('button', { name: /^Podsumowanie tygodnia/ }).click()
   await expect(section.getByText('Treningi: 0', { exact: true })).toBeVisible()
   await expect(section.getByText('RPE w 1 z 1 treningu', { exact: true })).toHaveCount(0)
