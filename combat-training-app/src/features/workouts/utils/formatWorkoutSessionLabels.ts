@@ -30,8 +30,9 @@ export function formatWorkoutSessionTimePl(isoTimestamp: string, timeZone: strin
 }
 
 export function formatActiveDurationSecondsPl(totalSeconds: number): string {
-  if (totalSeconds < 60) {
-    return `${totalSeconds} s`
+  // Recorded durations can carry milliseconds; short sessions show whole seconds.
+  if (totalSeconds < 59.5) {
+    return `${Math.round(totalSeconds)} s`
   }
 
   const minutes = Math.ceil(totalSeconds / 60)
