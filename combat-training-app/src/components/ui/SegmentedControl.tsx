@@ -1,9 +1,10 @@
-import { useId, useRef, type KeyboardEvent } from 'react'
+import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react'
 
 export interface SegmentedControlOption<T extends string> {
   label: string
   value: T
   disabled?: boolean
+  icon?: ReactNode
 }
 
 type AccessibleNameProps =
@@ -16,6 +17,7 @@ export type SegmentedControlProps<T extends string> = AccessibleNameProps & {
   onChange: (value: T) => void
   disabled?: boolean
   className?: string
+  variant?: 'default' | 'outlined'
 }
 
 function assertUniqueOptionValues<T extends string>(options: readonly SegmentedControlOption<T>[]): void {
@@ -37,6 +39,7 @@ export function SegmentedControl<T extends string>({
   ariaLabel,
   disabled = false,
   className = '',
+  variant = 'default',
 }: SegmentedControlProps<T>) {
   assertUniqueOptionValues(options)
 
@@ -125,7 +128,7 @@ export function SegmentedControl<T extends string>({
         aria-label={label ? undefined : ariaLabel}
         aria-disabled={groupDisabled || undefined}
         onKeyDown={handleKeyDown}
-        className="flex overflow-hidden rounded-sm border border-bd bg-elevated"
+        className={`flex rounded-sm border border-bd ${variant === 'outlined' ? 'gap-1 bg-surface p-[3px]' : 'overflow-hidden bg-elevated'}`}
       >
         {options.map((option, index) => {
           const selected = isSelected(option)
@@ -144,19 +147,21 @@ export function SegmentedControl<T extends string>({
               tabIndex={getTabIndex(option)}
               onClick={() => selectAndFocus(option.value)}
               className={[
-                'relative min-h-touch flex-1 px-2 py-2.5 font-display text-[12px] font-semibold uppercase tracking-[0.06em] transition-colors',
+                'relative min-h-touch flex-1 px-2 py-2.5 font-display font-semibold uppercase tracking-[0.06em] transition-colors',
+                variant === 'outlined' ? 'text-[11.5px]' : 'text-[12px]',
                 'cursor-pointer disabled:cursor-not-allowed disabled:opacity-40',
-                selected
+                variant === 'outlined' ? `flex items-center justify-center gap-1.5 rounded-[2px] border-2 ${selected ? 'border-crimson bg-elevated font-bold text-ink [&>svg]:text-crimson-ink' : 'border-transparent text-muted hover:text-ink'}` : selected
                   ? 'bg-crimson font-bold text-on-accent shadow-[inset_0_0_0_2px_var(--app-on-accent)]'
                   : 'text-muted hover:text-ink active:text-ink',
               ].join(' ')}
             >
-              {selected ? (
+              {selected && variant === 'default' ? (
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-on-accent"
                 />
               ) : null}
+              {option.icon}
               {option.label}
             </button>
           )

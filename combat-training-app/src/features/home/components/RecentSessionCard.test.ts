@@ -48,9 +48,9 @@ describe('session card completion counters', () => {
       }
       expect(text).toContain('0/1 ćwiczeń')
       expect(text).not.toContain('wykonania')
-      expect(markup).toContain('width:0%')
+      expect(text).toContain('(0%)')
       if (hasRounds) {
-        expect(text).toContain('0/1 ćwiczeń1/2 rund')
+        expect(text).toContain('0/1 ćwiczeń (0%)1/2 rund')
       } else {
         expect(text).not.toContain('rund')
       }
@@ -74,6 +74,6 @@ it('shows only round completion and its percentage for quick timers on both sess
     }
     expect(markup.replace(/<[^>]+>/g, '')).toContain('1/3 rund')
     expect(markup).not.toContain('ćwiczeń')
-    expect(markup).toContain('width:33%')
+    expect(markup).toContain('(33%)')
   }
 })

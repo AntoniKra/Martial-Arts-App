@@ -193,8 +193,9 @@ class WorkoutApp {
     const history = this.page.getByRole('region', { name: 'Historia treningów', exact: true })
     await expect(history.getByText('Ładowanie historii…', { exact: true })).toHaveCount(0)
     // Existing detail/edit scenarios explicitly disclose the compact journal rows.
-    await expect(history.locator('article > .disclosure-card > .disclosure-trigger').first()).toBeVisible()
-    for (const summary of await history.locator('article > .disclosure-card > .disclosure-trigger').all()) await summary.click()
+    const summaries = history.getByRole('article').getByRole('button', { name: /Szczegóły wpisu/ })
+    await expect(summaries.first()).toBeVisible()
+    for (const summary of await summaries.all()) await summary.click()
     return history
   }
 

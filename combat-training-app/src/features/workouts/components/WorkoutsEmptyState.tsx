@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-export type WorkoutsEmptyStateVariant = 'no-plans' | 'no-history' | 'no-results'
+export type WorkoutsEmptyStateVariant = 'no-plans' | 'no-results'
 
 interface WorkoutsEmptyStateProps {
   variant: WorkoutsEmptyStateVariant
@@ -14,10 +14,6 @@ const emptyStateCopy: Record<
   'no-plans': {
     title: 'Brak zapisanych planów',
     description: 'Utwórz pierwszy plan treningowy, aby rozpocząć pracę nad techniką.',
-  },
-  'no-history': {
-    title: 'Brak ukończonych treningów',
-    description: 'Ukończ pierwszy trening, aby pojawił się w historii.',
   },
   'no-results': {
     title: 'Brak wyników dla filtrów',

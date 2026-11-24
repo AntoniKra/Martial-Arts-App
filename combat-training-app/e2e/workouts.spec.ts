@@ -90,9 +90,10 @@ test('plays, pauses and resumes through rounds and rest with correct history tot
   await expect(history.getByRole('heading', { name: 'Trening z zegarem', exact: true })).toBeVisible()
   // Per domain-model.md: 210 seconds include round rest, but exclude the 90-second pause.
   // UI rounds up to 4 min; including the pause would incorrectly show 5 min.
-  await expect(history.getByText('4 min', { exact: true })).toBeVisible()
+  await expect(history.getByRole('button', { name: /4 min.*Szczegóły wpisu/ })).toBeVisible()
+  await expect(history.getByRole('article').getByRole('definition').filter({ hasText: /^4 min$/ })).toBeVisible()
   await expect(history.getByText('11:05', { exact: true })).toBeVisible()
-  await expect(history.getByText('Zakończenie 11:05', { exact: true })).toBeVisible()
+  await expect(history.getByText('zakończenie 11:05', { exact: true })).toBeVisible()
   await expect(history.getByText('2/2 ćwiczeń', { exact: true })).toBeVisible()
   await expect(history.getByText('2/2 rund', { exact: true })).toBeVisible()
 })

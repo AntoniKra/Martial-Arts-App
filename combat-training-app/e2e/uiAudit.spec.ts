@@ -82,11 +82,10 @@ for (const theme of ['dark', 'light'] as const) {
     const measureTouchTarget = async (label: string) => {
       const measurement = await card.getByRole('button', { name: label, exact: true }).evaluate((element) => {
         const rect = element.getBoundingClientRect()
-        const section = element.parentElement!.getBoundingClientRect()
-        return { height: rect.height, width: rect.width, sectionWidth: section.width }
+        return { height: rect.height, width: rect.width }
       })
       expect(measurement.height).toBeGreaterThanOrEqual(44)
-      expect(measurement.width).toBe(measurement.sectionWidth)
+      expect(measurement.width).toBeGreaterThanOrEqual(44)
       return { label, ...measurement }
     }
     const measurements = [await measureTouchTarget('Dodaj notatkę'), await measureTouchTarget('Usuń wpis')]

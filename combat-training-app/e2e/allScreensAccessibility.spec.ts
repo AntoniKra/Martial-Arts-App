@@ -177,7 +177,7 @@ for (const theme of ['dark', 'light'] as const) {
     const history = page.getByRole('region', { name: 'Historia treningów', exact: true })
     await expect(history.getByRole('article')).toHaveCount(3)
     await audit(page, info, 'history', theme)
-    await history.getByRole('article').filter({ hasText: 'Trening poza aplikacją' }).locator('.disclosure-trigger').first().click()
+    await history.getByRole('article').filter({ hasText: 'Trening poza aplikacją' }).getByRole('button', { name: /Szczegóły wpisu/ }).first().click()
     await history.getByRole('article').filter({ hasText: 'Trening poza aplikacją' }).getByRole('link', { name: 'Popraw', exact: true }).click()
     await expect(form.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })).toHaveValue('Trening poza aplikacją.')
     await audit(page, info, 'manual-entry-details', theme)
