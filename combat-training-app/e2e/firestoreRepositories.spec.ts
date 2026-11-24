@@ -22,7 +22,7 @@ test('isolates two accounts in the same browser', async ({ app, page }) => {
   await expect(page.getByRole('heading', { name: 'Brak zapisanych planów', exact: true })).toBeVisible()
   await page.getByRole('link', { name: 'Postęp', exact: true }).click()
   await page.getByRole('radio', { name: 'Historia', exact: true }).check()
-  await expect(page.getByRole('heading', { name: 'Brak ukończonych treningów', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Brak historii treningów', exact: true })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Plan pierwszego konta', exact: true })).toHaveCount(0)
 })

@@ -317,7 +317,7 @@ test('seeded personal norms, neutral chart data and wellbeing beside RPE for all
   await app.seedSession(first); await app.seedSession(current)
   await nav(page, 'Postęp').click()
   await page.getByRole('radio', { name: 'Historia', exact: true }).check()
-  await page.getByRole('article').filter({ has: page.locator(`a[href="/workout-sessions/${current.id}/feedback"]`) }).locator('.disclosure-trigger').first().click()
+  await page.getByRole('article').filter({ has: page.locator(`a[href="/workout-sessions/${current.id}/feedback"]`) }).getByRole('button', { name: /Szczegóły wpisu/ }).first().click()
   await page.locator(`a[href="/workout-sessions/${current.id}/feedback"]`).click()
   await expect(page.getByText('Dziś rano: sen gorzej niż zwykle', { exact: true })).toBeVisible()
   const previous = page.getByRole('region', { name: 'Poprzednie wykonanie planu', exact: true })

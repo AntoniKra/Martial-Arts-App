@@ -1,6 +1,6 @@
 import { actionLabels } from '@/components/ui/actionLabels'
 import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/Button'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { WorkoutCompletionCounts } from '@/components/domain/WorkoutCompletionCounts'
+import type { DisciplineKey } from '@/domain/discipline/discipline.types'
+import { formatPolishCount } from '@/domain/language/polishPlural'
+import { WORKOUT_BLOCK_LABELS_PL } from '@/domain/workout/workoutBlockLabels'
 import { WorkoutHistoryNoteEditor } from '@/features/workouts/components/WorkoutHistoryNoteEditor'
 import type {
   WorkoutHistoryListItem,
@@ -18,12 +21,31 @@ import { WORKOUT_HISTORY_NOTE_MAX_LENGTH } from '@/features/workouts/types/worko
 import { workoutPlayerLabels } from '@/features/workout-player/workoutPlayerLabels'
 import { workoutFeedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import { RpeRecallBadge } from '@/features/workout-feedback/RpeRecallBadge'
+import { rpeLabels } from '@/features/workout-feedback/rpeLabels'
 import { manualWorkoutLabels } from '@/features/manual-workout/manualWorkoutLabels'
 import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWorkoutLine'
 import { workoutHistoryLabels } from '@/features/workouts/workoutHistoryLabels'
+import { historyLabels } from '../historyLabels'
+import { calendarDate, historyDayLabel } from '../utils/historyPresentation'
+import { historyDate } from '../utils/historyWeeks'
+import { HistoryIcon } from './HistoryIcon'
 
 const NOTE_SAVE_ERROR_MESSAGE = 'Nie udało się zapisać notatki.'
 const DELETE_ERROR_MESSAGE = 'Nie udało się usunąć wpisu.'
+
+const disciplineBars: Record<DisciplineKey, string> = {
+  boxing: 'bg-discipline-boxing',
+  kickboxing: 'bg-discipline-kickboxing',
+  muay_thai: 'bg-discipline-muay-thai',
+  k1: 'bg-discipline-k1',
+  mma_striking: 'bg-discipline-mma-striking',
+}
+
+const monthFormat = new Intl.DateTimeFormat('pl-PL', { month: 'short', timeZone: 'UTC' })
+
+function HistoryMetric({ label, children }: { label: string; children: ReactNode }) {
+  return <div className="history-metric"><dt>{label}</dt><dd>{children}</dd></div>
+}
 
 interface WorkoutHistoryCardProps {
   session: WorkoutHistoryListItem
@@ -89,7 +111,11 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
   }, [isConfirmingDelete])
 
   const isOperationInProgress = isSavingNote || isDeleting
-  const hasSavedNote = session.note !== null
+  const hasSavedNote = Boolean(session.note?.trim())
+  const date = historyDate(session)
+  const day = calendarDate(date)
+  const sparring = session.sparringRounds == null ? null : formatPolishCount(session.sparringRounds, 'runda', 'rundy', 'rund')
+  const hasCompletion = !session.isManual && (session.plannedExercises > 0 || session.plannedRounds !== null)
 
   function openNoteEditor(): void {
     setDraftNote(session.note ?? '')
@@ -181,94 +207,97 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
   }
 
   return (
-    <article className="@container w-full overflow-hidden border border-bd bg-surface">
-      <CollapsibleCard title={<span className="flex items-center gap-2">
-          <time dateTime={session.workoutDate ?? session.completedAt} className="w-11 shrink-0 text-xs text-muted">{new Intl.DateTimeFormat('pl-PL', { weekday: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${session.workoutDate ?? session.completedAt.slice(0, 10)}T12:00:00Z`))}</time>
-          <span className="min-w-0 flex-1"><span className="block font-display text-[15px] font-bold" role="heading" aria-level={4}>
-            {session.name}
-          </span><span className="block text-[13px] text-muted">{session.descriptionPl ?? session.durationLabelPl}{session.sparringRounds ? ` · ${session.sparringRounds} rund` : ''}</span>
-          {session.hasPendingWrites && <span className="block text-xs text-muted">{workoutDataLabels.pending}</span>}</span>
-          {session.note && <span role="img" aria-label="Ma notatkę" className="border border-bd px-1.5 py-1 text-xs text-muted">✎</span>}
-          {!!session.sparringRounds && <span className="shrink-0 border border-bd px-1.5 py-1 text-xs tabular-nums text-muted">{session.sparringRounds} r.</span>}
-          <span className="sr-only">Szczegóły wpisu</span>
-        </span>}>
-      <div className="px-4 py-4">
-        <div className="mb-1 flex items-start justify-between gap-3">
-          <DisciplineBadge disciplineKey={session.disciplineKey} />
-          <div className="shrink-0 text-right text-[10px] text-muted">
-            <div>{workoutHistoryLabels.workoutDate} <time dateTime={session.workoutDate ?? session.completedAt}>{session.dateLabelPl}</time></div>
-            {session.timeLabelPl && <div>{workoutHistoryLabels.completedAt} <time className="tabular-nums" dateTime={session.completedAt}>
-              {session.timeLabelPl}
-            </time></div>}
-          </div>
-        </div>
-        <p className="mt-1 font-display text-[14px] font-semibold text-ink">
-          <Link
-            to={session.editPath ?? routes.workoutReport(session.id)}
-            className="transition-colors hover:text-crimson-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-          >
-            {session.name}
-          </Link>
-        </p>
-        <p className="mt-2 font-display text-xs font-semibold text-muted">{workoutPlayerLabels.sessionStatus[session.status]}</p>
-        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 font-display text-[11px] text-muted @min-[400px]:grid-cols-3 @min-[560px]:items-baseline @min-[560px]:gap-x-2">
-          <span className="whitespace-nowrap">
-            <span className="font-semibold tabular-nums text-ink">{session.durationLabelPl}</span>
+    <article className="history-entry">
+      <CollapsibleCard className="history-disclosure" title={<span className="flex items-center gap-2">
+        <span aria-hidden="true" className={`history-discipline-bar ${disciplineBars[session.disciplineKey]}`} />
+        <time dateTime={date} className="history-entry-date">
+          <strong>{historyLabels.weekdays[(day.getUTCDay() + 6) % 7]} {day.getUTCDate()}</strong>
+          {monthFormat.format(day)}
+        </time>
+        <span className="min-w-0 flex-1">
+          <span className="history-entry-title" role="heading" aria-level={4}>{session.name}</span>
+          <span className="history-entry-chips">
+            <span>{session.durationLabelPl}</span>
+            {session.rpe != null && <span>{workoutHistoryLabels.shortRpe(session.rpe)}</span>}
+            {sparring && <span>{sparring}</span>}
+            {hasSavedNote && <span className="history-note-chip"><HistoryIcon name="note" size={10} />{workoutHistoryLabels.note}</span>}
           </span>
-          {!session.isManual && <WorkoutCompletionCounts counts={session} />}
-          {session.rpe != null && <span className="flex flex-wrap items-baseline gap-1">RPE <span className="font-semibold text-ink">{session.rpe}</span>{session.rpeFromMemory && <RpeRecallBadge />}</span>}
+          {session.hasPendingWrites && <span className="mt-1 block text-xs text-muted">{workoutDataLabels.pending}</span>}
+        </span>
+        <span className="sr-only">{workoutHistoryLabels.details}</span>
+      </span>}>
+        <div className="history-entry-meta">
+          <DisciplineBadge disciplineKey={session.disciplineKey} className="history-discipline-badge" />
+          <p className="history-full-date">
+            <time dateTime={date}>{historyDayLabel(date)}</time>
+            {!session.isManual && session.timeLabelPl && <> · <span>{workoutHistoryLabels.completedAt} <time dateTime={session.completedAt}>{session.timeLabelPl}</time></span></>}
+          </p>
         </div>
+        <dl className="history-metrics" aria-label={workoutHistoryLabels.metrics}>
+          <HistoryMetric label={workoutHistoryLabels.duration}>{session.durationLabelPl}</HistoryMetric>
+          {session.rpe != null && <HistoryMetric label={workoutHistoryLabels.rpe}>
+            {session.rpe} / 10
+            <span className="block text-[11px] font-semibold">{rpeLabels.descriptions[session.rpe] || rpeLabels.between[session.rpe]}</span>
+            {session.rpeFromMemory && <RpeRecallBadge />}
+          </HistoryMetric>}
+          {hasCompletion && <HistoryMetric label={session.roundsOnly ? workoutHistoryLabels.roundCompletion : workoutHistoryLabels.exercises}>
+            <span className="flex flex-wrap gap-x-2 text-[13px]">
+              <WorkoutCompletionCounts counts={session} />
+              <span>({session.exerciseCompletionPercent}%)</span>
+            </span>
+          </HistoryMetric>}
+          {sparring && <HistoryMetric label={WORKOUT_BLOCK_LABELS_PL.sparring}>{sparring}</HistoryMetric>}
+        </dl>
         {session.workoutDate && <LazyWellbeingWorkoutLine date={session.workoutDate} />}
-      </div>
-
-      {!session.isManual && <div className="h-0.5 bg-elevated" aria-hidden="true">
-        <div
-          className="h-full bg-crimson transition-all"
-          style={{ width: `${session.exerciseCompletionPercent}%` }}
-        />
-      </div>}
-
-      <div className="border-t border-bd">
-        {session.editPath && <Link to={session.editPath} state={{ returnTo: '/progress?tab=history' }}
-          className="flex min-h-touch items-center border-b border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink">{manualWorkoutLabels.edit}</Link>}
-        {session.feedbackPath && <Link to={session.feedbackPath}
-          className="flex min-h-touch items-center border-b border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink">
-          {workoutFeedbackLabels.title}
-        </Link>}
-        {hasSavedNote && !isEditingNote ? (
-          <p className="whitespace-pre-wrap break-words px-4 pt-3 text-[13px] leading-relaxed text-ink">{session.note}</p>
-        ) : null}
-
-        {isEditingNote ? (
-          <div className="px-4 py-3">
-            <WorkoutHistoryNoteEditor
-              value={draftNote}
-              onChange={setDraftNote}
-              onSave={() => {
-                void handleSaveNote()
-              }}
-              onCancel={closeNoteEditor}
-              isSaving={isSavingNote}
-              saveError={noteSaveError}
-              textareaRef={noteTextareaRef}
-            />
-          </div>
-        ) : (
-          <button
-            ref={noteToggleButtonRef}
-            type="button"
-            disabled={isOperationInProgress || isConfirmingDelete}
-            onClick={openNoteEditor}
-            className="min-h-touch w-full px-4 py-3 text-left font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-          >
-            {hasSavedNote ? 'Edytuj notatkę' : 'Dodaj notatkę'}
-          </button>
+        {hasSavedNote && !isEditingNote && <div className="history-note">
+          <p className="flex items-center gap-1 text-[10.5px] font-bold tracking-wide text-ember-ink uppercase">
+            <HistoryIcon name="note" size={12} />{workoutHistoryLabels.athleteNote}
+          </p>
+          <p className="mt-1 text-[12.5px] leading-[1.45] break-words whitespace-pre-wrap">{session.note}</p>
+        </div>}
+        {isEditingNote && (
+          <WorkoutHistoryNoteEditor
+            value={draftNote}
+            onChange={setDraftNote}
+            onSave={() => {
+              void handleSaveNote()
+            }}
+            onCancel={closeNoteEditor}
+            isSaving={isSavingNote}
+            saveError={noteSaveError}
+            textareaRef={noteTextareaRef}
+          />
         )}
-      </div>
-
-      <div className="border-t border-bd">
-        {isConfirmingDelete ? (
-          <div aria-labelledby={deleteConfirmationId} className="space-y-3 px-4 py-3">
+        <div className="history-entry-actions">
+          {!isEditingNote && (
+            <button
+              ref={noteToggleButtonRef}
+              type="button"
+              disabled={isOperationInProgress || isConfirmingDelete}
+              onClick={openNoteEditor}
+              className="history-note-button"
+            >
+              <HistoryIcon name="note" size={13} />{hasSavedNote ? 'Edytuj notatkę' : 'Dodaj notatkę'}
+            </button>
+          )}
+          {!isConfirmingDelete && (
+            <button
+              ref={deleteTriggerButtonRef}
+              type="button"
+              disabled={isOperationInProgress || isEditingNote}
+              onClick={() => {
+                setDeleteError(null)
+                shouldFocusDeleteCancelRef.current = true
+                setIsConfirmingDelete(true)
+              }}
+              className="history-delete-button"
+            >
+              Usuń wpis
+            </button>
+          )}
+        </div>
+        {isConfirmingDelete && (
+          <div aria-labelledby={deleteConfirmationId} className="space-y-3 rounded-sm border border-bd p-3">
             <p id={deleteConfirmationId} className="text-[13px] leading-relaxed text-muted">
               Czy na pewno chcesz usunąć ten wpis? Tej operacji nie można cofnąć.
             </p>
@@ -303,22 +332,13 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
               </Button>
             </div>
           </div>
-        ) : (
-          <button
-            ref={deleteTriggerButtonRef}
-            type="button"
-            disabled={isOperationInProgress || isEditingNote}
-            onClick={() => {
-              setDeleteError(null)
-              shouldFocusDeleteCancelRef.current = true
-              setIsConfirmingDelete(true)
-            }}
-            className="min-h-touch w-full px-4 py-3 text-left font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-crimson-ink transition-colors hover:text-crimson-hi disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-          >
-            Usuń wpis
-          </button>
         )}
-      </div>
+        <div className="history-entry-links">
+          <p className="text-xs font-semibold text-muted">{workoutPlayerLabels.sessionStatus[session.status]}</p>
+          {session.editPath && <Link to={session.editPath} state={{ returnTo: routes.progressHistory }}>{manualWorkoutLabels.edit}</Link>}
+          {session.feedbackPath && <Link to={session.feedbackPath}>{workoutFeedbackLabels.title}</Link>}
+          {!session.isManual && <Link to={routes.workoutReport(session.id)}>{workoutHistoryLabels.report}</Link>}
+        </div>
       </CollapsibleCard>
     </article>
   )

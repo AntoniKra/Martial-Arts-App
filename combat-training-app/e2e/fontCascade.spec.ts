@@ -135,7 +135,7 @@ for (const theme of ['dark', 'light'] as const) {
     samples.historyUnselected = await typography(page.getByRole('radio', { name: 'Historia', exact: true }))
     await capture('plans')
     await page.getByRole('radio', { name: 'Historia', exact: true }).click()
-    await page.getByRole('article').locator('.disclosure-trigger').first().click()
+    await page.getByRole('article').getByRole('button', { name: /Szczegóły wpisu/ }).first().click()
     const note = page.getByRole('button', { name: 'Dodaj notatkę', exact: true })
     await expect(note).toBeVisible()
     samples.plansUnselected = await typography(page.getByRole('radio', { name: 'Wykresy', exact: true }))
@@ -170,7 +170,7 @@ for (const theme of ['dark', 'light'] as const) {
     for (const key of ['plansSelected', 'historySelected', 'plansUnselected', 'historyUnselected', 'roundFormat']) {
       expect(samples[key], key).toEqual({ size: '12px', weight: '600', family: display })
     }
-    expect(samples.addNote).toEqual({ size: '11px', weight: '600', family: display })
+    expect(samples.addNote).toEqual({ size: '11px', weight: '700', family: display })
     expect(samples.roundCount).toEqual({ size: '16px', weight: '400', family: display })
     expect(samples.email.size).toBe('16px')
     const color = theme === 'dark' ? 'rgb(239, 93, 110)' : 'rgb(181, 18, 43)'

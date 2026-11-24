@@ -6,6 +6,7 @@ import { scheduledWeekFromLegacy } from '@/domain/week-plan/updateRecurringWeek'
 import type { WeekPlan } from '@/domain/week-plan/weekPlan.types'
 import { manualWorkoutSession } from '@/test/manualWorkoutBuilder'
 import { mapWorkoutSessionsToHistoryListItems } from '../mappers/workoutSessionHistoryListItemMapper'
+import { historyWeekTitle } from '../utils/historyPresentation'
 import { HistoryJournal } from './HistoryJournal'
 
 const week = '2026-11-09'
@@ -26,6 +27,13 @@ vi.mock('@/application/workoutDataContext', () => ({
   }),
 }))
 
+it('labels past years and covers both dates when a calendar week crosses New Year', () => {
+  const today = '2026-11-18'
+  expect(historyWeekTitle('2026-11-16', today)).toBe('16–22 listopada')
+  expect(historyWeekTitle('2025-11-17', today)).toBe('17–23 listopada 2025')
+  expect(historyWeekTitle('2025-12-29', today)).toBe('29 grudnia 2025–4 stycznia')
+})
+
 it.each([
   ['v1', legacy, 'technique', '0/1'],
   ['migrated v1', scheduledWeekFromLegacy(legacy), 'technique', '0/1'],
@@ -40,7 +48,11 @@ it.each([
     week, history: mapWorkoutSessionsToHistoryListItems(workouts), matching: [], contentFiltered: true, sortOrder: 'newest',
     onUpdateNote: async () => 'applied' as const, onDelete: async () => 'applied' as const,
   })))
-  expect(html).toContain(`Cały tydzień · 1 trening · 90 min · plan ${goal}`)
+  expect(html).toContain('Cały tydzień')
+  expect(html).toContain('<dt>trening</dt><dd>1</dd>')
+  expect(html).toContain('<dt>Łączny czas</dt><dd>90 min</dd>')
+  const [credited, target] = goal.split('/')
+  expect(html).toContain(`<dt>Plan ${goal === '1/1' ? '100%' : '0%'}</dt><dd>${credited} z ${target}</dd>`)
   expect(html).toContain('Brak pasujących wpisów')
   expect(html).not.toContain('przerwa')
 })
