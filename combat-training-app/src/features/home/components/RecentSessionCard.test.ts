@@ -50,7 +50,7 @@ describe('session card completion counters', () => {
       expect(text).not.toContain('wykonania')
       expect(text).toContain('(0%)')
       if (hasRounds) {
-        expect(text).toContain('0/1 ćwiczeń1/2 rund')
+        expect(text).toContain('0/1 ćwiczeń (0%)1/2 rund')
       } else {
         expect(text).not.toContain('rund')
       }

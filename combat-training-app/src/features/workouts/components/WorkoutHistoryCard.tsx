@@ -8,7 +8,6 @@ import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { Button } from '@/components/ui/Button'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
-import { WorkoutCompletionCounts } from '@/components/domain/WorkoutCompletionCounts'
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import { formatPolishCount } from '@/domain/language/polishPlural'
 import { WORKOUT_BLOCK_LABELS_PL } from '@/domain/workout/workoutBlockLabels'
@@ -236,15 +235,16 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
         <dl className="history-metrics" aria-label={workoutHistoryLabels.metrics}>
           <HistoryMetric label={workoutHistoryLabels.duration}>{session.durationLabelPl}</HistoryMetric>
           {session.rpe != null && <HistoryMetric label={workoutHistoryLabels.rpe}>
-            {session.rpe} / 10
-            <span className="block text-[11px] font-semibold">{rpeLabels.descriptions[session.rpe] || rpeLabels.between[session.rpe]}</span>
+            {session.rpe} / 10 · {rpeLabels.descriptions[session.rpe] || rpeLabels.between[session.rpe]}
             {session.rpeFromMemory && <RpeRecallBadge />}
           </HistoryMetric>}
           {hasCompletion && <HistoryMetric label={session.roundsOnly ? workoutHistoryLabels.roundCompletion : workoutHistoryLabels.exercises}>
-            <span className="flex flex-wrap gap-x-2 text-[13px]">
-              <WorkoutCompletionCounts counts={session} />
-              <span>({session.exerciseCompletionPercent}%)</span>
-            </span>
+            {session.roundsOnly && session.plannedRounds !== null
+              ? <span className="block"><span className="whitespace-nowrap">{session.completedRounds}/{session.plannedRounds} rund</span> ({session.exerciseCompletionPercent}%)</span>
+              : session.roundsOnly ? <span className="block">{session.exerciseCompletionPercent}%</span> : <>
+                <span className="block"><span className="whitespace-nowrap">{session.completedExercises}/{session.plannedExercises} ćwiczeń</span> ({session.exerciseCompletionPercent}%)</span>
+                {session.plannedRounds !== null && <span className="block text-[12px] font-semibold text-muted">{session.completedRounds}/{session.plannedRounds} rund</span>}
+              </>}
           </HistoryMetric>}
           {sparring && <HistoryMetric label={WORKOUT_BLOCK_LABELS_PL.sparring}>{sparring}</HistoryMetric>}
         </dl>
