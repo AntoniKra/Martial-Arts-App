@@ -218,6 +218,8 @@ for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
     await page.getByRole('textbox', { name: 'Nazwa planu' }).fill('Niezapisany plan')
     await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Nowy trening', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Odrzucić zmiany?', exact: true })
     await expect(dialog.getByRole('button', { name: 'Wróć do edycji', exact: true })).toBeFocused()
     await audit(page, info, 'discard-changes-dialog', theme)
@@ -236,7 +238,9 @@ for (const theme of ['dark', 'light'] as const) {
     await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
     await app.setTheme(theme)
+    await page.getByRole('button', { name: /^Dane planu: / }).click()
     await page.getByRole('textbox', { name: 'Nazwa planu' }).fill('Plan zmieniony offline')
+    await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
     await context.setOffline(true)
     try {
       await page.getByRole('button', { name: 'Zapisz zmiany', exact: true }).click()

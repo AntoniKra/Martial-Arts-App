@@ -30,8 +30,8 @@ async function captureConfiguration(page: Page, testInfo: TestInfo, theme: 'dark
 test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round settings', async ({ app, page }, testInfo) => {
   await app.open('/workouts/new')
   await page.getByRole('radio', { name: 'Boks', exact: true }).check()
-  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-  await page.getByRole('button', { name: 'Technika', exact: true }).click()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
+  await page.getByRole('group', { name: 'Pierwszy blok', exact: true }).getByRole('button', { name: 'Technika', exact: true }).click()
 
   await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
   await chooseTile(page, 'Liczba rund', '2')
@@ -89,7 +89,7 @@ test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round 
   await app.setTheme('dark')
 
   await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
-  await expect(page.getByText('2 rundy × 1:00 · przerwa 0:30', { exact: true })).toHaveCount(2)
+  await expect(page.getByText('2 × 1:00 / 0:30', { exact: true })).toHaveCount(2)
 
   await app.savePlan()
   await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()

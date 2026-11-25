@@ -6,13 +6,14 @@ test('saves a cooldown block and shows it as block 4 in the player', async ({ ap
   await app.open('/workouts/new')
   await page.getByRole('radio', { name: 'Boks', exact: true }).check()
   await page.getByRole('textbox', { name: 'Nazwa planu' }).fill('Plan z rozluźnieniem')
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
 
   await addTimedBlock(page, 1, 'Rozgrzewka', 'Skakanka')
   await addTimedBlock(page, 2, 'Technika', 'Jab')
   await addTimedBlock(page, 3, 'Worek', 'Worek')
 
-  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-  await page.getByRole('button', { name: 'Rozluźnienie', exact: true }).click()
+  await page.getByRole('button', { name: 'Dodaj kolejny blok', exact: true }).click()
+  await page.getByRole('group', { name: 'Wybierz rodzaj bloku', exact: true }).getByRole('button', { name: 'Rozluźnienie', exact: true }).click()
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 4 — Rozluźnienie', exact: true }).click()
   await page.getByRole('button', { name: 'Rozciąganie bioder i nóg', exact: true }).click()
   await chooseOneRound(page)
@@ -34,8 +35,10 @@ test('saves a cooldown block and shows it as block 4 in the player', async ({ ap
 })
 
 async function addTimedBlock(page: Page, blockNumber: number, blockLabel: string, exerciseName: string) {
-  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-  await page.getByRole('button', { name: blockLabel, exact: true }).click()
+  // The first block comes from the empty plan tiles, later ones from the block picker.
+  if (blockNumber > 1) await page.getByRole('button', { name: 'Dodaj kolejny blok', exact: true }).click()
+  await page.getByRole('group', { name: blockNumber === 1 ? 'Pierwszy blok' : 'Wybierz rodzaj bloku', exact: true })
+    .getByRole('button', { name: blockLabel, exact: true }).click()
   await page.getByRole('button', { name: `Dodaj ćwiczenie do bloku ${blockNumber} — ${blockLabel}`, exact: true }).click()
   await page.getByRole('radio', { name: 'Własne ćwiczenie', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nazwa ćwiczenia', exact: true }).fill(exerciseName)

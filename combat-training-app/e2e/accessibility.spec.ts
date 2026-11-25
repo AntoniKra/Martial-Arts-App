@@ -16,6 +16,8 @@ for (const theme of ['dark', 'light'] as const) {
         const path = screen === 'start' ? '/' : screen === 'workouts' ? '/workouts' : screen === 'quickTimer' ? '/quick-timer' : '/workouts/new'
         await app.open(path)
         await app.setTheme(theme)
+        // A new plan opens on "Dane planu"; the audit covers the empty timeline behind it.
+        if (screen === 'builder') await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
         const heading = screen === 'workouts' ? 'Treningi' : screen === 'builder' ? 'Nowy trening' : screen === 'quickTimer' ? 'Szybki stoper' : undefined
         if (heading) await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
       }

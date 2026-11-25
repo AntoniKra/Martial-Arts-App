@@ -95,10 +95,11 @@ class WorkoutApp {
   async createPlan(name = 'Plan E2E', roundDurationLabel: '1:00' | '3:00' = '1:00') {
     const { page } = this
     await this.open('/workouts/new')
+    // A new plan opens on its details subscreen.
     await page.getByRole('radio', { name: 'Boks', exact: true }).check()
     await page.getByRole('textbox', { name: 'Nazwa planu' }).fill(name)
-    await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-    await page.getByRole('button', { name: 'Technika', exact: true }).click()
+    await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
+    await page.getByRole('group', { name: 'Pierwszy blok', exact: true }).getByRole('button', { name: 'Technika', exact: true }).click()
 
     await this.addCustomExercise('Praca na nogach')
     // Native radios are visually hidden inside labels; select them with the keyboard.
@@ -142,7 +143,7 @@ class WorkoutApp {
 
   async savePlan() {
     const builderUrl = this.page.url()
-    await this.page.getByRole('button', { name: 'Podgląd planu', exact: true }).click()
+    await this.page.getByRole('button', { name: 'Podgląd', exact: true }).click()
     await this.page.getByRole('button', { name: 'Zapisz plan', exact: true }).click()
     await expect(this.page).not.toHaveURL(builderUrl)
   }

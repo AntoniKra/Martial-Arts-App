@@ -73,11 +73,11 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/workouts/new')
     await page.getByRole('radio', { name: 'Boks', exact: true }).check()
     await capture('builder')
-    await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-    await page.getByRole('button', { name: 'Technika', exact: true }).click()
-    // Choosing a block type moves focus back to "Dodaj blok" on the next frame; measuring before that lands loses focus.
-    await expect(page.getByRole('button', { name: 'Dodaj blok', exact: true })).toBeFocused()
+    await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
+    await page.getByRole('group', { name: 'Pierwszy blok', exact: true }).getByRole('button', { name: 'Technika', exact: true }).click()
     const addExercise = page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true })
+    // The first block moves focus to its "Dodaj ćwiczenie" on the next frame; measuring before that lands loses focus.
+    await expect(addExercise).toBeFocused()
     const builderFocus = await focusOutline(addExercise)
     await addExercise.click()
     await capture('library')
