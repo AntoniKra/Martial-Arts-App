@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { test, expect } from './fixtures'
+import { expect, setExerciseValue, test } from './fixtures'
 
 test('saves a cooldown block and shows it as block 4 in the player', async ({ app, page }) => {
   await app.open('/workouts/new')
@@ -16,7 +16,7 @@ test('saves a cooldown block and shows it as block 4 in the player', async ({ ap
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 4 — Rozluźnienie', exact: true }).click()
   await page.getByRole('button', { name: 'Rozciąganie bioder i nóg', exact: true }).click()
   await chooseOneRound(page)
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 
   await app.savePlan()
   await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
@@ -41,12 +41,10 @@ async function addTimedBlock(page: Page, blockNumber: number, blockLabel: string
   await page.getByRole('textbox', { name: 'Nazwa ćwiczenia', exact: true }).fill(exerciseName)
   await page.getByRole('button', { name: 'Konfiguruj ćwiczenie', exact: true }).click()
   await chooseOneRound(page)
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 }
 
 async function chooseOneRound(page: Page) {
-  const roundCount = page.getByRole('group', { name: 'Liczba rund', exact: true })
-    .getByRole('radio', { name: '1', exact: true })
-  await roundCount.press('Space')
-  await expect(roundCount).toBeChecked()
+  await setExerciseValue(page, 'Rundy', '1')
+  await expect(page.getByRole('button', { name: /^Rundy: / })).toHaveText('1')
 }

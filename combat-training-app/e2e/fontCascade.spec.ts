@@ -85,25 +85,18 @@ for (const theme of ['dark', 'light'] as const) {
     await capture('custom-exercise')
     await page.getByRole('radio', { name: 'Biblioteka', exact: true }).click()
     await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()
-    samples.roundFormat = await typography(page.getByRole('button', { name: '3 × 3:00 · przerwa 1:00', exact: true }))
+    samples.roundFormat = await typography(page.getByText('5 × 3:00', { exact: true }))
     await capture('configuration')
-    const roundCount = page.getByRole('group', { name: 'Liczba rund', exact: true })
-    await roundCount.getByRole('radio', { name: 'Własna', exact: true }).check()
-    const roundInput = page.getByRole('textbox', { name: 'Własna liczba rund', exact: true })
-    await roundInput.scrollIntoViewIfNeeded()
+    await page.getByRole('button', { name: /^Rundy: / }).click()
+    const roundInput = page.getByRole('textbox', { name: 'Rundy', exact: true })
     samples.roundCount = await typography(roundInput)
     await capture('configuration-round-count')
-    for (const name of ['Czas rundy', 'Przerwa między rundami']) {
-      const group = page.getByRole('group', { name, exact: true })
-      await group.getByRole('radio', { name: 'Własny', exact: true }).check()
-      await group.getByRole('textbox').first().scrollIntoViewIfNeeded()
-      await capture(name === 'Czas rundy' ? 'configuration-duration' : 'configuration-rest')
-    }
+    await roundInput.press('Escape')
     await page.getByRole('radio', { name: 'Ciągłe', exact: true }).click()
     await capture('configuration-continuous')
-    await page.getByRole('textbox', { name: 'Instrukcja (opcjonalnie)', exact: true }).scrollIntoViewIfNeeded()
+    await page.getByRole('textbox', { name: 'Notatki do ćwiczenia (opcjonalnie)', exact: true }).scrollIntoViewIfNeeded()
     await capture('configuration-instruction')
-    await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+    await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
     await page.getByRole('button', { name: 'Dodaj przerwę do bloku 1 — Technika', exact: true }).click()
     await page.getByText('Nowa przerwa', { exact: true }).scrollIntoViewIfNeeded()
     await capture('builder-break')
@@ -167,11 +160,12 @@ for (const theme of ['dark', 'light'] as const) {
     expect(samples.exitSkip).toEqual({ size: '13px', weight: '600', family: body })
     expect(samples.exitDiscard).toEqual({ size: '12.5px', weight: '600', family: body })
     expect(samples.exitReturn).toEqual({ size: '14px', weight: '800', family: display })
-    for (const key of ['plansSelected', 'historySelected', 'plansUnselected', 'historyUnselected', 'roundFormat']) {
+    for (const key of ['plansSelected', 'historySelected', 'plansUnselected', 'historyUnselected']) {
       expect(samples[key], key).toEqual({ size: '12px', weight: '600', family: display })
     }
     expect(samples.addNote).toEqual({ size: '11px', weight: '700', family: display })
-    expect(samples.roundCount).toEqual({ size: '16px', weight: '400', family: display })
+    expect(samples.roundFormat).toEqual({ size: '13px', weight: '800', family: display })
+    expect(samples.roundCount).toEqual({ size: '22px', weight: '800', family: display })
     expect(samples.email.size).toBe('16px')
     const color = theme === 'dark' ? 'rgb(239, 93, 110)' : 'rgb(181, 18, 43)'
     for (const outline of [loginFocus, builderFocus]) {

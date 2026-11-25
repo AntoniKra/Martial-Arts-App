@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import type { Dialog, Page, TestInfo } from '@playwright/test'
 
-import { expect, test } from './fixtures'
+import { expect, setExerciseValue, test } from './fixtures'
 
 const reviewDirectory = path.join('docs', 'reviews', 'issue-56')
 const singleRoundRest =
@@ -30,11 +30,7 @@ async function captureReview(page: Page, testInfo: TestInfo, name: string) {
   await page.screenshot({ path: path.join(reviewDirectory, `${name}-360x800.png`) })
 }
 
-async function chooseTile(page: Page, groupName: string, optionName: string) {
-  const group = page.getByRole('group', { name: groupName, exact: true })
-  await group.getByRole('radio', { name: optionName, exact: true }).check()
-  await expect(group.getByRole('radio', { name: optionName, exact: true })).toBeChecked()
-}
+const restValue = (page: Page) => page.getByRole('button', { name: /^Przerwa: / })
 
 test('keeps a changed plan when the discard dialog is cancelled', async ({ app, page }, testInfo) => {
   await app.createPlan('Plan przed zmiana')
@@ -175,10 +171,9 @@ test('hides rest for one round and restores the previous value at three rounds',
   await expect(discardDialog(page)).toHaveCount(0)
   await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()
 
-  const rest = () => page.getByRole('group', { name: 'Przerwa między rundami', exact: true })
-  await expect(rest().getByRole('radio', { name: '1:00', exact: true })).toBeChecked()
-  await chooseTile(page, 'Liczba rund', '1')
-  await expect(rest()).toHaveCount(0)
+  await expect(restValue(page)).toHaveText('01:00')
+  await setExerciseValue(page, 'Rundy', '1')
+  await expect(restValue(page)).toHaveCount(0)
   const note = page.getByText(singleRoundRest, { exact: true })
   await expect(note).toBeVisible()
   await note.evaluate((element) => element.scrollIntoView({ block: 'center' }))
@@ -188,16 +183,18 @@ test('hides rest for one round and restores the previous value at three rounds',
   await captureReview(page, testInfo, 'one-round-light')
   await app.setTheme('dark')
 
-  await chooseTile(page, 'Liczba rund', '3')
-  await expect(rest().getByRole('radio', { name: '1:00', exact: true })).toBeChecked()
-  await chooseTile(page, 'Przerwa między rundami', '0:30')
-  await chooseTile(page, 'Liczba rund', '1')
-  await expect(rest()).toHaveCount(0)
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  await setExerciseValue(page, 'Rundy', '3')
+  await expect(restValue(page)).toHaveText('01:00')
+  await setExerciseValue(page, 'Przerwa', '0:30')
+  await page.getByRole('button', { name: 'Zmniejsz liczbę rund o 1', exact: true }).click()
+  await page.getByRole('button', { name: 'Zmniejsz liczbę rund o 1', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Zmniejsz liczbę rund o 1', exact: true })).toBeDisabled()
+  await expect(restValue(page)).toHaveCount(0)
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   await expect(page.getByText('1 runda × 3:00 · przerwa 0:30', { exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: /Edytuj ćwiczenie Lewy prosty → prawy prosty/ }).click()
-  await expect(rest()).toHaveCount(0)
-  await chooseTile(page, 'Liczba rund', '3')
-  await expect(rest().getByRole('radio', { name: '0:30', exact: true })).toBeChecked()
+  await expect(restValue(page)).toHaveCount(0)
+  await setExerciseValue(page, 'Rundy', '3')
+  await expect(restValue(page)).toHaveText('00:30')
 })

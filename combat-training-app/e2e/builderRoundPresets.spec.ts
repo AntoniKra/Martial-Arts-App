@@ -7,24 +7,22 @@ async function chooseLibraryExercise(page: Page, name: string) {
   await page.getByRole('button', { name, exact: true }).click()
 }
 
-async function chooseTile(page: Page, groupName: string, optionName: string) {
-  const group = page.getByRole('group', { name: groupName, exact: true })
-  await group.getByRole('radio', { name: optionName, exact: true }).check()
-  await expect(group.getByRole('radio', { name: optionName, exact: true })).toBeChecked()
+async function press(page: Page, name: string, times: number) {
+  for (let index = 0; index < times; index += 1) await page.getByRole('button', { name, exact: true }).click()
 }
+
+const stepperValue = (page: Page, label: string) => page.getByRole('button', { name: new RegExp(`^${label}: `) })
+const format = (page: Page, name: string) =>
+  page.getByRole('group', { name: 'Gotowe formaty', exact: true }).getByRole('radio', { name, exact: true })
 
 async function captureConfiguration(page: Page, testInfo: TestInfo, theme: 'dark' | 'light') {
   if (process.env.CAPTURE_SCREENSHOTS !== '1' || testInfo.project.name !== 'phone') {
     return
   }
 
-  await page.evaluate(() => window.scrollTo(0, 0))
   await page.screenshot({ path: testInfo.outputPath(`config-${theme}-top.png`) })
-  await page.getByRole('group', { name: 'Przerwa między rundami', exact: true }).scrollIntoViewIfNeeded()
-  await page.screenshot({ path: testInfo.outputPath(`config-${theme}-rest.png`) })
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).scrollIntoViewIfNeeded()
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).scrollIntoViewIfNeeded()
   await page.screenshot({ path: testInfo.outputPath(`config-${theme}-submit.png`) })
-  await page.evaluate(() => window.scrollTo(0, 0))
 }
 
 test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round settings', async ({ app, page }, testInfo) => {
@@ -34,64 +32,106 @@ test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round 
   await page.getByRole('button', { name: 'Technika', exact: true }).click()
 
   await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
-  await chooseTile(page, 'Liczba rund', '2')
-  await chooseTile(page, 'Czas rundy', '1:00')
-  await chooseTile(page, 'Przerwa między rundami', '0:30')
-  await expect(page.getByRole('button', { name: '3 × 3:00 · przerwa 1:00', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'false',
-  )
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  await expect(format(page, '3 × 3:00 · przerwa 1:00')).toBeChecked()
+  await press(page, 'Zmniejsz liczbę rund o 1', 1)
+  await press(page, 'Zmniejsz czas rundy o 15 s', 8)
+  await press(page, 'Zmniejsz przerwę o 15 s', 2)
+  await expect(stepperValue(page, 'Rundy')).toHaveText('2')
+  await expect(stepperValue(page, 'Czas rundy')).toHaveText('01:00')
+  await expect(stepperValue(page, 'Przerwa')).toHaveText('00:30')
+  await expect(format(page, '3 × 3:00 · przerwa 1:00')).not.toBeChecked()
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 
   await chooseLibraryExercise(page, 'Lewy prosty → lewy prosty → prawy prosty')
-  await expect(page.getByRole('group', { name: 'Liczba rund', exact: true }).getByRole('radio', { name: '2', exact: true })).toBeChecked()
-  await expect(page.getByRole('group', { name: 'Czas rundy', exact: true }).getByRole('radio', { name: '1:00', exact: true })).toBeChecked()
-  await expect(
-    page.getByRole('group', { name: 'Przerwa między rundami', exact: true }).getByRole('radio', { name: '0:30', exact: true }),
-  ).toBeChecked()
-  await expect(page.getByRole('button', { name: '3 × 3:00 · przerwa 1:00', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'false',
-  )
-  await expect(page.getByRole('button', { name: '3 × 3:00 · przerwa 0:30', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'false',
-  )
+  await expect(stepperValue(page, 'Rundy')).toHaveText('2')
+  await expect(stepperValue(page, 'Czas rundy')).toHaveText('01:00')
+  await expect(stepperValue(page, 'Przerwa')).toHaveText('00:30')
+  await expect(page.getByRole('group', { name: 'Gotowe formaty', exact: true }).getByRole('radio')).toHaveCount(3)
+  for (const name of ['3 × 3:00 · przerwa 1:00', '3 × 3:00 · przerwa 0:30', '5 × 3:00 · przerwa 1:00']) {
+    await expect(format(page, name)).not.toBeChecked()
+  }
 
-  await expect(page.getByRole('group', { name: 'Gotowe formaty', exact: true }).getByRole('button')).toHaveText([
-    '3 × 3:00 · przerwa 1:00', '3 × 3:00 · przerwa 0:30', '3 × 2:00 · przerwa 1:00',
-  ])
-
-  const tiles = [
-    page.getByRole('group', { name: 'Gotowe formaty', exact: true }).getByRole('button'),
-    page.getByRole('group', { name: 'Liczba rund', exact: true }).locator('label'),
-    page.getByRole('group', { name: 'Czas rundy', exact: true }).locator('label'),
-    page.getByRole('group', { name: 'Przerwa między rundami', exact: true }).locator('label'),
+  const targets = [
+    page.getByRole('group', { name: 'Gotowe formaty', exact: true }).locator('label'),
+    page.getByRole('button', { name: /^(Zmniejsz|Zwiększ) / }),
   ]
-  const heights: number[] = []
-  for (const group of tiles) {
+  const sizes: number[] = []
+  for (const group of targets) {
     const count = await group.count()
+    expect(count).toBeGreaterThan(0)
     for (let index = 0; index < count; index += 1) {
       const box = await group.nth(index).boundingBox()
       expect(box).not.toBeNull()
-      heights.push(box?.height ?? 0)
+      sizes.push(Math.min(box?.height ?? 0, box?.width ?? 0))
     }
   }
-  expect(Math.min(...heights)).toBeGreaterThanOrEqual(44)
-  test.info().annotations.push({
-    type: 'tile-height-px',
-    description: `min ${Math.min(...heights)} max ${Math.max(...heights)} count ${heights.length} viewport ${page.viewportSize()?.width}×${page.viewportSize()?.height}`,
-  })
+  expect(Math.min(...sizes)).toBeGreaterThanOrEqual(44)
 
   await captureConfiguration(page, testInfo, 'dark')
   await app.setTheme('light')
   await captureConfiguration(page, testInfo, 'light')
   await app.setTheme('dark')
 
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   await expect(page.getByText('2 rundy × 1:00 · przerwa 0:30', { exact: true })).toHaveCount(2)
 
   await app.savePlan()
   await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
   await expect(page.getByText('2 rundy × 1:00 · przerwa 0:30', { exact: true })).toHaveCount(2)
+})
+
+test('steps the round time by 15 s, updates the total live and accepts a typed value', async ({ app, page }) => {
+  await app.open('/workouts/new')
+  await page.getByRole('radio', { name: 'Boks', exact: true }).check()
+  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
+  await page.getByRole('button', { name: 'Technika', exact: true }).click()
+  await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
+
+  const structure = page.getByRole('region', { name: 'Struktura ćwiczenia', exact: true })
+  await expect(structure).toContainText('Łącznie: 11:00')
+  await page.getByRole('button', { name: 'Zwiększ czas rundy o 15 s', exact: true }).click()
+  await expect(stepperValue(page, 'Czas rundy')).toHaveText('03:15')
+  await expect(structure).toContainText('Łącznie: 11:45')
+  await expect(structure).toContainText('Rundy (03:15)')
+
+  await stepperValue(page, 'Rundy').click()
+  const rounds = page.getByRole('textbox', { name: 'Rundy', exact: true })
+  await expect(rounds).toBeFocused()
+  await rounds.fill('100')
+  await rounds.press('Enter')
+  await expect(page.getByRole('alert')).toHaveText('Liczba rund musi być liczbą całkowitą od 1 do 99.')
+  await expect(rounds).toHaveAttribute('aria-invalid', 'true')
+  await rounds.fill('5')
+  await rounds.press('Enter')
+  await expect(stepperValue(page, 'Rundy')).toHaveText('5')
+  await expect(stepperValue(page, 'Rundy')).toBeFocused()
+  await expect(structure).toContainText('Łącznie: 20:15')
+
+  await stepperValue(page, 'Czas rundy').click()
+  await page.getByRole('textbox', { name: 'Czas rundy', exact: true }).fill('3:00')
+  await page.getByRole('textbox', { name: 'Czas rundy', exact: true }).press('Enter')
+  await expect(format(page, '5 × 3:00 · przerwa 1:00')).toBeChecked()
+
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
+  await expect(page.getByText('5 rund × 3:00 · przerwa 1:00', { exact: true })).toBeVisible()
+})
+
+test('marks a focus skill on the exercise screen and keeps it in the saved plan', async ({ app, page }) => {
+  const instant = '2026-11-25T10:00:00.000Z'
+  await app.open('/workouts/new')
+  await app.seedFocusSkill({ id: 'guard', name: 'Powrót do gardy', criterion: 'Ręka wraca do brody.', openCorrection: null, archivedAt: null, createdAt: instant, updatedAt: instant })
+  await page.getByRole('radio', { name: 'Boks', exact: true }).check()
+  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
+  await page.getByRole('button', { name: 'Technika', exact: true }).click()
+  await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
+
+  const picker = page.getByRole('group', { name: 'Element do poprawy', exact: true })
+  await picker.getByRole('switch').click()
+  await picker.getByRole('radio', { name: /^Powrót do gardy/ }).check()
+  await expect(picker.getByRole('button', { name: 'Zmień', exact: true })).toBeFocused()
+  await expect(picker).toContainText('Ręka wraca do brody.')
+  await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
+
+  await app.savePlan()
+  await expect.poll(async () => (await app.readPlans())[0]?.blocks[0]?.items[0]).toMatchObject({ focusSkillId: 'guard' })
 })

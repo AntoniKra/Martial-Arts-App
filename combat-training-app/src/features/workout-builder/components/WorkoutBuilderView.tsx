@@ -41,6 +41,8 @@ import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderL
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 import { exerciseLabels } from '@/features/exercises/exerciseLabels'
 import { useWorkoutData } from '@/application/workoutDataContext'
+import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
+import { resolveExerciseType } from '@/features/workout-builder/utils/resolveExerciseType'
 
 interface WorkoutBuilderViewProps {
   state: WorkoutBuilderState
@@ -277,7 +279,7 @@ export function WorkoutBuilderView({
     await handleSavePlan()
   }
 
-  async function handleAddExercise(configuration: ExerciseConfiguration, instruction: string | null) {
+  async function handleAddExercise(configuration: ExerciseConfiguration, instruction: string | null, focusSkillId: string | null) {
     if (screen.type !== 'configureNew' || addingExerciseRef.current) {
       return
     }
@@ -310,13 +312,16 @@ export function WorkoutBuilderView({
       )
 
       dispatch({ type: 'addExercise', blockId: screen.blockId, exercise })
+      if (focusSkillId !== null) {
+        dispatch({ type: 'setExerciseFocusSkill', blockId: screen.blockId, exerciseId: exercise.id, focusSkillId })
+      }
       setPendingAddedExerciseId(exercise.id)
       setScreen({ type: 'edit' })
     } catch { setExerciseSaveError(exerciseLabels.error) }
     finally { addingExerciseRef.current = false; setAddingExercise(false) }
   }
 
-  function handleUpdateExercise(configuration: ExerciseConfiguration, instruction: string | null) {
+  function handleUpdateExercise(configuration: ExerciseConfiguration, instruction: string | null, focusSkillId: string | null) {
     if (screen.type !== 'configureExisting') {
       return
     }
@@ -328,6 +333,7 @@ export function WorkoutBuilderView({
       configuration,
       instruction,
     })
+    dispatch({ type: 'setExerciseFocusSkill', blockId: screen.blockId, exerciseId: screen.exerciseId, focusSkillId })
     setPendingAddedExerciseId(screen.exerciseId)
     setScreen({ type: 'edit' })
   }
@@ -351,6 +357,8 @@ export function WorkoutBuilderView({
     const disciplineKey = state.draft.disciplineKey
 
     if (targetBlock && disciplineKey !== null) {
+      const blockNumber = state.draft.blocks.indexOf(targetBlock) + 1
+      const focusExerciseCount = countFocusExercises(state.draft.blocks)
       if (screen.type === 'library') {
         return guard(
           <div className="flex flex-1 flex-col overflow-hidden">
@@ -368,12 +376,24 @@ export function WorkoutBuilderView({
 
       if (screen.type === 'configureNew') {
         const starting = selectStartingExerciseConfiguration(state.draft.blocks, targetBlock.id)
+        const selection = screen.selection
+        const selectionExerciseId = selection.type === 'library' ? selection.combinationId : selection.saveToLibrary ? selection.personalId ?? null : null
 
         return guard(
           <div className="flex flex-1 flex-col overflow-hidden">
             <ExerciseConfigurationView
+              disciplineKey={disciplineKey}
+              blockNumber={blockNumber}
               blockLabel={getWorkoutBlockLabelPl(targetBlock.blockType)}
-              exerciseName={screen.selection.exerciseNameSnapshot}
+              exerciseName={selection.exerciseNameSnapshot}
+              exerciseType={resolveExerciseType({
+                combinationId: selection.type === 'library' ? selection.combinationId : null,
+                personalExercises: exercises.items,
+                customType: selection.type === 'custom' ? selection.exerciseType : undefined,
+              })}
+              initialFocusSkillId={null}
+              otherFocusExerciseCount={focusExerciseCount}
+              focusSkillExerciseId={selectionExerciseId}
               initialConfiguration={
                 screen.selection.type === 'library' && screen.selection.defaultConfiguration ? { ...screen.selection.defaultConfiguration } : starting.mode === 'continuous'
                   ? { mode: 'continuous', durationSeconds: starting.continuousDurationSeconds }
@@ -390,7 +410,7 @@ export function WorkoutBuilderView({
               submitPending={addingExercise}
               submitError={exerciseSaveError}
               onBack={backToLibraryFromConfigureNew}
-              onSubmit={(configuration, instruction) => void handleAddExercise(configuration, instruction)}
+              onSubmit={(configuration, instruction, focusSkillId) => void handleAddExercise(configuration, instruction, focusSkillId)}
             />
           </div>,
         )
@@ -402,8 +422,14 @@ export function WorkoutBuilderView({
         return guard(
           <div className="flex flex-1 flex-col overflow-hidden">
             <ExerciseConfigurationView
+              disciplineKey={disciplineKey}
+              blockNumber={blockNumber}
               blockLabel={getWorkoutBlockLabelPl(targetBlock.blockType)}
               exerciseName={exercise.exerciseNameSnapshot}
+              exerciseType={resolveExerciseType({ combinationId: exercise.combinationId, personalExercises: exercises.items })}
+              initialFocusSkillId={exercise.focusSkillId}
+              otherFocusExerciseCount={focusExerciseCount - (exercise.focusSkillId === null ? 0 : 1)}
+              focusSkillExerciseId={exercise.combinationId}
               initialConfiguration={copyExerciseConfiguration(exercise.configuration)}
               initialInstruction={exercise.instruction}
               variant="existing"

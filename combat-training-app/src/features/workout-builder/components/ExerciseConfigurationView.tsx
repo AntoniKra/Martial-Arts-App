@@ -1,49 +1,40 @@
-import { ChoiceTile } from '@/components/ui/ChoiceTile'
-import { FormCloseConfirmation } from '@/components/FormCloseConfirmation'
-import {
-  useEffect,
-  useState,
-  useId,
-  useReducer,
-  useRef,
-  type FormEvent,
-  type ReactNode,
-  type Ref,
-  type RefObject,
-} from 'react'
+import { useEffect, useId, useReducer, useRef, useState } from 'react'
 
-import { ScreenHeader } from '@/components/ScreenHeader'
-import { Button } from '@/components/ui/Button'
-import { RedAccent } from '@/components/ui/RedAccent'
+import { FormCloseConfirmation } from '@/components/FormCloseConfirmation'
+import { screenHeaderLabels } from '@/components/screenHeaderLabels'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
+import { getDisciplineLabelPl } from '@/domain/discipline/disciplineLabels'
+import type { DisciplineKey } from '@/domain/discipline/discipline.types'
+import type { ExerciseType } from '@/domain/exercise/exercise'
+import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import type { ExerciseConfiguration } from '@/domain/workout/workout.types'
+import { exerciseLabels } from '@/features/exercises/exerciseLabels'
+import { FocusSkillPicker } from '@/features/focus-skills/FocusSkillPicker'
+import { ExerciseValueStepper, type StepperEntry } from '@/features/workout-builder/components/ExerciseValueStepper'
+import { RoundStructureBar } from '@/features/workout-builder/components/RoundStructureBar'
+import { exerciseConfigurationLabels as labels } from '@/features/workout-builder/exerciseConfigurationLabels'
 import {
   createExerciseConfigurationFormState,
-  emptyExerciseConfigurationFieldErrors,
+  EXERCISE_ROUND_FORMATS,
   exerciseConfigurationFormReducer,
-  resolveRestBetweenRoundsSeconds,
-  REST_PRESETS,
-  ROUND_COUNT_PRESETS,
-  ROUND_DURATION_PRESETS,
-  ROUND_FORMAT_PRESETS,
+  readStepperValue,
   selectedRoundFormat,
   showsRestBetweenRounds,
+  toExerciseConfiguration,
+  type ExerciseConfigurationFormState,
 } from '@/features/workout-builder/state/exerciseConfigurationForm'
-import {
-  DEFAULT_ROUND_EXERCISE_CONFIGURATION,
-  EXERCISE_INSTRUCTION_MAX_LENGTH,
-  ROUND_COUNT_MAX,
-} from '@/features/workout-builder/state/workoutBuilder.types'
+import { parseStepperEntry, type StepperField } from '@/features/workout-builder/state/exerciseStepper'
+import { EXERCISE_INSTRUCTION_MAX_LENGTH } from '@/features/workout-builder/state/workoutBuilder.types'
 import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderLabels'
-import {
-  computeDurationSeconds,
-  parseRequiredNonNegativeInteger,
-} from '@/features/workout-builder/utils/durationInput'
-import { formatSecondsAsClock } from '@/domain/time/formatDuration'
+import { formatStepperClock } from '@/features/workout-builder/utils/formatStepperClock'
+import './exerciseConfiguration.css'
 
 interface ExerciseConfigurationViewProps {
+  disciplineKey: DisciplineKey
+  blockNumber: number
   blockLabel: string
   exerciseName: string
+  exerciseType: ExerciseType | null
   initialConfiguration: ExerciseConfiguration
   initialInstruction: string | null
   initialRoundSettings?: {
@@ -51,506 +42,266 @@ interface ExerciseConfigurationViewProps {
     roundDurationSeconds: number
     restBetweenRoundsSeconds: number
   } | null
+  initialFocusSkillId: string | null
+  /** Exercises with a focus skill elsewhere in the plan, without this one. */
+  otherFocusExerciseCount: number
+  /** Library or personal exercise ID, linked to a focus skill created here. */
+  focusSkillExerciseId: string | null
   variant: 'new' | 'existing'
   submitPending?: boolean
   submitError?: string | null
   onBack: () => void
-  onSubmit: (configuration: ExerciseConfiguration, instruction: string | null) => void
+  onSubmit: (configuration: ExerciseConfiguration, instruction: string | null, focusSkillId: string | null) => void
 }
 
-type DurationPresetValue = number | 'custom'
+const disciplineTextColors: Record<DisciplineKey, string> = {
+  boxing: 'text-discipline-boxing',
+  kickboxing: 'text-discipline-kickboxing',
+  muay_thai: 'text-discipline-muay-thai',
+  k1: 'text-discipline-k1',
+  mma_striking: 'text-discipline-mma-striking',
+}
 
-const contentContainerClass = 'mx-auto w-full max-w-lg px-4 md:max-w-2xl'
-
-const fieldClassName =
-  'min-h-touch w-full border border-bd bg-input px-3 py-2 font-display text-[16px] text-ink placeholder:text-faint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]'
-
-const labelClassName =
-  'mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint'
-
-const formatButtonClassName =
-  'flex min-h-touch w-full items-center justify-center border px-3 py-2 text-center font-display text-[12px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]'
+const STEPPER_LABELS: Record<StepperField, string> = {
+  roundCount: labels.roundCount,
+  roundDuration: labels.roundDuration,
+  rest: labels.rest,
+  continuousDuration: labels.continuousDuration,
+}
 
 function normalizeInstruction(value: string): string | null {
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed : null
 }
 
-function focusField(element: HTMLElement | null | undefined) {
-  if (!element) {
-    return
-  }
-
-  requestAnimationFrame(() => {
-    element.focus()
-  })
+function displayValue(field: StepperField, value: number): string {
+  return field === 'roundCount' ? String(value) : formatStepperClock(value)
 }
 
-function isListedRoundCount(roundCount: number): boolean {
-  return (ROUND_COUNT_PRESETS as readonly number[]).includes(roundCount)
-}
-
-interface PresetRadioGroupProps {
-  legend: string
-  name: string
-  presets: readonly { label: string; value: number }[]
-  selectedPreset: DurationPresetValue
-  onSelectPreset: (value: DurationPresetValue) => void
-  customLabel?: string
-  customFields?: ReactNode
-  fieldsetRef?: Ref<HTMLFieldSetElement>
-}
-
-function PresetRadioGroup({
-  legend,
-  name,
-  presets,
-  selectedPreset,
-  onSelectPreset,
-  customLabel = 'Własny',
-  customFields,
-  fieldsetRef,
-}: PresetRadioGroupProps) {
-  return (
-    <fieldset ref={fieldsetRef} className="space-y-3">
-      <legend className={labelClassName}>{legend}</legend>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {presets.map((preset) => <ChoiceTile key={preset.value} name={name} value={preset.value}
-          checked={selectedPreset === preset.value} onChange={() => onSelectPreset(preset.value)} className="compact-choice">
-          {preset.label}
-        </ChoiceTile>)}
-        <ChoiceTile name={name} value="custom" checked={selectedPreset === 'custom'} onChange={() => onSelectPreset('custom')} className="compact-choice">
-          {customLabel}
-        </ChoiceTile>
-      </div>
-      {selectedPreset === 'custom' ? customFields : null}
-    </fieldset>
-  )
-}
-
-function CustomDurationFields({
-  minutesId,
-  secondsId,
-  errorId,
-  minutes,
-  seconds,
-  onMinutesChange,
-  onSecondsChange,
-  errorMessage,
-  minutesRef,
-  allowZeroTotal = false,
-}: {
-  minutesId: string
-  secondsId: string
-  errorId: string
-  minutes: string
-  seconds: string
-  onMinutesChange: (value: string) => void
-  onSecondsChange: (value: string) => void
-  errorMessage: string | null
-  minutesRef?: RefObject<HTMLInputElement | null>
-  allowZeroTotal?: boolean
-}) {
-  return (
-    <div className="space-y-3 border border-bd bg-surface p-3">
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor={minutesId} className={labelClassName}>
-            Minuty
-          </label>
-          <input
-            ref={minutesRef}
-            id={minutesId}
-            inputMode="numeric"
-            value={minutes}
-            onChange={(event) => onMinutesChange(event.target.value)}
-            className={fieldClassName}
-            aria-invalid={errorMessage ? true : undefined}
-            aria-describedby={errorMessage ? errorId : undefined}
-          />
-        </div>
-        <div>
-          <label htmlFor={secondsId} className={labelClassName}>
-            Sekundy
-          </label>
-          <input
-            id={secondsId}
-            inputMode="numeric"
-            value={seconds}
-            onChange={(event) => onSecondsChange(event.target.value)}
-            className={fieldClassName}
-            aria-invalid={errorMessage ? true : undefined}
-            aria-describedby={errorMessage ? errorId : undefined}
-          />
-        </div>
-      </div>
-      {errorMessage ? (
-        <p id={errorId} className="text-[13px] leading-relaxed text-crimson-ink">
-          {errorMessage}
-        </p>
-      ) : null}
-      {allowZeroTotal ? (
-        <p className="text-[12px] text-muted">Przerwa może wynosić 0:00.</p>
-      ) : null}
-    </div>
-  )
+function isSameForm(a: ExerciseConfigurationFormState, b: ExerciseConfigurationFormState): boolean {
+  return JSON.stringify(a) === JSON.stringify(b)
 }
 
 export function ExerciseConfigurationView({
+  disciplineKey,
+  blockNumber,
   blockLabel,
   exerciseName,
+  exerciseType,
   initialConfiguration,
   initialInstruction,
   initialRoundSettings = null,
+  initialFocusSkillId,
+  otherFocusExerciseCount,
+  focusSkillExerciseId,
   variant,
   submitPending = false,
   submitError = null,
   onBack,
   onSubmit,
 }: ExerciseConfigurationViewProps) {
-  const instructionId = useId()
-  const roundCountId = useId()
-  const roundCountErrorId = useId()
-  const continuousErrorId = useId()
-  const roundDurationCustomMinutesId = useId()
-  const roundDurationCustomSecondsId = useId()
-  const roundDurationCustomErrorId = useId()
-  const restCustomMinutesId = useId()
-  const restCustomSecondsId = useId()
-  const restCustomErrorId = useId()
-  const continuousMinutesId = useId()
-  const continuousSecondsId = useId()
-
-  const roundCountGroupRef = useRef<HTMLFieldSetElement>(null)
-  const roundCountRef = useRef<HTMLInputElement>(null)
-  const roundDurationCustomMinutesRef = useRef<HTMLInputElement>(null)
-  const restCustomMinutesRef = useRef<HTMLInputElement>(null)
-  const continuousMinutesRef = useRef<HTMLInputElement>(null)
+  const headingId = useId()
+  const notesId = useId()
+  const entryErrorId = useId()
+  const headingRef = useRef<HTMLHeadingElement>(null)
 
   const [form, dispatch] = useReducer(
     exerciseConfigurationFormReducer,
-    {
-      configuration: initialConfiguration,
-      instruction: initialInstruction,
-      roundSettings: initialRoundSettings,
-    },
+    { configuration: initialConfiguration, instruction: initialInstruction, roundSettings: initialRoundSettings },
     ({ configuration, instruction, roundSettings }) =>
       createExerciseConfigurationFormState(configuration, instruction, roundSettings),
   )
   const [initialForm] = useState(form)
+  const [focusSkillId, setFocusSkillId] = useState(initialFocusSkillId)
+  const [entry, setEntry] = useState<StepperEntry | null>(null)
   const [confirmClose, setConfirmClose] = useState(false)
-  function close() {
-    if (JSON.stringify({ ...form, errors: null }) !== JSON.stringify({ ...initialForm, errors: null })) setConfirmClose(true)
-    else onBack()
-  }
-  const selectedFormat = selectedRoundFormat(form)
-
-  const heading = variant === 'new' ? 'Konfiguracja ćwiczenia' : 'Edycja ćwiczenia'
-  const submitLabel = variant === 'new' ? 'Dodaj ćwiczenie' : workoutBuilderLabels.saveChanges
-  const initialMode = initialConfiguration.mode
-  const initialRoundCount = initialConfiguration.mode === 'rounds' ? initialConfiguration.roundCount : null
 
   useEffect(() => {
-    if (variant !== 'existing') {
-      return
-    }
-
-    const frame = requestAnimationFrame(() => {
-      if (initialMode === 'continuous') {
-        continuousMinutesRef.current?.focus()
-        return
-      }
-
-      if (initialRoundCount !== null && !isListedRoundCount(initialRoundCount)) {
-        roundCountRef.current?.focus()
-        return
-      }
-
-      roundCountGroupRef.current?.querySelector<HTMLInputElement>('input[type="radio"]:checked')?.focus()
-    })
-
+    if (variant !== 'existing') return
+    const frame = requestAnimationFrame(() => headingRef.current?.focus())
     return () => cancelAnimationFrame(frame)
-  }, [variant, initialMode, initialRoundCount])
+  }, [variant])
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  function close() {
+    if (!isSameForm(form, initialForm) || focusSkillId !== initialFocusSkillId) setConfirmClose(true)
+    else onBack()
+  }
+
+  /** Applies a typed value. Returns the form with it, or null while the text is invalid. */
+  function commitEntry(): ExerciseConfigurationFormState | null {
+    if (!entry) return form
+    const result = parseStepperEntry(entry.field, entry.text)
+    if (!result.ok) {
+      setEntry({ ...entry, invalid: true })
+      return null
+    }
+    const action = { type: 'setValue', field: entry.field, value: result.value } as const
+    dispatch(action)
+    setEntry(null)
+    return exerciseConfigurationFormReducer(form, action)
+  }
+
+  // No <form> element: the focus skill picker below contains its own form, and forms must not nest.
+  function submit() {
     if (submitPending) return
-    const clearedErrors = emptyExerciseConfigurationFieldErrors()
+    const committed = commitEntry()
+    if (!committed) return
+    onSubmit(toExerciseConfiguration(committed), normalizeInstruction(committed.instructionInput), focusSkillId)
+  }
 
-    if (form.mode === 'continuous') {
-      const result = computeDurationSeconds(form.continuousMinutesInput, form.continuousSecondsInput, false)
-
-      if (result.error) {
-        dispatch({
-          type: 'replaceFieldErrors',
-          errors: { ...clearedErrors, continuousDuration: result.error },
-        })
-        focusField(continuousMinutesRef.current)
-        return
-      }
-
-      onSubmit(
-        { mode: 'continuous', durationSeconds: result.seconds ?? 0 },
-        normalizeInstruction(form.instructionInput),
-      )
-      return
-    }
-
-    const roundCount =
-      form.roundCountPreset === 'custom'
-        ? parseRequiredNonNegativeInteger(form.roundCountInput)
-        : form.roundCountPreset
-
-    if (roundCount === null || roundCount < 1 || roundCount > ROUND_COUNT_MAX) {
-      dispatch({
-        type: 'replaceFieldErrors',
-        errors: {
-          ...clearedErrors,
-          roundCount: `Liczba rund musi być liczbą całkowitą od 1 do ${ROUND_COUNT_MAX}.`,
-        },
-      })
-      focusField(roundCountRef.current)
-      return
-    }
-
-    const roundDuration =
-      form.roundDurationPreset === 'custom'
-        ? computeDurationSeconds(form.roundDurationCustom.minutes, form.roundDurationCustom.seconds, false)
-        : { seconds: form.roundDurationPreset, error: null }
-
-    if (roundDuration.error) {
-      dispatch({
-        type: 'replaceFieldErrors',
-        errors: { ...clearedErrors, roundDuration: roundDuration.error },
-      })
-      focusField(roundDurationCustomMinutesRef.current)
-      return
-    }
-
-    const restDuration =
-      form.restPreset === 'custom'
-        ? computeDurationSeconds(form.restCustom.minutes, form.restCustom.seconds, true)
-        : { seconds: form.restPreset, error: null }
-    const preservedRestSeconds =
-      initialConfiguration.mode === 'rounds'
-        ? initialConfiguration.restBetweenRoundsSeconds
-        : (initialRoundSettings?.restBetweenRoundsSeconds ??
-          DEFAULT_ROUND_EXERCISE_CONFIGURATION.restBetweenRoundsSeconds)
-    const resolvedRest = resolveRestBetweenRoundsSeconds(roundCount, restDuration, preservedRestSeconds)
-
-    if (!resolvedRest.ok) {
-      dispatch({
-        type: 'replaceFieldErrors',
-        errors: { ...clearedErrors, rest: resolvedRest.error },
-      })
-      focusField(restCustomMinutesRef.current)
-      return
-    }
-
-    onSubmit(
-      {
-        mode: 'rounds',
-        roundCount,
-        roundDurationSeconds: roundDuration.seconds ?? 0,
-        restBetweenRoundsSeconds: resolvedRest.seconds,
-      },
-      normalizeInstruction(form.instructionInput),
+  function renderStepper(field: StepperField, wide = false) {
+    const value = readStepperValue(form, field)
+    return (
+      <ExerciseValueStepper
+        key={field}
+        field={field}
+        label={STEPPER_LABELS[field]}
+        value={value}
+        display={displayValue(field, value)}
+        entry={entry}
+        errorId={entryErrorId}
+        wide={wide}
+        onStep={(direction) => dispatch({ type: 'step', field, direction })}
+        onEntryStart={() => setEntry({ field, text: displayValue(field, value), invalid: false })}
+        onEntryChange={(text) => setEntry({ field, text, invalid: false })}
+        onEntryCommit={() => { commitEntry() }}
+        onEntryCancel={() => setEntry(null)}
+      />
     )
   }
 
+  const selectedFormat = selectedRoundFormat(form)
+  const showsRest = showsRestBetweenRounds(form)
+  const entryError = entry?.invalid ? parseStepperEntry(entry.field, entry.text) : null
+
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="border-b border-bd bg-surface">
-        <div className={`${contentContainerClass} py-4`}>
-          <ScreenHeader variant="form" title={heading} onBack={close} disabled={submitPending} />
-          <p className="mt-3 font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">Blok · {blockLabel}</p>
-          <p className="mt-2 font-display text-[16px] font-semibold leading-snug text-ink">{exerciseName}</p>
-          {variant === 'existing' ? (
-            <p className="mt-2 text-[13px] leading-relaxed text-muted">
-              Aby zmienić samo ćwiczenie, usuń ten element i dodaj nowe.
-            </p>
-          ) : null}
-        </div>
+    <div className="exercise-config flex flex-1 flex-col overflow-hidden">
+      <div className="mx-auto w-full max-w-lg px-4 pt-3 md:max-w-2xl">
+        <header className="exercise-config-topbar">
+          <button type="button" className="exercise-config-close" aria-label={screenHeaderLabels.close} onClick={close} disabled={submitPending}>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+          <h1 ref={headingRef} id={headingId} tabIndex={-1} className="exercise-config-title">{labels.title}</h1>
+          <button type="button" className="exercise-config-header-action" disabled={submitPending} onClick={submit}>
+            <span className="exercise-config-header-face">{labels.done}</span>
+          </button>
+        </header>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto pb-24">
-          <div className={`${contentContainerClass} space-y-6 py-5`}>
-            <SegmentedControl
-              label="Tryb"
-              options={[
-                { label: 'Rundy', value: 'rounds' },
-                { label: 'Ciągłe', value: 'continuous' },
-              ]}
-              value={form.mode}
-              onChange={(mode) => dispatch({ type: 'setMode', mode })}
-            />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto flex w-full max-w-lg flex-col gap-4 px-4 pb-7 pt-3 md:max-w-2xl">
+            <section aria-label={labels.context} className="exercise-config-card">
+              <p className={`exercise-config-tag ${disciplineTextColors[disciplineKey]}`}>
+                {labels.contextTag(getDisciplineLabelPl(disciplineKey), blockNumber, blockLabel)}
+              </p>
+              <h2 className="exercise-config-name">{exerciseName}</h2>
+              {exerciseType && <p className="exercise-config-type">{exerciseLabels.types[exerciseType]}</p>}
+              {variant === 'existing' && <p className="exercise-config-type">{labels.existingHint}</p>}
+            </section>
 
-            <RedAccent />
+            <div className="exercise-config-section">
+              <p className="exercise-config-section-title" aria-hidden="true">{labels.mode}</p>
+              <SegmentedControl
+                ariaLabel={labels.mode}
+                options={[
+                  { label: labels.rounds, value: 'rounds' },
+                  { label: labels.continuous, value: 'continuous' },
+                ]}
+                value={form.mode}
+                onChange={(mode) => { setEntry(null); dispatch({ type: 'setMode', mode }) }}
+              />
+            </div>
 
             {form.mode === 'rounds' ? (
               <>
-                <fieldset className="space-y-3">
-                  <legend className={labelClassName}>Gotowe formaty</legend>
-                  <div className="grid gap-2">
-                    {ROUND_FORMAT_PRESETS.map((format) => {
-                      const selected = selectedFormat?.id === format.id
-
+                <fieldset className="exercise-config-section">
+                  <legend className="exercise-config-section-title mb-2.5 p-0">{labels.formats}</legend>
+                  <div className="exercise-config-formats">
+                    {EXERCISE_ROUND_FORMATS.map((format) => {
+                      const roundDuration = formatSecondsAsClock(format.roundDurationSeconds)
+                      const rest = formatSecondsAsClock(format.restBetweenRoundsSeconds)
                       return (
-                        <button
-                          key={format.id}
-                          type="button"
-                          aria-pressed={selected}
-                          onClick={() => dispatch({ type: 'applyRoundFormat', formatId: format.id })}
-                          className={[
-                            formatButtonClassName,
-                            selected
-                              ? 'border-crimson bg-crimson/10 text-ink ring-1 ring-crimson/40'
-                              : 'border-bd bg-elevated text-muted hover:border-muted/50 hover:text-ink',
-                          ].join(' ')}
-                        >
-                          {format.label}
-                        </button>
+                        <label key={format.id} className="exercise-config-format">
+                          <input
+                            type="radio"
+                            name={`${headingId}-format`}
+                            className="control-input"
+                            aria-label={labels.formatName(format.roundCount, roundDuration, rest)}
+                            checked={selectedFormat?.id === format.id}
+                            onChange={() => { setEntry(null); dispatch({ type: 'applyRoundFormat', formatId: format.id }) }}
+                          />
+                          <span aria-hidden="true" className="exercise-config-format-rounds">{labels.formatRounds(format.roundCount, roundDuration)}</span>
+                          <span aria-hidden="true" className="exercise-config-format-rest">{labels.formatRest(rest)}</span>
+                        </label>
                       )
                     })}
                   </div>
                 </fieldset>
 
-                <PresetRadioGroup
-                  legend="Liczba rund"
-                  name="round-count"
-                  customLabel="Własna"
-                  fieldsetRef={roundCountGroupRef}
-                  presets={ROUND_COUNT_PRESETS.map((value) => ({
-                    label: String(value),
-                    value,
-                  }))}
-                  selectedPreset={form.roundCountPreset}
-                  onSelectPreset={(value) => dispatch({ type: 'selectRoundCountPreset', value })}
-                  customFields={
-                    <div className="space-y-3 border border-bd bg-surface p-3">
-                      <div>
-                        <label htmlFor={roundCountId} className={labelClassName}>
-                          Własna liczba rund
-                        </label>
-                        <input
-                          ref={roundCountRef}
-                          id={roundCountId}
-                          inputMode="numeric"
-                          value={form.roundCountInput}
-                          onChange={(event) =>
-                            dispatch({ type: 'setRoundCountInput', value: event.target.value })
-                          }
-                          className={fieldClassName}
-                          aria-invalid={form.errors.roundCount ? true : undefined}
-                          aria-describedby={form.errors.roundCount ? roundCountErrorId : undefined}
-                        />
-                      </div>
-                      {form.errors.roundCount ? (
-                        <p id={roundCountErrorId} className="text-[13px] leading-relaxed text-crimson-ink">
-                          {form.errors.roundCount}
-                        </p>
-                      ) : null}
-                    </div>
-                  }
-                />
-
-                <PresetRadioGroup
-                  legend="Czas rundy"
-                  name="round-duration"
-                  presets={ROUND_DURATION_PRESETS.map((value) => ({
-                    label: formatSecondsAsClock(value),
-                    value,
-                  }))}
-                  selectedPreset={form.roundDurationPreset}
-                  onSelectPreset={(value) => dispatch({ type: 'selectRoundDurationPreset', value })}
-                  customFields={
-                    <CustomDurationFields
-                      minutesId={roundDurationCustomMinutesId}
-                      secondsId={roundDurationCustomSecondsId}
-                      errorId={roundDurationCustomErrorId}
-                      minutes={form.roundDurationCustom.minutes}
-                      seconds={form.roundDurationCustom.seconds}
-                      minutesRef={roundDurationCustomMinutesRef}
-                      onMinutesChange={(value) => dispatch({ type: 'setRoundDurationMinutes', value })}
-                      onSecondsChange={(value) => dispatch({ type: 'setRoundDurationSeconds', value })}
-                      errorMessage={form.errors.roundDuration}
-                    />
-                  }
-                />
-
-                {showsRestBetweenRounds(form) ? (
-                  <PresetRadioGroup
-                    legend={workoutBuilderLabels.restBetweenRounds}
-                    name="round-rest"
-                    presets={REST_PRESETS.map((value) => ({
-                      label: formatSecondsAsClock(value),
-                      value,
-                    }))}
-                    selectedPreset={form.restPreset}
-                    onSelectPreset={(value) => dispatch({ type: 'selectRestPreset', value })}
-                    customFields={
-                      <CustomDurationFields
-                        minutesId={restCustomMinutesId}
-                        secondsId={restCustomSecondsId}
-                        errorId={restCustomErrorId}
-                        minutes={form.restCustom.minutes}
-                        seconds={form.restCustom.seconds}
-                        minutesRef={restCustomMinutesRef}
-                        onMinutesChange={(value) => dispatch({ type: 'setRestMinutes', value })}
-                        onSecondsChange={(value) => dispatch({ type: 'setRestSeconds', value })}
-                        errorMessage={form.errors.rest}
-                        allowZeroTotal
-                      />
-                    }
-                  />
-                ) : (
-                  <p className="text-[13px] leading-relaxed text-muted">{workoutBuilderLabels.singleRoundRest}</p>
-                )}
+                <section aria-label={labels.roundSettings} className="exercise-config-section">
+                  <p className="exercise-config-section-title" aria-hidden="true">{labels.roundSettings}</p>
+                  <div className="exercise-config-steppers" data-columns={showsRest ? 3 : 2}>
+                    {renderStepper('roundCount')}
+                    {renderStepper('roundDuration')}
+                    {showsRest && renderStepper('rest')}
+                  </div>
+                  {entryError && !entryError.ok && (
+                    <p id={entryErrorId} role="alert" className="exercise-config-entry-error">{labels.entryErrors[entryError.error]}</p>
+                  )}
+                  {!showsRest && <p className="exercise-config-notice">{workoutBuilderLabels.singleRoundRest}</p>}
+                  <RoundStructureBar roundCount={form.roundCount} roundDurationSeconds={form.roundDurationSeconds} restSeconds={form.restSeconds} />
+                </section>
               </>
             ) : (
-              <div>
-                <p className={labelClassName}>Czas trwania</p>
-                <CustomDurationFields
-                  minutesId={continuousMinutesId}
-                  secondsId={continuousSecondsId}
-                  errorId={continuousErrorId}
-                  minutes={form.continuousMinutesInput}
-                  seconds={form.continuousSecondsInput}
-                  minutesRef={continuousMinutesRef}
-                  onMinutesChange={(value) => dispatch({ type: 'setContinuousMinutes', value })}
-                  onSecondsChange={(value) => dispatch({ type: 'setContinuousSeconds', value })}
-                  errorMessage={form.errors.continuousDuration}
-                />
-              </div>
+              <section aria-label={labels.continuousSection} className="exercise-config-section">
+                <p className="exercise-config-section-title" aria-hidden="true">{labels.continuousSection}</p>
+                <div className="exercise-config-steppers" data-columns={1}>
+                  {renderStepper('continuousDuration', true)}
+                </div>
+                {entryError && !entryError.ok && (
+                  <p id={entryErrorId} role="alert" className="exercise-config-entry-error">{labels.entryErrors[entryError.error]}</p>
+                )}
+              </section>
             )}
 
-            <div>
-              <label htmlFor={instructionId} className={labelClassName}>
-                Instrukcja <span className="font-normal normal-case tracking-normal text-faint">(opcjonalnie)</span>
-              </label>
+            <FocusSkillPicker
+              variant="module"
+              focusSkillId={focusSkillId}
+              focusExerciseCount={otherFocusExerciseCount}
+              exerciseId={focusSkillExerciseId}
+              onChange={setFocusSkillId}
+            />
+
+            <div className="exercise-config-section">
+              <label htmlFor={notesId} className="exercise-config-section-title">{labels.notes}</label>
               <textarea
-                id={instructionId}
+                id={notesId}
                 value={form.instructionInput}
                 maxLength={EXERCISE_INSTRUCTION_MAX_LENGTH}
-                rows={3}
-                placeholder="Notatki wykonawcze dla tego ćwiczenia…"
-                className={`${fieldClassName} resize-y`}
+                rows={2}
+                placeholder={labels.notesPlaceholder}
+                className="exercise-config-notes"
                 onChange={(event) => dispatch({ type: 'setInstruction', value: event.target.value })}
               />
             </div>
           </div>
         </div>
 
-        <div className="border-t border-bd bg-surface">
-          <div className={`${contentContainerClass} py-4`}>
+        <div className="exercise-config-submit-bar">
+          <div className="mx-auto w-full max-w-lg md:max-w-2xl">
             {submitError && <p role="alert" className="mb-3 text-sm text-crimson-ink">{submitError}</p>}
-            <Button type="submit" variant="primary" className="w-full" loading={submitPending} disabled={submitPending}>
-              {submitLabel}
-            </Button>
+            <button type="button" className="exercise-config-submit chamfer-top-right" disabled={submitPending} aria-busy={submitPending || undefined} onClick={submit}>
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>{labels.submit}</span>
+            </button>
           </div>
         </div>
-      </form>
+      </div>
       {confirmClose && <FormCloseConfirmation onCancel={() => setConfirmClose(false)} onDiscard={onBack} />}
     </div>
   )
