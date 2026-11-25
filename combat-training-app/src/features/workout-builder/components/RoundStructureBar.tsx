@@ -1,6 +1,6 @@
+import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { exerciseConfigurationLabels as labels } from '@/features/workout-builder/exerciseConfigurationLabels'
 import { buildRoundStructure } from '@/features/workout-builder/state/exerciseRoundStructure'
-import { formatStepperClock } from '@/features/workout-builder/utils/formatStepperClock'
 
 /** Total time N5 B: one segment per round and per rest between rounds, widths proportional to time. */
 export function RoundStructureBar({ roundCount, roundDurationSeconds, restSeconds }: {
@@ -25,18 +25,18 @@ export function RoundStructureBar({ roundCount, roundDurationSeconds, restSecond
         </div>
         <p className="exercise-config-structure-total">
           <span className="sr-only">{labels.total}: </span>
-          {formatStepperClock(structure.totalSeconds)}
+          {formatSecondsAsClock(structure.totalSeconds)}
         </p>
       </div>
       <div className="exercise-config-structure-legend">
         <span className="exercise-config-legend-item">
           <span aria-hidden="true" className="exercise-config-swatch" data-kind="work" />
-          {labels.structureRounds(formatStepperClock(roundDurationSeconds))}
+          {labels.structureRounds(formatSecondsAsClock(roundDurationSeconds))}
         </span>
         {hasRests && (
           <span className="exercise-config-legend-item">
             <span aria-hidden="true" className="exercise-config-swatch" data-kind="rest" />
-            {labels.structureRests(formatStepperClock(restSeconds))}
+            {labels.structureRests(formatSecondsAsClock(restSeconds))}
           </span>
         )}
         <span aria-hidden="true" className="exercise-config-total-label">{labels.total}</span>

@@ -9,7 +9,9 @@ describe('duration formatting', () => {
     },
   )
 
-  it('retains the timer clock format for an hour', () => {
-    expect(formatSecondsAsClock(3600)).toBe('60:00')
-  })
+  it.each([[0, '0:00'], [65, '1:05'], [660, '11:00'], [3600, '60:00'], [86_400, '1440:00']])(
+    'formats %i seconds on the clock as %s', (seconds, expected) => {
+      expect(formatSecondsAsClock(Number(seconds))).toBe(expected)
+    },
+  )
 })

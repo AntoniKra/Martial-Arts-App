@@ -117,7 +117,7 @@ Nie dodajemy ich do nagłówków, kart, przycisku zatwierdzenia ani innych kontr
 
 ## Ekran „Ćwiczenie” w kreatorze (#260)
 
-Układ według makiety końcowej kreatora (3A · 5A, N1 A, N4 C, N5 B, N6 D). Nagłówek: ✕ 44 px, wyśrodkowany tytuł Archivo 15 px wersalikami (13,5 px poniżej 375 px szerokości) i przycisk „Gotowe” z obrysem 2 px żaru, wysokości 36 px w obszarze dotyku 44 px. Gotowe formaty to trzy kafle; zaznaczenie pokazuje ramka 2 px `crimson-ink` i tło, bez ptaszka. Steppery mają etykietę 10 px, wartość Archivo 22 px z cyframi tabularnymi i podkreśleniem 2 px żaru (dotknięcie otwiera wpis) oraz płaskie przyciski − i + 44 px z obiciami M5. Pasek struktury ma segment na każdą rundę (`crimson`) i przerwę (ukośny deseń żaru, ciemne paski w obu motywach); powyżej 12 rund segmenty nie mają odstępów. Przycisk „Zatwierdź ćwiczenie” ma gradient główny, ścięty róg i jest przyklejony do dołu nad menu.
+Układ według makiety końcowej kreatora (3A · 5A, N1 A, N4 C, N5 B, N6 D). Nagłówek: ✕ 44 px, wyśrodkowany tytuł Archivo 15 px wersalikami (13,5 px poniżej 375 px szerokości) i przycisk „Gotowe” z obrysem 2 px żaru, wysokości 36 px w obszarze dotyku 44 px. Gotowe formaty to trzy kafle; zaznaczenie pokazuje ramka 2 px `crimson-ink` i tło, bez ptaszka. Steppery mają etykietę 10 px, wartość Archivo 22 px z cyframi tabularnymi i podkreśleniem 2 px żaru (dotknięcie otwiera wpis) oraz płaskie przyciski − i + 44 px z obiciami M5. Pasek struktury ma segment na każdą rundę (`crimson`) i przerwę (ukośny deseń żaru z tokenów `ember-ink` i `surface` obu motywów); powyżej 12 rund segmenty nie mają odstępów. Przycisk „Zatwierdź ćwiczenie” ma gradient główny, ścięty róg i jest przyklejony do dołu nad menu.
 
 ## Kontrolki formularzy
 

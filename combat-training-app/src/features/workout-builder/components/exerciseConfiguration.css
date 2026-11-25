@@ -1,12 +1,9 @@
 /* Exercise screen of the plan builder (#260). Values follow the approved mock-up, colours only from theme tokens. */
 .exercise-config {
   --exercise-config-faint-line: color-mix(in srgb, var(--app-ink) 8%, transparent);
-  /* Rest stripes stay dark in both themes, as in the mock-up. */
-  --exercise-config-stripe-gap: var(--app-surface);
-  --exercise-config-rest-stripes: repeating-linear-gradient(45deg, var(--app-ember) 0 3px, var(--exercise-config-stripe-gap) 3px 6px);
+  --exercise-config-rest-stripes: repeating-linear-gradient(45deg, var(--app-ember-ink) 0 3px, var(--app-surface) 3px 6px);
   background: var(--app-bg);
 }
-:root[data-theme='light'] .exercise-config { --exercise-config-stripe-gap: var(--app-ink); }
 
 .exercise-config-topbar { display: flex; min-height: var(--app-touch-min); align-items: center; justify-content: space-between; gap: 8px; }
 .exercise-config-close { display: inline-flex; width: 44px; height: 44px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--app-radius-sm); color: var(--app-ink); }
@@ -47,6 +44,7 @@
 .exercise-config-stepper-input { width: 100%; min-width: 0; max-width: 112px; height: 31px; min-height: 0; margin: 4px 0 8px; padding: 2px 4px 3px; border-bottom: 2px solid var(--app-ember); border-radius: 0; text-align: center; cursor: text; outline: none; }
 .exercise-config-stepper-input:focus-visible { background: var(--app-input); }
 .exercise-config-stepper-input[aria-invalid='true'] { border-bottom-color: var(--app-crimson-ink); }
+.exercise-config-stepper-preview { min-height: 1.25em; margin: -4px 0 4px; color: var(--app-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .exercise-config-stepper-buttons { display: grid; width: 100%; grid-template-columns: 1fr 1fr; gap: 4px; }
 .exercise-config-stepper[data-wide] .exercise-config-stepper-buttons { max-width: 200px; }
 .exercise-config-step { display: flex; height: 44px; min-height: 44px; align-items: center; justify-content: center; border: 0; border-radius: 2px; background: var(--app-elevated); color: var(--app-ink); font-family: var(--font-display); font-size: 18px; font-weight: 700; cursor: pointer; }
@@ -61,7 +59,7 @@
 .exercise-config-structure-track { display: flex; min-width: 0; height: 10px; flex: 1; gap: 2px; overflow: hidden; border-radius: 2px; }
 .exercise-config-structure-track[data-compact] { gap: 0; }
 .exercise-config-structure-work { height: 100%; min-width: 4px; border-radius: 1px; background: var(--app-crimson); }
-.exercise-config-structure-rest { height: 100%; min-width: 3px; border: 1px solid var(--app-ember); border-radius: 1px; background: var(--exercise-config-rest-stripes); }
+.exercise-config-structure-rest { height: 100%; min-width: 3px; border: 1px solid var(--app-ember-ink); border-radius: 1px; background: var(--exercise-config-rest-stripes); }
 .exercise-config-structure-track[data-compact] > * { min-width: 0; border-radius: 0; }
 .exercise-config-structure-track[data-compact] .exercise-config-structure-rest { border-width: 0; }
 .exercise-config-structure-total { flex-shrink: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--app-ink); }
@@ -69,7 +67,7 @@
 .exercise-config-legend-item { display: flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; }
 .exercise-config-swatch { width: 10px; height: 10px; flex-shrink: 0; border-radius: 1px; }
 .exercise-config-swatch[data-kind='work'] { background: var(--app-crimson); }
-.exercise-config-swatch[data-kind='rest'] { border: 1px solid var(--app-ember); background: repeating-linear-gradient(45deg, var(--app-ember) 0 2px, var(--exercise-config-stripe-gap) 2px 4px); }
+.exercise-config-swatch[data-kind='rest'] { border: 1px solid var(--app-ember-ink); background: var(--exercise-config-rest-stripes); }
 .exercise-config-total-label { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--app-faint); }
 
 .exercise-config-notes { width: 100%; min-height: 64px; padding: 8px 10px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: var(--app-ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.4; resize: vertical; }

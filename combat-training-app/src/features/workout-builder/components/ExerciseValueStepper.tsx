@@ -15,6 +15,7 @@ interface ExerciseValueStepperProps {
   value: number
   display: string
   entry: StepperEntry | null
+  timePreview: string | null
   errorId: string
   wide?: boolean
   onStep: (direction: StepDirection) => void
@@ -31,6 +32,7 @@ export function ExerciseValueStepper({
   value,
   display,
   entry,
+  timePreview,
   errorId,
   wide = false,
   onStep,
@@ -40,6 +42,7 @@ export function ExerciseValueStepper({
   onEntryCancel,
 }: ExerciseValueStepperProps) {
   const labelId = useId()
+  const previewId = useId()
   const valueRef = useRef<HTMLButtonElement>(null)
   const editing = entry?.field === field
   // Enter and Esc return focus to the value; a tap elsewhere leaves focus where the user put it.
@@ -97,7 +100,7 @@ export function ExerciseValueStepper({
           autoComplete="off"
           value={entry.text}
           aria-invalid={entry.invalid || undefined}
-          aria-describedby={entry.invalid ? errorId : undefined}
+          aria-describedby={entry.invalid ? errorId : timePreview ? previewId : undefined}
           onFocus={(event) => event.currentTarget.select()}
           onChange={(event) => onEntryChange(event.target.value)}
           onKeyDown={handleKeyDown}
@@ -113,6 +116,11 @@ export function ExerciseValueStepper({
         >
           <span className="exercise-config-stepper-face">{display}</span>
         </button>
+      )}
+      {editing && field !== 'roundCount' && (
+        <output className="exercise-config-stepper-preview">
+          <span id={previewId}>{timePreview}</span>
+        </output>
       )}
       <div className="exercise-config-stepper-buttons">
         {stepButton(-1)}
