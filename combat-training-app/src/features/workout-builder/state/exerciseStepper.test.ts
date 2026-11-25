@@ -47,7 +47,18 @@ describe('parseStepperEntry', () => {
     expect(parseStepperEntry('roundDuration', '02:05')).toEqual({ ok: true, value: 125 })
     expect(parseStepperEntry('rest', '45')).toEqual({ ok: true, value: 45 })
     expect(parseStepperEntry('rest', '0:00')).toEqual({ ok: true, value: 0 })
+    expect(parseStepperEntry('roundDuration', '90')).toEqual({ ok: true, value: 90 })
+    expect(parseStepperEntry('continuousDuration', ' 1:30 ')).toEqual({ ok: true, value: 90 })
+    expect(parseStepperEntry('continuousDuration', '86400')).toEqual({ ok: true, value: 86_400 })
+    expect(parseStepperEntry('rest', '1440:00')).toEqual({ ok: true, value: 86_400 })
   })
+
+  it.each(['', '1:5', '1:60', '1:00:00', '1.5', '1e2', '+90', '86401'])(
+    'rejects an invalid duration %j',
+    (input) => {
+      expect(parseStepperEntry('continuousDuration', input)).toEqual({ ok: false, error: 'duration' })
+    },
+  )
 
   it('rejects a malformed or out-of-range time', () => {
     expect(parseStepperEntry('roundDuration', '0:00')).toEqual({ ok: false, error: 'duration' })

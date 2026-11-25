@@ -53,7 +53,7 @@ test('blocks playback and saving changes to a legacy plan until the plan fits', 
 
   await page.getByRole('button', { name: 'Edytuj ćwiczenie Exercise first, element 1 w bloku 1 — Technika', exact: true }).click()
   await setCustomRoundCount(page, 53)
-  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: 'Zapisz zmiany', exact: true }).click()
   await page.getByRole('button', { name: 'Zapisz zmiany', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Limit sesji po edycji', exact: true })).toBeVisible()
   await expect.poll(async () => (await app.readPlans())[0]?.nameSnapshot).toBe('Limit sesji po edycji')

@@ -26,7 +26,6 @@ import {
 import { parseStepperEntry, type StepperField } from '@/features/workout-builder/state/exerciseStepper'
 import { EXERCISE_INSTRUCTION_MAX_LENGTH } from '@/features/workout-builder/state/workoutBuilder.types'
 import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderLabels'
-import { formatStepperClock } from '@/features/workout-builder/utils/formatStepperClock'
 import './exerciseConfiguration.css'
 
 interface ExerciseConfigurationViewProps {
@@ -75,7 +74,7 @@ function normalizeInstruction(value: string): string | null {
 }
 
 function displayValue(field: StepperField, value: number): string {
-  return field === 'roundCount' ? String(value) : formatStepperClock(value)
+  return field === 'roundCount' ? String(value) : formatSecondsAsClock(value)
 }
 
 function isSameForm(a: ExerciseConfigurationFormState, b: ExerciseConfigurationFormState): boolean {
@@ -115,6 +114,7 @@ export function ExerciseConfigurationView({
   const [focusSkillId, setFocusSkillId] = useState(initialFocusSkillId)
   const [entry, setEntry] = useState<StepperEntry | null>(null)
   const [confirmClose, setConfirmClose] = useState(false)
+  const entryResult = entry && parseStepperEntry(entry.field, entry.text)
 
   useEffect(() => {
     if (variant !== 'existing') return
@@ -129,13 +129,12 @@ export function ExerciseConfigurationView({
 
   /** Applies a typed value. Returns the form with it, or null while the text is invalid. */
   function commitEntry(): ExerciseConfigurationFormState | null {
-    if (!entry) return form
-    const result = parseStepperEntry(entry.field, entry.text)
-    if (!result.ok) {
+    if (!entry || !entryResult) return form
+    if (!entryResult.ok) {
       setEntry({ ...entry, invalid: true })
       return null
     }
-    const action = { type: 'setValue', field: entry.field, value: result.value } as const
+    const action = { type: 'setValue', field: entry.field, value: entryResult.value } as const
     dispatch(action)
     setEntry(null)
     return exerciseConfigurationFormReducer(form, action)
@@ -159,6 +158,9 @@ export function ExerciseConfigurationView({
         value={value}
         display={displayValue(field, value)}
         entry={entry}
+        timePreview={field !== 'roundCount' && entry?.field === field && entryResult?.ok
+          ? formatSecondsAsClock(entryResult.value)
+          : null}
         errorId={entryErrorId}
         wide={wide}
         onStep={(direction) => dispatch({ type: 'step', field, direction })}
@@ -172,7 +174,7 @@ export function ExerciseConfigurationView({
 
   const selectedFormat = selectedRoundFormat(form)
   const showsRest = showsRestBetweenRounds(form)
-  const entryError = entry?.invalid ? parseStepperEntry(entry.field, entry.text) : null
+  const entryError = entry?.invalid && entryResult && !entryResult.ok ? labels.entryErrors[entryResult.error] : null
 
   return (
     <div className="exercise-config flex flex-1 flex-col overflow-hidden">
@@ -248,8 +250,8 @@ export function ExerciseConfigurationView({
                     {renderStepper('roundDuration')}
                     {showsRest && renderStepper('rest')}
                   </div>
-                  {entryError && !entryError.ok && (
-                    <p id={entryErrorId} role="alert" className="exercise-config-entry-error">{labels.entryErrors[entryError.error]}</p>
+                  {entryError && (
+                    <p id={entryErrorId} role="alert" className="exercise-config-entry-error">{entryError}</p>
                   )}
                   {!showsRest && <p className="exercise-config-notice">{workoutBuilderLabels.singleRoundRest}</p>}
                   <RoundStructureBar roundCount={form.roundCount} roundDurationSeconds={form.roundDurationSeconds} restSeconds={form.restSeconds} />
@@ -261,8 +263,8 @@ export function ExerciseConfigurationView({
                 <div className="exercise-config-steppers" data-columns={1}>
                   {renderStepper('continuousDuration', true)}
                 </div>
-                {entryError && !entryError.ok && (
-                  <p id={entryErrorId} role="alert" className="exercise-config-entry-error">{labels.entryErrors[entryError.error]}</p>
+                {entryError && (
+                  <p id={entryErrorId} role="alert" className="exercise-config-entry-error">{entryError}</p>
                 )}
               </section>
             )}
@@ -297,7 +299,7 @@ export function ExerciseConfigurationView({
               <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              <span>{labels.submit}</span>
+              <span>{variant === 'existing' ? workoutBuilderLabels.saveChanges : labels.submit}</span>
             </button>
           </div>
         </div>

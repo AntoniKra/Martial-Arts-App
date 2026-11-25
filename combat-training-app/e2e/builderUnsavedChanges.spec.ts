@@ -171,7 +171,7 @@ test('hides rest for one round and restores the previous value at three rounds',
   await expect(discardDialog(page)).toHaveCount(0)
   await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()
 
-  await expect(restValue(page)).toHaveText('01:00')
+  await expect(restValue(page)).toHaveText('1:00')
   await setExerciseValue(page, 'Rundy', '1')
   await expect(restValue(page)).toHaveCount(0)
   const note = page.getByText(singleRoundRest, { exact: true })
@@ -184,7 +184,7 @@ test('hides rest for one round and restores the previous value at three rounds',
   await app.setTheme('dark')
 
   await setExerciseValue(page, 'Rundy', '3')
-  await expect(restValue(page)).toHaveText('01:00')
+  await expect(restValue(page)).toHaveText('1:00')
   await setExerciseValue(page, 'Przerwa', '0:30')
   await page.getByRole('button', { name: 'Zmniejsz liczbę rund o 1', exact: true }).click()
   await page.getByRole('button', { name: 'Zmniejsz liczbę rund o 1', exact: true }).click()
@@ -194,7 +194,10 @@ test('hides rest for one round and restores the previous value at three rounds',
   await expect(page.getByText('1 runda × 3:00 · przerwa 0:30', { exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: /Edytuj ćwiczenie Lewy prosty → prawy prosty/ }).click()
+  await expect(page.getByRole('heading', { name: 'Ćwiczenie', exact: true })).toBeVisible()
   await expect(restValue(page)).toHaveCount(0)
   await setExerciseValue(page, 'Rundy', '3')
-  await expect(restValue(page)).toHaveText('00:30')
+  await expect(restValue(page)).toHaveText('0:30')
+  await saveChanges(page).click()
+  await expect(page.getByText('3 rundy × 3:00 · przerwa 0:30', { exact: true })).toBeVisible()
 })
