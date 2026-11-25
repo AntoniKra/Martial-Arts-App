@@ -95,3 +95,6 @@ export type WorkoutBuilderScreen =
   | {
       type: 'preview'
     }
+  | {
+      type: 'planDetails'
+    }

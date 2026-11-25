@@ -5,13 +5,12 @@ import { useId } from 'react'
 import { Button } from '@/components/ui/Button'
 import type { WorkoutBlock } from '@/domain/workout/workout.types'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
+import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  MoveIconButton,
-  PlusIcon,
-  TrashIcon,
-} from '@/features/workout-builder/components/MoveIcons'
+  RowActionIcon,
+  TimelineClockIcon,
+  TimelinePlusIcon,
+} from '@/features/workout-builder/components/BlockTypeIcon'
 import { WorkoutBreakCard } from '@/features/workout-builder/components/WorkoutBreakCard'
 import { WorkoutBreakForm } from '@/features/workout-builder/components/WorkoutBreakForm'
 import { WorkoutExerciseCard } from '@/features/workout-builder/components/WorkoutExerciseCard'
@@ -25,7 +24,12 @@ import {
   canMoveBlockDown,
   canMoveBlockUp,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
-import { formatPolishCount } from '@/domain/language/polishPlural'
+import {
+  splitTrailingBreaks,
+  summarizeBlockTime,
+  type PositionedItem,
+} from '@/features/workout-builder/utils/timelinePresentation'
+import { workoutBuilderLabels as labels } from '@/features/workout-builder/workoutBuilderLabels'
 import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
 
 interface WorkoutBlockCardProps {
@@ -35,6 +39,8 @@ interface WorkoutBlockCardProps {
   dispatch: Dispatch<WorkoutBuilderAction>
   canAddExercise: boolean
   activeInlinePanel: ActiveInlinePanel
+  expandedId: string | null
+  onToggleExpanded: (id: string) => void
   onOpenInlinePanel: (panel: Exclude<ActiveInlinePanel, null>) => void
   onCloseInlinePanel: (focusTarget?: FocusRestoreTarget) => void
   onScheduleFocusRestore: (focusTarget: FocusRestoreTarget) => void
@@ -57,6 +63,11 @@ function formatBlockDescriptorGenitive(position: number, blockLabel: string): st
   return `bloku ${position} — ${blockLabel}`
 }
 
+/** Expanded-row key of the block menu; item keys are item ids. */
+function blockMenuKey(blockId: string): string {
+  return `block:${blockId}`
+}
+
 export function WorkoutBlockCard({
   block,
   position,
@@ -64,6 +75,8 @@ export function WorkoutBlockCard({
   dispatch,
   canAddExercise,
   activeInlinePanel,
+  expandedId,
+  onToggleExpanded,
   onOpenInlinePanel,
   onCloseInlinePanel,
   onScheduleFocusRestore,
@@ -76,6 +89,7 @@ export function WorkoutBlockCard({
   registerEditExerciseButtonRef,
 }: WorkoutBlockCardProps) {
   const addExerciseHintId = useId()
+  const blockMenuId = useId()
   const blockLabel = getWorkoutBlockLabelPl(block.blockType)
   const blockDescriptor = formatBlockDescriptor(position, blockLabel)
   const blockDescriptorGenitive = formatBlockDescriptorGenitive(position, blockLabel)
@@ -84,6 +98,9 @@ export function WorkoutBlockCard({
   const isEmpty = block.items.length === 0
   const focusExerciseCount = countFocusExercises(allBlocks)
   const addBreakFocusTarget: FocusRestoreTarget = { type: 'addBreak', blockId: block.id }
+  const time = summarizeBlockTime(block)
+  const { inside, trailing } = splitTrailingBreaks(block.items)
+  const isMenuOpen = expandedId === blockMenuKey(block.id)
 
   const isAddingBreak =
     activeInlinePanel?.type === 'addBreak' && activeInlinePanel.blockId === block.id
@@ -104,136 +121,176 @@ export function WorkoutBlockCard({
     })
   }
 
+  function renderItem({ item, position: itemPosition }: PositionedItem) {
+    if (item.type === 'break') {
+      return (
+        <WorkoutBreakCard
+          key={item.id}
+          blockId={block.id}
+          blockPosition={position}
+          blockLabel={blockLabel}
+          itemPosition={itemPosition}
+          breakItem={item}
+          blockItems={block.items}
+          dispatch={dispatch}
+          activeInlinePanel={activeInlinePanel}
+          isExpanded={expandedId === item.id}
+          onToggle={() => onToggleExpanded(item.id)}
+          onOpenInlinePanel={onOpenInlinePanel}
+          onCloseInlinePanel={onCloseInlinePanel}
+          onScheduleFocusRestore={onScheduleFocusRestore}
+          registerEditBreakButtonRef={registerEditBreakButtonRef(item.id)}
+        />
+      )
+    }
+
+    return (
+      <WorkoutExerciseCard
+        key={item.id}
+        blockId={block.id}
+        blockPosition={position}
+        blockLabel={blockLabel}
+        itemPosition={itemPosition}
+        exercise={item}
+        focusExerciseCount={focusExerciseCount}
+        blockItems={block.items}
+        dispatch={dispatch}
+        isExpanded={expandedId === item.id}
+        onToggle={() => onToggleExpanded(item.id)}
+        onOpenExerciseEdit={onOpenExerciseEdit}
+        onScheduleFocusRestore={onScheduleFocusRestore}
+        registerExerciseHeadingRef={registerExerciseHeadingRef(item.id)}
+        registerExerciseToggleRef={registerEditExerciseButtonRef(item.id)}
+      />
+    )
+  }
+
   return (
-    <li className="overflow-hidden border border-bd bg-surface">
-      <div className="flex flex-col gap-3 border-b border-bd bg-elevated px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
-            Blok {position}
-          </p>
-          <p className="mt-1 font-display text-[14px] font-semibold text-ink">{blockLabel}</p>
-          <p className="mt-0.5 text-[12px] text-muted">
-            {formatPolishCount(block.items.length, 'element', 'elementy', 'elementów')}
-          </p>
-        </div>
-
-        <div className="flex shrink-0 flex-wrap items-center gap-0.5">
-          <MoveIconButton
-            label={`Przenieś ${blockDescriptor} w górę`}
-            disabled={!canMoveUp}
-            onClick={() => dispatch({ type: 'moveBlock', blockId: block.id, direction: 'up' })}
-          >
-            <ArrowUpIcon />
-          </MoveIconButton>
-          <MoveIconButton
-            label={`Przenieś ${blockDescriptor} w dół`}
-            disabled={!canMoveDown}
-            onClick={() => dispatch({ type: 'moveBlock', blockId: block.id, direction: 'down' })}
-          >
-            <ArrowDownIcon />
-          </MoveIconButton>
-          {!isConfirmingDelete ? (
-            <MoveIconButton
-              label={`Usuń blok ${position} — ${blockLabel}`}
-              className="hover:text-crimson-ink"
-              onClick={handleDelete}
-            >
-              <TrashIcon />
-            </MoveIconButton>
-          ) : null}
-        </div>
-      </div>
-
-      {isConfirmingDelete ? (
-        <div className="border-b border-bd bg-bg/40 px-3 py-3">
-          <p className="text-[13px] leading-relaxed text-muted">
-            Usunięty zostanie blok wraz ze wszystkimi jego elementami.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="ghost" onClick={() => onCloseInlinePanel()}>
-              {actionLabels.cancel}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="danger"
-              aria-label={`Usuń ${blockDescriptor}`}
-              onClick={() => {
-                dispatch({ type: 'removeBlock', blockId: block.id })
-                onCloseInlinePanel({ type: 'addBlock' })
-              }}
-            >
-              Usuń blok
-            </Button>
+    <li className="wb-block-entry">
+      <section className="wb-block" aria-label={labels.blockHeading(position, blockLabel)}>
+        <header className="wb-block-header">
+          <div className="wb-block-header-top">
+            <h3 className="wb-block-name">{labels.blockHeading(position, blockLabel)}</h3>
+            <span className="wb-block-total">
+              {formatSecondsAsClock(time.totalSeconds)}
+              <button
+                type="button"
+                className="wb-block-menu wb-focusable"
+                aria-label={labels.blockActions(blockDescriptor)}
+                aria-expanded={isMenuOpen}
+                aria-controls={isMenuOpen ? blockMenuId : undefined}
+                onClick={() => onToggleExpanded(blockMenuKey(block.id))}
+              >
+                <span aria-hidden="true">⋯</span>
+              </button>
+            </span>
           </div>
+          <div className="wb-ratio-bar" role="img" aria-label={labels.blockRatio(formatSecondsAsClock(time.workSeconds), formatSecondsAsClock(time.restSeconds))}>
+            <div className="wb-ratio-work" style={{ width: `${time.workPercent}%` }} />
+            <div className="wb-ratio-rest" style={{ width: `${time.restPercent}%` }} />
+          </div>
+          <div className="wb-ratio-labels" aria-hidden="true">
+            <span>{labels.blockWork(formatSecondsAsClock(time.workSeconds))}</span>
+            <span>{labels.blockRest(formatSecondsAsClock(time.restSeconds))}</span>
+          </div>
+        </header>
+
+        {isMenuOpen && !isConfirmingDelete ? (
+          <div id={blockMenuId} className="wb-row-panel">
+            <div className="wb-actions is-three">
+              <button
+                type="button"
+                className="wb-action wb-focusable"
+                aria-label={`Przenieś ${blockDescriptor} w górę`}
+                disabled={!canMoveUp}
+                onClick={() => dispatch({ type: 'moveBlock', blockId: block.id, direction: 'up' })}
+              >
+                <RowActionIcon action="up" />
+                <span>{labels.moveUp}</span>
+              </button>
+              <button
+                type="button"
+                className="wb-action wb-focusable"
+                aria-label={`Przenieś ${blockDescriptor} w dół`}
+                disabled={!canMoveDown}
+                onClick={() => dispatch({ type: 'moveBlock', blockId: block.id, direction: 'down' })}
+              >
+                <RowActionIcon action="down" />
+                <span>{labels.moveDown}</span>
+              </button>
+              <button
+                type="button"
+                className="wb-action is-danger wb-focusable"
+                aria-label={`Usuń blok ${position} — ${blockLabel}`}
+                onClick={handleDelete}
+              >
+                <RowActionIcon action="remove" />
+                <span>{labels.remove}</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {isConfirmingDelete ? (
+          <div className="wb-row-panel">
+            <p className="wb-panel-note">{labels.confirmBlockDelete}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" size="sm" variant="ghost" onClick={() => onCloseInlinePanel()}>
+                {actionLabels.cancel}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="danger"
+                aria-label={`Usuń ${blockDescriptor}`}
+                onClick={() => {
+                  dispatch({ type: 'removeBlock', blockId: block.id })
+                  onCloseInlinePanel({ type: 'addBlock' })
+                }}
+              >
+                {labels.deleteBlock}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {inside.length > 0 ? (
+          <ul className="wb-items" aria-label={labels.blockItems(blockDescriptorGenitive)}>
+            {inside.map(renderItem)}
+          </ul>
+        ) : null}
+
+        <div className="wb-block-footer">
+          <button
+            ref={registerAddExerciseButtonRef}
+            type="button"
+            disabled={!canAddExercise}
+            aria-label={`Dodaj ćwiczenie do ${blockDescriptorGenitive}`}
+            aria-describedby={canAddExercise ? undefined : addExerciseHintId}
+            onClick={() => onOpenExerciseLibrary(block.id)}
+            className="wb-footer-action wb-focusable-inset"
+          >
+            <TimelinePlusIcon size={14} strokeWidth={2.6} />
+            <span>{labels.addExercise}</span>
+          </button>
+          <button
+            ref={registerAddBreakButtonRef}
+            type="button"
+            aria-label={`Dodaj przerwę do ${blockDescriptorGenitive}`}
+            aria-expanded={isAddingBreak}
+            onClick={() => onOpenInlinePanel({ type: 'addBreak', blockId: block.id })}
+            className="wb-footer-action wb-focusable-inset"
+          >
+            <TimelineClockIcon />
+            <span>{labels.addBreak}</span>
+          </button>
         </div>
-      ) : null}
-
-      {block.items.length > 0 ? (
-        <ul aria-label={`Elementy ${blockDescriptorGenitive}`}>
-          {block.items.map((item, itemIndex) => {
-            if (item.type === 'break') {
-              return (
-                <WorkoutBreakCard
-                  key={item.id}
-                  blockId={block.id}
-                  blockPosition={position}
-                  blockLabel={blockLabel}
-                  itemPosition={itemIndex + 1}
-                  breakItem={item}
-                  blockItems={block.items}
-                  dispatch={dispatch}
-                  activeInlinePanel={activeInlinePanel}
-                  onOpenInlinePanel={onOpenInlinePanel}
-                  onCloseInlinePanel={onCloseInlinePanel}
-                  onScheduleFocusRestore={onScheduleFocusRestore}
-                  registerEditBreakButtonRef={registerEditBreakButtonRef(item.id)}
-                />
-              )
-            }
-
-            return (
-              <WorkoutExerciseCard
-                key={item.id}
-                blockId={block.id}
-                blockPosition={position}
-                blockLabel={blockLabel}
-                itemPosition={itemIndex + 1}
-                exercise={item}
-                focusExerciseCount={focusExerciseCount}
-                blockItems={block.items}
-                dispatch={dispatch}
-                onOpenExerciseEdit={onOpenExerciseEdit}
-                onScheduleFocusRestore={onScheduleFocusRestore}
-                registerExerciseHeadingRef={registerExerciseHeadingRef(item.id)}
-                registerEditExerciseButtonRef={registerEditExerciseButtonRef(item.id)}
-              />
-            )
-          })}
-        </ul>
-      ) : null}
-
-      <div className="border-t border-bd">
-        <button
-          ref={registerAddExerciseButtonRef}
-          type="button"
-          disabled={!canAddExercise}
-          aria-label={`Dodaj ćwiczenie do ${blockDescriptorGenitive}`}
-          aria-describedby={canAddExercise ? undefined : addExerciseHintId}
-          onClick={() => onOpenExerciseLibrary(block.id)}
-          className="flex min-h-touch w-full items-center justify-center gap-2 px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:bg-elevated hover:text-ink disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent disabled:hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--app-focus-ring)]"
-        >
-          <PlusIcon />
-          Dodaj ćwiczenie
-        </button>
         {!canAddExercise ? (
-          <p id={addExerciseHintId} className="border-t border-bd px-4 py-2 text-[12px] text-muted">
-            Najpierw wybierz dyscyplinę.
-          </p>
+          <p id={addExerciseHintId} className="wb-block-note">{labels.chooseDisciplineFirst}</p>
         ) : null}
 
         {isAddingBreak ? (
-          <div className="border-t border-bd p-3">
+          <div className="wb-block-form">
             <WorkoutBreakForm
               mode="add"
               onCancel={() => onCloseInlinePanel(addBreakFocusTarget)}
@@ -247,19 +304,14 @@ export function WorkoutBlockCard({
               }}
             />
           </div>
-        ) : (
-          <button
-            ref={registerAddBreakButtonRef}
-            type="button"
-            aria-label={`Dodaj przerwę do ${blockDescriptorGenitive}`}
-            onClick={() => onOpenInlinePanel({ type: 'addBreak', blockId: block.id })}
-            className="flex min-h-touch w-full items-center justify-center gap-2 border-t border-bd px-4 py-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:bg-elevated hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--app-focus-ring)]"
-          >
-            <PlusIcon />
-            Dodaj przerwę
-          </button>
-        )}
-      </div>
+        ) : null}
+      </section>
+
+      {trailing.length > 0 ? (
+        <ul className="wb-trailing" aria-label={labels.breaksAfterBlock(blockDescriptorGenitive)}>
+          {trailing.map(renderItem)}
+        </ul>
+      ) : null}
     </li>
   )
 }

@@ -2,6 +2,8 @@ import { MAX_WORKOUT_SESSION_STEPS } from '@/domain/workout-session/workoutSessi
 
 export const workoutBuilderLabels = {
   backToWorkouts: 'Wróć do treningów',
+  newWorkoutTitle: 'Nowy trening',
+  preview: 'Podgląd',
   previewPlan: 'Podgląd planu',
   saveChanges: 'Zapisz zmiany',
   savePlan: 'Zapisz plan',
@@ -16,4 +18,39 @@ export const workoutBuilderLabels = {
   restBetweenRounds: 'Przerwa między rundami',
   singleRoundRest:
     'Przy 1 rundzie nie ma przerwy między rundami. Przerwę po ćwiczeniu dodasz w bloku jako element „Przerwa”.',
+
+  planDetailsTitle: 'Dane planu',
+  planCard: (planName: string) => `Dane planu: ${planName}`,
+  noDiscipline: 'Bez dyscypliny',
+  planDuration: (clock: string) => `Czas: ${clock}`,
+  planGoal: (goal: string) => `Cel: ${goal}`,
+
+  timelineHeading: 'Oś treningu',
+  blocksList: 'Bloki treningu',
+  firstBlock: 'Pierwszy blok',
+  chooseBlockType: 'Wybierz rodzaj bloku',
+  closeBlockPicker: 'Zamknij wybór bloku',
+  addNextBlock: 'Dodaj kolejny blok',
+  blockHeading: (position: number, blockLabel: string) => `Blok ${position} · ${blockLabel}`,
+  blockWork: (clock: string) => `Praca: ${clock}`,
+  blockRest: (clock: string) => `Przerwy: ${clock}`,
+  blockRatio: (workClock: string, restClock: string) => `Praca ${workClock}, przerwy ${restClock}`,
+  blockActions: (blockDescriptor: string) => `Akcje: ${blockDescriptor}`,
+  blockItems: (blockDescriptorGenitive: string) => `Elementy ${blockDescriptorGenitive}`,
+  breaksAfterBlock: (blockDescriptorGenitive: string) => `Przerwy po ${blockDescriptorGenitive}`,
+  addExercise: 'Dodaj ćwiczenie',
+  addBreak: 'Dodaj przerwę',
+  chooseDisciplineFirst: 'Najpierw wybierz dyscyplinę.',
+  confirmBlockDelete: 'Usunięty zostanie blok wraz ze wszystkimi jego elementami.',
+  deleteBlock: 'Usuń blok',
+
+  moveUp: 'W górę',
+  moveDown: 'W dół',
+  edit: 'Edytuj',
+  remove: 'Usuń',
+  exerciseActions: (exerciseContext: string) => `Akcje ćwiczenia ${exerciseContext}`,
+  breakActions: (breakContext: string) => `Akcje przerwy, ${breakContext}`,
+  breakLabel: 'Przerwa',
+  continuous: 'Ciągłe',
+  focusMark: '★',
 } as const

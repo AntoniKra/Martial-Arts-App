@@ -1,20 +1,22 @@
 import type { Dispatch, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { RouteScreenHeader } from '@/components/ScreenHeader'
+import { useNavigate } from 'react-router-dom'
+import { screenBackTarget } from '@/components/screenBackTarget'
 
 import type { WorkoutPlanRepository } from '@/application/workout/workoutPlanRepository'
 import { routes } from '@/app/routes'
 import { Button } from '@/components/ui/Button'
-import { getButtonClassName } from '@/components/ui/buttonStyles'
-import { RedAccent } from '@/components/ui/RedAccent'
 import { finalizeWorkoutPlan } from '@/domain/workout/finalizeWorkoutPlan'
 import type { ExerciseConfiguration, WorkoutPlan } from '@/domain/workout/workout.types'
 import { validateWorkoutPlanDraft, type WorkoutPlanValidationIssue } from '@/domain/workout/workoutValidation'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
+import { calculateEstimatedTotalSeconds } from '@/domain/workout/workoutCalculations'
 import { ExerciseConfigurationView } from '@/features/workout-builder/components/ExerciseConfigurationView'
 import { ExerciseLibraryView } from '@/features/workout-builder/components/ExerciseLibraryView'
 import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
 import { WorkoutMetadataForm } from '@/features/workout-builder/components/WorkoutMetadataForm'
+import { WorkoutBuilderHeader } from '@/features/workout-builder/components/WorkoutBuilderHeader'
+import { WorkoutPlanCard } from '@/features/workout-builder/components/WorkoutPlanCard'
 import { WorkoutPlanPreview } from '@/features/workout-builder/components/WorkoutPlanPreview'
 import { WorkoutTimeline } from '@/features/workout-builder/components/WorkoutTimeline'
 import { WorkoutValidationSummary } from '@/features/workout-builder/components/WorkoutValidationSummary'
@@ -41,6 +43,7 @@ import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderL
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 import { exerciseLabels } from '@/features/exercises/exerciseLabels'
 import { useWorkoutData } from '@/application/workoutDataContext'
+import './workoutTimeline.css'
 
 interface WorkoutBuilderViewProps {
   state: WorkoutBuilderState
@@ -67,7 +70,9 @@ export function WorkoutBuilderView({
   const [addingExercise, setAddingExercise] = useState(false)
   const [exerciseSaveError, setExerciseSaveError] = useState<string | null>(null)
   const addingExerciseRef = useRef(false)
-  const [screen, setScreen] = useState<WorkoutBuilderScreen>({ type: 'edit' })
+  const navigate = useNavigate()
+  // A new plan starts on its details, so the discipline is chosen before the first block.
+  const [screen, setScreen] = useState<WorkoutBuilderScreen>(() => (editingPlanId ? { type: 'edit' } : { type: 'planDetails' }))
   const [libraryUiState, setLibraryUiState] = useState<ExerciseLibraryUiState>(initialLibraryUiState)
   const [pendingAddedExerciseId, setPendingAddedExerciseId] = useState<string | null>(null)
   const [pendingAddExerciseBlockId, setPendingAddExerciseBlockId] = useState<string | null>(null)
@@ -78,15 +83,28 @@ export function WorkoutBuilderView({
   const [pendingPreviewButtonFocus, setPendingPreviewButtonFocus] = useState(false)
   const [pendingValidationSummaryFocus, setPendingValidationSummaryFocus] = useState(false)
   const [pendingSaveErrorFocus, setPendingSaveErrorFocus] = useState(false)
+  const [pendingPlanCardFocus, setPendingPlanCardFocus] = useState(false)
 
   const previewButtonRef = useRef<HTMLButtonElement>(null)
   const previewHeadingRef = useRef<HTMLHeadingElement>(null)
   const validationSummaryRef = useRef<HTMLDivElement>(null)
   const saveErrorRef = useRef<HTMLDivElement>(null)
+  const planCardRef = useRef<HTMLButtonElement>(null)
   const saveInFlightRef = useRef(false)
   const allowLeaveRef = useRef(false)
 
   const displayPlanName = selectDisplayPlanName(state)
+
+  function closeBuilder() {
+    const target = screenBackTarget(window.history.state, editingPlanId ? routes.workoutDetails(editingPlanId) : routes.workouts)
+    if (typeof target === 'number') void navigate(target)
+    else void navigate(target)
+  }
+
+  function closePlanDetails() {
+    setScreen({ type: 'edit' })
+    setPendingPlanCardFocus(true)
+  }
 
   function openExerciseLibrary(blockId: string) {
     setLibraryUiState(initialLibraryUiState)
@@ -239,6 +257,19 @@ export function WorkoutBuilderView({
   }, [pendingValidationSummaryFocus])
 
   useEffect(() => {
+    if (!pendingPlanCardFocus) {
+      return
+    }
+
+    const frame = requestAnimationFrame(() => {
+      planCardRef.current?.focus()
+      setPendingPlanCardFocus(false)
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [pendingPlanCardFocus])
+
+  useEffect(() => {
     if (!pendingSaveErrorFocus) {
       return
     }
@@ -346,6 +377,19 @@ export function WorkoutBuilderView({
     )
   }
 
+  if (screen.type === 'planDetails') {
+    return guard(
+      <div className="wb-builder flex flex-1 flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto flex w-full max-w-lg flex-col gap-4 px-4 pb-7 pt-3 md:max-w-2xl md:pt-6">
+            <WorkoutBuilderHeader title={workoutBuilderLabels.planDetailsTitle} onClose={closePlanDetails} />
+            <WorkoutMetadataForm state={state} dispatch={dispatch} />
+          </div>
+        </div>
+      </div>,
+    )
+  }
+
   if (screen.type === 'library' || screen.type === 'configureNew' || screen.type === 'configureExisting') {
     const targetBlock = selectBlockById(state.draft.blocks, screen.blockId)
     const disciplineKey = state.draft.disciplineKey
@@ -419,67 +463,68 @@ export function WorkoutBuilderView({
   const isSaving = saveState.status === 'saving'
   const saveErrorMessage = saveState.status === 'error' ? saveState.message : null
 
+  const canPreview = state.draft.blocks.length > 0
+
   return guard(
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="wb-builder flex flex-1 flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-lg px-4 py-6 md:max-w-2xl md:py-8">
-          <RouteScreenHeader variant="form" title={editingPlanId ? workoutPlanLabels.editHeading : 'Nowy trening'}
-            fallback={editingPlanId ? routes.workoutDetails(editingPlanId) : routes.workouts} disabled={isSaving} />
-          <p className="mt-2 max-w-prose text-[14px] leading-relaxed text-muted">
-            Ustal dyscyplinę i podstawowe informacje planu, a następnie buduj bloki, ćwiczenia i przerwy na osi
-            treningu.
-          </p>
-
-          <div className="mt-8">
-            <WorkoutMetadataForm state={state} dispatch={dispatch} />
-          </div>
-
-          <section aria-labelledby="workout-builder-display-name-heading" className="mt-8">
-            <h2
-              id="workout-builder-display-name-heading"
-              className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint"
-            >
-              Aktualna nazwa planu
-            </h2>
-            <p className="mt-2 font-display text-[18px] font-semibold leading-snug text-ink md:text-[20px]">
-              {displayPlanName}
-            </p>
-          </section>
-
-          <RedAccent className="mt-8" />
-
-          <WorkoutTimeline
-            state={state}
-            dispatch={dispatch}
-            onOpenExerciseLibrary={openExerciseLibrary}
-            onOpenExerciseEdit={openExerciseEdit}
-            pendingAddedExerciseId={pendingAddedExerciseId}
-            onPendingAddedExerciseFocusHandled={() => setPendingAddedExerciseId(null)}
-            pendingAddExerciseBlockId={pendingAddExerciseBlockId}
-            onPendingAddExerciseFocusHandled={() => setPendingAddExerciseBlockId(null)}
-            pendingEditExerciseId={pendingEditExerciseId}
-            onPendingEditExerciseFocusHandled={() => setPendingEditExerciseId(null)}
+        <div className="mx-auto flex w-full max-w-lg flex-col gap-4 px-4 pb-7 pt-3 md:max-w-2xl md:pt-6">
+          <WorkoutBuilderHeader
+            title={editingPlanId ? workoutPlanLabels.editHeading : workoutBuilderLabels.newWorkoutTitle}
+            onClose={closeBuilder}
+            closeDisabled={isSaving}
+            action={(
+              <button
+                ref={previewButtonRef}
+                type="button"
+                disabled={isSaving || !canPreview}
+                onClick={handlePreviewPlan}
+                className="wb-header-action wb-focusable"
+              >
+                {workoutBuilderLabels.preview}
+              </button>
+            )}
           />
 
-          {validationIssues && validationIssues.length > 0 ? (
-            <div className="mt-8">
+          <div className="flex flex-col gap-[14px]">
+            <WorkoutPlanCard
+              buttonRef={planCardRef}
+              disciplineKey={state.draft.disciplineKey}
+              planName={displayPlanName}
+              mainGoal={state.draft.mainGoal}
+              totalSeconds={calculateEstimatedTotalSeconds(state.draft)}
+              onOpen={() => setScreen({ type: 'planDetails' })}
+            />
+
+            <WorkoutTimeline
+              state={state}
+              dispatch={dispatch}
+              onOpenExerciseLibrary={openExerciseLibrary}
+              onOpenExerciseEdit={openExerciseEdit}
+              pendingAddedExerciseId={pendingAddedExerciseId}
+              onPendingAddedExerciseFocusHandled={() => setPendingAddedExerciseId(null)}
+              pendingAddExerciseBlockId={pendingAddExerciseBlockId}
+              onPendingAddExerciseFocusHandled={() => setPendingAddExerciseBlockId(null)}
+              pendingEditExerciseId={pendingEditExerciseId}
+              onPendingEditExerciseFocusHandled={() => setPendingEditExerciseId(null)}
+            />
+
+            {validationIssues && validationIssues.length > 0 ? (
               <WorkoutValidationSummary ref={validationSummaryRef} issues={validationIssues} />
-            </div>
-          ) : null}
+            ) : null}
 
-          {saveErrorMessage ? (
-            <div
-              ref={saveErrorRef}
-              role="alert"
-              tabIndex={-1}
-              className="mt-8 border border-bd bg-surface px-4 py-4 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--app-focus-ring)]"
-            >
-              <p className="font-display text-[14px] font-semibold text-ink">{workoutBuilderLabels.saveFailed}</p>
-              <p className="mt-2 break-words text-[13px] leading-relaxed text-muted">{saveErrorMessage}</p>
-            </div>
-          ) : null}
+            {saveErrorMessage ? (
+              <div
+                ref={saveErrorRef}
+                role="alert"
+                tabIndex={-1}
+                className="border border-bd bg-surface px-4 py-4 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--app-focus-ring)]"
+              >
+                <p className="font-display text-[14px] font-semibold text-ink">{workoutBuilderLabels.saveFailed}</p>
+                <p className="mt-2 break-words text-[13px] leading-relaxed text-muted">{saveErrorMessage}</p>
+              </div>
+            ) : null}
 
-          <div className="mt-8 flex flex-col gap-3 pb-2">
             {editingPlanId ? (
               <Button
                 type="button"
@@ -494,20 +539,6 @@ export function WorkoutBuilderView({
                 {isSaving ? workoutBuilderLabels.saving : workoutBuilderLabels.saveChanges}
               </Button>
             ) : null}
-            <button
-              ref={previewButtonRef}
-              type="button"
-              disabled={isSaving}
-              onClick={handlePreviewPlan}
-              className={getButtonClassName({
-                variant: 'secondary',
-                disabled: isSaving,
-                className:
-                  'w-full focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--app-focus-ring)]',
-              })}
-            >
-              {workoutBuilderLabels.previewPlan}
-            </button>
           </div>
         </div>
       </div>
