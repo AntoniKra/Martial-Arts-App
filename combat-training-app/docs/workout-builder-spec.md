@@ -36,6 +36,8 @@ Użytkownik może:
 
 Drag and drop nie należy do MVP.
 
+Issue #259: nowy plan zaczyna się od podekranu „Dane planu” (dyscyplina, nazwa, cel); ✕ wraca na oś. Na osi te dane pokazuje karta planu, która ponownie otwiera podekran. Pusty plan pokazuje kafle wszystkich rodzajów bloków; dotknięcie kafla dodaje pierwszy blok. Kolejne bloki dodaje „Dodaj kolejny blok”. Akcje ćwiczenia, przerwy i bloku są w menu „⋯”. Przerwy kończące blok są rysowane na osi pod jego kartą, bo tak zapisujemy przerwę między blokami. „Podgląd” jest w nagłówku i jest wyłączony, dopóki plan nie ma bloku.
+
 ## Biblioteka
 
 Biblioteka jest filtrowana automatycznie według:
