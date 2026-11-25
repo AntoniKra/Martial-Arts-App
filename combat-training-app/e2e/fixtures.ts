@@ -13,6 +13,15 @@ import type { PersonalExercise } from '../src/domain/exercise/exercise'
 import { seedRawAccountDocument, readRawAccountCollection } from './firestoreEmulator'
 import { combineRecurringWeekRecords, recurringWeekRecordSchema } from '../src/infrastructure/firebase/recurringWeekDocumentSchema'
 
+/** Types a value into a stepper on the exercise screen: tap the value, type, Enter. */
+export async function setExerciseValue(page: Page, label: string, text: string) {
+  await page.getByRole('button', { name: new RegExp(`^${label}: `) }).click()
+  const input = page.getByRole('textbox', { name: label, exact: true })
+  await input.fill(text)
+  await input.press('Enter')
+  await expect(input).toHaveCount(0)
+}
+
 class WorkoutApp {
   private authenticated = false
   private uid = ''
@@ -101,26 +110,15 @@ class WorkoutApp {
     await page.getByRole('button', { name: 'Technika', exact: true }).click()
 
     await this.addCustomExercise('Praca na nogach')
-    // Native radios are visually hidden inside labels; select them with the keyboard.
-    const roundCount = page.getByRole('group', { name: 'Liczba rund', exact: true })
-      .getByRole('radio', { name: '2', exact: true })
-    await roundCount.press('Space')
-    await expect(roundCount).toBeChecked()
-    const roundDuration = page.getByRole('group', { name: 'Czas rundy', exact: true })
-      .getByRole('radio', { name: roundDurationLabel, exact: true })
-    await roundDuration.press('Space')
-    await expect(roundDuration).toBeChecked()
-    const roundRest = page.getByRole('group', { name: 'Przerwa między rundami', exact: true })
-      .getByRole('radio', { name: '0:30', exact: true })
-    await roundRest.press('Space')
-    await expect(roundRest).toBeChecked()
-    await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+    await setExerciseValue(page, 'Rundy', '2')
+    await setExerciseValue(page, 'Czas rundy', roundDurationLabel)
+    await setExerciseValue(page, 'Przerwa', '0:30')
+    await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 
     await this.addCustomExercise('Walka z cieniem')
     await page.getByRole('radio', { name: 'Ciągłe', exact: true }).click()
-    await page.getByRole('textbox', { name: 'Minuty', exact: true }).fill('1')
-    await page.getByRole('textbox', { name: 'Sekundy', exact: true }).fill('0')
-    await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+    await setExerciseValue(page, 'Czas', '1:00')
+    await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 
     await this.savePlan()
     await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
