@@ -228,7 +228,7 @@ export function ExerciseConfigurationView({
                           <input
                             type="radio"
                             name={`${headingId}-format`}
-                            className="sr-only"
+                            className="control-input"
                             aria-label={labels.formatName(format.roundCount, roundDuration, rest)}
                             checked={selectedFormat?.id === format.id}
                             onChange={() => { setEntry(null); dispatch({ type: 'applyRoundFormat', formatId: format.id }) }}
