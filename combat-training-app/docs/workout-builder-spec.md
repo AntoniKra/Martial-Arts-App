@@ -66,20 +66,28 @@ Gdy przed miejscem wstawienia nie ma ćwiczenia rundowego, nowe ćwiczenie start
 - 3:00 pracy;
 - 1:00 odpoczynku.
 
-Szybkie opcje:
+Ekran „Ćwiczenie” (#260) ustawia wartości stepperami:
 
-- rundy: 1, 2, 3, 4, 5, własna;
-- runda: 1:00, 1:30, 2:00, 3:00, własna;
-- odpoczynek: 0:30, 1:00, 1:30, 2:00, własny.
+- rundy: krok 1, zakres 1–99;
+- czas rundy: krok 15 s, zakres 0:01–1440:00 (86 400 s);
+- przerwa między rundami: krok 15 s, zakres 0:00–1440:00;
+- czas ćwiczenia ciągłego: krok 15 s, zakres 0:01–1440:00.
+
+Wartość spoza siatki 15 s przechodzi przy kroku do najbliższej wielokrotności 15 s w danym kierunku (1:40 + 15 s → 1:45, 1:40 − 15 s → 1:30). Przycisk na granicy zakresu jest wyłączony. Dotknięcie wartości otwiera wpis: rundy jako liczba całkowita, czas jako `m:ss` albo liczba sekund. Enter zapisuje, Esc anuluje; błędny wpis pokazuje komunikat i nie zmienia wartości. Logika kroków jest czystą funkcją (`exerciseStepper.ts`).
 
 Gotowe formaty, zawsze te same, nie są zapisywane w planie:
 
 - 3 × 3:00 · przerwa 1:00;
-- 3 × 3:00 · przerwa 0:30.
+- 3 × 3:00 · przerwa 0:30;
+- 5 × 3:00 · przerwa 1:00.
 
-Stuknięcie formatu ustawia naraz liczbę rund, czas rundy i przerwę. Każdą wartość można potem zmienić. Format jest zaznaczony tylko wtedy, gdy wszystkie trzy wartości się zgadzają.
+Stuknięcie formatu ustawia naraz liczbę rund, czas rundy i przerwę. Każdą wartość można potem zmienić. Format jest zaznaczony tylko wtedy, gdy steppery mają dokładnie jego wartości. Szybki timer ma osobny zestaw formatów.
 
-Gdy liczba rund wynosi 1, sekcja przerwy między rundami jest ukryta. W jej miejscu widać informację, że przerwy między rundami wtedy nie ma, a przerwę po ćwiczeniu dodaje się w bloku jako element „Przerwa”. Wcześniej ustawiony czas tej przerwy zostaje w planie i wraca na ekran, gdy liczba rund znowu jest większa niż 1. Odtwarzacz się nie zmienia.
+Pod stepperami pasek struktury pokazuje segment na każdą rundę i każdą przerwę między rundami (szerokość proporcjonalna do czasu) oraz łączny czas ćwiczenia; aktualizuje się na żywo.
+
+Na ekranie „Ćwiczenie” można też oznaczyć element do poprawy (to samo zachowanie co na osi planu: zwinięcie po wyborze, „Zmień”, limit 3 w planie). Wybór zapisuje się razem z ćwiczeniem po „Zatwierdź ćwiczenie” albo „Gotowe”.
+
+Gdy liczba rund wynosi 1, stepper przerwy między rundami jest ukryty. W jej miejscu widać informację, że przerwy między rundami wtedy nie ma, a przerwę po ćwiczeniu dodaje się w bloku jako element „Przerwa”. Wcześniej ustawiony czas tej przerwy zostaje w planie i wraca na ekran, gdy liczba rund znowu jest większa niż 1. Odtwarzacz się nie zmienia.
 
 Nowe ćwiczenie jest dopisywane na końcu wybranego bloku. Tryb jest taki jak ostatnie ćwiczenie w tym samym bloku; pusty blok startuje od rund. Czas ćwiczenia ciągłego bierze z tego ostatniego ćwiczenia, gdy jest ciągłe, a w przeciwnym razie wynosi 5:00. Liczbę rund, czas rundy i przerwę bierze z ostatniego ćwiczenia rundowego od początku planu do miejsca wstawienia, także po przełączeniu z trybu ciągłego na rundowy. Ćwiczenie ciągłe i przerwa po drodze nie zmieniają tych wartości rund. Elementy w późniejszych blokach są pomijane. Edycja istniejącego ćwiczenia pokazuje jego własne wartości.
 

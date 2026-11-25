@@ -1,0 +1,91 @@
+/* Exercise screen of the plan builder (#260). Values follow the approved mock-up, colours only from theme tokens. */
+.exercise-config {
+  --exercise-config-faint-line: color-mix(in srgb, var(--app-ink) 8%, transparent);
+  /* Rest stripes stay dark in both themes, as in the mock-up. */
+  --exercise-config-stripe-gap: var(--app-surface);
+  --exercise-config-rest-stripes: repeating-linear-gradient(45deg, var(--app-ember) 0 3px, var(--exercise-config-stripe-gap) 3px 6px);
+  background: var(--app-bg);
+}
+:root[data-theme='light'] .exercise-config { --exercise-config-stripe-gap: var(--app-ink); }
+
+.exercise-config-topbar { display: flex; min-height: var(--app-touch-min); align-items: center; justify-content: space-between; gap: 8px; }
+.exercise-config-close { display: inline-flex; width: 44px; height: 44px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--app-radius-sm); color: var(--app-ink); }
+.exercise-config-title { min-width: 0; flex: 1; overflow: hidden; padding: 0 4px; text-align: center; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-size: 15px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: var(--app-ink); }
+@media (max-width: 374px) { .exercise-config-title { font-size: 13.5px; letter-spacing: 0.01em; } }
+/* 44 px touch target around a 36 px outlined face (N1 A). */
+.exercise-config-header-action { display: inline-flex; min-height: var(--app-touch-min); flex-shrink: 0; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--app-ember-ink); font-family: var(--font-display); font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.exercise-config-header-face { display: inline-flex; height: 36px; align-items: center; padding: 0 12px; border: 2px solid var(--app-ember); }
+.exercise-config-header-action:hover:not(:disabled) .exercise-config-header-face { background: color-mix(in srgb, var(--app-ember) 15%, transparent); }
+.exercise-config-header-action:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.exercise-config-card { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
+.exercise-config-tag { font-family: var(--font-display); font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.exercise-config-name { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; font-family: var(--font-display); font-size: 18px; font-weight: 800; line-height: 1.25; color: var(--app-ink); overflow-wrap: anywhere; }
+.exercise-config-type { font-size: 12px; color: var(--app-muted); }
+
+.exercise-config-section { display: flex; flex-direction: column; gap: 10px; min-width: 0; border: 0; }
+.exercise-config-section-title { font-family: var(--font-display); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--app-faint); }
+
+.exercise-config-formats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.exercise-config-format { position: relative; display: flex; min-height: var(--app-touch-min); flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 10px 6px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); text-align: center; cursor: pointer; }
+.exercise-config-format:hover { background: var(--app-elevated); }
+.exercise-config-format:has(input:checked) { padding: 9px 5px; border: 2px solid var(--app-crimson-ink); background: color-mix(in srgb, var(--app-crimson) 15%, var(--app-surface)); box-shadow: inset 0 0 0 1px var(--app-crimson); }
+.exercise-config-format:has(input:focus-visible) { outline: 2px solid var(--app-focus-ring); outline-offset: 2px; }
+.exercise-config-format-rounds { font-family: var(--font-display); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--app-ink); }
+.exercise-config-format-rest { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--app-muted); }
+.exercise-config-format:has(input:checked) .exercise-config-format-rest { font-weight: 600; color: var(--app-crimson-ink); }
+
+.exercise-config-steppers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.exercise-config-steppers[data-columns='2'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.exercise-config-steppers[data-columns='1'] { grid-template-columns: minmax(0, 1fr); }
+.exercise-config-stepper { display: flex; min-width: 0; flex-direction: column; align-items: center; padding: 8px 4px 6px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); text-align: center; }
+.exercise-config-stepper-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-size: 10px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--app-faint); }
+/* The value is a 44 px touch target; its underlined face keeps the mock-up spacing (4 px above, 8 px below). */
+.exercise-config-stepper-value { display: inline-flex; min-width: var(--app-touch-min); max-width: 100%; min-height: var(--app-touch-min); align-items: center; justify-content: center; margin: -2.5px 0 1.5px; padding: 0; border: 0; background: transparent; color: var(--app-ink); font-family: var(--font-display); font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; cursor: pointer; }
+.exercise-config-stepper-face { display: inline-block; max-width: 100%; padding: 2px 4px 3px; border-bottom: 2px solid var(--app-ember); }
+.exercise-config-stepper-value:hover { color: var(--app-ember-ink); }
+.exercise-config-stepper-input { width: 100%; min-width: 0; max-width: 112px; height: 31px; min-height: 0; margin: 4px 0 8px; padding: 2px 4px 3px; border-bottom: 2px solid var(--app-ember); border-radius: 0; text-align: center; cursor: text; outline: none; }
+.exercise-config-stepper-input:focus-visible { background: var(--app-input); }
+.exercise-config-stepper-input[aria-invalid='true'] { border-bottom-color: var(--app-crimson-ink); }
+.exercise-config-stepper-buttons { display: grid; width: 100%; grid-template-columns: 1fr 1fr; gap: 4px; }
+.exercise-config-stepper[data-wide] .exercise-config-stepper-buttons { max-width: 200px; }
+.exercise-config-step { display: flex; height: 44px; min-height: 44px; align-items: center; justify-content: center; border: 0; border-radius: 2px; background: var(--app-elevated); color: var(--app-ink); font-family: var(--font-display); font-size: 18px; font-weight: 700; cursor: pointer; }
+.exercise-config-step:hover:not([aria-disabled='true']) { background: var(--app-border); color: var(--app-ember-ink); }
+.exercise-config-step[aria-disabled='true'] { opacity: 0.4; cursor: not-allowed; }
+.exercise-config-entry-error { font-size: 13px; line-height: 1.5; color: var(--app-crimson-ink); }
+
+.exercise-config-notice { padding: 8px 12px; border: 1px dashed var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-elevated); font-size: 11.5px; line-height: 1.4; color: var(--app-muted); }
+
+.exercise-config-structure { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
+.exercise-config-structure-top { display: flex; align-items: center; gap: 12px; }
+.exercise-config-structure-track { display: flex; min-width: 0; height: 10px; flex: 1; gap: 2px; overflow: hidden; border-radius: 2px; }
+.exercise-config-structure-track[data-compact] { gap: 0; }
+.exercise-config-structure-work { height: 100%; min-width: 4px; border-radius: 1px; background: var(--app-crimson); }
+.exercise-config-structure-rest { height: 100%; min-width: 3px; border: 1px solid var(--app-ember); border-radius: 1px; background: var(--exercise-config-rest-stripes); }
+.exercise-config-structure-track[data-compact] > * { min-width: 0; border-radius: 0; }
+.exercise-config-structure-track[data-compact] .exercise-config-structure-rest { border-width: 0; }
+.exercise-config-structure-total { flex-shrink: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--app-ink); }
+.exercise-config-structure-legend { display: flex; align-items: center; gap: 12px; font-size: 10.5px; color: var(--app-muted); }
+.exercise-config-legend-item { display: flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; }
+.exercise-config-swatch { width: 10px; height: 10px; flex-shrink: 0; border-radius: 1px; }
+.exercise-config-swatch[data-kind='work'] { background: var(--app-crimson); }
+.exercise-config-swatch[data-kind='rest'] { border: 1px solid var(--app-ember); background: repeating-linear-gradient(45deg, var(--app-ember) 0 2px, var(--exercise-config-stripe-gap) 2px 4px); }
+.exercise-config-total-label { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--app-faint); }
+
+.exercise-config-notes { width: 100%; min-height: 64px; padding: 8px 10px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: var(--app-ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.4; resize: vertical; }
+.exercise-config-notes::placeholder { color: var(--app-faint); }
+.exercise-config-notes:focus-visible { border-color: var(--app-focus-ring); outline: none; }
+
+.exercise-config-submit-bar { padding: 12px 16px 6px; border-top: 1px solid var(--exercise-config-faint-line); background: var(--app-bg); }
+.exercise-config-submit { display: flex; width: 100%; min-height: 50px; align-items: center; justify-content: center; gap: 8px; border: 0; background: var(--app-grad-primary); color: var(--app-on-accent); font-family: var(--font-display); font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; box-shadow: 0 4px 14px color-mix(in srgb, var(--app-crimson) 40%, transparent); cursor: pointer; }
+.exercise-config-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+:is(.exercise-config-close, .exercise-config-header-action, .exercise-config-stepper-value, .exercise-config-step):focus-visible { outline: 2px solid var(--app-focus-ring); outline-offset: 2px; }
+/* The chamfer clips anything drawn outside the box, so the focus ring sits inside. */
+.exercise-config-submit:focus-visible { outline: 2px solid var(--app-on-accent); outline-offset: -6px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(.exercise-config-format, .exercise-config-step, .exercise-config-header-action, .exercise-config-stepper-value) { transition: background-color 0.15s ease, color 0.15s ease; }
+  .exercise-config-submit { transition: transform 0.1s ease; }
+  .exercise-config-submit:active:not(:disabled) { transform: scale(0.98); }
+}
