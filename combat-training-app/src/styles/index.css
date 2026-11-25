@@ -653,6 +653,26 @@
 .choice-option.is-text { width: fit-content; }
 .choice-option.is-text .choice-face { min-height: 44px; padding: 8px; box-shadow: none; }
 
+/* M5 corner marks (ember L-brackets) and the chamfered corner. Where each may be used: docs/design-system.md. */
+.m5-corners { position: relative; --m5-corner-color: var(--app-ember); --m5-corner-length: 6px; --m5-corner-thickness: 1.5px; --m5-corner-inset: 4px; }
+.m5-corners::before {
+  content: '';
+  position: absolute;
+  inset: var(--m5-corner-inset);
+  pointer-events: none;
+  --m5-fill: linear-gradient(var(--m5-corner-color), var(--m5-corner-color));
+  background:
+    var(--m5-fill) left top / var(--m5-corner-length) var(--m5-corner-thickness) no-repeat,
+    var(--m5-fill) left top / var(--m5-corner-thickness) var(--m5-corner-length) no-repeat,
+    var(--m5-fill) right top / var(--m5-corner-length) var(--m5-corner-thickness) no-repeat,
+    var(--m5-fill) right top / var(--m5-corner-thickness) var(--m5-corner-length) no-repeat,
+    var(--m5-fill) left bottom / var(--m5-corner-length) var(--m5-corner-thickness) no-repeat,
+    var(--m5-fill) left bottom / var(--m5-corner-thickness) var(--m5-corner-length) no-repeat,
+    var(--m5-fill) right bottom / var(--m5-corner-length) var(--m5-corner-thickness) no-repeat,
+    var(--m5-fill) right bottom / var(--m5-corner-thickness) var(--m5-corner-length) no-repeat;
+}
+.chamfer-top-right { clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); }
+
 /* Form controls share native input semantics and the same focus indicator in both themes. */
 .compact-choice .choice-face { justify-content: center; min-height: 52px; padding: 10px 12px; color: var(--app-ink); font-weight: 600; white-space: nowrap; }
 .duration-choice .choice-face { min-height: 52px; padding: 10px 4px; font-size: 12px; }
