@@ -9,12 +9,15 @@ import { FocusSkillForm } from './FocusSkillForm'
 import { focusSkillLabels as labels } from './focusSkillLabels'
 import type { FocusSkillFormValues } from './validateFocusSkillForm'
 
-export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange, exerciseId }: {
+export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange, exerciseId, variant = 'inline' }: {
   focusSkillId: string | null
   exerciseId?: string | null
   focusExerciseCount: number
   onChange: (id: string | null) => void
+  /** inline: a row inside the exercise card on the plan timeline; module: a card on the exercise screen. */
+  variant?: 'inline' | 'module'
 }) {
+  const asModule = variant === 'module'
   const { focusSkills, focusSkillRepository } = useWorkoutData()
   const id = useId()
   const toggleRef = useRef<HTMLButtonElement>(null)
@@ -62,7 +65,7 @@ export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange, e
     } finally { setSaving(false) }
   }
 
-  return <div role="group" aria-label={labels.title} className="mt-3 border-t border-bd pt-3">
+  return <div role="group" aria-label={labels.title} className={asModule ? 'border border-bd bg-surface p-3' : 'mt-3 border-t border-bd pt-3'}>
     <button ref={toggleRef} type="button" role="switch" aria-checked={enabled} aria-label={labels.switch}
       aria-describedby={limitReached ? `${id}-limit` : undefined}
       disabled={saving || (!enabled && (!ready || limitReached))}
@@ -71,8 +74,8 @@ export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange, e
         else setChoosing(true)
       }}
       className="flex min-h-touch w-full items-center justify-between gap-3 text-left disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]">
-      <span><span className="block font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-ink">{labels.title}</span>
-        <span className="mt-0.5 block text-[12px] text-muted">{labels.subtitle}</span></span>
+      <span><span className={`block font-display uppercase tracking-[0.08em] text-ink ${asModule ? 'text-[12px] font-extrabold' : 'text-[11px] font-semibold'}`}>{labels.title}</span>
+        <span className={`mt-0.5 block text-muted ${asModule ? 'text-[11.5px]' : 'text-[12px]'}`}>{labels.subtitle}</span></span>
       <span aria-hidden="true" className={`switch-track ${enabled ? 'is-on' : ''}`} />
     </button>
     {limitReached && <p id={`${id}-limit`} className="mt-2 text-[12px] leading-relaxed text-muted">{labels.limit}</p>}
@@ -80,16 +83,26 @@ export function FocusSkillPicker({ focusSkillId, focusExerciseCount, onChange, e
     {focusSkills.invalidDocumentIds.length > 0 && <p role="status" className="mt-2 text-[12px] text-muted">{labels.invalidData}</p>}
     {enabled && <>
       {focusSkillId !== null && ready && !selected && <p role="alert" className="mt-2 text-[13px] text-crimson-ink">{labels.missing}</p>}
-      {selected && !listOpen && <div className="mt-3 flex items-center justify-between gap-2 border border-bd bg-surface pl-3">
-        <p className="min-w-0 wrap-anywhere text-[13px] font-semibold text-ink">
-          {selected.name}{selected.archivedAt && ` · ${labels.archived}`}
-          {focusSkills.pendingIds.has(selected.id) && <span className="text-[12px] font-normal text-muted"> · {labels.pending}</span>}
-        </p>
-        <button ref={changeRef} type="button" className={getButtonClassName({ size: 'sm', variant: 'ghost', className: 'shrink-0', disabled: !ready || saving })} aria-expanded={false}
+      {selected && !listOpen && <div className={asModule
+        ? 'mt-2.5 flex min-h-touch items-center justify-between gap-2.5 rounded-sm border border-l-[3px] border-bd border-l-ember bg-elevated py-2 pl-3 pr-3'
+        : 'mt-3 flex items-center justify-between gap-2 border border-bd bg-surface pl-3'}>
+        <div className="min-w-0 flex-1">
+          <p className="min-w-0 wrap-anywhere text-[13px] font-semibold text-ink">
+            {asModule && <span aria-hidden="true">★ </span>}
+            {selected.name}{selected.archivedAt && ` · ${labels.archived}`}
+            {focusSkills.pendingIds.has(selected.id) && <span className="text-[12px] font-normal text-muted"> · {labels.pending}</span>}
+          </p>
+          {asModule && <p className="mt-0.5 truncate text-[11px] text-muted">{selected.criterion}</p>}
+        </div>
+        <button ref={changeRef} type="button" className={asModule
+          ? 'group/change -my-1 flex min-h-touch shrink-0 items-center font-display text-[11px] font-bold uppercase tracking-[0.06em] text-crimson-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:opacity-40'
+          : getButtonClassName({ size: 'sm', variant: 'ghost', className: 'shrink-0', disabled: !ready || saving })} aria-expanded={false}
           aria-controls={`${id}-skills`} disabled={!ready || saving} onClick={() => {
             focusTarget.current = 'list'
             setChoosing(true)
-          }}>{labels.change}</button>
+          }}>{asModule
+            ? <span className="flex min-h-9 items-center rounded-sm border border-bd bg-surface px-3 group-hover/change:border-crimson-ink group-hover/change:bg-elevated">{labels.change}</span>
+            : labels.change}</button>
       </div>}
       {listOpen && selected?.archivedAt && <div className="mt-3 space-y-1 border border-bd bg-surface p-3 text-sm">
         <p className="break-words font-semibold">{selected.name} · {labels.archived}</p>

@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import type { Page, TestInfo } from '@playwright/test'
-import { test, expect } from './fixtures'
+import { expect, setExerciseValue, test } from './fixtures'
 
 const exerciseName = 'Żółw → lewy sierp'
 const skillName = 'Powrót do gardy Żółwia'
@@ -36,9 +36,8 @@ test('reuses a personal exercise across two rated plans, keeps one focus trend a
   await expect(page.getByRole('radio', { name: 'Zapisz w Moich ćwiczeniach', exact: true })).toBeChecked()
   await page.getByRole('button', { name: 'Konfiguruj ćwiczenie', exact: true }).click()
   await page.getByRole('radio', { name: 'Ciągłe', exact: true }).check()
-  await page.getByRole('textbox', { name: 'Minuty', exact: true }).fill('0')
-  await page.getByRole('textbox', { name: 'Sekundy', exact: true }).fill('5')
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  await setExerciseValue(page, 'Czas', '0:05')
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   await page.getByRole('button', { name: /^Akcje ćwiczenia / }).click()
   await page.getByRole('switch', { name: 'Element do poprawy · Oceniaj po treningu', exact: true }).click()
   await page.getByRole('radio', { name: /^Nowy element do poprawy/ }).check()
@@ -65,8 +64,8 @@ test('reuses a personal exercise across two rated plans, keeps one focus trend a
   await page.getByRole('searchbox', { name: 'Szukaj ćwiczenia', exact: true }).fill('ZOLW lewy SIERP')
   await page.getByRole('button', { name: exerciseName, exact: true }).click()
   await expect(page.getByRole('radio', { name: 'Ciągłe', exact: true })).toBeChecked()
-  await expect(page.getByRole('textbox', { name: 'Sekundy', exact: true })).toHaveValue('5')
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  await expect(page.getByRole('button', { name: /^Czas: / })).toHaveText('00:05')
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   await page.getByRole('button', { name: /^Akcje ćwiczenia / }).click()
   await page.getByRole('switch', { name: 'Element do poprawy · Oceniaj po treningu', exact: true }).click()
   await page.getByRole('radio', { name: new RegExp(`^${skillName}`) }).check()
@@ -202,7 +201,7 @@ for (const entry of [
     await page.getByRole('button', { name: 'Moje', exact: true }).click()
     await page.getByRole('button', { name: entry.name, exact: true }).click()
     await expect(page.getByRole('radio', { name: entry.mode === 'continuous' ? 'Ciągłe' : 'Rundy', exact: true })).toBeChecked()
-    await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+    await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
     await app.savePlan()
     await expect.poll(() => app.readPlans()).toMatchObject([{ blocks: [{ items: [{ combinationId: personal.id,
       exerciseNameSnapshot: entry.name, configuration }] }] }])
@@ -239,7 +238,7 @@ for (const operation of ['use', 'favorite'] as const) {
       await pageA.getByRole('button', { name: 'Archiwizuj', exact: true }).click()
       await expect.poll(() => app.readExercises()).toMatchObject([{ namePl: 'Changed by device A', archivedAt: expect.any(String) }])
       if (operation === 'use') {
-        await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+        await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
         await expect(page.getByRole('heading', { name: 'Oś treningu', exact: true })).toBeVisible()
       } else {
         await page.getByRole('button', { name: 'Dodaj do ulubionych: Offline exercise', exact: true }).click()
@@ -258,7 +257,7 @@ test('supports plan-only exercises and creates a new personal exercise from an e
   await page.getByRole('textbox', { name: 'Nazwa ćwiczenia', exact: true }).fill('Tylko tutaj')
   await page.getByRole('radio', { name: 'Tylko w tym planie', exact: true }).check()
   await page.getByRole('button', { name: 'Konfiguruj ćwiczenie', exact: true }).click()
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   expect(await app.readExercises()).toEqual([])
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
   await page.getByRole('searchbox', { name: 'Szukaj ćwiczenia', exact: true }).fill('Nowe łokcie')
@@ -266,7 +265,7 @@ test('supports plan-only exercises and creates a new personal exercise from an e
   await expect(page.getByRole('textbox', { name: 'Nazwa ćwiczenia', exact: true })).toHaveValue('Nowe łokcie')
   await expect(page.getByRole('radio', { name: 'Zapisz w Moich ćwiczeniach', exact: true })).toBeChecked()
   await page.getByRole('button', { name: 'Konfiguruj ćwiczenie', exact: true }).click()
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   await app.savePlan()
   await expect.poll(() => app.readExercises()).toMatchObject([{ namePl: 'Nowe łokcie' }])
   await expect.poll(async () => (await app.readPlans())[0]?.blocks[0]?.items[0]).toMatchObject({ combinationId: null })

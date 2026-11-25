@@ -1,78 +1,50 @@
-import { ROUND_FORMAT_PRESETS, type RoundFormatId, type RoundFormatPreset } from '@/domain/workout/roundFormatPresets'
 import type { ExerciseConfiguration, ExerciseMode } from '@/domain/workout/workout.types'
 import {
-  computeDurationSeconds,
-  parseRequiredNonNegativeInteger,
-} from '@/features/workout-builder/utils/durationInput'
+  canStep,
+  stepValue,
+  type StepDirection,
+  type StepperField,
+} from '@/features/workout-builder/state/exerciseStepper'
 
-export const ROUND_COUNT_PRESETS = [1, 2, 3, 4, 5] as const
-export const ROUND_DURATION_PRESETS = [60, 90, 120, 180] as const
-export const REST_PRESETS = [30, 60, 90, 120] as const
+/** Ready formats on the exercise screen of the builder. They are not stored in the plan. */
+export const EXERCISE_ROUND_FORMATS = [
+  { id: 'three-by-three-rest-60', roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 },
+  { id: 'three-by-three-rest-30', roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 30 },
+  { id: 'five-by-three-rest-60', roundCount: 5, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 },
+] as const
 
-export { ROUND_FORMAT_PRESETS, type RoundFormatId, type RoundFormatPreset } from '@/domain/workout/roundFormatPresets'
-
-type NumericPreset = number | 'custom'
-
-interface DurationFields {
-  minutes: string
-  seconds: string
-}
-
-export interface ExerciseConfigurationFieldErrors {
-  roundCount: string | null
-  roundDuration: string | null
-  rest: string | null
-  continuousDuration: string | null
-}
+export type ExerciseRoundFormat = (typeof EXERCISE_ROUND_FORMATS)[number]
+export type ExerciseRoundFormatId = ExerciseRoundFormat['id']
 
 export interface ExerciseConfigurationFormState {
   mode: Exclude<ExerciseMode, 'strength'>
-  roundCountPreset: NumericPreset
-  roundCountInput: string
-  roundDurationPreset: NumericPreset
-  roundDurationCustom: DurationFields
-  restPreset: NumericPreset
-  restCustom: DurationFields
-  continuousMinutesInput: string
-  continuousSecondsInput: string
+  roundCount: number
+  roundDurationSeconds: number
+  /** Kept while one round hides the rest, so the value returns with more rounds. */
+  restSeconds: number
+  continuousSeconds: number
   instructionInput: string
-  errors: ExerciseConfigurationFieldErrors
 }
 
 export type ExerciseConfigurationFormAction =
   | { type: 'setMode'; mode: Exclude<ExerciseMode, 'strength'> }
-  | { type: 'selectRoundCountPreset'; value: NumericPreset }
-  | { type: 'setRoundCountInput'; value: string }
-  | { type: 'selectRoundDurationPreset'; value: NumericPreset }
-  | { type: 'setRoundDurationMinutes'; value: string }
-  | { type: 'setRoundDurationSeconds'; value: string }
-  | { type: 'selectRestPreset'; value: NumericPreset }
-  | { type: 'setRestMinutes'; value: string }
-  | { type: 'setRestSeconds'; value: string }
-  | { type: 'setContinuousMinutes'; value: string }
-  | { type: 'setContinuousSeconds'; value: string }
+  | { type: 'step'; field: StepperField; direction: StepDirection }
+  | { type: 'setValue'; field: StepperField; value: number }
+  | { type: 'applyRoundFormat'; formatId: ExerciseRoundFormatId }
   | { type: 'setInstruction'; value: string }
-  | { type: 'applyRoundFormat'; formatId: RoundFormatId }
-  | { type: 'replaceFieldErrors'; errors: ExerciseConfigurationFieldErrors }
 
-export function emptyExerciseConfigurationFieldErrors(): ExerciseConfigurationFieldErrors {
-  return {
-    roundCount: null,
-    roundDuration: null,
-    rest: null,
-    continuousDuration: null,
-  }
-}
+const DEFAULT_ROUNDS = { roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 }
+const DEFAULT_CONTINUOUS_SECONDS = 300
 
-function resolvePreset(value: number, presets: readonly number[]): NumericPreset {
-  return presets.includes(value) ? value : 'custom'
-}
+const FIELD_KEYS = {
+  roundCount: 'roundCount',
+  roundDuration: 'roundDurationSeconds',
+  rest: 'restSeconds',
+  continuousDuration: 'continuousSeconds',
+} as const satisfies Record<StepperField, keyof ExerciseConfigurationFormState>
 
-function secondsToCustomFields(totalSeconds: number): DurationFields {
-  return {
-    minutes: String(Math.floor(totalSeconds / 60)),
-    seconds: String(totalSeconds % 60),
-  }
+export function readStepperValue(state: ExerciseConfigurationFormState, field: StepperField): number {
+  return state[FIELD_KEYS[field]]
 }
 
 export function createExerciseConfigurationFormState(
@@ -84,102 +56,43 @@ export function createExerciseConfigurationFormState(
     restBetweenRoundsSeconds: number
   } | null,
 ): ExerciseConfigurationFormState {
-  const roundsConfiguration =
-    configuration.mode === 'rounds'
-      ? configuration
-      : roundSettings ?? { roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 }
-  const continuousSeconds = configuration.mode === 'continuous' ? configuration.durationSeconds : 300
+  const rounds = configuration.mode === 'rounds' ? configuration : roundSettings ?? DEFAULT_ROUNDS
 
   return {
     mode: configuration.mode === 'continuous' ? 'continuous' : 'rounds',
-    roundCountPreset: resolvePreset(roundsConfiguration.roundCount, ROUND_COUNT_PRESETS),
-    roundCountInput: String(roundsConfiguration.roundCount),
-    roundDurationPreset: resolvePreset(roundsConfiguration.roundDurationSeconds, ROUND_DURATION_PRESETS),
-    roundDurationCustom: secondsToCustomFields(roundsConfiguration.roundDurationSeconds),
-    restPreset: resolvePreset(roundsConfiguration.restBetweenRoundsSeconds, REST_PRESETS),
-    restCustom: secondsToCustomFields(roundsConfiguration.restBetweenRoundsSeconds),
-    continuousMinutesInput: String(Math.floor(continuousSeconds / 60)),
-    continuousSecondsInput: String(continuousSeconds % 60),
+    roundCount: rounds.roundCount,
+    roundDurationSeconds: rounds.roundDurationSeconds,
+    restSeconds: rounds.restBetweenRoundsSeconds,
+    continuousSeconds: configuration.mode === 'continuous' ? configuration.durationSeconds : DEFAULT_CONTINUOUS_SECONDS,
     instructionInput: instruction ?? '',
-    errors: emptyExerciseConfigurationFieldErrors(),
   }
 }
 
-function withoutError(
-  state: ExerciseConfigurationFormState,
-  field: keyof ExerciseConfigurationFieldErrors,
-): ExerciseConfigurationFormState {
-  if (state.errors[field] === null) {
-    return state
-  }
-
-  return {
-    ...state,
-    errors: {
-      ...state.errors,
-      [field]: null,
-    },
-  }
-}
-
-function readOptionalSeconds(
-  preset: NumericPreset,
-  fields: DurationFields,
-  allowZero: boolean,
-): number | null {
-  if (preset !== 'custom') {
-    return preset
-  }
-
-  return computeDurationSeconds(fields.minutes, fields.seconds, allowZero).seconds
-}
-
-export function readRoundCount(state: ExerciseConfigurationFormState): number | null {
-  if (state.roundCountPreset === 'custom') {
-    return parseRequiredNonNegativeInteger(state.roundCountInput)
-  }
-
-  return state.roundCountPreset
-}
-
-/** One round has no rest between rounds, so the rest controls stay hidden. The stored rest is kept. */
+/** One round has no rest between rounds, so the rest stepper stays hidden. The stored rest is kept. */
 export function showsRestBetweenRounds(state: ExerciseConfigurationFormState): boolean {
-  return readRoundCount(state) !== 1
+  return state.roundCount !== 1
 }
 
-export function resolveRestBetweenRoundsSeconds(
-  roundCount: number,
-  parsed: { seconds: number | null; error: string | null },
-  preservedSeconds: number,
-): { ok: true; seconds: number } | { ok: false; error: string } {
-  if (parsed.error === null && parsed.seconds !== null) {
-    return { ok: true, seconds: parsed.seconds }
-  }
-
-  if (roundCount === 1) {
-    return { ok: true, seconds: preservedSeconds }
-  }
-
-  return { ok: false, error: parsed.error ?? 'Minuty i sekundy muszą być liczbami całkowitymi od 0.' }
+export function selectedRoundFormat(state: ExerciseConfigurationFormState): ExerciseRoundFormat | null {
+  return EXERCISE_ROUND_FORMATS.find((format) =>
+    format.roundCount === state.roundCount &&
+    format.roundDurationSeconds === state.roundDurationSeconds &&
+    format.restBetweenRoundsSeconds === state.restSeconds) ?? null
 }
 
-export function selectedRoundFormat(state: ExerciseConfigurationFormState): RoundFormatPreset | null {
-  const roundCount = readRoundCount(state)
-  const roundDurationSeconds = readOptionalSeconds(state.roundDurationPreset, state.roundDurationCustom, false)
-  const restBetweenRoundsSeconds = readOptionalSeconds(state.restPreset, state.restCustom, true)
+export function toExerciseConfiguration(state: ExerciseConfigurationFormState): ExerciseConfiguration {
+  return state.mode === 'continuous'
+    ? { mode: 'continuous', durationSeconds: state.continuousSeconds }
+    : {
+        mode: 'rounds',
+        roundCount: state.roundCount,
+        roundDurationSeconds: state.roundDurationSeconds,
+        restBetweenRoundsSeconds: state.restSeconds,
+      }
+}
 
-  if (roundCount === null || roundDurationSeconds === null || restBetweenRoundsSeconds === null) {
-    return null
-  }
-
-  return (
-    ROUND_FORMAT_PRESETS.find(
-      (preset) =>
-        preset.roundCount === roundCount &&
-        preset.roundDurationSeconds === roundDurationSeconds &&
-        preset.restBetweenRoundsSeconds === restBetweenRoundsSeconds,
-    ) ?? null
-  )
+function withValue(state: ExerciseConfigurationFormState, field: StepperField, value: number): ExerciseConfigurationFormState {
+  return readStepperValue(state, field) === value ? state : { ...state, [FIELD_KEYS[field]]: value }
 }
 
 export function exerciseConfigurationFormReducer(
@@ -189,110 +102,25 @@ export function exerciseConfigurationFormReducer(
   switch (action.type) {
     case 'setMode':
       return state.mode === action.mode ? state : { ...state, mode: action.mode }
-    case 'selectRoundCountPreset':
-      if (action.value === 'custom') {
-        return { ...state, roundCountPreset: 'custom' }
-      }
-
-      return withoutError(
-        {
-          ...state,
-          roundCountPreset: action.value,
-          roundCountInput: String(action.value),
-        },
-        'roundCount',
-      )
-    case 'setRoundCountInput':
-      return withoutError({ ...state, roundCountInput: action.value }, 'roundCount')
-    case 'selectRoundDurationPreset':
-      if (action.value === 'custom') {
-        return { ...state, roundDurationPreset: 'custom' }
-      }
-
-      return withoutError(
-        {
-          ...state,
-          roundDurationPreset: action.value,
-          roundDurationCustom: secondsToCustomFields(action.value),
-        },
-        'roundDuration',
-      )
-    case 'setRoundDurationMinutes':
-      return withoutError(
-        {
-          ...state,
-          roundDurationCustom: { ...state.roundDurationCustom, minutes: action.value },
-        },
-        'roundDuration',
-      )
-    case 'setRoundDurationSeconds':
-      return withoutError(
-        {
-          ...state,
-          roundDurationCustom: { ...state.roundDurationCustom, seconds: action.value },
-        },
-        'roundDuration',
-      )
-    case 'selectRestPreset':
-      if (action.value === 'custom') {
-        return { ...state, restPreset: 'custom' }
-      }
-
-      return withoutError(
-        {
-          ...state,
-          restPreset: action.value,
-          restCustom: secondsToCustomFields(action.value),
-        },
-        'rest',
-      )
-    case 'setRestMinutes':
-      return withoutError(
-        {
-          ...state,
-          restCustom: { ...state.restCustom, minutes: action.value },
-        },
-        'rest',
-      )
-    case 'setRestSeconds':
-      return withoutError(
-        {
-          ...state,
-          restCustom: { ...state.restCustom, seconds: action.value },
-        },
-        'rest',
-      )
-    case 'setContinuousMinutes':
-      return withoutError({ ...state, continuousMinutesInput: action.value }, 'continuousDuration')
-    case 'setContinuousSeconds':
-      return withoutError({ ...state, continuousSecondsInput: action.value }, 'continuousDuration')
-    case 'setInstruction':
-      return state.instructionInput === action.value ? state : { ...state, instructionInput: action.value }
+    case 'step': {
+      const value = readStepperValue(state, action.field)
+      if (!canStep(action.field, value, action.direction)) return state
+      return withValue(state, action.field, stepValue(action.field, value, action.direction))
+    }
+    case 'setValue':
+      return withValue(state, action.field, action.value)
     case 'applyRoundFormat': {
-      const format = ROUND_FORMAT_PRESETS.find((preset) => preset.id === action.formatId)
-
-      if (!format) {
-        return state
-      }
-
+      const format = EXERCISE_ROUND_FORMATS.find((preset) => preset.id === action.formatId)
+      if (!format) return state
       return {
         ...state,
-        roundCountPreset: resolvePreset(format.roundCount, ROUND_COUNT_PRESETS),
-        roundCountInput: String(format.roundCount),
-        roundDurationPreset: resolvePreset(format.roundDurationSeconds, ROUND_DURATION_PRESETS),
-        roundDurationCustom: secondsToCustomFields(format.roundDurationSeconds),
-        restPreset: resolvePreset(format.restBetweenRoundsSeconds, REST_PRESETS),
-        restCustom: secondsToCustomFields(format.restBetweenRoundsSeconds),
-        errors: {
-          ...state.errors,
-          roundCount: null,
-          roundDuration: null,
-          rest: null,
-        },
+        roundCount: format.roundCount,
+        roundDurationSeconds: format.roundDurationSeconds,
+        restSeconds: format.restBetweenRoundsSeconds,
       }
     }
-    case 'replaceFieldErrors':
-      return { ...state, errors: action.errors }
+    case 'setInstruction':
+      return state.instructionInput === action.value ? state : { ...state, instructionInput: action.value }
     default: {
       const unreachable: never = action
       return unreachable

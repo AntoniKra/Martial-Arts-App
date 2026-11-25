@@ -108,6 +108,21 @@ Karta Startu ma padding `18px 16px 16px`, odstęp 12 px i minimalną wysokość 
 
 „Stoper i inne plany” to jeden link do `/workouts`, z opisem „Interwały, runda wolna lub biblioteka ćwiczeń”. Lista planów udostępnia „Stoper rund” do `/quick-timer`; skrót w arkuszu Trening pozostaje dostępny. Ostatnia sesja ma zwartą kartę 5A z historią, podsumowaniem, statusem i dotychczasowymi odnośnikami do raportu lub poprawy wpisu. Brak RPE oraz oczekiwanie na wysłanie nadal są widoczne. Długie nazwy bezpiecznie się zawijają, brakujące parametry znikają. Dane i reguły zaliczania pozostają bez zmian.
 
+## Obicia M5 i ścięty róg (#260)
+
+Obicia M5 to cztery narożniki w kształcie litery L w kolorze żaru (`--app-ember`). Wzór jest jedną klasą narzędziową `.m5-corners` w `src/styles/index.css`; długość, grubość i odsunięcie ustawiają zmienne `--m5-corner-length`, `--m5-corner-thickness` i `--m5-corner-inset` (domyślnie 6 px, 1,5 px i 4 px). Obicia wolno stosować tylko:
+
+- na przyciskach − i + stepperów (ekran „Ćwiczenie” w kreatorze);
+- na przyciskach odtwarzacza (środkowy romb, #253).
+
+Nie dodajemy ich do nagłówków, kart, przycisku zatwierdzenia ani innych kontrolek.
+
+Ścięty prawy górny róg 12 px (klasa `.chamfer-top-right`, `clip-path`) ma wyłącznie główny przycisk zatwierdzenia ekranu, np. „Zatwierdź ćwiczenie”. `clip-path` obcina wszystko poza krawędzią, więc obwódka fokusu takiego przycisku jest rysowana wewnątrz (`outline-offset` ujemny, kolor `on-accent`).
+
+## Ekran „Ćwiczenie” w kreatorze (#260)
+
+Układ według makiety końcowej kreatora (3A · 5A, N1 A, N4 C, N5 B, N6 D). Nagłówek: ✕ 44 px, wyśrodkowany tytuł Archivo 15 px wersalikami (13,5 px poniżej 375 px szerokości) i przycisk „Gotowe” z obrysem 2 px żaru, wysokości 36 px w obszarze dotyku 44 px. Gotowe formaty to trzy kafle; zaznaczenie pokazuje ramka 2 px `crimson-ink` i tło, bez ptaszka. Steppery mają etykietę 10 px, wartość Archivo 22 px z cyframi tabularnymi i podkreśleniem 2 px żaru (dotknięcie otwiera wpis) oraz płaskie przyciski − i + 44 px z obiciami M5. Pasek struktury ma segment na każdą rundę (`crimson`) i przerwę (ukośny deseń żaru, ciemne paski w obu motywach); powyżej 12 rund segmenty nie mają odstępów. Przycisk „Zatwierdź ćwiczenie” ma gradient główny, ścięty róg i jest przyklejony do dołu nad menu.
+
 ## Kontrolki formularzy
 
 Issue #189 ujednolica wygląd kontrolek bez zmiany danych, reguł, obliczeń ani zachowania formularzy. Makieta „Szablony komponentów” jest wzorcem wizualnym; pierwszeństwo ma treść issue.

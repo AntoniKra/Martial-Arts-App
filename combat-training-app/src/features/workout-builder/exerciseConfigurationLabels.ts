@@ -1,0 +1,50 @@
+import type { StepperEntryError } from '@/features/workout-builder/state/exerciseStepper'
+
+/** Polish labels of the exercise screen in the plan builder (#260). */
+export const exerciseConfigurationLabels = {
+  title: 'Ćwiczenie',
+  done: 'Gotowe',
+  submit: 'Zatwierdź ćwiczenie',
+  context: 'Kontekst ćwiczenia',
+  contextTag: (discipline: string, blockNumber: number, blockLabel: string) =>
+    `${discipline} · Blok ${blockNumber}: ${blockLabel}`,
+  existingHint: 'Aby zmienić samo ćwiczenie, usuń ten element i dodaj nowe.',
+  mode: 'Tryb pracy',
+  rounds: 'Rundy',
+  continuous: 'Ciągłe',
+  formats: 'Gotowe formaty',
+  formatRounds: (roundCount: number, roundDuration: string) => `${roundCount} × ${roundDuration}`,
+  formatRest: (rest: string) => `przerwa ${rest}`,
+  formatName: (roundCount: number, roundDuration: string, rest: string) => `${roundCount} × ${roundDuration} · przerwa ${rest}`,
+  roundSettings: 'Ustawienia rund',
+  roundCount: 'Rundy',
+  roundDuration: 'Czas rundy',
+  rest: 'Przerwa',
+  continuousSection: 'Czas ćwiczenia ciągłego',
+  continuousDuration: 'Czas',
+  decrease: {
+    roundCount: 'Zmniejsz liczbę rund o 1',
+    roundDuration: 'Zmniejsz czas rundy o 15 s',
+    rest: 'Zmniejsz przerwę o 15 s',
+    continuousDuration: 'Zmniejsz czas o 15 s',
+  },
+  increase: {
+    roundCount: 'Zwiększ liczbę rund o 1',
+    roundDuration: 'Zwiększ czas rundy o 15 s',
+    rest: 'Zwiększ przerwę o 15 s',
+    continuousDuration: 'Zwiększ czas o 15 s',
+  },
+  editValue: (label: string, value: string) => `${label}: ${value}. Dotknij, aby wpisać`,
+  entryHint: 'Enter zapisuje, Esc anuluje.',
+  entryErrors: {
+    roundCount: 'Liczba rund musi być liczbą całkowitą od 1 do 99.',
+    duration: 'Wpisz czas jako m:ss albo liczbę sekund, od 0:01 do 1440:00.',
+    rest: 'Wpisz przerwę jako m:ss albo liczbę sekund, od 0:00 do 1440:00.',
+  } satisfies Record<StepperEntryError, string>,
+  structure: 'Struktura ćwiczenia',
+  structureRounds: (roundDuration: string) => `Rundy (${roundDuration})`,
+  structureRests: (rest: string) => `Przerwy (${rest})`,
+  total: 'Łącznie',
+  notes: 'Notatki do ćwiczenia (opcjonalnie)',
+  notesPlaceholder: 'Notatki wykonawcze dla tego ćwiczenia…',
+} as const

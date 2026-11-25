@@ -21,7 +21,7 @@ async function openExerciseConfiguration(page: Page) {
   await page.getByRole('group', { name: 'Pierwszy blok', exact: true }).getByRole('button', { name: 'Technika', exact: true }).click()
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
   await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Konfiguracja ćwiczenia', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Ćwiczenie', exact: true })).toBeVisible()
 }
 
 test('paints the active mobile workout diamond above the exercise configuration and aligns the preview action', async ({ app, page }, info) => {
@@ -53,12 +53,15 @@ test('paints the active mobile workout diamond above the exercise configuration 
     await audit(page)
   }
 
-  const rounds = page.getByRole('group', { name: 'Liczba rund', exact: true })
-  const two = rounds.getByRole('radio', { name: '2', exact: true })
-  await expect(two.locator('..').locator('.choice-face')).toHaveCSS('border-top-width', '1px')
-  await two.check()
-  await expectSelectedRadio(two, '2')
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  const five = page.getByRole('group', { name: 'Gotowe formaty', exact: true })
+    .getByRole('radio', { name: '5 × 3:00 · przerwa 1:00', exact: true })
+  await expect(five.locator('..')).toHaveCSS('border-top-width', '1px')
+  await five.check()
+  await expect(five).toBeChecked()
+  await expect(five.locator('..')).toHaveCSS('border-top-width', '2px')
+  await expect(five.locator('..')).toContainText('5 × 3:00')
+  await expect(five.locator('..')).not.toContainText('✓')
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   await page.getByRole('button', { name: 'Podgląd', exact: true }).click()
   const back = page.getByRole('button', { name: 'Wróć do edycji', exact: true })
   await expect(back).toBeVisible()
@@ -86,7 +89,7 @@ test('collapses the focus skill picker and restores keyboard focus to the select
     await app.seedFocusSkill({ ...skill, archivedAt: null, openCorrection: null, createdAt: instant, updatedAt: instant })
   }
   await openExerciseConfiguration(page)
-  await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   await page.getByRole('button', { name: /^Akcje ćwiczenia Lewy prosty → prawy prosty/ }).click()
   const picker = page.getByRole('group', { name: 'Element do poprawy', exact: true })
   await picker.getByRole('switch').click()

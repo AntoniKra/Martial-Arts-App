@@ -1,14 +1,12 @@
 import type { Page } from '@playwright/test'
 
 import { block, roundsExercise, workoutPlan } from '../src/test/workoutBuilders'
-import { expect, test } from './fixtures'
+import { expect, setExerciseValue, test } from './fixtures'
 
 const builderMessage = 'Plan ma za dużo etapów (591). Maksimum to 500 – zmniejsz liczbę rund lub ćwiczeń.'
 
 async function setCustomRoundCount(page: Page, count: number) {
-  await page.getByRole('group', { name: 'Liczba rund', exact: true })
-    .getByRole('radio', { name: 'Własna', exact: true }).press('Space')
-  await page.getByRole('textbox', { name: 'Własna liczba rund', exact: true }).fill(String(count))
+  await setExerciseValue(page, 'Rundy', String(count))
 }
 
 test('shows the step limit and prevents saving a new oversized plan', async ({ app, page }) => {
@@ -21,7 +19,7 @@ test('shows the step limit and prevents saving a new oversized plan', async ({ a
     await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
     await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()
     await setCustomRoundCount(page, 99)
-    await page.getByRole('button', { name: 'Dodaj ćwiczenie', exact: true }).click()
+    await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   }
 
   await page.getByRole('button', { name: 'Podgląd', exact: true }).click()
@@ -58,7 +56,7 @@ test('blocks playback and saving changes to a legacy plan until the plan fits', 
   await page.getByRole('button', { name: 'Akcje ćwiczenia Exercise first, element 1 w bloku 1 — Technika', exact: true }).click()
   await page.getByRole('button', { name: 'Edytuj ćwiczenie Exercise first, element 1 w bloku 1 — Technika', exact: true }).click()
   await setCustomRoundCount(page, 53)
-  await page.getByRole('button', { name: 'Zapisz zmiany', exact: true }).click()
+  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   await page.getByRole('button', { name: 'Zapisz zmiany', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Limit sesji po edycji', exact: true })).toBeVisible()
   await expect.poll(async () => (await app.readPlans())[0]?.nameSnapshot).toBe('Limit sesji po edycji')
