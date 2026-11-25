@@ -71,4 +71,4 @@ Funkcje społecznościowe, funkcje AI, integracje ze smartwatchami, komunikaty g
 
 ## Otwarte decyzje
 
-- Pytanie o trwałe przechowywanie w Firefoksie: zostaje po zalogowaniu albo przechodzi po pierwszym zapisanym treningu.
+Brak. Pytanie o trwałe przechowywanie w Firefoksie zamknięto 25.11.2026: prośba (`navigator.storage.persist()`) pojawia się raz na wczytanie strony, po zalogowaniu na konto z potwierdzonym adresem, a nie na ekranie logowania (`PersistentStorageOnSignIn`, ADR 0004).
