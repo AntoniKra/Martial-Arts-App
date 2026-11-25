@@ -29,7 +29,7 @@ export function AddBlockPicker({ isOpen, onClose, dispatch }: AddBlockPickerProp
       featureWarmup={false}
       onSelect={handleSelect}
       headerAction={(
-        <button type="button" onClick={onClose} aria-label={labels.closeBlockPicker} className="wb-tiles-close wb-focusable">
+        <button type="button" onClick={onClose} aria-label={labels.closeBlockPicker} className="wb-tiles-close">
           <TimelineCloseIcon size={18} />
         </button>
       )}

@@ -122,7 +122,7 @@ export function WorkoutBreakCard({
           <div className="wb-actions">
             <button
               type="button"
-              className="wb-action wb-focusable"
+              className="wb-action"
               aria-label={`Przenieś przerwę, ${breakContext} w górę`}
               disabled={!canMoveUp}
               onClick={() => dispatch({ type: 'moveItem', blockId, itemId: breakItem.id, direction: 'up' })}
@@ -132,7 +132,7 @@ export function WorkoutBreakCard({
             </button>
             <button
               type="button"
-              className="wb-action wb-focusable"
+              className="wb-action"
               aria-label={`Przenieś przerwę, ${breakContext} w dół`}
               disabled={!canMoveDown}
               onClick={() => dispatch({ type: 'moveItem', blockId, itemId: breakItem.id, direction: 'down' })}
@@ -142,7 +142,7 @@ export function WorkoutBreakCard({
             </button>
             <button
               type="button"
-              className="wb-action wb-focusable"
+              className="wb-action"
               aria-label={`Edytuj przerwę, ${breakContext}`}
               onClick={() => onOpenInlinePanel({ type: 'editBreak', blockId, itemId: breakItem.id })}
             >
@@ -151,7 +151,7 @@ export function WorkoutBreakCard({
             </button>
             <button
               type="button"
-              className="wb-action is-danger wb-focusable"
+              className="wb-action is-danger"
               aria-label={`Usuń przerwę, ${breakContext}`}
               onClick={() => {
                 dispatch({ type: 'removeItem', blockId, itemId: breakItem.id })

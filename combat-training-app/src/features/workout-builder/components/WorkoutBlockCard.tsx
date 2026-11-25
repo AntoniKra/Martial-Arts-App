@@ -175,7 +175,7 @@ export function WorkoutBlockCard({
               {formatSecondsAsClock(time.totalSeconds)}
               <button
                 type="button"
-                className="wb-block-menu wb-focusable"
+                className="wb-block-menu"
                 aria-label={labels.blockActions(blockDescriptor)}
                 aria-expanded={isMenuOpen}
                 aria-controls={isMenuOpen ? blockMenuId : undefined}
@@ -200,7 +200,7 @@ export function WorkoutBlockCard({
             <div className="wb-actions is-three">
               <button
                 type="button"
-                className="wb-action wb-focusable"
+                className="wb-action"
                 aria-label={`Przenieś ${blockDescriptor} w górę`}
                 disabled={!canMoveUp}
                 onClick={() => dispatch({ type: 'moveBlock', blockId: block.id, direction: 'up' })}
@@ -210,7 +210,7 @@ export function WorkoutBlockCard({
               </button>
               <button
                 type="button"
-                className="wb-action wb-focusable"
+                className="wb-action"
                 aria-label={`Przenieś ${blockDescriptor} w dół`}
                 disabled={!canMoveDown}
                 onClick={() => dispatch({ type: 'moveBlock', blockId: block.id, direction: 'down' })}
@@ -220,7 +220,7 @@ export function WorkoutBlockCard({
               </button>
               <button
                 type="button"
-                className="wb-action is-danger wb-focusable"
+                className="wb-action is-danger"
                 aria-label={`Usuń blok ${position} — ${blockLabel}`}
                 onClick={handleDelete}
               >
@@ -268,7 +268,7 @@ export function WorkoutBlockCard({
             aria-label={`Dodaj ćwiczenie do ${blockDescriptorGenitive}`}
             aria-describedby={canAddExercise ? undefined : addExerciseHintId}
             onClick={() => onOpenExerciseLibrary(block.id)}
-            className="wb-footer-action wb-focusable-inset"
+            className="wb-footer-action"
           >
             <TimelinePlusIcon size={14} strokeWidth={2.6} />
             <span>{labels.addExercise}</span>
@@ -279,7 +279,7 @@ export function WorkoutBlockCard({
             aria-label={`Dodaj przerwę do ${blockDescriptorGenitive}`}
             aria-expanded={isAddingBreak}
             onClick={() => onOpenInlinePanel({ type: 'addBreak', blockId: block.id })}
-            className="wb-footer-action wb-focusable-inset"
+            className="wb-footer-action"
           >
             <TimelineClockIcon />
             <span>{labels.addBreak}</span>

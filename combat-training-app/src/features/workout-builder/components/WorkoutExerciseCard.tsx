@@ -102,7 +102,7 @@ export function WorkoutExerciseCard({
           <div className="wb-actions">
             <button
               type="button"
-              className="wb-action wb-focusable"
+              className="wb-action"
               aria-label={`Przenieś ćwiczenie ${exerciseContext} w górę`}
               disabled={!canMoveUp}
               onClick={() => dispatch({ type: 'moveItem', blockId, itemId: exercise.id, direction: 'up' })}
@@ -112,7 +112,7 @@ export function WorkoutExerciseCard({
             </button>
             <button
               type="button"
-              className="wb-action wb-focusable"
+              className="wb-action"
               aria-label={`Przenieś ćwiczenie ${exerciseContext} w dół`}
               disabled={!canMoveDown}
               onClick={() => dispatch({ type: 'moveItem', blockId, itemId: exercise.id, direction: 'down' })}
@@ -122,7 +122,7 @@ export function WorkoutExerciseCard({
             </button>
             <button
               type="button"
-              className="wb-action wb-focusable"
+              className="wb-action"
               aria-label={`Edytuj ćwiczenie ${exerciseContext}`}
               onClick={() => onOpenExerciseEdit(blockId, exercise.id)}
             >
@@ -131,7 +131,7 @@ export function WorkoutExerciseCard({
             </button>
             <button
               type="button"
-              className="wb-action is-danger wb-focusable"
+              className="wb-action is-danger"
               aria-label={`Usuń ćwiczenie ${exerciseContext}`}
               onClick={() => {
                 dispatch({ type: 'removeItem', blockId, itemId: exercise.id })

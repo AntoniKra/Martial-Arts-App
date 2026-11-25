@@ -276,7 +276,7 @@ export function WorkoutTimeline({
       {blocks.length > 0 ? <AddBlockPicker isOpen={isPickerOpen} onClose={closeBlockPicker} dispatch={dispatch} /> : null}
 
       {blocks.length > 0 && !isPickerOpen ? (
-        <button ref={addBlockButtonRef} type="button" onClick={openBlockPicker} className="wb-add-block wb-focusable">
+        <button ref={addBlockButtonRef} type="button" onClick={openBlockPicker} className="wb-add-block">
           <TimelinePlusIcon strokeWidth={2.6} />
           {labels.addNextBlock}
         </button>

@@ -20,7 +20,7 @@ export const workoutBuilderLabels = {
     'Przy 1 rundzie nie ma przerwy między rundami. Przerwę po ćwiczeniu dodasz w bloku jako element „Przerwa”.',
 
   planDetailsTitle: 'Dane planu',
-  planCard: (planName: string) => `Dane planu: ${planName}`,
+  planCardPrefix: 'Dane planu: ',
   noDiscipline: 'Bez dyscypliny',
   planDuration: (clock: string) => `Czas: ${clock}`,
   planGoal: (goal: string) => `Cel: ${goal}`,

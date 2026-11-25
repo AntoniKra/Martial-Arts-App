@@ -16,10 +16,10 @@ export function WorkoutBuilderHeader({ title, onClose, closeDisabled = false, ac
   return (
     <header className="wb-topbar">
       <button type="button" aria-label={screenHeaderLabels.close} onClick={onClose} disabled={closeDisabled}
-        className="wb-topbar-close wb-focusable">
+        className="wb-topbar-close">
         <TimelineCloseIcon />
       </button>
-      <h1 ref={headingRef} tabIndex={headingRef ? -1 : undefined} className="wb-topbar-title wb-focusable">{title}</h1>
+      <h1 ref={headingRef} tabIndex={headingRef ? -1 : undefined} className="wb-topbar-title">{title}</h1>
       <div className="wb-topbar-slot">{action}</div>
     </header>
   )

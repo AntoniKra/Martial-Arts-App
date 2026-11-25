@@ -20,8 +20,9 @@ export function WorkoutPlanCard({ disciplineKey, planName, mainGoal, totalSecond
   const disciplineClass = disciplineKey === null ? '' : ` wb-discipline-${disciplineKey}`
 
   return (
-    <button ref={buttonRef} type="button" aria-label={labels.planCard(planName)} onClick={onOpen}
-      className={`wb-plan-card wb-focusable${disciplineClass}`}>
+    // The visible text is the accessible name (WCAG 2.5.3); the hidden prefix says where the card leads.
+    <button ref={buttonRef} type="button" onClick={onOpen} className={`wb-plan-card${disciplineClass}`}>
+      <span className="sr-only">{labels.planCardPrefix}</span>
       <span className="wb-plan-card-top">
         <span className="wb-discipline-chip">
           {disciplineKey === null ? labels.noDiscipline : getDisciplineLabelPl(disciplineKey)}

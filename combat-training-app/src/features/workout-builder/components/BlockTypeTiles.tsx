@@ -28,7 +28,7 @@ export function BlockTypeTiles({ heading, featureWarmup, onSelect, headerAction 
         {WORKOUT_BLOCK_TYPES.map((blockType) => {
           const isWide = WIDE_BLOCK_TYPES.includes(blockType)
           const isFeatured = featureWarmup && blockType === 'warmup'
-          const className = `wb-tile wb-focusable${isWide ? ' is-wide' : ''}${isFeatured ? ' is-featured' : ''}`
+          const className = `wb-tile${isWide ? ' is-wide' : ''}${isFeatured ? ' is-featured' : ''}`
 
           return (
             <button key={blockType} type="button" className={className} onClick={() => onSelect(blockType)}>

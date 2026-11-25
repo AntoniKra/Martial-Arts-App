@@ -479,7 +479,7 @@ export function WorkoutBuilderView({
                 type="button"
                 disabled={isSaving || !canPreview}
                 onClick={handlePreviewPlan}
-                className="wb-header-action wb-focusable"
+                className="wb-header-action"
               >
                 {workoutBuilderLabels.preview}
               </button>
