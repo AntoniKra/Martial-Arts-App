@@ -3,7 +3,7 @@
 | Polski interfejs | Nazwa w kodzie |
 |---|---|
 | trening | `workout` |
-| plan treningu | `workoutPlan` |
+| plan treningu | `workoutPlan`; w interfejsie lista to „Moje plany”, a kreator „Nowy plan” (słowo „trening” oznacza wykonanie: odtwarzacz, historia) |
 | blok treningowy | `workoutBlock` |
 | rozluźnienie | `cooldown` |
 | element bloku | `workoutItem` |

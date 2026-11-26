@@ -146,7 +146,7 @@ export function FocusCard<T extends FocusRating | ManualFocusRatingDraft>({ sess
             onChange={(event) => onChange({ ...rating, correction: { problem: rating.correction?.problem ?? '', fix: rating.correction?.fix ?? '', [field]: event.target.value } })} />
         </label>)}
         <p className={summary ? 'text-[11px] leading-snug text-muted italic' : 'text-[12px] leading-relaxed text-muted'}>{labels.correctionHint}</p>
-        {summary && <button type="button" className="min-h-touch px-1 text-xs text-crimson-ink underline" onClick={() => {
+        {summary && <button type="button" className="min-h-touch px-1 text-xs text-crimson-ink" onClick={() => {
           moveCorrectionFocus.current = true
           setExpanded(false)
           onChange({ ...rating, correction: null })

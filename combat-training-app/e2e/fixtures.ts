@@ -122,7 +122,7 @@ class WorkoutApp {
     await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 
     await this.savePlan()
-    await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Moje plany', exact: true })).toBeVisible()
     await page.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) })
       .getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     // The list already has the same heading while the details chunk is loading.
@@ -182,7 +182,7 @@ class WorkoutApp {
       // The emulator REST read can see a write before this client's metadata
       // acknowledges it. Sign-out must wait for that acknowledgement as well.
       await expect(this.page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
-      await expect(this.page.getByText('Zapisane', { exact: true }).or(quickTimerSummary)).toBeVisible()
+      await expect(this.page.getByText('Zapisano', { exact: true }).first().or(quickTimerSummary)).toBeVisible()
     }
   }
 

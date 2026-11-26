@@ -135,7 +135,7 @@ test('archives offline with two plans, keeps history, and restores without resto
     await page.getByRole('dialog', { name: 'Nowy trening', exact: true }).getByRole('link', { name: /^Moje plany/ }).click()
     await page.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) })
       .getByRole('link', { name: 'Zobacz plan', exact: true }).click()
-    await expect(page.getByText('CEL', { exact: true })).toHaveCount(0)
+    await expect(page.getByText(/^· ★ /)).toHaveCount(0)
     await expect(page.getByText('Exercise first', { exact: true })).toBeVisible()
   }
   await nav.getByRole('link', { name: 'Postęp', exact: true }).click()
@@ -185,7 +185,7 @@ test('shows and saves an existing archived reference but never offers it as a ne
   await accessible(page)
   await capture(page, info, 'builder-archived')
   await app.savePlan()
-  await expect(page.getByText('CEL', { exact: true })).toBeVisible()
+  await expect(page.getByText(`· ★ ${skill.name}`, { exact: true })).toBeVisible()
   await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
   await page.getByRole('button', { name: /^Akcje ćwiczenia / }).click()
   await page.getByRole('switch', { name: 'Element do poprawy · Oceniaj po treningu', exact: true }).click()

@@ -84,11 +84,11 @@ test('leaves a clean builder and still warns the browser before unload', async (
   await app.open('/workouts/new')
   await expect(page.getByRole('heading', { name: 'Dane planu', exact: true })).toBeVisible()
   await closeButton(page).click()
-  await expect(page.getByRole('heading', { name: 'Nowy trening', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Nowy plan', exact: true })).toBeVisible()
   await expect(saveChanges(page)).toHaveCount(0)
   await closeButton(page).click()
   await expect(discardDialog(page)).toHaveCount(0)
-  await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Moje plany', exact: true })).toBeVisible()
 
   await app.createPlan('Plan bez zmian')
   await openEdit(page)
@@ -184,7 +184,7 @@ test('hides rest for one round and restores the previous value at three rounds',
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
   await page.getByRole('button', { name: 'Wstecz', exact: true }).click()
   await expect(discardDialog(page)).toHaveCount(0)
-  await expect(page.getByRole('heading', { name: 'Nowy trening', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Nowy plan', exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
   await page.getByRole('button', { name: 'Lewy prosty → prawy prosty', exact: true }).click()

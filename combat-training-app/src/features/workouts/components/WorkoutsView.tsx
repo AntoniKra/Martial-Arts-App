@@ -28,7 +28,6 @@ interface WorkoutsViewProps {
   tab?: WorkoutsTab
   historyWeek?: string | null
   planDeleted?: boolean
-  plansSubscreen?: boolean
   plansLoadState: WorkoutPlansLoadState
   historyLoadState: WorkoutHistoryLoadState
   onRetryLoadPlans: () => void
@@ -101,7 +100,6 @@ export function WorkoutsView({
   tab = 'plans',
   historyWeek = null,
   planDeleted = false,
-  plansSubscreen = false,
   plansLoadState,
   historyLoadState,
   onRetryLoadPlans,
@@ -205,7 +203,7 @@ export function WorkoutsView({
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className={tab === 'plans' ? 'mx-auto w-full max-w-lg shrink-0 px-4 pt-6 md:max-w-4xl md:pt-2' : 'w-full shrink-0'}>
         {tab === 'plans' && <>
-          <RouteScreenHeader title={plansSubscreen ? 'Plany treningowe' : 'Treningi'} fallback={routes.home} />
+          <RouteScreenHeader title={workoutPlanLabels.listTitle} fallback={routes.home} />
           <Link to={routes.quickTimer} className="mr-4 inline-flex min-h-touch items-center text-sm font-semibold text-crimson-ink">{homeLabels.timerRounds}</Link>
           <Link to={routes.myExercises} className="inline-flex min-h-touch items-center text-sm font-semibold text-crimson-ink">Moje ćwiczenia</Link>
         </>}

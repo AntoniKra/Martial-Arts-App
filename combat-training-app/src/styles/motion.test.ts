@@ -7,6 +7,7 @@ import { ChoiceTile } from '@/components/ui/ChoiceTile'
 import { MultiChoiceChip } from '@/components/ui/MultiChoiceChip'
 import { Switch } from '@/components/ui/Switch'
 import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
+import { ProfileDisclosure } from '@/features/profile/ProfileDisclosure'
 import { WeekDayIndicator } from '@/components/domain/WeekDayIndicator'
 import { ScheduleStatusBadge } from '@/features/week-plan/ScheduleStatusBadge'
 
@@ -64,6 +65,8 @@ describe('motion foundation', () => {
     const disclosure = renderToStaticMarkup(createElement(CollapsibleCard, { title: 'Details', children: 'Content' }))
     expect(disclosure).toContain('class="disclosure-chevron"')
     expect(disclosure).toContain('hidden="" class="disclosure-content"')
+    const profile = renderToStaticMarkup(createElement(ProfileDisclosure, { title: 'Masa ciała', summary: '80 kg', open: false, onToggle() {}, children: 'Content' }))
+    expect(profile).toContain('class="disclosure-chevron"')
   })
 
   it('does not animate initial badges or day indicators', () => {

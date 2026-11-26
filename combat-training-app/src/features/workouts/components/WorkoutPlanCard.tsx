@@ -53,7 +53,7 @@ export function WorkoutPlanCard({ plan }: WorkoutPlanCardProps) {
           {getPlanStats(plan).map((stat) => (
             <div key={stat.key}>
               <dt className="sr-only">{stat.termPl}</dt>
-              <dd>
+              <dd className="whitespace-nowrap">
                 <span className="font-semibold tabular-nums text-ink">{stat.value}</span>
                 {stat.unitPl ? ` ${stat.unitPl}` : null}
               </dd>

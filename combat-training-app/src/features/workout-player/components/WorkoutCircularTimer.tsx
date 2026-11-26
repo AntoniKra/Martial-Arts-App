@@ -30,7 +30,7 @@ export function WorkoutCircularTimer({
   }, [adjustmentNotice])
 
   const progress = getWorkoutArcProgress(totalSeconds, remainingSeconds)
-  const digits = preparing ? String(remainingSeconds) : formatSecondsAsClock(remainingSeconds).padStart(5, '0')
+  const digits = preparing ? String(remainingSeconds) : formatSecondsAsClock(remainingSeconds)
 
   return (
     <div className="timer-center-area">

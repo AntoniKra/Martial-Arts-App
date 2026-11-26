@@ -31,7 +31,7 @@ test('ends early after a completed round, records every step and shows partial s
   await exitDialog(page).getByRole('button', { name: 'Zakończ i zapisz', exact: true }).click()
   await page.clock.resume()
   await expect(page.getByText('Trening częściowy', { exact: true })).toBeVisible()
-  await expect(page.getByText('Zapisane', { exact: true })).toBeVisible()
+  await expect(page.getByText('Zapisano', { exact: true }).first()).toBeVisible()
   await expect.poll(async () => (await app.readSessions()).length).toBe(1)
   const sessions = await app.readSessions()
   expect(sessions).toHaveLength(1)
@@ -146,7 +146,7 @@ test('discards by continuing browser back without leaving the player behind in b
   expect(await app.readSessions()).toHaveLength(0)
   await page.goBack()
   await expect(page).toHaveURL('/workouts')
-  await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Moje plany', exact: true })).toBeVisible()
   await expect(exitDialog(page)).toHaveCount(0)
 })
 

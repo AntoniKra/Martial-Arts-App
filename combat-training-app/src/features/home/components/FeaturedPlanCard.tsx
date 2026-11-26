@@ -55,7 +55,7 @@ export function FeaturedPlanCard({ plan }: FeaturedPlanCardProps) {
                 <dt className="font-display text-[10px] uppercase tracking-[0.06em] text-muted">
                   {item.label}
                 </dt>
-                <dd className="font-display text-[18px] font-bold tabular-nums text-ink">
+                <dd className="whitespace-nowrap font-display text-[18px] font-bold tabular-nums text-ink">
                   {item.value(plan)}
                 </dd>
               </div>

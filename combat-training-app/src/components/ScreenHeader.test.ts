@@ -12,3 +12,14 @@ it('renders one heading and a named 44px back button for a subscreen', () => {
   expect(html.match(/<h1/g)).toHaveLength(1)
   expect(html).toContain('Podsumowanie</h1>')
 })
+
+it('renders a form header like the builder: close button, centred uppercase title, one heading', () => {
+  const router = createMemoryRouter([{ path: '/', element: createElement(RouteScreenHeader, { title: 'Trening spoza aplikacji', variant: 'form', fallback: '/' }) }])
+  const html = renderToStaticMarkup(createElement(RouterProvider, { router }))
+  expect(html).toContain('class="wb-topbar"')
+  expect(html).toContain('aria-label="Zamknij"')
+  expect(html).toContain('wb-topbar-title')
+  expect(html).not.toContain('aria-label="Wstecz"')
+  expect(html.match(/<h1/g)).toHaveLength(1)
+  expect(html).toContain('Trening spoza aplikacji</h1>')
+})

@@ -1,6 +1,7 @@
 import { actionLabels } from '@/components/ui/actionLabels'
 
 export const workoutPlanLabels = {
+  listTitle: 'Moje plany',
   edit: 'Edytuj plan',
   editHeading: 'Edycja planu',
   cancel: actionLabels.cancel,

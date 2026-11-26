@@ -297,7 +297,7 @@ test.describe('offline with the PWA cache', () => {
 
       await context.setOffline(false)
       await expect.poll(async () => (await app.readSessions()).map(({ id }) => id)).toEqual([sessionId])
-      await expect(page.getByText('Zapisane', { exact: true })).toBeVisible()
+      await expect(page.getByText('Zapisano', { exact: true }).first()).toBeVisible()
       await expect.poll(() => completedCopies(page)).toEqual([])
     } finally {
       await context.setOffline(false)

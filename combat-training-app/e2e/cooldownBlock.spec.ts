@@ -20,7 +20,7 @@ test('saves a cooldown block and shows it as block 4 in the player', async ({ ap
   await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 
   await app.savePlan()
-  await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Moje plany', exact: true })).toBeVisible()
   await page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Plan z rozluźnieniem', exact: true }) })
     .getByRole('link', { name: 'Zobacz plan', exact: true }).click()
   await expect(page.getByText('Blok 4 · Rozluźnienie', { exact: true })).toBeVisible()

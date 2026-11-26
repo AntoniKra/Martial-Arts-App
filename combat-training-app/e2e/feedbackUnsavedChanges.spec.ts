@@ -71,6 +71,22 @@ test('leaves a clean plan summary and a restored note without a dialog', async (
   await expect(dialog(page)).toHaveCount(0)
 })
 
+test('grows the session note with its content, three lines at least', async ({ app, page }) => {
+  await app.open('/workouts')
+  await app.seedSession(current)
+  await app.open(`/workout-sessions/${current.id}/feedback`)
+  const field = note(page)
+  const lineHeight = await field.evaluate((element) => parseFloat(getComputedStyle(element).lineHeight))
+  const height = async () => (await field.boundingBox())!.height
+  expect(await height()).toBeGreaterThanOrEqual(lineHeight * 3)
+  const empty = await height()
+  await field.fill(Array.from({ length: 8 }, (_, line) => `Linia ${line + 1}`).join('\n'))
+  await expect.poll(height).toBeGreaterThanOrEqual(lineHeight * 8)
+  expect(await field.evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(true)
+  await field.fill('')
+  await expect.poll(height).toBe(empty)
+})
+
 for (const session of [current, quick]) {
   test(`saves ${session.source} feedback and navigates to history without a dialog`, async ({ app, page }) => {
     await app.open('/workouts')
