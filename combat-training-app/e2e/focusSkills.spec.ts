@@ -110,7 +110,7 @@ test('creates, reloads and shares focus skills between plans, permits repeats an
 
   await page.getByRole('button', { name: 'Podgląd', exact: true }).click()
   await expect(page.getByText('3 elementy do poprawy', { exact: true })).toBeVisible()
-  await expect(page.getByText('CEL', { exact: true })).toHaveCount(3)
+  await expect(page.getByText(`· ★ ${skillName}`, { exact: true })).toHaveCount(3)
   for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
     await checkAccessibility(page)
@@ -119,7 +119,7 @@ test('creates, reloads and shares focus skills between plans, permits repeats an
   }
   await page.getByRole('button', { name: 'Zapisz plan', exact: true }).click()
   await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
-  await expect(page.getByText('CEL', { exact: true })).toHaveCount(3)
+  await expect(page.getByText(`· ★ ${skillName}`, { exact: true })).toHaveCount(3)
   await app.open(new URL(page.url()).pathname)
   await expect(page.getByText('3 elementy do poprawy', { exact: true })).toBeVisible()
   await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
