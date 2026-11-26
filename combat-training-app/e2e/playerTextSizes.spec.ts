@@ -32,8 +32,8 @@ for (const theme of ['dark', 'light'] as const) {
     const viewport = page.viewportSize()!
     const viewports = info.project.name === 'phone' ? [viewport, { width: 390, height: 844 }] : [viewport]
     const colors = theme === 'dark'
-      ? { preparing: 'rgb(28, 32, 40)', work: 'rgb(84, 8, 21)', paused: 'rgb(19, 20, 24)', rest: 'rgb(28, 32, 40)', warning: 'rgb(92, 32, 11)' }
-      : { preparing: 'rgb(237, 240, 245)', work: 'rgb(250, 230, 233)', paused: 'rgb(232, 232, 236)', rest: 'rgb(237, 240, 245)', warning: 'rgb(252, 238, 230)' }
+      ? { preparing: 'rgb(29, 29, 32)', work: 'rgb(84, 8, 21)', paused: 'rgb(23, 23, 25)', rest: 'rgb(29, 29, 32)', warning: 'rgb(92, 32, 11)' }
+      : { preparing: 'rgb(232, 232, 229)', work: 'rgb(250, 230, 233)', paused: 'rgb(255, 255, 255)', rest: 'rgb(232, 232, 229)', warning: 'rgb(252, 238, 230)' }
 
     await expect(header).toContainText(plan.nameSnapshot)
     await expect(header.getByRole('button')).toHaveCount(1)

@@ -4,15 +4,15 @@
   --player-work-bg: #540815;
   --player-work-muted: #ff99a8;
   --player-work-ring: #ff2a4b;
-  --player-rest-bg: #1c2028;
-  --player-rest-muted: #a6b2c4;
-  --player-rest-ring: #94a3b8;
+  --player-rest-bg: var(--app-elevated);
+  --player-rest-muted: var(--app-muted);
+  --player-rest-ring: var(--app-muted);
   --player-warning-bg: #5c200b;
   --player-warning-muted: #ffb191;
   --player-warning-ring: #ff7536;
-  --player-paused-bg: #131418;
-  --player-paused-muted: #a1a1aa;
-  --player-paused-ring: #71717a;
+  --player-paused-bg: var(--app-surface);
+  --player-paused-muted: var(--app-muted);
+  --player-paused-ring: var(--app-faint);
   --player-arc-track: rgb(255 255 255 / .18);
   --player-panel-border: rgb(255 255 255 / .12);
   --player-focus-badge-border: rgb(255 255 255 / .28);
@@ -22,12 +22,12 @@
   --player-control-border: rgb(255 255 255 / .15);
   --player-primary-gradient: linear-gradient(120deg, #b8102a 0%, #cb1531 55%, #f0753a 100%);
   --player-primary-shadow: 0 4px 18px rgb(184 16 42 / .45);
-  --player-sheet-bg: #18181c;
-  --player-sheet-border: #2e2e38;
-  --player-sheet-button-border: rgb(255 255 255 / .12);
-  --player-sheet-ink: var(--player-white);
-  --player-sheet-muted: #a7a7aa;
-  --player-sheet-danger: #ff5c72;
+  --player-sheet-bg: var(--app-surface);
+  --player-sheet-border: var(--app-border);
+  --player-sheet-button-border: var(--app-border);
+  --player-sheet-ink: var(--app-ink);
+  --player-sheet-muted: var(--app-muted);
+  --player-sheet-danger: var(--app-crimson-ink);
   --player-arc-size: 260px;
   --player-digit-size: 84px;
   --player-single-digit-size: 104px;
@@ -48,15 +48,9 @@
   --player-work-bg: #fae6e9;
   --player-work-muted: #800a1c;
   --player-work-ring: #c1122f;
-  --player-rest-bg: #edf0f5;
-  --player-rest-muted: #2b3342;
-  --player-rest-ring: #626e84;
   --player-warning-bg: #fceee6;
   --player-warning-muted: #8a320c;
   --player-warning-ring: #d4591e;
-  --player-paused-bg: #e8e8ec;
-  --player-paused-muted: #4a4a52;
-  --player-paused-ring: #848490;
   --player-arc-track: rgb(0 0 0 / .12);
   --player-panel-border: rgb(0 0 0 / .08);
   --player-focus-badge-border: rgb(0 0 0 / .18);
@@ -65,12 +59,6 @@
   --player-control-bg: rgb(0 0 0 / .04);
   --player-control-border: rgb(0 0 0 / .1);
   --player-primary-gradient: linear-gradient(120deg, #a01027 0%, #b5122b 55%, #c24b10 100%);
-  --player-sheet-bg: var(--player-white);
-  --player-sheet-border: #e2e2e8;
-  --player-sheet-button-border: rgb(0 0 0 / .12);
-  --player-sheet-ink: var(--player-phase-ink);
-  --player-sheet-muted: #64646e;
-  --player-sheet-danger: var(--app-crimson-ink);
 }
 
 .workout-player:is([data-phase='rest'], [data-phase='preparing']) {
@@ -520,7 +508,7 @@
 .player-exit-sheet {
   border: 0;
   border-top: 1px solid var(--player-sheet-border);
-  border-radius: 16px 16px 0 0;
+  border-radius: var(--app-radius-sm) var(--app-radius-sm) 0 0;
   padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
   background-color: var(--player-sheet-bg);
   color: var(--player-sheet-ink);

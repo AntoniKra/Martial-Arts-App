@@ -61,13 +61,15 @@ function sourceFiles(directory: string, extensions: readonly string[]): string[]
 
 describe.each(['dark', 'light'] as const)('%s theme colours', (mode) => {
   it('keeps the player phase, timer and muted text at least 4.5:1 on each phase background', () => {
-    const palette = mode === 'dark'
-      ? playerCss.match(/^\.workout-player \{([^}]+)\}/m)?.[1]
-      : playerCss.match(/\[data-theme='light'\] \.workout-player \{([^}]+)\}/)?.[1]
+    const base = playerCss.match(/^\.workout-player \{([^}]+)\}/m)?.[1]
+    const light = playerCss.match(/\[data-theme='light'\] \.workout-player \{([^}]+)\}/)?.[1]
+    // The light block overrides the base one; phases may point at theme tokens (`var(--app-*)`).
     const playerColor = (name: string) => {
-      const value = palette?.match(new RegExp(`--player-${name}: (#[a-f0-9]{6});`, 'i'))?.[1]
+      const pattern = new RegExp(String.raw`--player-${name}: (#[a-f0-9]{6}|var\(--app-[a-z-]+\));`, 'i')
+      const value = (mode === 'light' ? light?.match(pattern)?.[1] : undefined) ?? base?.match(pattern)?.[1]
       if (!value) throw new Error(`Missing ${mode} player color: ${name}`)
-      return value
+      const token = value.match(/^var\(--app-([a-z-]+)\)$/)?.[1]
+      return token ? getToken(mode, token) : value
     }
     const ink = playerColor(mode === 'dark' ? 'white' : 'phase-ink')
     for (const phase of ['work', 'rest', 'warning', 'paused']) {
