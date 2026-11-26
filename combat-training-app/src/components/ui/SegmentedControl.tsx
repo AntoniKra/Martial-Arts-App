@@ -18,6 +18,8 @@ export type SegmentedControlProps<T extends string> = AccessibleNameProps & {
   disabled?: boolean
   className?: string
   variant?: 'default' | 'outlined'
+  /** Option text: capitals by default, `normal` keeps units and values as written ("10 s"). */
+  textCase?: 'upper' | 'normal'
 }
 
 function assertUniqueOptionValues<T extends string>(options: readonly SegmentedControlOption<T>[]): void {
@@ -40,6 +42,7 @@ export function SegmentedControl<T extends string>({
   disabled = false,
   className = '',
   variant = 'default',
+  textCase = 'upper',
 }: SegmentedControlProps<T>) {
   assertUniqueOptionValues(options)
 
@@ -147,7 +150,7 @@ export function SegmentedControl<T extends string>({
               tabIndex={getTabIndex(option)}
               onClick={() => selectAndFocus(option.value)}
               className={[
-                'relative min-h-touch flex-1 px-2 py-2.5 font-display font-semibold uppercase tracking-[0.06em] transition-colors',
+                `relative min-h-touch flex-1 px-2 py-2.5 font-display font-semibold transition-colors ${textCase === 'upper' ? 'uppercase tracking-[0.06em]' : ''}`,
                 variant === 'outlined' ? 'text-[11.5px]' : 'text-[12px]',
                 'cursor-pointer disabled:cursor-not-allowed disabled:opacity-40',
                 variant === 'outlined' ? `flex items-center justify-center gap-1.5 rounded-[2px] border-2 ${selected ? 'border-crimson bg-elevated font-bold text-ink [&>svg]:text-crimson-ink' : 'border-transparent text-muted hover:text-ink'}` : selected

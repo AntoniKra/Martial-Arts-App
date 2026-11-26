@@ -71,7 +71,7 @@ export function Component() {
       </div>
     </ProfileSettingsSection>
     <ProfileSettingsSection title={settings.appearance}>
-      <SegmentedControl label={settings.theme} value={preference} onChange={setTheme} options={[
+      <SegmentedControl textCase="normal" label={settings.theme} value={preference} onChange={setTheme} options={[
         { value: 'system', label: settings.system }, { value: 'light', label: settings.light }, { value: 'dark', label: settings.dark },
       ]} />
     </ProfileSettingsSection>

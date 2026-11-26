@@ -15,11 +15,11 @@ export function TrainingSettings() {
   const [warnings, setWarnings] = useState(readStoredWorkoutEndWarnings)
   const preview = useWorkoutSignalPreview()
   return <ProfileSettingsSection title={labels.training} id="profile-training">
-    <SegmentedControl label={workoutPlayerLabels.preparationSetting} options={WORKOUT_PREPARATION_OPTIONS} value={preparation}
+    <SegmentedControl textCase="normal" label={workoutPlayerLabels.preparationSetting} options={WORKOUT_PREPARATION_OPTIONS} value={preparation}
       onChange={(value) => setPreparation(persistWorkoutPreparation(value))} />
-    <SegmentedControl label={labels.roundWarning} options={ROUND_WARNING_VALUES.map((value) => ({ value, label: value === 'off' ? labels.off : `${value} s` }))}
+    <SegmentedControl textCase="normal" label={labels.roundWarning} options={ROUND_WARNING_VALUES.map((value) => ({ value, label: value === 'off' ? labels.off : `${value} s` }))}
       value={warnings.round} onChange={(round) => setWarnings(persistWorkoutEndWarnings({ ...warnings, round }))} />
-    <SegmentedControl label={labels.restWarning} options={REST_WARNING_VALUES.map((value) => ({ value, label: value === 'off' ? labels.off : `${value} s` }))}
+    <SegmentedControl textCase="normal" label={labels.restWarning} options={REST_WARNING_VALUES.map((value) => ({ value, label: value === 'off' ? labels.off : `${value} s` }))}
       value={warnings.rest} onChange={(rest) => setWarnings(persistWorkoutEndWarnings({ ...warnings, rest }))} />
     <p className="text-sm leading-relaxed text-muted">{labels.trainingHint}</p>
     <button type="button" onClick={preview} className={getButtonClassName({ variant: 'secondary' })}>{labels.previewSignals}</button>

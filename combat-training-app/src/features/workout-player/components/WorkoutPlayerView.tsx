@@ -393,7 +393,7 @@ function WorkoutPlayerRuntime({
             <p className={lowerInstruction ? 'exercise-technique player-technique-cue' : 'exercise-technique'}>{instruction}</p>
           )}
           {focusCue?.kind === 'badge' && (
-            <p className="player-focus-badge" title={focusCue.skill.name}>
+            <p className="player-focus-badge">
               <span aria-hidden="true">★</span>{' '}{focusCue.skill.name}
             </p>
           )}
@@ -415,8 +415,8 @@ function WorkoutPlayerRuntime({
         {focusCue?.kind === 'card' && (
           <div className="player-focus-card" role="note" aria-label={focusSkillLabels.title}>
             <p className="player-focus-card-label"><span aria-hidden="true">★</span> {focusSkillLabels.title}</p>
-            <p className="player-focus-card-name" title={focusCue.skill.name}>{focusCue.skill.name}</p>
-            <p className="player-focus-card-criterion" title={focusCue.skill.criterion}>{focusCue.skill.criterion}</p>
+            <p className="player-focus-card-name">{focusCue.skill.name}</p>
+            <p className="player-focus-card-criterion">{focusCue.skill.criterion}</p>
           </div>
         )}
         <WorkoutPlayerNextPreview roundStep={isRoundRest ? nextStep ?? undefined : roundStep} nextStep={nextStep} isLastStep={isLastStep} />
