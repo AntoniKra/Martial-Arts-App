@@ -11,6 +11,8 @@ async function addTechniqueBlock(page: Page) {
 
 async function chooseLibraryExercise(page: Page, name: string) {
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
+  // Only the first library category starts expanded; a search expands every category with a match.
+  await page.getByRole('searchbox', { name: 'Szukaj ćwiczenia', exact: true }).fill(name)
   await page.getByRole('button', { name, exact: true }).click()
 }
 

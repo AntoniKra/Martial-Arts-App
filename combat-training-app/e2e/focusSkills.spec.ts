@@ -26,7 +26,7 @@ async function addExercise(page: Page, name: string) {
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
   await page.getByRole('radio', { name: 'Własne ćwiczenie', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nazwa ćwiczenia', exact: true }).fill(name)
-  await page.getByRole('button', { name: 'Konfiguruj ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: 'Dalej', exact: true }).click()
   await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 }
 
