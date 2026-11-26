@@ -125,6 +125,7 @@ for (const theme of ['dark', 'light'] as const) {
     await page.getByRole('button', { name: 'Zacznij teraz', exact: true }).click()
     await expect(technique).toHaveText(instruction)
     await checkPhase('work', 'PRACA')
+    await expect(timer).toHaveText('1:00')
     await expect(page.locator('.arc-progress')).toHaveAttribute('stroke-dasharray', '75 100')
 
     await page.clock.setFixedTime(new Date(start + 30_000))
