@@ -137,6 +137,12 @@ Kontrolki używają tokenów obu motywów, widocznej obwódki fokusu i tekstowyc
 
 Ptaszek oznacza status, np. wykonany dzień lub zapisany wynik. Zaznaczenie w formularzu pokazują grubsza ramka i tło (#245).
 
+### Zasada zaznaczania (decyzja właściciela 26.11)
+
+- **Przełącznik segmentowy** (`SegmentedControl`: Rundy / Ciągłe, Wykresy / Historia, Tygodnie / Miesiąc w Historii, ustawienia treningu w Profilu) pokazuje zaznaczenie **wypełnieniem** segmentu (`crimson`, tekst `on-accent`). Nie ma wariantu obwódkowego; Historia → Tygodnie / Miesiąc jest zwykłym segmentem wypełnionym.
+- **Kafel wyboru** (`ChoiceTile`, gotowe formaty ćwiczenia) pokazuje zaznaczenie **obwódką 2 px `crimson-ink` i tłem**, z `aria-checked` / natywnym radiem. Bez ptaszków.
+- Ptaszek zostaje wyłącznie jako status (wykonany dzień, zapisany wynik), nigdy jako znacznik zaznaczenia.
+
 ## Ruch
 
 Fundament ruchu (#195) używa wspólnych tokenów CSS dla obu motywów:
