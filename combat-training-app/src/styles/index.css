@@ -173,8 +173,6 @@
   --app-home-primary-pressed-glow: rgba(240,117,58,0.4);
   --app-home-badge-bg: rgba(240,117,58,0.10);
   --app-home-badge-border: rgba(240,117,58,0.35);
-  --app-home-success-bg: rgba(63,181,107,0.15);
-  --app-home-success-border: rgba(63,181,107,0.35);
   --app-home-extra-icon-bg: color-mix(in srgb, var(--app-crimson) 12%, transparent);
   --app-home-extra-icon-border: color-mix(in srgb, var(--app-crimson) 30%, transparent);
 }
@@ -236,8 +234,8 @@
 .home-other-icon { display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--app-radius-sm); background: var(--app-home-card-light); color: var(--app-crimson-ink); }
 .home-other-icon svg { width: 20px; height: 20px; }
 .home-recent-session { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); font-size: 12px; }
-.home-session-status { padding: 3px 6px; border-radius: 3px; font-weight: 700; text-transform: uppercase; }
-.home-session-status.is-done { background: var(--app-home-success-bg); border: 1px solid var(--app-home-success-border); color: var(--app-success-ink); }
+.home-session-status { padding: 3px 6px; border-radius: 0; font-weight: 700; text-transform: uppercase; }
+.home-session-status.is-done { background: var(--app-grad-primary); color: var(--app-on-accent); }
 .home-session-status.is-partial { border: 1px solid var(--app-border); color: var(--app-muted); }
 .home-recent-session .rpe-badge { background: transparent; color: inherit; }
 .home-empty-card { --app-home-storm-rest-opacity: 0.35; min-height: 330px; }

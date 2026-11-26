@@ -77,3 +77,12 @@ it('shows only round completion and its percentage for quick timers on both sess
     expect(markup).toContain('(33%)')
   }
 })
+
+it('marks the completed status with the gradient badge and a partial one as neutral in history', () => {
+  const card = (session: ReturnType<typeof workoutSession>) => renderToStaticMarkup(createElement(MemoryRouter, null, createElement(WorkoutHistoryCard, {
+    session: mapWorkoutSessionToHistoryListItem(session), onUpdateNote: async () => 'applied' as const, onDelete: async () => 'applied' as const,
+  })))
+  expect(card(workoutSession({}))).toMatch(/status-badge is-done">Ukończony</)
+  const partial = card(workoutSession({ stepResults: [sessionStep({ outcome: 'skipped', performedDurationSeconds: 0 })] }))
+  expect(partial).toMatch(/status-badge is-neutral">Częściowy</)
+})

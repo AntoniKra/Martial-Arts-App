@@ -334,7 +334,7 @@ export function WorkoutHistoryCard({ session, onUpdateNote, onDelete }: WorkoutH
           </div>
         )}
         <div className="history-entry-links">
-          <p className="text-xs font-semibold text-muted">{workoutPlayerLabels.sessionStatus[session.status]}</p>
+          <span className={`status-badge ${session.status === 'completed' ? 'is-done' : 'is-neutral'}`}>{workoutPlayerLabels.sessionStatus[session.status]}</span>
           {session.editPath && <Link to={session.editPath} state={{ returnTo: routes.progressHistory }}>{manualWorkoutLabels.edit}</Link>}
           {session.feedbackPath && <Link to={session.feedbackPath}>{workoutFeedbackLabels.title}</Link>}
           {!session.isManual && <Link to={routes.workoutReport(session.id)}>{workoutHistoryLabels.report}</Link>}
