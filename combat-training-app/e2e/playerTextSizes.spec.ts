@@ -38,7 +38,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(header).toContainText(plan.nameSnapshot)
     await expect(header.getByRole('button')).toHaveCount(1)
     await expect(header.locator('.player-step-progress')).toHaveCSS('font-size', '11px')
-    await expect(header.getByRole('button', { name: 'Zakończ trening', exact: true }).locator('path')).toHaveAttribute('d', 'M19 12H5m7-7-7 7 7 7')
+    await expect(header.getByRole('button', { name: 'Zakończ trening', exact: true }).locator('path')).toHaveAttribute('d', 'M6 6l12 12M18 6 6 18')
     await expect(round).toHaveText('Runda 1 z 2')
     await expect(round).toHaveCSS('font-size', '13px')
     await expect(heading).toHaveText(exercise.exerciseNameSnapshot)
