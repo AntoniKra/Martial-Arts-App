@@ -151,7 +151,9 @@ test('signs out without a warning after sync and keeps the next account isolated
 test('also warns about a plan edited offline without a pending workout session', async ({ app, page, context }) => {
   await app.createPlan('Plan przed zmiana')
   await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
+  await page.getByRole('button', { name: /^Dane planu: / }).click()
   await page.getByRole('textbox', { name: 'Nazwa planu' }).fill('Plan po zmianie offline')
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
   await context.setOffline(true)
   await app.savePlan()
   await openProfile(page); await logout(page).click()

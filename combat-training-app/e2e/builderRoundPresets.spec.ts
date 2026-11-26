@@ -2,6 +2,13 @@ import type { Page, TestInfo } from '@playwright/test'
 
 import { expect, test } from './fixtures'
 
+async function addTechniqueBlock(page: Page) {
+  await expect(page.getByRole('heading', { name: 'Dane planu', exact: true })).toBeVisible()
+  await page.getByRole('radio', { name: 'Boks', exact: true }).check()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
+  await page.getByRole('group', { name: 'Pierwszy blok', exact: true }).getByRole('button', { name: 'Technika', exact: true }).click()
+}
+
 async function chooseLibraryExercise(page: Page, name: string) {
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
   await page.getByRole('button', { name, exact: true }).click()
@@ -27,9 +34,7 @@ async function captureConfiguration(page: Page, testInfo: TestInfo, theme: 'dark
 
 test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round settings', async ({ app, page }, testInfo) => {
   await app.open('/workouts/new')
-  await page.getByRole('radio', { name: 'Boks', exact: true }).check()
-  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-  await page.getByRole('button', { name: 'Technika', exact: true }).click()
+  await addTechniqueBlock(page)
 
   await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
   await expect(page.getByRole('heading', { name: 'Ćwiczenie', exact: true })).toBeVisible()
@@ -79,7 +84,7 @@ test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round 
   await app.setTheme('dark')
 
   await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
-  await expect(page.getByText('2 rundy × 1:00 · przerwa 0:30', { exact: true })).toHaveCount(2)
+  await expect(page.getByText('2 × 1:00 / 0:30', { exact: true })).toHaveCount(2)
 
   await app.savePlan()
   await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
@@ -88,9 +93,7 @@ test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round 
 
 test('steps the round time by 15 s, updates the total live and accepts a typed value', async ({ app, page }) => {
   await app.open('/workouts/new')
-  await page.getByRole('radio', { name: 'Boks', exact: true }).check()
-  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-  await page.getByRole('button', { name: 'Technika', exact: true }).click()
+  await addTechniqueBlock(page)
   await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
 
   const structure = page.getByRole('region', { name: 'Struktura ćwiczenia', exact: true })
@@ -126,14 +129,12 @@ test('steps the round time by 15 s, updates the total live and accepts a typed v
   await expect(restTime).toHaveAccessibleDescription('0:45')
   await restTime.press('Enter')
   await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
-  await expect(page.getByText('5 rund × 3:00 · przerwa 0:45', { exact: true })).toBeVisible()
+  await expect(page.getByText('5 × 3:00 / 0:45', { exact: true })).toBeVisible()
 })
 
 test('previews continuous time and rejects invalid time on submit', async ({ app, page }) => {
   await app.open('/workouts/new')
-  await page.getByRole('radio', { name: 'Boks', exact: true }).check()
-  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-  await page.getByRole('button', { name: 'Technika', exact: true }).click()
+  await addTechniqueBlock(page)
   await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
   await page.getByRole('radio', { name: 'Ciągłe', exact: true }).check()
   await stepperValue(page, 'Czas').click()
@@ -158,13 +159,11 @@ test('previews continuous time and rejects invalid time on submit', async ({ app
   await expect(page.getByText('Ciągłe · 1:30', { exact: true })).toBeVisible()
 })
 
-test('marks a focus skill on the exercise screen and keeps it in the saved plan', async ({ app, page }) => {
+test('shares the focus skill between the exercise screen and the timeline', async ({ app, page }) => {
   const instant = '2026-11-25T10:00:00.000Z'
   await app.open('/workouts/new')
   await app.seedFocusSkill({ id: 'guard', name: 'Powrót do gardy', criterion: 'Ręka wraca do brody.', openCorrection: null, archivedAt: null, createdAt: instant, updatedAt: instant })
-  await page.getByRole('radio', { name: 'Boks', exact: true }).check()
-  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-  await page.getByRole('button', { name: 'Technika', exact: true }).click()
+  await addTechniqueBlock(page)
   await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
 
   const picker = page.getByRole('group', { name: 'Element do poprawy', exact: true })
@@ -173,6 +172,19 @@ test('marks a focus skill on the exercise screen and keeps it in the saved plan'
   await expect(picker.getByRole('button', { name: 'Zmień', exact: true })).toBeFocused()
   await expect(picker).toContainText('Ręka wraca do brody.')
   await page.getByRole('button', { name: 'Gotowe', exact: true }).click()
+
+  await expect(page.getByText(/★ Powrót do gardy/)).toBeVisible()
+  const actions = page.getByRole('button', { name: /^Akcje ćwiczenia Lewy prosty → prawy prosty/ })
+  await actions.click()
+  await expect(picker).toContainText('Powrót do gardy')
+  await picker.getByRole('switch').click()
+  await expect(page.getByText(/★ Powrót do gardy/)).toHaveCount(0)
+
+  await page.getByRole('button', { name: /^Edytuj ćwiczenie Lewy prosty → prawy prosty/ }).click()
+  await expect(picker.getByRole('switch')).toHaveAttribute('aria-checked', 'false')
+  await picker.getByRole('switch').click()
+  await picker.getByRole('radio', { name: /^Powrót do gardy/ }).check()
+  await page.getByRole('button', { name: 'Zapisz zmiany', exact: true }).click()
 
   await app.savePlan()
   await expect.poll(async () => (await app.readPlans())[0]?.blocks[0]?.items[0]).toMatchObject({ focusSkillId: 'guard' })

@@ -12,8 +12,8 @@ async function setCustomRoundCount(page: Page, count: number) {
 test('shows the step limit and prevents saving a new oversized plan', async ({ app, page }) => {
   await app.open('/workouts/new')
   await page.getByRole('radio', { name: 'Boks', exact: true }).check()
-  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-  await page.getByRole('button', { name: 'Technika', exact: true }).click()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
+  await page.getByRole('group', { name: 'Pierwszy blok', exact: true }).getByRole('button', { name: 'Technika', exact: true }).click()
 
   for (let exercise = 0; exercise < 3; exercise += 1) {
     await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
@@ -22,7 +22,7 @@ test('shows the step limit and prevents saving a new oversized plan', async ({ a
     await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   }
 
-  await page.getByRole('button', { name: 'Podgląd planu', exact: true }).click()
+  await page.getByRole('button', { name: 'Podgląd', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Plan wymaga uzupełnienia' })).toContainText(builderMessage)
   await expect(page.getByRole('button', { name: 'Zapisz plan', exact: true })).toHaveCount(0)
   await expect.poll(() => app.readPlans()).toEqual([])
@@ -46,11 +46,14 @@ test('blocks playback and saving changes to a legacy plan until the plan fits', 
   await expect(page.getByRole('alert')).toContainText('Ten trening ma 591 etapów. Maksimum to 500.')
   await expect(page.getByRole('button', { name: 'Rozpocznij trening', exact: true })).toHaveCount(0)
   await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
+  await page.getByRole('button', { name: /^Dane planu: / }).click()
   await page.getByRole('textbox', { name: 'Nazwa planu' }).fill('Limit sesji po edycji')
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
   await page.getByRole('button', { name: 'Zapisz zmiany', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Plan wymaga uzupełnienia' })).toContainText(builderMessage)
   await expect.poll(() => app.readPlans()).toMatchObject([plan])
 
+  await page.getByRole('button', { name: 'Akcje ćwiczenia Exercise first, element 1 w bloku 1 — Technika', exact: true }).click()
   await page.getByRole('button', { name: 'Edytuj ćwiczenie Exercise first, element 1 w bloku 1 — Technika', exact: true }).click()
   await setCustomRoundCount(page, 53)
   await page.getByRole('button', { name: 'Zapisz zmiany', exact: true }).click()

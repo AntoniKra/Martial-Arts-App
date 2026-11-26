@@ -58,6 +58,10 @@ Wiersz sterowania ma 96 px wysokości i zachowuje 8 px górnego odstępu. Boczne
 
 Środkowy przycisk (M5) ma obszar dotyku 96×96 px, ostro zakończony romb z kwadratu 68×68 px obróconego o 45° i prostą ikonę 31 px. Romb ma gradient odtwarzacza, czerwony cień i narożniki żaru 16×2,5 px na krawędzi. Wszystkie romby mają kształt bez obwódki. Środkowy pokazuje rombową obwódkę fokusu 2 px przy nawigacji klawiaturą. W przygotowaniu „Zacznij teraz” jest dostępną nazwą przycisku i nie pojawia się w plakietce. Układ mieści się bez przewijania na 360×640 i 390×844 w obu motywach, także z kartą elementu do poprawy w przerwie.
 
+## Kreator — oś planu (#259)
+
+Główny ekran kreatora odwzorowuje makietę „Kreator – makieta końcowa” (1C · 2C · 5A, N1 A, N2 B, N3 G). Nagłówek: ✕ 44 px | wyśrodkowany tytuł Archivo 15 px (13,5 px poniżej 375 px) wersalikami | „Podgląd”: ramka 2 px `--app-ember` wysokości 36 px w polu dotyku 44 px, tekst `--app-ember-ink` 12 px, bez zaokrągleń; przy pustym planie wyłączony i wyciszony. Karta planu ma pasek 2 px w kolorze dyscypliny, plakietkę dyscypliny, „Czas: m:ss”, nazwę i linię „Cel: …” (znika bez celu); otwiera podekran „Dane planu”. Blok (2C): nagłówek „Blok N · Rodzaj” z czasem, pasek 4 px praca (`--app-crimson`) / przerwy (`--app-ember`) i podpisy „Praca” / „Przerwy”. Wiersz ćwiczenia (1C): kwadratowy węzeł, nazwa do 2 linii, parametry „3 × 3:00 / 1:00” cyframi tabelarycznymi i „★ element” w `--app-ember-ink`; menu „⋯” rozwija akcje W górę / W dół / Edytuj / Usuń (jeden wiersz naraz). Przerwa (N2 B): romb żaru, „PRZERWA” i czas w jednej linii; przerwy zamykające blok stoją na osi pod kartą. Pusty plan i wybór bloku (N3 G): kafle z ikonami liniowymi i „+”, Rozgrzewka i Rozluźnienie na całą szerokość; na pustym planie Rozgrzewka ma ramkę 2 px żaru i gradientowy pasek z lewej. Drobny tekst w kolorze żaru używa `--app-ember-ink` ze względu na kontrast w jasnym motywie.
+
 ## Light mode
 
 Light mode używa przewagi jasnej szarości i bieli, grafitowego tekstu oraz tej samej czerwieni. Komponenty nie mogą zakładać na stałe ciemnego tła.

@@ -1,21 +1,22 @@
 import type { Dispatch } from 'react'
 import { useEffect, useRef, useState } from 'react'
 
-import { calculateWorkoutPlanSummary } from '@/domain/workout/workoutCalculations'
+import type { WorkoutBlockType } from '@/domain/workout/workout.types'
 import { AddBlockPicker } from '@/features/workout-builder/components/AddBlockPicker'
-import { PlusIcon } from '@/features/workout-builder/components/MoveIcons'
+import { TimelinePlusIcon } from '@/features/workout-builder/components/BlockTypeIcon'
+import { BlockTypeTiles } from '@/features/workout-builder/components/BlockTypeTiles'
 import type {
   ActiveInlinePanel,
   FocusRestoreTarget,
 } from '@/features/workout-builder/components/workoutBuilderUi.types'
 import { WorkoutBlockCard } from '@/features/workout-builder/components/WorkoutBlockCard'
+import { createWorkoutBlock } from '@/features/workout-builder/state/workoutBuilder.factories'
 import type {
   WorkoutBuilderAction,
   WorkoutBuilderState,
 } from '@/features/workout-builder/state/workoutBuilder.types'
-import { formatEstimatedDuration } from '@/domain/time/formatDuration'
-import { polishPlural } from '@/domain/language/polishPlural'
 import type { WorkoutBlock } from '@/domain/workout/workout.types'
+import { workoutBuilderLabels as labels } from '@/features/workout-builder/workoutBuilderLabels'
 
 interface WorkoutTimelineProps {
   state: WorkoutBuilderState
@@ -70,15 +71,16 @@ export function WorkoutTimeline({
 }: WorkoutTimelineProps) {
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [activeInlinePanel, setActiveInlinePanel] = useState<ActiveInlinePanel>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [pendingFocus, setPendingFocus] = useState<FocusRestoreTarget | null>(null)
   const addBlockButtonRef = useRef<HTMLButtonElement>(null)
+  const sectionRef = useRef<HTMLElement>(null)
   const addBreakButtonRefs = useRef(new Map<string, HTMLButtonElement>())
   const addExerciseButtonRefs = useRef(new Map<string, HTMLButtonElement>())
   const editBreakButtonRefs = useRef(new Map<string, HTMLButtonElement>())
   const exerciseHeadingRefs = useRef(new Map<string, HTMLHeadingElement>())
   const editExerciseButtonRefs = useRef(new Map<string, HTMLButtonElement>())
   const { blocks } = state.draft
-  const summary = calculateWorkoutPlanSummary(state.draft)
   const canAddExercise = state.draft.disciplineKey !== null
 
   const resolvedPanel = resolveActiveInlinePanel(blocks, activeInlinePanel)
@@ -92,7 +94,8 @@ export function WorkoutTimeline({
     const frame = requestAnimationFrame(() => {
       switch (pendingFocus.type) {
         case 'addBlock':
-          addBlockButtonRef.current?.focus()
+          // With no blocks left, the first block tile takes the place of the add button.
+          (addBlockButtonRef.current ?? sectionRef.current?.querySelector<HTMLButtonElement>('.wb-tile'))?.focus()
           break
         case 'addBreak':
           addBreakButtonRefs.current.get(pendingFocus.blockId)?.focus()
@@ -216,6 +219,16 @@ export function WorkoutTimeline({
     }
   }
 
+  function toggleExpanded(id: string) {
+    setExpandedId((current) => (current === id ? null : id))
+  }
+
+  function addFirstBlock(blockType: WorkoutBlockType) {
+    const block = createWorkoutBlock(blockType)
+    dispatch({ type: 'addBlock', block })
+    scheduleFocusRestore({ type: 'addExercise', blockId: block.id })
+  }
+
   function openBlockPicker() {
     setActiveInlinePanel(null)
     setIsPickerOpen(true)
@@ -227,33 +240,13 @@ export function WorkoutTimeline({
   }
 
   return (
-    <section aria-labelledby="workout-builder-timeline-heading" className="mt-8 space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <h2
-          id="workout-builder-timeline-heading"
-          className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint"
-        >
-          Oś treningu
-        </h2>
-        {summary.exerciseCount > 0 ? (
-          <p className="text-[12px] text-muted">
-            <span className="tabular-nums">{summary.exerciseCount}</span>{' '}
-            {polishPlural(summary.exerciseCount, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}
-            {' · '}
-            <span className="tabular-nums">{summary.plannedRoundCount}</span>{' '}
-            {polishPlural(summary.plannedRoundCount, 'runda', 'rundy', 'rund')}
-            {' · '}
-            ok. <span className="tabular-nums">{formatEstimatedDuration(summary.estimatedTotalSeconds)}</span>
-          </p>
-        ) : null}
-      </div>
+    <section ref={sectionRef} aria-labelledby="workout-builder-timeline-heading" className="flex flex-col gap-[14px]">
+      <h2 id="workout-builder-timeline-heading" className="sr-only">{labels.timelineHeading}</h2>
 
       {blocks.length === 0 ? (
-        <p className="border border-bd bg-surface px-4 py-4 text-[13px] leading-relaxed text-muted">
-          Dodaj pierwszy blok, aby rozpocząć budowanie treningu.
-        </p>
+        <BlockTypeTiles heading={labels.firstBlock} featureWarmup onSelect={addFirstBlock} />
       ) : (
-        <ol className="space-y-4" aria-label="Bloki treningu">
+        <ol className="wb-blocks" aria-label={labels.blocksList}>
           {blocks.map((block: WorkoutBlock, index: number) => (
             <WorkoutBlockCard
               key={block.id}
@@ -263,6 +256,8 @@ export function WorkoutTimeline({
               dispatch={dispatch}
               canAddExercise={canAddExercise}
               activeInlinePanel={activeInlinePanel}
+              expandedId={expandedId}
+              onToggleExpanded={toggleExpanded}
               onOpenInlinePanel={openInlinePanel}
               onCloseInlinePanel={closeInlinePanel}
               onScheduleFocusRestore={scheduleFocusRestore}
@@ -278,17 +273,12 @@ export function WorkoutTimeline({
         </ol>
       )}
 
-      <AddBlockPicker isOpen={isPickerOpen} onClose={closeBlockPicker} dispatch={dispatch} />
+      {blocks.length > 0 ? <AddBlockPicker isOpen={isPickerOpen} onClose={closeBlockPicker} dispatch={dispatch} /> : null}
 
-      {!isPickerOpen ? (
-        <button
-          ref={addBlockButtonRef}
-          type="button"
-          onClick={openBlockPicker}
-          className="flex min-h-touch w-full items-center justify-center gap-2 border border-dashed border-bd px-4 py-3 font-display text-[12px] font-semibold uppercase tracking-[0.06em] text-muted transition-colors hover:border-muted/60 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-        >
-          <PlusIcon />
-          Dodaj blok
+      {blocks.length > 0 && !isPickerOpen ? (
+        <button ref={addBlockButtonRef} type="button" onClick={openBlockPicker} className="wb-add-block">
+          <TimelinePlusIcon strokeWidth={2.6} />
+          {labels.addNextBlock}
         </button>
       ) : null}
     </section>

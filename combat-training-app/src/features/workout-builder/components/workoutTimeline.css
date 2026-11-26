@@ -1,0 +1,139 @@
+/* Plan builder timeline (#259), approved mockup "Kreator – makieta końcowa": 1C · 2C · 5A, N1 A, N2 B, N3 G.
+   Small text in ember uses --app-ember-ink: plain ember is too light on the light theme surface. */
+
+/* Mockup --app-border-faint: ink at 8 % in both themes. */
+.wb-builder { --wb-border-faint: color-mix(in srgb, var(--app-ink) 8%, transparent); }
+
+/* Focus rings come from the global :focus-visible rule (2 px ring, 2 px offset). */
+
+/* Header: 44 px close | centred title | N1 A action. */
+.wb-topbar { position: relative; display: flex; width: 100%; min-height: var(--app-touch-min); align-items: center; justify-content: space-between; gap: 8px; }
+.wb-topbar-close { display: inline-flex; width: 44px; height: 44px; flex-shrink: 0; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: var(--app-radius-sm); background: transparent; color: var(--app-ink); transition: color 0.15s ease; }
+.wb-topbar-close:hover:not(:disabled) { color: var(--app-crimson-ink); }
+.wb-topbar-close:disabled { opacity: 0.4; }
+.wb-topbar-title { min-width: 0; flex: 1; padding: 0 4px; overflow: hidden; color: var(--app-ink); font-family: var(--font-display); font-size: 15px; font-weight: 800; letter-spacing: 0.03em; text-align: center; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.wb-topbar-slot { display: inline-flex; min-width: 44px; flex-shrink: 0; align-items: center; justify-content: flex-end; }
+@media (max-width: 374px) {
+  .wb-topbar-title { font-size: 13.5px; letter-spacing: 0.01em; }
+}
+
+/* A 44 px touch box that draws the 36 px N1 A frame inside it. */
+.wb-header-action { position: relative; display: inline-flex; height: var(--app-touch-min); flex-shrink: 0; align-items: center; justify-content: center; padding: 0 14px; border: 0; border-radius: 0; background: transparent; color: var(--app-ember-ink); font-family: var(--font-display); font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.15s ease; }
+.wb-header-action::before { content: ''; position: absolute; inset: 4px 0; border: 2px solid var(--app-ember); transition: background-color 0.15s ease, border-color 0.15s ease; }
+.wb-header-action:hover:not(:disabled)::before { background: color-mix(in srgb, var(--app-ember) 15%, transparent); }
+.wb-header-action:disabled { color: var(--app-faint); cursor: not-allowed; }
+.wb-header-action:disabled::before { border-color: var(--app-border); }
+
+/* Plan card. */
+.wb-plan-card { --wb-discipline: var(--app-muted); position: relative; display: flex; width: 100%; flex-direction: column; gap: 6px; padding: 12px 14px; overflow: hidden; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: var(--app-ink); text-align: left; transition: border-color 0.15s ease; }
+.wb-plan-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 2px; background: var(--wb-discipline); }
+.wb-plan-card:hover { border-color: var(--app-ember); }
+.wb-discipline-boxing { --wb-discipline: var(--app-discipline-boxing); }
+.wb-discipline-kickboxing { --wb-discipline: var(--app-discipline-kickboxing); }
+.wb-discipline-muay_thai { --wb-discipline: var(--app-discipline-muay-thai); }
+.wb-discipline-k1 { --wb-discipline: var(--app-discipline-k1); }
+.wb-discipline-mma_striking { --wb-discipline: var(--app-discipline-mma-striking); }
+.wb-plan-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.wb-discipline-chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px; border: 1px solid var(--wb-discipline); border-radius: 2px; background: color-mix(in srgb, var(--wb-discipline) 12%, var(--app-surface)); color: var(--wb-discipline); font-family: var(--font-display); font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.wb-discipline-chip::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 1px; background: currentColor; }
+.wb-plan-time { color: var(--app-ink); font-family: var(--font-display); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wb-plan-name { color: var(--app-ink); font-family: var(--font-display); font-size: 18px; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; }
+.wb-plan-goal { color: var(--app-muted); font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
+
+/* Blocks list and block card (2C). */
+.wb-blocks { display: flex; flex-direction: column; gap: 14px; }
+.wb-block-entry { display: flex; flex-direction: column; gap: 14px; }
+.wb-block { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
+.wb-block-header { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--app-border); background: var(--app-elevated); }
+.wb-block-header-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.wb-block-name { min-width: 0; color: var(--app-ink); font-family: var(--font-display); font-size: 15px; font-weight: 800; overflow-wrap: anywhere; }
+.wb-block-total { display: inline-flex; flex-shrink: 0; align-items: center; color: var(--app-ink); font-family: var(--font-display); font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.wb-block-menu { display: inline-flex; width: var(--app-touch-min); height: var(--app-touch-min); align-items: center; justify-content: center; margin: -12px -14px -12px -6px; padding: 0; border: 0; background: transparent; color: var(--app-muted); }
+.wb-block-menu[aria-expanded='true'], .wb-block-menu:hover { color: var(--app-ink); }
+.wb-ratio-bar { display: flex; height: 4px; overflow: hidden; border-radius: 2px; background: var(--app-border); }
+.wb-ratio-work { height: 100%; background: var(--app-crimson); }
+.wb-ratio-rest { height: 100%; background: var(--app-ember); }
+.wb-ratio-labels { display: flex; justify-content: space-between; gap: 8px; color: var(--app-muted); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+
+.wb-items { display: flex; flex-direction: column; }
+
+/* Exercise row (1C). */
+.wb-row { border-top: 1px solid var(--wb-border-faint); background: var(--app-surface); transition: background-color 0.15s ease; }
+.wb-items > .wb-row:first-child { border-top: 0; }
+.wb-row.is-expanded { border-top-color: var(--app-border); border-bottom: 1px solid var(--app-border); background: var(--app-elevated); }
+.wb-items > .wb-row.is-expanded:last-child { border-bottom: 0; }
+.wb-row-main { position: relative; display: flex; min-height: var(--app-touch-min); align-items: flex-start; gap: 10px; padding: 9px 12px 9px 8px; }
+.wb-node { width: 10px; height: 10px; flex-shrink: 0; margin-top: 5px; border: 2px solid var(--app-border); border-radius: 2px; background: var(--app-surface); transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
+.is-expanded .wb-node { border-color: var(--app-crimson-ink); background: var(--app-crimson); box-shadow: 0 0 8px color-mix(in srgb, var(--app-crimson) 50%, transparent); }
+.wb-row-text { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
+.wb-row-name { display: -webkit-box; overflow: hidden; color: var(--app-ink); font-size: 13.5px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.wb-row-name:focus-visible { outline: 2px solid var(--app-focus-ring); outline-offset: 2px; }
+.wb-row-details { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: 12px; line-height: 1.3; }
+.wb-row-params { flex-shrink: 0; color: var(--app-muted); font-family: var(--font-display); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wb-row-focus { min-width: 0; color: var(--app-ember-ink); font-size: 11.5px; font-weight: 700; overflow-wrap: anywhere; }
+/* The toggle covers the whole row, so a tap anywhere opens the actions. Its own 44 px box
+   reaches into the row padding, so the row keeps the mockup height. */
+.wb-row-toggle { display: inline-flex; width: var(--app-touch-min); height: var(--app-touch-min); flex-shrink: 0; align-items: center; justify-content: center; align-self: center; margin: -9px -12px -9px -6px; padding: 0; border: 0; background: transparent; color: var(--app-muted); font-size: 14px; }
+.wb-row-toggle::after { content: ''; position: absolute; inset: 0; }
+.wb-row-toggle:focus-visible { outline: none; }
+.wb-row-toggle:focus-visible::after { outline: 2px solid var(--app-focus-ring); outline-offset: -2px; }
+
+.wb-row-panel { display: flex; flex-direction: column; gap: 12px; padding: 12px; border-top: 1px solid var(--app-border); background: var(--app-elevated); }
+.wb-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.wb-actions.is-three { grid-template-columns: repeat(3, 1fr); }
+.wb-action { display: flex; min-width: 0; min-height: var(--app-touch-min); flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 4px 2px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: var(--app-ink); font-family: var(--font-display); font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+.wb-action:hover:not(:disabled) { border-color: var(--app-ember); background: var(--app-elevated); color: var(--app-ember-ink); }
+.wb-action.is-danger:hover:not(:disabled) { border-color: var(--app-crimson); color: var(--app-crimson-ink); }
+.wb-action:disabled { opacity: 0.35; cursor: not-allowed; }
+.wb-panel-note { color: var(--app-muted); font-size: 13px; line-height: 1.5; }
+
+/* Block footer. */
+.wb-block-footer { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--app-border); background: var(--app-surface); }
+.wb-footer-action { display: flex; min-width: 0; min-height: var(--app-touch-min); align-items: center; justify-content: center; gap: 6px; padding: 10px; border: 0; background: transparent; color: var(--app-muted); font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; transition: background-color 0.15s ease, color 0.15s ease; }
+.wb-footer-action:first-child { border-right: 1px solid var(--app-border); }
+.wb-footer-action:hover:not(:disabled) { background: var(--app-elevated); color: var(--app-ink); }
+.wb-footer-action:disabled { opacity: 0.6; cursor: not-allowed; }
+.wb-footer-action svg { flex-shrink: 0; }
+.wb-block-note { padding: 8px 16px; border-top: 1px solid var(--app-border); color: var(--app-muted); font-size: 12px; }
+.wb-block-form { padding: 12px; border-top: 1px solid var(--app-border); }
+
+/* Break on the axis (N2 B). */
+.wb-break { position: relative; display: flex; min-height: 32px; align-items: center; gap: 10px; padding: 4px 12px 4px 9px; }
+.wb-items > .wb-break-item:not(:first-child) { border-top: 1px solid var(--wb-border-faint); }
+.wb-break-item.is-expanded > .wb-break { background: var(--app-elevated); }
+.wb-diamond { width: 8px; height: 8px; flex-shrink: 0; border: 1.5px solid var(--app-ember); background: var(--app-bg); transform: rotate(45deg); }
+.wb-break-text { display: flex; min-width: 0; flex: 1; align-items: baseline; gap: 6px; }
+.wb-break-title { color: var(--app-faint); font-family: var(--font-display); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.wb-break-time { color: var(--app-ember-ink); font-family: var(--font-display); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+/* A 32 px row keeps a 44 px toggle by reaching into the gaps around it. */
+.wb-break .wb-row-toggle { margin: -10px -12px -10px -6px; }
+.wb-trailing { display: flex; flex-direction: column; gap: 4px; }
+.wb-trailing .wb-row-panel, .wb-trailing .wb-block-form { border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); }
+
+/* Add next block. */
+.wb-add-block { display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px dashed var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: var(--app-ink); font-family: var(--font-display); font-size: 12.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+.wb-add-block:hover { border-color: var(--app-ember); background: var(--app-elevated); color: var(--app-ember-ink); }
+
+/* Block type tiles (N3 G). */
+.wb-tiles-section { display: flex; flex-direction: column; gap: 10px; }
+.wb-tiles-head { display: flex; min-height: 20px; align-items: center; gap: 10px; }
+.wb-tiles-node { width: 10px; height: 10px; flex-shrink: 0; margin-left: 2px; background: var(--app-ember); transform: rotate(45deg); }
+.wb-kicker { min-width: 0; flex: 1; color: var(--app-faint); font-family: var(--font-display); font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.wb-tiles-close { display: inline-flex; width: 44px; height: 44px; flex-shrink: 0; align-items: center; justify-content: center; margin: -12px -10px -12px 0; border: 0; background: transparent; color: var(--app-muted); }
+.wb-tiles-close:hover { color: var(--app-ink); }
+.wb-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wb-tile { position: relative; display: flex; min-width: 0; min-height: 76px; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 12px; border: 1px solid var(--app-border); border-radius: 0; background: var(--app-surface); color: var(--app-ink); font-family: var(--font-display); font-size: 14px; font-weight: 700; text-align: left; transition: border-color 0.15s ease; }
+.wb-tile:hover { border-color: var(--app-ember); }
+.wb-tile-icon { display: inline-flex; color: var(--app-ember-ink); }
+.wb-tile-label { min-width: 0; padding-right: 18px; overflow-wrap: anywhere; }
+.wb-tile-add { position: absolute; top: 8px; right: 8px; display: inline-flex; color: var(--app-faint); }
+.wb-tile.is-wide { min-height: 56px; grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-start; }
+.wb-tile.is-wide .wb-tile-label { flex: 1; padding-right: 0; }
+.wb-tile.is-wide .wb-tile-add { position: static; }
+.wb-tile.is-featured { min-height: 64px; border: 2px solid var(--app-ember); }
+.wb-tile.is-featured::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: var(--app-grad-accent); }
+.wb-tile.is-featured .wb-tile-add { color: var(--app-ember-ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-topbar-close, .wb-header-action, .wb-plan-card, .wb-row, .wb-node, .wb-action, .wb-footer-action, .wb-add-block, .wb-tile { transition: none; }
+}

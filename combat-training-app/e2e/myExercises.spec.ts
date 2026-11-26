@@ -9,8 +9,8 @@ const skillName = 'Powrót do gardy Żółwia'
 async function beginPlan(page: Page, name: string) {
   await page.getByRole('radio', { name: 'Boks', exact: true }).check()
   await page.getByRole('textbox', { name: 'Nazwa planu' }).fill(name)
-  await page.getByRole('button', { name: 'Dodaj blok', exact: true }).click()
-  await page.getByRole('button', { name: 'Technika', exact: true }).click()
+  await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
+  await page.getByRole('group', { name: 'Pierwszy blok', exact: true }).getByRole('button', { name: 'Technika', exact: true }).click()
   await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
 }
 async function accessible(page: Page) {
@@ -38,6 +38,7 @@ test('reuses a personal exercise across two rated plans, keeps one focus trend a
   await page.getByRole('radio', { name: 'Ciągłe', exact: true }).check()
   await setExerciseValue(page, 'Czas', '0:05')
   await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: /^Akcje ćwiczenia / }).click()
   await page.getByRole('switch', { name: 'Element do poprawy · Oceniaj po treningu', exact: true }).click()
   await page.getByRole('radio', { name: /^Nowy element do poprawy/ }).check()
   await page.getByRole('textbox', { name: 'Nazwa', exact: true }).fill(skillName)
@@ -65,6 +66,7 @@ test('reuses a personal exercise across two rated plans, keeps one focus trend a
   await expect(page.getByRole('radio', { name: 'Ciągłe', exact: true })).toBeChecked()
   await expect(page.getByRole('button', { name: /^Czas: / })).toHaveText('0:05')
   await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: /^Akcje ćwiczenia / }).click()
   await page.getByRole('switch', { name: 'Element do poprawy · Oceniaj po treningu', exact: true }).click()
   await page.getByRole('radio', { name: new RegExp(`^${skillName}`) }).check()
   await app.savePlan()

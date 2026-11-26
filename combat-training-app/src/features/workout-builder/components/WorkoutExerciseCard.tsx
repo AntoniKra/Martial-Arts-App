@@ -1,22 +1,18 @@
 import type { Dispatch } from 'react'
+import { useId } from 'react'
 
+import { useWorkoutData } from '@/application/workoutDataContext'
 import type { WorkoutExercise, WorkoutItem } from '@/domain/workout/workout.types'
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  MoveIconButton,
-  PencilIcon,
-  TrashIcon,
-} from '@/features/workout-builder/components/MoveIcons'
+import { FocusSkillPicker } from '@/features/focus-skills/FocusSkillPicker'
+import { RowActionIcon } from '@/features/workout-builder/components/BlockTypeIcon'
 import type { FocusRestoreTarget } from '@/features/workout-builder/components/workoutBuilderUi.types'
 import type { WorkoutBuilderAction } from '@/features/workout-builder/state/workoutBuilder.types'
 import {
   canMoveItemDown,
   canMoveItemUp,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
-import { formatSecondsAsClock } from '@/domain/time/formatDuration'
-import { formatPolishCount } from '@/domain/language/polishPlural'
-import { FocusSkillPicker } from '@/features/focus-skills/FocusSkillPicker'
+import { formatExerciseParams } from '@/features/workout-builder/utils/timelinePresentation'
+import { workoutBuilderLabels as labels } from '@/features/workout-builder/workoutBuilderLabels'
 
 interface WorkoutExerciseCardProps {
   blockId: string
@@ -27,10 +23,12 @@ interface WorkoutExerciseCardProps {
   focusExerciseCount: number
   blockItems: readonly WorkoutItem[]
   dispatch: Dispatch<WorkoutBuilderAction>
+  isExpanded: boolean
+  onToggle: () => void
   onOpenExerciseEdit: (blockId: string, exerciseId: string) => void
   onScheduleFocusRestore: (focusTarget: FocusRestoreTarget) => void
   registerExerciseHeadingRef: (element: HTMLHeadingElement | null) => void
-  registerEditExerciseButtonRef: (element: HTMLButtonElement | null) => void
+  registerExerciseToggleRef: (element: HTMLButtonElement | null) => void
 }
 
 function formatExerciseContext(
@@ -42,19 +40,6 @@ function formatExerciseContext(
   return `${exerciseName}, element ${itemPosition} w bloku ${blockPosition} — ${blockLabel}`
 }
 
-function formatRoundLabel(roundCount: number): string {
-  return formatPolishCount(roundCount, 'runda', 'rundy', 'rund')
-}
-
-function formatExerciseConfigurationSummary(exercise: WorkoutExercise): string {
-  if (exercise.configuration.mode === 'continuous') {
-    return `Ciągłe · ${formatSecondsAsClock(exercise.configuration.durationSeconds)}`
-  }
-
-  const { roundCount, roundDurationSeconds, restBetweenRoundsSeconds } = exercise.configuration
-  return `${formatRoundLabel(roundCount)} × ${formatSecondsAsClock(roundDurationSeconds)} · przerwa ${formatSecondsAsClock(restBetweenRoundsSeconds)}`
-}
-
 export function WorkoutExerciseCard({
   blockId,
   blockPosition,
@@ -64,11 +49,15 @@ export function WorkoutExerciseCard({
   focusExerciseCount,
   blockItems,
   dispatch,
+  isExpanded,
+  onToggle,
   onOpenExerciseEdit,
   onScheduleFocusRestore,
   registerExerciseHeadingRef,
-  registerEditExerciseButtonRef,
+  registerExerciseToggleRef,
 }: WorkoutExerciseCardProps) {
+  const panelId = useId()
+  const { focusSkills } = useWorkoutData()
   const exerciseContext = formatExerciseContext(
     exercise.exerciseNameSnapshot,
     itemPosition,
@@ -78,65 +67,90 @@ export function WorkoutExerciseCard({
   const canMoveUp = canMoveItemUp(blockItems, exercise.id)
   const canMoveDown = canMoveItemDown(blockItems, exercise.id)
   const addExerciseFocusTarget: FocusRestoreTarget = { type: 'addExercise', blockId }
+  const focusSkill = exercise.focusSkillId === null
+    ? undefined
+    : focusSkills.items.find((skill) => skill.id === exercise.focusSkillId)
 
   return (
-    <li className="border-t border-bd bg-bg/20 px-3 py-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <h3
-            ref={registerExerciseHeadingRef}
-            tabIndex={-1}
-            className="font-display text-[14px] font-semibold leading-snug text-ink focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--app-focus-ring)]"
-          >
+    <li className={`wb-row${isExpanded ? ' is-expanded' : ''}`}>
+      <div className="wb-row-main">
+        <span className="wb-node" aria-hidden="true" />
+        <div className="wb-row-text">
+          <h4 ref={registerExerciseHeadingRef} tabIndex={-1} className="wb-row-name">
             {exercise.exerciseNameSnapshot}
-          </h3>
-          <p className="mt-1 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-crimson-ink">
-            Ćwiczenie
+          </h4>
+          <p className="wb-row-details">
+            <span className="wb-row-params">{formatExerciseParams(exercise.configuration, labels.continuous)}</span>
+            {focusSkill ? <span className="wb-row-focus">· {labels.focusMark} {focusSkill.name}</span> : null}
           </p>
-          <p className="mt-1 font-display text-[12px] tabular-nums text-muted">
-            {formatExerciseConfigurationSummary(exercise)}
-          </p>
-          {exercise.instruction ? (
-            <p className="mt-1 text-[12px] leading-relaxed text-muted">{exercise.instruction}</p>
-          ) : null}
         </div>
-
-        <div className="flex shrink-0 flex-wrap items-center gap-0.5">
-          <MoveIconButton
-            label={`Przenieś ćwiczenie ${exerciseContext} w górę`}
-            disabled={!canMoveUp}
-            onClick={() => dispatch({ type: 'moveItem', blockId, itemId: exercise.id, direction: 'up' })}
-          >
-            <ArrowUpIcon />
-          </MoveIconButton>
-          <MoveIconButton
-            label={`Przenieś ćwiczenie ${exerciseContext} w dół`}
-            disabled={!canMoveDown}
-            onClick={() => dispatch({ type: 'moveItem', blockId, itemId: exercise.id, direction: 'down' })}
-          >
-            <ArrowDownIcon />
-          </MoveIconButton>
-          <MoveIconButton
-            ref={registerEditExerciseButtonRef}
-            label={`Edytuj ćwiczenie ${exerciseContext}`}
-            onClick={() => onOpenExerciseEdit(blockId, exercise.id)}
-          >
-            <PencilIcon />
-          </MoveIconButton>
-          <MoveIconButton
-            label={`Usuń ćwiczenie ${exerciseContext}`}
-            className="hover:text-crimson-ink focus-visible:text-crimson-ink"
-            onClick={() => {
-              dispatch({ type: 'removeItem', blockId, itemId: exercise.id })
-              onScheduleFocusRestore(addExerciseFocusTarget)
-            }}
-          >
-            <TrashIcon />
-          </MoveIconButton>
-        </div>
+        <button
+          ref={registerExerciseToggleRef}
+          type="button"
+          className="wb-row-toggle"
+          aria-label={labels.exerciseActions(exerciseContext)}
+          aria-expanded={isExpanded}
+          aria-controls={isExpanded ? panelId : undefined}
+          onClick={onToggle}
+        >
+          <span aria-hidden="true">⋯</span>
+        </button>
       </div>
-      <FocusSkillPicker focusSkillId={exercise.focusSkillId} focusExerciseCount={focusExerciseCount} exerciseId={exercise.combinationId}
-        onChange={(focusSkillId) => dispatch({ type: 'setExerciseFocusSkill', blockId, exerciseId: exercise.id, focusSkillId })} />
+
+      {isExpanded ? (
+        <div id={panelId} className="wb-row-panel">
+          <div className="wb-actions">
+            <button
+              type="button"
+              className="wb-action"
+              aria-label={`Przenieś ćwiczenie ${exerciseContext} w górę`}
+              disabled={!canMoveUp}
+              onClick={() => dispatch({ type: 'moveItem', blockId, itemId: exercise.id, direction: 'up' })}
+            >
+              <RowActionIcon action="up" />
+              <span>{labels.moveUp}</span>
+            </button>
+            <button
+              type="button"
+              className="wb-action"
+              aria-label={`Przenieś ćwiczenie ${exerciseContext} w dół`}
+              disabled={!canMoveDown}
+              onClick={() => dispatch({ type: 'moveItem', blockId, itemId: exercise.id, direction: 'down' })}
+            >
+              <RowActionIcon action="down" />
+              <span>{labels.moveDown}</span>
+            </button>
+            <button
+              type="button"
+              className="wb-action"
+              aria-label={`Edytuj ćwiczenie ${exerciseContext}`}
+              onClick={() => onOpenExerciseEdit(blockId, exercise.id)}
+            >
+              <RowActionIcon action="edit" />
+              <span>{labels.edit}</span>
+            </button>
+            <button
+              type="button"
+              className="wb-action is-danger"
+              aria-label={`Usuń ćwiczenie ${exerciseContext}`}
+              onClick={() => {
+                dispatch({ type: 'removeItem', blockId, itemId: exercise.id })
+                onScheduleFocusRestore(addExerciseFocusTarget)
+              }}
+            >
+              <RowActionIcon action="remove" />
+              <span>{labels.remove}</span>
+            </button>
+          </div>
+          {exercise.instruction ? <p className="wb-panel-note">{exercise.instruction}</p> : null}
+          <FocusSkillPicker
+            focusSkillId={exercise.focusSkillId}
+            focusExerciseCount={focusExerciseCount}
+            exerciseId={exercise.combinationId}
+            onChange={(focusSkillId) => dispatch({ type: 'setExerciseFocusSkill', blockId, exerciseId: exercise.id, focusSkillId })}
+          />
+        </div>
+      ) : null}
     </li>
   )
 }

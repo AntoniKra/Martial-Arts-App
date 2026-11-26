@@ -1,13 +1,9 @@
 import { formatBreakDuration } from '@/features/workout-builder/utils/formatBreakDuration'
 import type { Dispatch } from 'react'
+import { useId } from 'react'
 
-import { Button } from '@/components/ui/Button'
 import type { WorkoutBreak, WorkoutItem } from '@/domain/workout/workout.types'
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  MoveIconButton,
-} from '@/features/workout-builder/components/MoveIcons'
+import { RowActionIcon } from '@/features/workout-builder/components/BlockTypeIcon'
 import {
   WorkoutBreakForm,
 } from '@/features/workout-builder/components/WorkoutBreakForm'
@@ -20,6 +16,7 @@ import {
   canMoveItemDown,
   canMoveItemUp,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
+import { workoutBuilderLabels as labels } from '@/features/workout-builder/workoutBuilderLabels'
 
 interface WorkoutBreakCardProps {
   blockId: string
@@ -30,6 +27,8 @@ interface WorkoutBreakCardProps {
   blockItems: readonly WorkoutItem[]
   dispatch: Dispatch<WorkoutBuilderAction>
   activeInlinePanel: ActiveInlinePanel
+  isExpanded: boolean
+  onToggle: () => void
   onOpenInlinePanel: (panel: Exclude<ActiveInlinePanel, null>) => void
   onCloseInlinePanel: (focusTarget?: FocusRestoreTarget) => void
   onScheduleFocusRestore: (focusTarget: FocusRestoreTarget) => void
@@ -53,11 +52,14 @@ export function WorkoutBreakCard({
   blockItems,
   dispatch,
   activeInlinePanel,
+  isExpanded,
+  onToggle,
   onOpenInlinePanel,
   onCloseInlinePanel,
   onScheduleFocusRestore,
   registerEditBreakButtonRef,
 }: WorkoutBreakCardProps) {
+  const panelId = useId()
   const breakContext = formatBreakContext(itemPosition, blockPosition, blockLabel)
   const canMoveUp = canMoveItemUp(blockItems, breakItem.id)
   const canMoveDown = canMoveItemDown(blockItems, breakItem.id)
@@ -71,75 +73,98 @@ export function WorkoutBreakCard({
 
   if (isEditing) {
     return (
-      <li className="border-t border-bd bg-bg/40 p-3">
-        <WorkoutBreakForm
-          mode="edit"
-          initialDurationSeconds={breakItem.durationSeconds}
-          initialInstruction={breakItem.instruction}
-          onCancel={() => onCloseInlinePanel(editBreakFocusTarget)}
-          onSubmit={(durationSeconds, instruction) => {
-            dispatch({
-              type: 'updateBreak',
-              blockId,
-              breakId: breakItem.id,
-              durationSeconds,
-              instruction,
-            })
-            onCloseInlinePanel(editBreakFocusTarget)
-          }}
-        />
+      <li className="wb-break-item">
+        <div className="wb-block-form">
+          <WorkoutBreakForm
+            mode="edit"
+            initialDurationSeconds={breakItem.durationSeconds}
+            initialInstruction={breakItem.instruction}
+            onCancel={() => onCloseInlinePanel(editBreakFocusTarget)}
+            onSubmit={(durationSeconds, instruction) => {
+              dispatch({
+                type: 'updateBreak',
+                blockId,
+                breakId: breakItem.id,
+                durationSeconds,
+                instruction,
+              })
+              onCloseInlinePanel(editBreakFocusTarget)
+            }}
+          />
+        </div>
       </li>
     )
   }
 
   return (
-    <li className="border-t border-bd px-3 py-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-[13px] font-semibold text-ink">Przerwa</p>
-          <p className="mt-0.5 font-display text-[12px] text-muted">{formatBreakDuration(breakItem.durationSeconds)}</p>
-          {breakItem.instruction ? (
-            <p className="mt-1 text-[12px] leading-relaxed text-muted">{breakItem.instruction}</p>
-          ) : null}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-0.5">
-          <MoveIconButton
-            ref={registerEditBreakButtonRef}
-            label={`Edytuj przerwę, ${breakContext}`}
-            onClick={() => onOpenInlinePanel({ type: 'editBreak', blockId, itemId: breakItem.id })}
-          >
-            <span className="font-display text-[10px] font-semibold uppercase tracking-[0.08em]">Edytuj</span>
-          </MoveIconButton>
-          <MoveIconButton
-            label={`Przenieś przerwę, ${breakContext} w górę`}
-            disabled={!canMoveUp}
-            onClick={() => dispatch({ type: 'moveItem', blockId, itemId: breakItem.id, direction: 'up' })}
-          >
-            <ArrowUpIcon />
-          </MoveIconButton>
-          <MoveIconButton
-            label={`Przenieś przerwę, ${breakContext} w dół`}
-            disabled={!canMoveDown}
-            onClick={() => dispatch({ type: 'moveItem', blockId, itemId: breakItem.id, direction: 'down' })}
-          >
-            <ArrowDownIcon />
-          </MoveIconButton>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="min-h-touch px-2 text-crimson-ink hover:text-crimson-ink"
-            aria-label={`Usuń przerwę, ${breakContext}`}
-            onClick={() => {
-              dispatch({ type: 'removeItem', blockId, itemId: breakItem.id })
-              onScheduleFocusRestore(addBreakFocusTarget)
-            }}
-          >
-            Usuń
-          </Button>
-        </div>
+    <li className={`wb-break-item${isExpanded ? ' is-expanded' : ''}`}>
+      <div className="wb-break">
+        <span className="wb-diamond" aria-hidden="true" />
+        <p className="wb-break-text">
+          <span className="wb-break-title">{labels.breakLabel}</span>
+          <span className="wb-break-time">{formatBreakDuration(breakItem.durationSeconds)}</span>
+        </p>
+        <button
+          ref={registerEditBreakButtonRef}
+          type="button"
+          className="wb-row-toggle"
+          aria-label={labels.breakActions(breakContext)}
+          aria-expanded={isExpanded}
+          aria-controls={isExpanded ? panelId : undefined}
+          onClick={onToggle}
+        >
+          <span aria-hidden="true">⋯</span>
+        </button>
       </div>
+
+      {isExpanded ? (
+        <div id={panelId} className="wb-row-panel">
+          <div className="wb-actions">
+            <button
+              type="button"
+              className="wb-action"
+              aria-label={`Przenieś przerwę, ${breakContext} w górę`}
+              disabled={!canMoveUp}
+              onClick={() => dispatch({ type: 'moveItem', blockId, itemId: breakItem.id, direction: 'up' })}
+            >
+              <RowActionIcon action="up" />
+              <span>{labels.moveUp}</span>
+            </button>
+            <button
+              type="button"
+              className="wb-action"
+              aria-label={`Przenieś przerwę, ${breakContext} w dół`}
+              disabled={!canMoveDown}
+              onClick={() => dispatch({ type: 'moveItem', blockId, itemId: breakItem.id, direction: 'down' })}
+            >
+              <RowActionIcon action="down" />
+              <span>{labels.moveDown}</span>
+            </button>
+            <button
+              type="button"
+              className="wb-action"
+              aria-label={`Edytuj przerwę, ${breakContext}`}
+              onClick={() => onOpenInlinePanel({ type: 'editBreak', blockId, itemId: breakItem.id })}
+            >
+              <RowActionIcon action="edit" />
+              <span>{labels.edit}</span>
+            </button>
+            <button
+              type="button"
+              className="wb-action is-danger"
+              aria-label={`Usuń przerwę, ${breakContext}`}
+              onClick={() => {
+                dispatch({ type: 'removeItem', blockId, itemId: breakItem.id })
+                onScheduleFocusRestore(addBreakFocusTarget)
+              }}
+            >
+              <RowActionIcon action="remove" />
+              <span>{labels.remove}</span>
+            </button>
+          </div>
+          {breakItem.instruction ? <p className="wb-panel-note">{breakItem.instruction}</p> : null}
+        </div>
+      ) : null}
     </li>
   )
 }

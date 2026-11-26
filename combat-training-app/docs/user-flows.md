@@ -4,9 +4,9 @@
 
 1. Start.
 2. Utwórz trening.
-3. Wybierz dyscyplinę.
-4. Opcjonalnie wpisz nazwę i cel.
-5. Dodaj bloki, ćwiczenia i przerwy.
+3. W „Dane planu” wybierz dyscyplinę.
+4. Opcjonalnie wpisz nazwę i cel, potem wróć na oś (✕).
+5. Dodaj bloki (kafle rodzajów), ćwiczenia i przerwy.
 6. Otwórz podgląd.
 7. Wróć do edycji, zapisz na później albo zapisz i rozpocznij.
 8. Przy rozpoczęciu zapisz `startedAt`.
