@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from 'react'
-import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
+import { DisclosureChevron } from '@/components/ui/DisclosureChevron'
 
 export function ProfileDisclosure({ id, title, summary, open, onToggle, children }: {
   id?: string; title: string; summary: ReactNode; open: boolean; onToggle: () => void; children: ReactNode
@@ -13,7 +13,7 @@ export function ProfileDisclosure({ id, title, summary, open, onToggle, children
           <span className="block font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{title}</span>
           <span className="block text-sm font-normal text-ink">{summary}</span>
         </span>
-        <span aria-hidden="true" className={`shrink-0 ${open ? 'rotate-90' : ''}`}><ChevronRightIcon /></span>
+        <DisclosureChevron />
       </button>
     </h2>
     <div id={contentId} hidden={!open} className="space-y-4 border-t border-bd p-4">{children}</div>
