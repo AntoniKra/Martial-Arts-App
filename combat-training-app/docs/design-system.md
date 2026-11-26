@@ -46,7 +46,7 @@ Na telefonie i komputerze kolejność to **Start · Plan · Trening (+) · Post�
 
 Plan otwiera bieżący Plan tygodnia (`/progress/week`); datowane adresy `/progress/week/:weekStart` nadal działają i zaznaczają Plan. Postęp ma segmenty **Wykresy / Historia**; Historia (`/progress?tab=history`) zachowuje dziennik tygodniowy, wyszukiwanie i filtr tygodnia. Stary adres `/workouts?tab=history` przekierowuje z zachowaniem parametrów i fragmentu.
 
-Trening otwiera dotychczasowy arkusz wyboru z dostępem do stopera, wpisu spoza aplikacji, biblioteki ćwiczeń, kreatora „Nowy plan treningowy” i listy „Moje plany”. Lista, szczegóły i kreator zachowują adresy `/workouts…`; biblioteka działa pod `/exercises` i `/my-exercises`. Lista i biblioteka są podekranami z powrotem. Karta Startu „Stoper i inne plany” jest opisana poniżej w Start v2 — wg makiety A.
+Trening otwiera dotychczasowy arkusz wyboru z dostępem do stopera, wpisu spoza aplikacji, biblioteki ćwiczeń, kreatora „Nowy plan” i listy „Moje plany” (decyzja właściciela 26.11: „plan” to układ do wykonania, „trening” to wykonanie — romb, odtwarzacz, historia; arkusz po rombie nadal ma tytuł „Nowy trening”). Lista, szczegóły i kreator zachowują adresy `/workouts…`; biblioteka działa pod `/exercises` i `/my-exercises`. Lista i biblioteka są podekranami z powrotem. Karta Startu „Stoper i inne plany” jest opisana poniżej w Start v2 — wg makiety A.
 
 Aktywna pozycja **Trening** w dolnym menu wyróżnia się kolorem etykiety i ma `aria-current="page"`. Romb ma kryjące wypełnienie i leży nad dekoracjami paska. Górna linia aktywności dotyczy pozostałych pozycji (#245).
 

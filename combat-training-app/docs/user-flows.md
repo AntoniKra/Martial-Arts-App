@@ -17,16 +17,13 @@
 
 ## Plany i Historia
 
-Ekran Treningi zawiera osobne zakładki:
-
-- Plany — zapisane, jeszcze niewykonane treningi;
-- Historia — zakończone treningi.
+Lista „Moje plany” zawiera zapisane, jeszcze niewykonane plany. Zakończone treningi są w Postęp › Historia.
 
 Plan nie ma wymaganej daty wykonania. Data historii wynika z rozpoczęcia.
 
 ## Trening spoza aplikacji
 
-1. Na stronie głównej (pod ostatnimi sesjami) albo w Treningi › Historia wybierz **+ Dodaj trening spoza aplikacji**.
+1. Na stronie głównej (pod ostatnimi sesjami) albo w Postęp › Historia wybierz **+ Dodaj trening spoza aplikacji**.
 2. Wybierz datę do 7 dni wstecz, dyscyplinę i co najmniej jedną część zajęć. „Jak ostatnio” kopiuje tylko dyscyplinę, czas i części poprzednich zajęć. Dyscyplinę podpowiada najnowszy wpis, a bez wpisów trzeba ją wybrać.
 3. Podaj cały czas zajęć, łącznie z rozgrzewką (60/90/120 min albo 1–480 min) i obowiązkowe RPE 0–10. Przy treningu sprzed co najmniej 3 dni zobaczysz wyjaśnienie „z pamięci”.
 4. Zaznaczenie części „Sparing” otwiera sekcję intensywności i opcjonalnej liczby rund. Odznaczenie czyści te odpowiedzi.
