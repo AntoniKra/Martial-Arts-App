@@ -30,7 +30,7 @@ for (const theme of ['dark', 'light'] as const) {
     await screenshot('plans')
     await app.open('/')
     const featured = page.getByRole('region', { name: 'Szybki start', exact: true })
-    await expect(featured.locator('.home-param-chip')).toHaveText(['2 rundy × 1 min', 'Przerwa 30 s', '2:30', '1 blok'])
+    await expect(featured.locator('.home-param-chip')).toHaveText(['2 × 1:00', 'przerwa 0:30', '2:30', '1 blok'])
     await expect(featured.getByRole('link', { name: 'Rozpocznij plan', exact: true })).toHaveAttribute('href', `/workouts/${plan.id}/active`)
     const startAction = featured.getByRole('link', { name: 'Rozpocznij plan', exact: true })
     await expect(startAction).toHaveClass(/home-primary-action/)

@@ -11,10 +11,9 @@ export function workoutParameterChips(plan: WorkoutPlanCalculable): string[] {
   // A single round has no between-round break.
   const rests = new Set(rounds.filter((round) => round.roundCount > 1).map((round) => round.restBetweenRoundsSeconds))
   const duration = rounds[0]?.roundDurationSeconds
-  const roundLabel = formatPolishCount(summary.plannedRoundCount, 'runda', 'rundy', 'rund')
   const chips = rounds.length ? [durations.size === 1
-    ? `${roundLabel} × ${duration % 60 === 0 ? `${duration / 60} min` : formatSecondsAsClock(duration)}`
-    : roundLabel] : []
-  if (rests.size === 1) chips.push(`Przerwa ${[...rests][0]} s`)
+    ? `${summary.plannedRoundCount} × ${formatSecondsAsClock(duration)}`
+    : formatPolishCount(summary.plannedRoundCount, 'runda', 'rundy', 'rund')] : []
+  if (rests.size === 1) chips.push(`przerwa ${formatSecondsAsClock([...rests][0])}`)
   return chips
 }
