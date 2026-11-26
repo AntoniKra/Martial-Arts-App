@@ -69,8 +69,8 @@ for (const theme of ['dark', 'light'] as const) {
     expect((await others.boundingBox())!.height).toBeGreaterThanOrEqual(44)
     expect(await page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true }).evaluate((element) => getComputedStyle(element).resize)).toBe('none')
     const noteHeight = (await page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true }).boundingBox())!.height
-    expect(noteHeight).toBeGreaterThanOrEqual(64)
-    expect(noteHeight).toBeLessThanOrEqual(66)
+    expect(noteHeight).toBeGreaterThanOrEqual(84)
+    expect(noteHeight).toBeLessThanOrEqual(88)
     const save = page.getByRole('button', { name: 'Zapisz oceny', exact: true })
     await expect(save).toHaveCSS('min-height', '52px')
     await expect(save).toHaveCSS('background-image', /linear-gradient/)

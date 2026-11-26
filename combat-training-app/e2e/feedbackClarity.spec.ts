@@ -36,7 +36,7 @@ test('lays out the simplified plan summary in both themes', async ({ app, page }
     await app.setTheme(theme)
     const heading = page.getByRole('heading', { name: title, exact: true, level: 1 })
     const back = page.getByRole('button', { name: 'Wstecz', exact: true })
-    const saved = page.getByText('Zapisane', { exact: true })
+    const saved = page.getByText('Zapisano', { exact: true }).first()
     const planName = page.getByRole('heading', { name: session.workoutPlanNameSnapshot, exact: true, level: 2 })
     const metrics = page.getByRole('region', { name: 'Podsumowanie czasu sesji', exact: true })
     const rpe = page.getByRole('region', { name: 'RPE · zmęczenie całym treningiem', exact: true })
@@ -176,7 +176,7 @@ test('keeps summary badges and the level prefix on one line at phone widths', as
   for (const width of [360, 390]) {
     await page.setViewportSize({ width, height: 800 })
     await page.evaluate(() => document.fonts.ready)
-    for (const value of [previousBadge, prefix, page.getByText('Zapisane', { exact: true }), page.getByText('Zapisano', { exact: true })]) {
+    for (const value of [previousBadge, prefix, page.getByText('Zapisano', { exact: true }).first(), page.getByText('Zapisano', { exact: true }).last()]) {
       await expect(value).toBeVisible()
       expect(await value.evaluate((element) => {
         const text = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
@@ -221,6 +221,7 @@ test('opens and removes a correction note, keeping its earlier workout note', as
       await problem.fill('Po długiej serii opuszczam rękę i nie wracam do gardy.')
       await fix.fill('Kończę serię z rękawicą przy policzku.')
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+      await expect(note.getByRole('button', { name: 'Usuń notatkę', exact: true })).toHaveCSS('text-decoration-line', 'none')
       await note.getByRole('button', { name: 'Usuń notatkę', exact: true }).click()
       await expect(note).toHaveCount(0)
       await expect(addNote).toBeFocused()
