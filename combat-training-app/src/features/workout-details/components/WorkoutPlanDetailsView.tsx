@@ -5,20 +5,19 @@ import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { BackIcon } from '@/components/ui/BackButton'
 import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
-import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { calculateWorkoutPlanSummary } from '@/domain/workout/workoutCalculations'
-import type { WorkoutExercise, WorkoutItem, WorkoutPlan } from '@/domain/workout/workout.types'
+import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { WorkoutPlanDetailsLoadState } from '@/features/workout-details/types/workoutPlanDetails.types'
-import { formatExerciseConfigurationSummary } from '@/features/workout-details/utils/formatExerciseConfiguration'
-import { formatEstimatedDuration, formatSecondsAsClock } from '@/domain/time/formatDuration'
+import { formatEstimatedDuration } from '@/domain/time/formatDuration'
 import { polishPlural } from '@/domain/language/polishPlural'
 import { WorkoutPlanActions } from '@/features/workout-details/components/WorkoutPlanActions'
 import { routes } from '@/app/routes'
 import { profileSettingsLabels } from '@/features/profile/profileSettingsLabels'
 import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
-import { FocusSkillBadge } from '@/features/focus-skills/FocusSkillBadge'
 import { focusSkillLabels } from '@/features/focus-skills/focusSkillLabels'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
+import { ReadOnlyWorkoutTimeline } from '@/features/workout-builder/components/ReadOnlyWorkoutTimeline'
+import { workoutBuilderLabels } from '@/features/workout-builder/workoutBuilderLabels'
 
 interface WorkoutPlanDetailsViewProps {
   correctionNotes?: ReactNode
@@ -107,40 +106,6 @@ export function WorkoutPlanDetailsNotFoundState({
   )
 }
 
-function DetailsExerciseItem({ exercise }: { exercise: WorkoutExercise }) {
-  return (
-    <li className="border-t border-bd bg-bg/20 px-3 py-3">
-      <p className="flex items-start justify-between gap-3 font-display text-[14px] font-semibold leading-snug text-ink">
-        <span className="min-w-0 break-words">{exercise.exerciseNameSnapshot}</span>
-        {exercise.focusSkillId !== null && <FocusSkillBadge />}
-      </p>
-      <p className="mt-1 font-display text-[11px] font-semibold uppercase tracking-[0.08em] text-crimson-ink">
-        Ćwiczenie
-      </p>
-      <p className="mt-1 break-words font-display text-[12px] tabular-nums text-muted">
-        {formatExerciseConfigurationSummary(exercise)}
-      </p>
-      {exercise.instruction ? (
-        <p className="mt-1 break-words text-[12px] leading-relaxed text-muted">{exercise.instruction}</p>
-      ) : null}
-    </li>
-  )
-}
-
-function DetailsBreakItem({ breakItem }: { breakItem: Extract<WorkoutItem, { type: 'break' }> }) {
-  return (
-    <li className="border-t border-bd px-3 py-3">
-      <p className="font-display text-[13px] font-semibold text-ink">Przerwa</p>
-      <p className="mt-0.5 font-display text-[12px] tabular-nums text-muted">
-        {formatSecondsAsClock(breakItem.durationSeconds)}
-      </p>
-      {breakItem.instruction ? (
-        <p className="mt-1 break-words text-[12px] leading-relaxed text-muted">{breakItem.instruction}</p>
-      ) : null}
-    </li>
-  )
-}
-
 function WorkoutPlanDetailsSuccessView({
   correctionNotes,
   plan,
@@ -207,48 +172,14 @@ function WorkoutPlanDetailsSuccessView({
 
       {correctionNotes}
 
-      <section aria-labelledby="workout-details-blocks-heading" className="w-full space-y-4">
+      <section aria-labelledby="workout-details-blocks-heading" className="w-full space-y-3">
         <h2
           id="workout-details-blocks-heading"
           className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint"
         >
-          Oś treningu
+          {workoutBuilderLabels.timelineHeading}
         </h2>
-
-        <ol className="space-y-4" aria-label="Bloki treningu">
-          {plan.blocks.map((block, blockIndex) => {
-            const blockLabel = getWorkoutBlockLabelPl(block.blockType)
-            const itemCount = block.items.length
-
-            return (
-              <li key={block.id} className="border border-bd bg-surface">
-                <div className="border-b border-bd px-3 py-3">
-                  <h3 className="font-display text-[14px] font-semibold text-ink">
-                    Blok {blockIndex + 1} · {blockLabel}
-                  </h3>
-                  <p className="mt-1 text-[12px] text-muted">
-                    <span className="tabular-nums">{itemCount}</span>{' '}
-                    {polishPlural(itemCount, 'element', 'elementy', 'elementów')}
-                  </p>
-                </div>
-
-                {itemCount === 0 ? (
-                  <p className="px-3 py-4 text-[13px] text-muted">Brak elementów w bloku.</p>
-                ) : (
-                  <ol className="divide-y divide-bd" aria-label={`Elementy bloku ${blockIndex + 1}`}>
-                    {block.items.map((item) =>
-                      item.type === 'exercise' ? (
-                        <DetailsExerciseItem key={item.id} exercise={item} />
-                      ) : (
-                        <DetailsBreakItem key={item.id} breakItem={item} />
-                      ),
-                    )}
-                  </ol>
-                )}
-              </li>
-            )
-          })}
-        </ol>
+        <ReadOnlyWorkoutTimeline blocks={plan.blocks} />
       </section>
     </div>
   )

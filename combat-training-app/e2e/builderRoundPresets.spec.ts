@@ -88,7 +88,11 @@ test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round 
 
   await app.savePlan()
   await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
-  await expect(page.getByText('2 rundy × 1:00 · przerwa 0:30', { exact: true })).toHaveCount(2)
+  await expect(page.getByText('2 × 1:00 / 0:30', { exact: true })).toHaveCount(2)
+  // Plan details reuse the builder timeline read-only: the work / rest bar, but no row menus or add buttons.
+  await expect(page.getByRole('img', { name: 'Praca 4:00, przerwy 1:00', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Akcje / })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^Dodaj / })).toHaveCount(0)
 })
 
 test('steps the round time by 15 s, updates the total live and accepts a typed value', async ({ app, page }) => {

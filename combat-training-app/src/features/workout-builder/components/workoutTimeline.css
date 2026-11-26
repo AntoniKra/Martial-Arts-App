@@ -2,7 +2,8 @@
    Small text in ember uses --app-ember-ink: plain ember is too light on the light theme surface. */
 
 /* Mockup --app-border-faint: ink at 8 % in both themes. */
-.wb-builder { --wb-border-faint: color-mix(in srgb, var(--app-ink) 8%, transparent); }
+/* .wb-timeline is the read-only timeline on plan details and preview. */
+.wb-builder, .wb-timeline { --wb-border-faint: color-mix(in srgb, var(--app-ink) 8%, transparent); }
 
 /* Focus rings come from the global :focus-visible rule (2 px ring, 2 px offset). */
 
@@ -70,6 +71,7 @@
 .wb-row-name:focus-visible { outline: 2px solid var(--app-focus-ring); outline-offset: 2px; }
 .wb-row-details { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: 12px; line-height: 1.3; }
 .wb-row-params { flex-shrink: 0; color: var(--app-muted); font-family: var(--font-display); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wb-row-note { color: var(--app-muted); font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
 .wb-row-focus { min-width: 0; color: var(--app-ember-ink); font-size: 11.5px; font-weight: 700; overflow-wrap: anywhere; }
 /* The toggle covers the whole row, so a tap anywhere opens the actions. Its own 44 px box
    reaches into the row padding, so the row keeps the mockup height. */
@@ -95,6 +97,7 @@
 .wb-footer-action:disabled { opacity: 0.6; cursor: not-allowed; }
 .wb-footer-action svg { flex-shrink: 0; }
 .wb-block-note { padding: 8px 16px; border-top: 1px solid var(--app-border); color: var(--app-muted); font-size: 12px; }
+.wb-block-empty { padding: 10px 12px; color: var(--app-muted); font-size: 12px; }
 .wb-block-form { padding: 12px; border-top: 1px solid var(--app-border); }
 
 /* Break on the axis (N2 B). */
@@ -102,9 +105,13 @@
 .wb-items > .wb-break-item:not(:first-child) { border-top: 1px solid var(--wb-border-faint); }
 .wb-break-item.is-expanded > .wb-break { background: var(--app-elevated); }
 .wb-diamond { width: 8px; height: 8px; flex-shrink: 0; border: 1.5px solid var(--app-ember); background: var(--app-bg); transform: rotate(45deg); }
-.wb-break-text { display: flex; min-width: 0; flex: 1; align-items: baseline; gap: 6px; }
+.wb-break-body { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
+.wb-break-text { display: flex; min-width: 0; align-items: baseline; gap: 6px; }
 .wb-break-title { color: var(--app-faint); font-family: var(--font-display); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .wb-break-time { color: var(--app-ember-ink); font-family: var(--font-display); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+/* Read-only rows show the break instruction below; the diamond stays level with "PRZERWA". */
+.wb-break:has(.wb-row-note) { align-items: flex-start; padding-top: 7px; padding-bottom: 7px; }
+.wb-break:has(.wb-row-note) .wb-diamond { margin-top: 5px; }
 /* A 32 px row keeps a 44 px toggle by reaching into the gaps around it. */
 .wb-break .wb-row-toggle { margin: -10px -12px -10px -6px; }
 .wb-trailing { display: flex; flex-direction: column; gap: 4px; }

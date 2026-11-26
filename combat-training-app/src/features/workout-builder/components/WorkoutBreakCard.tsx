@@ -1,9 +1,9 @@
-import { formatBreakDuration } from '@/features/workout-builder/utils/formatBreakDuration'
 import type { Dispatch } from 'react'
 import { useId } from 'react'
 
 import type { WorkoutBreak, WorkoutItem } from '@/domain/workout/workout.types'
 import { RowActionIcon } from '@/features/workout-builder/components/BlockTypeIcon'
+import { TimelineBreakMain } from '@/features/workout-builder/components/TimelineParts'
 import {
   WorkoutBreakForm,
 } from '@/features/workout-builder/components/WorkoutBreakForm'
@@ -98,24 +98,22 @@ export function WorkoutBreakCard({
 
   return (
     <li className={`wb-break-item${isExpanded ? ' is-expanded' : ''}`}>
-      <div className="wb-break">
-        <span className="wb-diamond" aria-hidden="true" />
-        <p className="wb-break-text">
-          <span className="wb-break-title">{labels.breakLabel}</span>
-          <span className="wb-break-time">{formatBreakDuration(breakItem.durationSeconds)}</span>
-        </p>
-        <button
-          ref={registerEditBreakButtonRef}
-          type="button"
-          className="wb-row-toggle"
-          aria-label={labels.breakActions(breakContext)}
-          aria-expanded={isExpanded}
-          aria-controls={isExpanded ? panelId : undefined}
-          onClick={onToggle}
-        >
-          <span aria-hidden="true">⋯</span>
-        </button>
-      </div>
+      <TimelineBreakMain
+        breakItem={breakItem}
+        action={
+          <button
+            ref={registerEditBreakButtonRef}
+            type="button"
+            className="wb-row-toggle"
+            aria-label={labels.breakActions(breakContext)}
+            aria-expanded={isExpanded}
+            aria-controls={isExpanded ? panelId : undefined}
+            onClick={onToggle}
+          >
+            <span aria-hidden="true">⋯</span>
+          </button>
+        }
+      />
 
       {isExpanded ? (
         <div id={panelId} className="wb-row-panel">
