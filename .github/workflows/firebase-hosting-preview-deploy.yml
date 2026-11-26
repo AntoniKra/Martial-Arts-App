@@ -91,7 +91,7 @@ jobs:
           projectId: combat-training-830fb
           channelId: pr-${{ env.PR_NUMBER }}
           entryPoint: combat-training-app
-          expires: 2d
+          expires: 7d
           disableComment: "true"
 
       - name: Comment on the pull request

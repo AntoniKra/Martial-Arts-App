@@ -46,6 +46,7 @@ import { useWorkoutData } from '@/application/workoutDataContext'
 import { countFocusExercises } from '@/domain/focus-skill/focusSkillSelectors'
 import { resolveExerciseType } from '@/features/workout-builder/utils/resolveExerciseType'
 import './workoutTimeline.css'
+import './exerciseConfiguration.css'
 
 interface WorkoutBuilderViewProps {
   state: WorkoutBuilderState
@@ -390,6 +391,17 @@ export function WorkoutBuilderView({
           <div className="mx-auto flex w-full max-w-lg flex-col gap-4 px-4 pb-7 pt-3 md:max-w-2xl md:pt-6">
             <WorkoutBuilderHeader title={workoutBuilderLabels.planDetailsTitle} onClose={closePlanDetails} />
             <WorkoutMetadataForm state={state} dispatch={dispatch} />
+          </div>
+        </div>
+        <div className="exercise-config-submit-bar">
+          <div className="mx-auto w-full max-w-lg md:max-w-2xl">
+            {state.draft.disciplineKey === null && (
+              <p id="plan-details-hint" className="mb-3 text-sm text-muted">{workoutBuilderLabels.planDetailsNeedsDiscipline}</p>
+            )}
+            <button type="button" className="exercise-config-submit chamfer-top-right" disabled={state.draft.disciplineKey === null}
+              aria-describedby={state.draft.disciplineKey === null ? 'plan-details-hint' : undefined} onClick={closePlanDetails}>
+              <span>{editingPlanId || state.draft.blocks.length > 0 ? workoutBuilderLabels.planDetailsDone : workoutBuilderLabels.planDetailsContinue}</span>
+            </button>
           </div>
         </div>
       </div>,
