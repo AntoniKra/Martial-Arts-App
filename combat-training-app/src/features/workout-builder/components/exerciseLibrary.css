@@ -1,0 +1,118 @@
+/* "Dodaj ćwiczenie" library screen (#267, variants L1 A · L2 B · L3 A · L4 C · L5 B · L6 B). Values follow the approved
+   mock-up; colours only from theme tokens. Selection uses a 2 px outline plus aria-pressed/checked, never a tick. */
+.exercise-library {
+  --exercise-library-faint-line: color-mix(in srgb, var(--app-ink) 8%, transparent);
+  background: var(--app-bg);
+}
+
+.exercise-library-topbar { position: relative; display: flex; width: 100%; min-height: var(--app-touch-min); align-items: center; justify-content: space-between; gap: 8px; }
+.exercise-library-back { display: inline-flex; width: 44px; height: 44px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--app-radius-sm); color: var(--app-ink); }
+.exercise-library-back:hover { color: var(--app-crimson-ink); }
+.exercise-library-topbar-spacer { width: 44px; flex-shrink: 0; }
+.exercise-library-title-wrap { display: flex; min-width: 0; flex: 1; flex-direction: column; align-items: center; }
+.exercise-library-title { max-width: 100%; overflow: hidden; padding: 0 4px; text-align: center; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-size: 15px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: var(--app-ink); }
+.exercise-library-subtitle { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+@media (max-width: 374px) { .exercise-library-title { font-size: 13.5px; letter-spacing: 0.01em; } }
+
+/* L2 B: search with a filter-drawer button, then a horizontally scrolling category row. */
+.exercise-library-search-block { display: flex; flex-direction: column; gap: 10px; }
+.exercise-library-search-row { display: flex; align-items: center; gap: 8px; }
+.exercise-library-search { position: relative; display: flex; min-width: 0; flex: 1; align-items: center; }
+.exercise-library-search-icon { position: absolute; left: 12px; display: flex; align-items: center; color: var(--app-muted); pointer-events: none; }
+.exercise-library-search-input { width: 100%; height: 44px; padding: 0 38px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: var(--app-ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.2; outline: none; appearance: none; }
+.exercise-library-search-input::-webkit-search-cancel-button { display: none; }
+.exercise-library-search-input::placeholder { font-size: 13.5px; color: var(--app-muted); }
+.exercise-library-search-input:focus-visible { border-color: var(--app-focus-ring); }
+.exercise-library-search-clear { position: absolute; right: 0; display: flex; width: 44px; height: 44px; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--app-muted); }
+.exercise-library-search-clear:hover { color: var(--app-ink); }
+.exercise-library-filter-button { position: relative; display: flex; width: 44px; height: 44px; flex-shrink: 0; align-items: center; justify-content: center; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: var(--app-ink); }
+.exercise-library-filter-button:hover { border-color: var(--app-ember); background: var(--app-elevated); }
+.exercise-library-filter-count { position: absolute; top: -4px; right: -4px; display: flex; width: 18px; height: 18px; align-items: center; justify-content: center; border: 1px solid var(--app-bg); border-radius: 2px; background: var(--app-crimson); color: var(--app-on-accent); font-family: var(--font-display); font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.exercise-library-categories { display: flex; gap: 6px; margin: 0 -4px; padding: 0 4px 4px; overflow-x: auto; scrollbar-width: none; }
+.exercise-library-categories::-webkit-scrollbar { display: none; }
+.exercise-library-category { display: inline-flex; min-height: var(--app-touch-min); flex-shrink: 0; align-items: center; justify-content: center; padding: 0 12px; border: 1px solid var(--app-border); border-radius: 2px; background: var(--app-surface); color: var(--app-muted); font-family: var(--font-display); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.exercise-library-category:hover { background: var(--app-elevated); color: var(--app-ink); }
+.exercise-library-category[aria-pressed='true'] { padding: 0 11px; border: 2px solid var(--app-ember); background: color-mix(in srgb, var(--app-ember) 15%, var(--app-surface)); color: var(--app-ink); }
+
+/* Filter drawer (bottom sheet). Its final layout is still to be refined (#267, "Na później"). */
+.exercise-library-drawer { position: fixed; inset: auto 0 0; width: 100%; max-width: none; max-height: 90dvh; margin: 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); overflow-y: auto; border: 0; border-top: 1px solid var(--app-border); border-radius: 16px 16px 0 0; background: var(--app-elevated); color: var(--app-ink); }
+.exercise-library-drawer[open] { display: flex; flex-direction: column; gap: 14px; }
+.exercise-library-drawer::backdrop { background: rgb(0 0 0 / 0.65); }
+@media (min-width: 768px) { .exercise-library-drawer { left: 50%; width: min(100%, 32rem); transform: translateX(-50%); } }
+.exercise-library-drawer-handle { width: 36px; height: 4px; margin: 0 auto; border-radius: 2px; background: var(--app-border); }
+.exercise-library-drawer-bar { display: flex; align-items: center; justify-content: space-between; }
+.exercise-library-drawer-title { font-family: var(--font-display); font-size: 14px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--app-ink); }
+.exercise-library-drawer-close { display: flex; width: 44px; height: 44px; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--app-muted); }
+.exercise-library-drawer-filters { display: flex; flex-direction: column; gap: 8px; }
+.exercise-library-filter { display: inline-flex; min-height: var(--app-touch-min); align-items: center; justify-content: center; padding: 0 14px; border: 1px solid var(--app-border); border-radius: 2px; background: var(--app-surface); color: var(--app-muted); font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.exercise-library-filter:hover { background: var(--app-elevated); color: var(--app-ink); }
+.exercise-library-filter[aria-pressed='true'] { padding: 0 13px; border: 2px solid var(--app-crimson-ink); background: color-mix(in srgb, var(--app-crimson) 18%, var(--app-surface)); color: var(--app-ink); }
+
+/* L4 C: recent and favourites stay open on top; categories collapse below. */
+.exercise-library-sections { display: flex; flex-direction: column; gap: 16px; }
+.exercise-library-section { display: flex; flex-direction: column; gap: 8px; }
+.exercise-library-section-title { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; font-family: var(--font-display); font-size: 11.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--app-faint); }
+.exercise-library-section-count { font-size: 10px; color: var(--app-muted); font-variant-numeric: tabular-nums; }
+.exercise-library-list { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
+.exercise-library-accordions { display: flex; flex-direction: column; gap: 6px; }
+.exercise-library-accordion { overflow: hidden; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
+.exercise-library-accordion-header { display: flex; width: 100%; min-height: var(--app-touch-min); align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border: 0; background: var(--app-elevated); color: var(--app-ink); font-family: var(--font-display); font-size: 12.5px; font-weight: 800; letter-spacing: 0.04em; text-align: left; text-transform: uppercase; }
+.exercise-library-accordion-header:hover { background: color-mix(in srgb, var(--app-border) 40%, var(--app-elevated)); }
+.exercise-library-accordion-title { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; column-gap: 8px; }
+.exercise-library-accordion-count { font-size: 11px; font-weight: 700; color: var(--app-muted); font-variant-numeric: tabular-nums; }
+.exercise-library-chevron { flex-shrink: 0; color: var(--app-muted); }
+.exercise-library-accordion[data-expanded] .exercise-library-chevron { transform: rotate(180deg); }
+.exercise-library-accordion-content { display: flex; flex-direction: column; border-top: 1px solid var(--app-border); }
+.exercise-library-accordion-content[hidden] { display: none; }
+
+/* L3 A: the name wraps without truncation; the star is a 44 × 44 px target. */
+.exercise-library-row { display: flex; min-height: 48px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 10px; border-bottom: 1px solid var(--exercise-library-faint-line); }
+.exercise-library-row:last-child { border-bottom: 0; }
+.exercise-library-row:hover { background: var(--app-elevated); }
+.exercise-library-pick { display: flex; min-width: 0; min-height: 48px; flex: 1; flex-direction: column; justify-content: center; gap: 2px; padding: 8px 0; border: 0; background: transparent; text-align: left; }
+.exercise-library-name { font-size: 13.5px; font-weight: 600; line-height: 1.25; color: var(--app-ink); overflow-wrap: anywhere; }
+.exercise-library-sub { font-size: 11px; line-height: 1.3; color: var(--app-muted); }
+.exercise-library-star { display: flex; width: 44px; height: 44px; flex-shrink: 0; align-items: center; justify-content: center; border: 0; border-radius: 2px; background: transparent; color: var(--app-muted); font-size: 18px; }
+.exercise-library-star:hover:not(:disabled), .exercise-library-star[data-favorite] { color: var(--app-ember-ink); }
+.exercise-library-star:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* L5 B: empty-state card. */
+.exercise-library-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 32px 16px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); text-align: center; }
+.exercise-library-empty-icon { display: flex; width: 48px; height: 48px; align-items: center; justify-content: center; border: 1px solid var(--app-border); border-radius: 2px; background: var(--app-elevated); color: var(--app-ember-ink); }
+.exercise-library-empty-text { max-width: 280px; font-size: 13.5px; line-height: 1.4; color: var(--app-muted); }
+.exercise-library-create { display: inline-flex; max-width: 100%; min-height: var(--app-touch-min); align-items: center; justify-content: center; padding: 0 16px; border: 0; border-radius: var(--app-radius-sm); background: var(--app-grad-primary); color: var(--app-on-accent); font-family: var(--font-display); font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; overflow-wrap: anywhere; box-shadow: 0 4px 12px color-mix(in srgb, var(--app-crimson) 35%, transparent); }
+.exercise-library-create:disabled { opacity: 0.6; cursor: not-allowed; }
+.exercise-library-clear { display: inline-flex; min-height: var(--app-touch-min); align-items: center; padding: 6px 12px; border: 0; background: transparent; color: var(--app-ember-ink); font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-decoration: underline; text-transform: uppercase; }
+.exercise-library-clear:hover { color: var(--app-crimson-ink); }
+
+/* L6 B: name, three type tiles, "save to Moje" switch; "Dalej" sits in the bottom bar. */
+.exercise-library-form { display: flex; flex-direction: column; gap: 16px; }
+.exercise-library-field { display: flex; min-width: 0; flex-direction: column; gap: 6px; border: 0; }
+.exercise-library-label { padding: 0; font-family: var(--font-display); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--app-faint); }
+fieldset.exercise-library-field > .exercise-library-label { margin-bottom: 6px; }
+.exercise-library-text-input { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: var(--app-ink); font-family: var(--font-sans); font-size: 16px; outline: none; }
+.exercise-library-text-input::placeholder { font-size: 15px; color: var(--app-muted); }
+.exercise-library-text-input:focus-visible { border-color: var(--app-focus-ring); }
+.exercise-library-types { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.exercise-library-type { display: flex; min-width: 0; min-height: 46px; align-items: center; justify-content: center; padding: 8px 4px; border: 1px solid var(--app-border); border-radius: 2px; background: var(--app-surface); color: var(--app-muted); font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.25; text-align: center; text-transform: uppercase; overflow-wrap: anywhere; cursor: pointer; }
+.exercise-library-type:hover { background: var(--app-elevated); color: var(--app-ink); }
+.exercise-library-type:has(input:checked) { padding: 7px 3px; border: 2px solid var(--app-ember); background: color-mix(in srgb, var(--app-ember) 18%, var(--app-surface)); color: var(--app-ink); }
+.exercise-library-type:has(input:focus-visible) { outline: 2px solid var(--app-focus-ring); outline-offset: 2px; }
+.switch-control.exercise-library-switch { min-height: var(--app-touch-min); padding: 0 12px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); color: var(--app-ink); font-size: 13px; font-weight: 600; }
+.exercise-library-switch .switch-target { width: 44px; }
+.exercise-library-switch .switch-track { width: 44px; height: 24px; border: 1px solid var(--app-border); border-radius: 12px; background: var(--app-elevated); }
+.exercise-library-switch .switch-track::after { top: 2px; left: 2px; width: 18px; height: 18px; }
+.exercise-library-switch .switch-target input:checked + .switch-track { border-color: var(--app-crimson-hi); background: var(--app-crimson); }
+.exercise-library-switch .switch-target input:checked + .switch-track::after { transform: translateX(20px); background: var(--app-on-accent); }
+
+:is(.exercise-library-back, .exercise-library-search-clear, .exercise-library-filter-button, .exercise-library-category, .exercise-library-drawer-close,
+  .exercise-library-filter, .exercise-library-accordion-header, .exercise-library-pick, .exercise-library-star, .exercise-library-create,
+  .exercise-library-clear):focus-visible { outline: 2px solid var(--app-focus-ring); outline-offset: -2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(.exercise-library-row, .exercise-library-category, .exercise-library-filter, .exercise-library-filter-button, .exercise-library-type,
+    .exercise-library-star, .exercise-library-accordion-header) { transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+  .exercise-library-chevron { transition: transform 0.2s ease; }
+  .exercise-library-create { transition: transform 0.1s ease; }
+  .exercise-library-create:active:not(:disabled) { transform: scale(0.98); }
+}

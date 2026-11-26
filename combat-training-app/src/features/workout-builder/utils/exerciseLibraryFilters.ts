@@ -125,6 +125,19 @@ export interface ExerciseLibrarySectionsInput {
  * without a search phrase or category; each exercise then appears once. A visible personal copy of a builtin takes the
  * builtin's place in its category, so a copied exercise never appears twice in the same section.
  */
+function libraryCategoryOrder(builtins: readonly Combination[]): Map<string, number> {
+  const order = new Map<string, number>()
+  for (const exercise of builtins) if (!order.has(exercise.category)) order.set(exercise.category, order.size)
+  return order
+}
+
+/** Category row (L2 B): categories that fit the plan context in library order, plus the chosen one if it no longer fits. */
+export function listLibraryCategories(input: Omit<ExerciseLibrarySectionsInput, 'exercises' | 'searchQuery'>): string[] {
+  const { filters } = input
+  const available = filterExerciseLibrary(input.builtins, filters.discipline ? input.disciplineKey : null, filters.blockType ? input.blockType : null, '')
+  return [...new Set([...available.map((exercise) => exercise.category), ...(filters.category ? [filters.category] : [])])]
+}
+
 export function selectExerciseLibrarySections(input: ExerciseLibrarySectionsInput): ExerciseLibrarySections {
   const { builtins, filters } = input
   const query = normalizeSearchText(input.searchQuery)
@@ -158,7 +171,9 @@ export function selectExerciseLibrarySections(input: ExerciseLibrarySectionsInpu
     if (category === null) own.push(row)
     else add(category, libraryIndex.get(exercise.copiedFromId ?? '') ?? 0, row)
   }
-  const categories: ExerciseLibraryCategorySection[] = [...groups.keys()].sort((a, b) => a.localeCompare(b, 'pl')).map((category) => ({
+  const categoryOrder = libraryCategoryOrder(builtins)
+  const categories: ExerciseLibraryCategorySection[] = [...groups.keys()]
+    .sort((a, b) => (categoryOrder.get(a) ?? 0) - (categoryOrder.get(b) ?? 0)).map((category) => ({
     key: `category:${category}`, category,
     rows: [...(groups.get(category) ?? [])].sort((a, b) => a.order - b.order).map((entry) => entry.row),
   }))

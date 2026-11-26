@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { Combination } from '@/domain/combination/combination.types'
 import type { PersonalExercise } from '@/domain/exercise/exercise'
-import { clearLibraryFilters, copyBuiltinAsFavorite, countActiveLibraryFilters, hasActiveLibraryFilters, isBuiltinFavorite, isLibraryCategoryExpanded, planBuiltinFavoriteToggle, selectExerciseLibrarySections } from '@/features/workout-builder/utils/exerciseLibraryFilters'
+import { clearLibraryFilters, copyBuiltinAsFavorite, countActiveLibraryFilters, hasActiveLibraryFilters, isBuiltinFavorite, isLibraryCategoryExpanded, listLibraryCategories, planBuiltinFavoriteToggle, selectExerciseLibrarySections } from '@/features/workout-builder/utils/exerciseLibraryFilters'
 
 const AT = '2026-11-26T10:00:00.000Z'
 
@@ -110,13 +110,28 @@ describe('selectExerciseLibrarySections', () => {
   const names = (result: ReturnType<typeof select>) =>
     result.categories.map((section) => [section.category, section.rows.map((row) => row.exercise.namePl)])
 
-  it('groups the builtins that fit the plan context into alphabetical categories in library order', () => {
+  it('groups the builtins that fit the plan context into categories in library order', () => {
     expect(names(select())).toEqual([
       ['Kombinacje 2-ciosowe', ['Lewy prosty → prawy prosty', 'Prawy prosty → lewy sierp']],
       ['Kombinacje 3-ciosowe', ['Lewy prosty → prawy prosty → lewy sierp']],
       ['Postawa i poruszanie się', ['Krok w przód → krok w tył']],
     ])
     expect(names(select({ filters: { ...contextFilters, discipline: false } })).map(([category]) => category)).toContain('Kopnięcia')
+  })
+
+  it('orders categories by their first appearance in the library, as on the category row', () => {
+    const library = [footwork, jabCross, lowKick]
+    const filters = { ...contextFilters, discipline: false }
+    expect(names(select({ builtins: library, filters })).map(([category]) => category))
+      .toEqual(['Postawa i poruszanie się', 'Kombinacje 2-ciosowe', 'Kopnięcia'])
+    expect(listLibraryCategories({ builtins: library, ...context, filters })).toEqual(['Postawa i poruszanie się', 'Kombinacje 2-ciosowe', 'Kopnięcia'])
+  })
+
+  it('offers the categories that fit the plan context and keeps a chosen one', () => {
+    expect(listLibraryCategories({ builtins: library, ...context, filters: contextFilters }))
+      .toEqual(['Kombinacje 2-ciosowe', 'Kombinacje 3-ciosowe', 'Postawa i poruszanie się'])
+    expect(listLibraryCategories({ builtins: library, ...context, filters: { ...contextFilters, category: 'Kopnięcia' } }))
+      .toEqual(['Kombinacje 2-ciosowe', 'Kombinacje 3-ciosowe', 'Postawa i poruszanie się', 'Kopnięcia'])
   })
 
   it('shows recent and favourite personal exercises on top, each exercise in one section only', () => {
