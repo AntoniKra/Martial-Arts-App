@@ -155,10 +155,12 @@
 }
 
 .exercise-name {
+  display: -webkit-box;
   margin-bottom: 2px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font: 800 26px/1.1 var(--font-display);
   letter-spacing: -.01em;
 }
@@ -213,13 +215,11 @@
 
 .player-focus-badge {
   max-width: min(100%, 330px);
-  overflow: hidden;
   padding: 4px 10px;
   border: 1px solid var(--player-focus-badge-border);
   border-radius: var(--app-radius-sm);
   font: 600 13px/1.2 var(--font-sans);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .workout-player[data-phase='preparing']:has(.player-focus-card) .player-technique-slot {
@@ -358,23 +358,18 @@
 
 .player-focus-card-name,
 .player-focus-card-criterion {
-  display: -webkit-box;
-  overflow: hidden;
   overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
 }
 
 .player-focus-card-name {
   margin-top: 3px;
   font: 800 17px var(--font-display);
-  -webkit-line-clamp: 2;
 }
 
 .player-focus-card-criterion {
   margin-top: 2px;
   font: 400 14px/1.35 var(--font-sans);
   opacity: .95;
-  -webkit-line-clamp: 3;
 }
 
 .next-bar-4b {

@@ -43,6 +43,8 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(round).toHaveCSS('font-size', '13px')
     await expect(heading).toHaveText(exercise.exerciseNameSnapshot)
     await expect(heading).toHaveCSS('font-size', '26px')
+    await expect(heading).toHaveCSS('-webkit-line-clamp', '2')
+    await expect(heading).toHaveCSS('white-space', 'normal')
     await expect(technique).toHaveText(instruction)
     await expect(technique).toHaveCSS('-webkit-line-clamp', '2')
     await expect(next).toHaveCSS('font-size', '12.5px')
