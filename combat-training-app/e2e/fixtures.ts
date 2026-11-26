@@ -136,7 +136,7 @@ class WorkoutApp {
     await page.getByRole('button', { name: 'Dodaj ćwiczenie do bloku 1 — Technika', exact: true }).click()
     await page.getByRole('radio', { name: 'Własne ćwiczenie', exact: true }).click()
     await page.getByRole('textbox', { name: 'Nazwa ćwiczenia', exact: true }).fill(name)
-    await page.getByRole('button', { name: 'Konfiguruj ćwiczenie', exact: true }).click()
+    await page.getByRole('button', { name: 'Dalej', exact: true }).click()
   }
 
   async savePlan() {

@@ -4,7 +4,7 @@ Status: **zatwierdzone bez zmian przez właściciela 15 listopada 2026**, issue 
 
 ## Dane aplikacji
 
-Po zmianie CSV uruchom z `combat-training-app/`: `node scripts/generate-exercise-library.mjs`. Test jednostkowy uruchamia wariant `--check` i wykrywa rozbieżność danych w kodzie ze źródłem. Generator zachowuje `existingId`, a dla nowych pozycji używa `id`; nie zmienia zapisanych planów ani historii. „Kopiuj do moich” przejmuje zatwierdzony typ, przypisania i domyślne parametry. Dodawanie wbudowanej pozycji do planu nadal dziedziczy konfigurację według specyfikacji kreatora.
+Po zmianie CSV uruchom z `combat-training-app/`: `node scripts/generate-exercise-library.mjs`. Test jednostkowy uruchamia wariant `--check` i wykrywa rozbieżność danych w kodzie ze źródłem. Generator zachowuje `existingId`, a dla nowych pozycji używa `id`; nie zmienia zapisanych planów ani historii. Kopia tworzona gwiazdką na ekranie „Dodaj ćwiczenie” (#267) przejmuje zatwierdzony typ, przypisania i domyślne parametry. Dodawanie wbudowanej pozycji do planu nadal dziedziczy konfigurację według specyfikacji kreatora.
 
 ## Zakres i liczby
 

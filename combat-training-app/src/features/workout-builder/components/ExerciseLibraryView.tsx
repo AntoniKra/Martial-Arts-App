@@ -220,7 +220,7 @@ export function ExerciseLibraryView({ blockType, disciplineKey, libraryUiState, 
       <legend className="exercise-library-label">{labels.type}</legend>
       <div className="exercise-library-types">
         {EXERCISE_TYPES.map((type) => <label key={type} className="exercise-library-type">
-          <input type="radio" className="sr-only" name={`${id}-type`} value={type} checked={(libraryUiState.exerciseType ?? 'drill') === type}
+          <input type="radio" className="control-input" name={`${id}-type`} value={type} checked={(libraryUiState.exerciseType ?? 'drill') === type}
             onChange={() => onLibraryUiStateChange({ ...libraryUiState, exerciseType: type })} />
           <span>{labels.types[type]}</span>
         </label>)}

@@ -42,7 +42,7 @@ async function addTimedBlock(page: Page, blockNumber: number, blockLabel: string
   await page.getByRole('button', { name: `Dodaj ćwiczenie do bloku ${blockNumber} — ${blockLabel}`, exact: true }).click()
   await page.getByRole('radio', { name: 'Własne ćwiczenie', exact: true }).click()
   await page.getByRole('textbox', { name: 'Nazwa ćwiczenia', exact: true }).fill(exerciseName)
-  await page.getByRole('button', { name: 'Konfiguruj ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: 'Dalej', exact: true }).click()
   await chooseOneRound(page)
   await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 }

@@ -94,7 +94,7 @@ fieldset.exercise-library-field > .exercise-library-label { margin-bottom: 6px; 
 .exercise-library-text-input::placeholder { font-size: 15px; color: var(--app-muted); }
 .exercise-library-text-input:focus-visible { border-color: var(--app-focus-ring); }
 .exercise-library-types { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.exercise-library-type { display: flex; min-width: 0; min-height: 46px; align-items: center; justify-content: center; padding: 8px 4px; border: 1px solid var(--app-border); border-radius: 2px; background: var(--app-surface); color: var(--app-muted); font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.25; text-align: center; text-transform: uppercase; overflow-wrap: anywhere; cursor: pointer; }
+.exercise-library-type { position: relative; display: flex; min-width: 0; min-height: 46px; align-items: center; justify-content: center; padding: 8px 4px; border: 1px solid var(--app-border); border-radius: 2px; background: var(--app-surface); color: var(--app-muted); font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.25; text-align: center; text-transform: uppercase; overflow-wrap: anywhere; cursor: pointer; }
 .exercise-library-type:hover { background: var(--app-elevated); color: var(--app-ink); }
 .exercise-library-type:has(input:checked) { padding: 7px 3px; border: 2px solid var(--app-ember); background: color-mix(in srgb, var(--app-ember) 18%, var(--app-surface)); color: var(--app-ink); }
 .exercise-library-type:has(input:focus-visible) { outline: 2px solid var(--app-focus-ring); outline-offset: 2px; }

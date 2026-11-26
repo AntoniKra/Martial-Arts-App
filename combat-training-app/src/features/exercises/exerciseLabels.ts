@@ -17,7 +17,7 @@ export const exerciseLabels = {
   loadError: workoutDataLabels.exercisesLoadError, loading: 'Ładowanie Moich ćwiczeń…',
   invalid: 'Część ćwiczeń ma niepoprawne dane. Ponów odczyt; zarządzanie tym zbiorem jest zablokowane.',
   retry: 'Spróbuj ponownie', search: 'Szukaj ćwiczenia', mine: 'Moje',
-  recent: 'Ostatnio używane', favorites: 'Ulubione', all: 'Wszystkie ćwiczenia',
+  recent: 'Ostatnio używane', favorites: 'Ulubione',
   addExercise: 'Dodaj ćwiczenie', source: 'Źródło ćwiczenia', library: 'Biblioteka', custom: 'Własne ćwiczenie',
   searchPlaceholder: 'Szukaj kombinacji…', clearSearch: 'Wyczyść szukanie',
   filters: (count: number) => count > 0 ? `Filtry ćwiczeń, aktywne: ${count}` : 'Filtry ćwiczeń',
