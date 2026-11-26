@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { routes } from '@/app/routes'
 import { RouteScreenHeader } from '@/components/ScreenHeader'
+import { AutoGrowTextarea } from '@/components/ui/AutoGrowTextarea'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { PlanWorkoutSession, WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { findPreviousAssessment } from '@/domain/focus-skill/previousAssessment'
@@ -125,10 +126,10 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
         </div>
         <label className="feedback-surface feedback-eyebrow block p-3">
           {labels.noteHeading}
-          <textarea rows={2} maxLength={1000} value={draft.note ?? ''} placeholder={labels.notePlaceholder} aria-invalid={!!errors.note}
+          <AutoGrowTextarea rows={3} maxLength={1000} value={draft.note ?? ''} placeholder={labels.notePlaceholder} aria-invalid={!!errors.note}
             aria-describedby={errors.note ? 'feedback-note-error' : undefined}
             onChange={(event) => { setDraft((current) => ({ ...current, note: event.target.value })); setErrors((current) => ({ ...current, note: undefined })) }}
-            className="feedback-textarea mt-1.5 min-h-16" />
+            className="feedback-textarea mt-1.5" />
         </label>
         {errors.note && <p id="feedback-note-error" role="alert" className="text-[12px] text-crimson-ink">{errors.note}</p>}
       </fieldset>

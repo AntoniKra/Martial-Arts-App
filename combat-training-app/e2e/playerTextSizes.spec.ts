@@ -32,17 +32,19 @@ for (const theme of ['dark', 'light'] as const) {
     const viewport = page.viewportSize()!
     const viewports = info.project.name === 'phone' ? [viewport, { width: 390, height: 844 }] : [viewport]
     const colors = theme === 'dark'
-      ? { preparing: 'rgb(28, 32, 40)', work: 'rgb(84, 8, 21)', paused: 'rgb(19, 20, 24)', rest: 'rgb(28, 32, 40)', warning: 'rgb(92, 32, 11)' }
-      : { preparing: 'rgb(237, 240, 245)', work: 'rgb(250, 230, 233)', paused: 'rgb(232, 232, 236)', rest: 'rgb(237, 240, 245)', warning: 'rgb(252, 238, 230)' }
+      ? { preparing: 'rgb(29, 29, 32)', work: 'rgb(84, 8, 21)', paused: 'rgb(23, 23, 25)', rest: 'rgb(29, 29, 32)', warning: 'rgb(92, 32, 11)' }
+      : { preparing: 'rgb(232, 232, 229)', work: 'rgb(250, 230, 233)', paused: 'rgb(255, 255, 255)', rest: 'rgb(232, 232, 229)', warning: 'rgb(252, 238, 230)' }
 
     await expect(header).toContainText(plan.nameSnapshot)
     await expect(header.getByRole('button')).toHaveCount(1)
     await expect(header.locator('.player-step-progress')).toHaveCSS('font-size', '11px')
-    await expect(header.getByRole('button', { name: 'Zakończ trening', exact: true }).locator('path')).toHaveAttribute('d', 'M19 12H5m7-7-7 7 7 7')
+    await expect(header.getByRole('button', { name: 'Zakończ trening', exact: true }).locator('path')).toHaveAttribute('d', 'M6 6l12 12M18 6 6 18')
     await expect(round).toHaveText('Runda 1 z 2')
     await expect(round).toHaveCSS('font-size', '13px')
     await expect(heading).toHaveText(exercise.exerciseNameSnapshot)
     await expect(heading).toHaveCSS('font-size', '26px')
+    await expect(heading).toHaveCSS('-webkit-line-clamp', '2')
+    await expect(heading).toHaveCSS('white-space', 'normal')
     await expect(technique).toHaveText(instruction)
     await expect(technique).toHaveCSS('-webkit-line-clamp', '2')
     await expect(next).toHaveCSS('font-size', '12.5px')
@@ -125,6 +127,7 @@ for (const theme of ['dark', 'light'] as const) {
     await page.getByRole('button', { name: 'Zacznij teraz', exact: true }).click()
     await expect(technique).toHaveText(instruction)
     await checkPhase('work', 'PRACA')
+    await expect(timer).toHaveText('1:00')
     await expect(page.locator('.arc-progress')).toHaveAttribute('stroke-dasharray', '75 100')
 
     await page.clock.setFixedTime(new Date(start + 30_000))

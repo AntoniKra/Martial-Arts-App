@@ -5,12 +5,12 @@ import { useId } from 'react'
 import { Button } from '@/components/ui/Button'
 import type { WorkoutBlock } from '@/domain/workout/workout.types'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
-import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import {
   RowActionIcon,
   TimelineClockIcon,
   TimelinePlusIcon,
 } from '@/features/workout-builder/components/BlockTypeIcon'
+import { TimelineBlockHeader } from '@/features/workout-builder/components/TimelineParts'
 import { WorkoutBreakCard } from '@/features/workout-builder/components/WorkoutBreakCard'
 import { WorkoutBreakForm } from '@/features/workout-builder/components/WorkoutBreakForm'
 import { WorkoutExerciseCard } from '@/features/workout-builder/components/WorkoutExerciseCard'
@@ -25,6 +25,7 @@ import {
   canMoveBlockUp,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
 import {
+  formatBlockDescriptorGenitive,
   splitTrailingBreaks,
   summarizeBlockTime,
   type PositionedItem,
@@ -56,11 +57,6 @@ interface WorkoutBlockCardProps {
 /** "blok 1 — Technika" for accusative use ("Przenieś blok 1"). */
 function formatBlockDescriptor(position: number, blockLabel: string): string {
   return `blok ${position} — ${blockLabel}`
-}
-
-/** "bloku 1 — Technika" for genitive use ("Dodaj ćwiczenie do bloku 1"). */
-function formatBlockDescriptorGenitive(position: number, blockLabel: string): string {
-  return `bloku ${position} — ${blockLabel}`
 }
 
 /** Expanded-row key of the block menu; item keys are item ids. */
@@ -168,32 +164,23 @@ export function WorkoutBlockCard({
   return (
     <li className="wb-block-entry">
       <section className="wb-block" aria-label={labels.blockHeading(position, blockLabel)}>
-        <header className="wb-block-header">
-          <div className="wb-block-header-top">
-            <h3 className="wb-block-name">{labels.blockHeading(position, blockLabel)}</h3>
-            <span className="wb-block-total">
-              {formatSecondsAsClock(time.totalSeconds)}
-              <button
-                type="button"
-                className="wb-block-menu"
-                aria-label={labels.blockActions(blockDescriptor)}
-                aria-expanded={isMenuOpen}
-                aria-controls={isMenuOpen ? blockMenuId : undefined}
-                onClick={() => onToggleExpanded(blockMenuKey(block.id))}
-              >
-                <span aria-hidden="true">⋯</span>
-              </button>
-            </span>
-          </div>
-          <div className="wb-ratio-bar" role="img" aria-label={labels.blockRatio(formatSecondsAsClock(time.workSeconds), formatSecondsAsClock(time.restSeconds))}>
-            <div className="wb-ratio-work" style={{ width: `${time.workPercent}%` }} />
-            <div className="wb-ratio-rest" style={{ width: `${time.restPercent}%` }} />
-          </div>
-          <div className="wb-ratio-labels" aria-hidden="true">
-            <span>{labels.blockWork(formatSecondsAsClock(time.workSeconds))}</span>
-            <span>{labels.blockRest(formatSecondsAsClock(time.restSeconds))}</span>
-          </div>
-        </header>
+        <TimelineBlockHeader
+          position={position}
+          blockLabel={blockLabel}
+          time={time}
+          action={
+            <button
+              type="button"
+              className="wb-block-menu"
+              aria-label={labels.blockActions(blockDescriptor)}
+              aria-expanded={isMenuOpen}
+              aria-controls={isMenuOpen ? blockMenuId : undefined}
+              onClick={() => onToggleExpanded(blockMenuKey(block.id))}
+            >
+              <span aria-hidden="true">⋯</span>
+            </button>
+          }
+        />
 
         {isMenuOpen && !isConfirmingDelete ? (
           <div id={blockMenuId} className="wb-row-panel">

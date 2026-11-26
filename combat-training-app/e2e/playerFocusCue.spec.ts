@@ -68,8 +68,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(main).toHaveAttribute('data-phase', 'preparing')
     await expect(card.getByText(skill.name, { exact: true })).toBeVisible()
     const criterion = card.getByText(skill.criterion, { exact: true })
-    await expect(criterion).toHaveAttribute('title', skill.criterion)
-    await expect(criterion).toHaveCSS('-webkit-line-clamp', '3')
+    await expect(criterion).toHaveCSS('-webkit-line-clamp', 'none')
     await expect(badge).toHaveCount(0)
     await checkLayout(card)
 

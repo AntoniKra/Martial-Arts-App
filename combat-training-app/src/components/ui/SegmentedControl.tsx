@@ -17,6 +17,8 @@ export type SegmentedControlProps<T extends string> = AccessibleNameProps & {
   onChange: (value: T) => void
   disabled?: boolean
   className?: string
+  /** Option text: capitals by default, `normal` keeps units and values as written ("10 s"). */
+  textCase?: 'upper' | 'normal'
 }
 
 function assertUniqueOptionValues<T extends string>(options: readonly SegmentedControlOption<T>[]): void {
@@ -38,7 +40,8 @@ export function SegmentedControl<T extends string>({
   ariaLabel,
   disabled = false,
   className = '',
-}:SegmentedControlProps<T>) {
+  textCase = 'upper',
+}: SegmentedControlProps<T>) {
   assertUniqueOptionValues(options)
 
   const groupId = useId()
@@ -145,7 +148,7 @@ export function SegmentedControl<T extends string>({
               tabIndex={getTabIndex(option)}
               onClick={() => selectAndFocus(option.value)}
               className={[
-                'relative flex min-h-touch flex-1 items-center justify-center gap-1.5 px-2 py-2.5 font-display text-[12px] font-semibold uppercase tracking-[0.06em] transition-colors',
+                `relative flex min-h-touch flex-1 items-center justify-center gap-1.5 px-2 py-2.5 font-display text-[12px] font-semibold transition-colors ${textCase === 'upper' ? 'uppercase tracking-[0.06em]' : ''}`,
                 'cursor-pointer disabled:cursor-not-allowed disabled:opacity-40',
                 selected
                   ? 'bg-crimson font-bold text-on-accent shadow-[inset_0_0_0_2px_var(--app-on-accent)]'

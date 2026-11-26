@@ -31,7 +31,6 @@ export const focusSkillLabels = {
   invalidData: 'Pominięto niepoprawne dane elementów do poprawy.',
   missing: 'Wybrany element do poprawy jest niedostępny. Wybierz inny albo wyłącz oznaczenie.',
   pending: workoutDataLabels.pending,
-  badge: 'CEL',
   archived: 'Schowane',
   archivedHint: 'Możesz zmienić element do poprawy albo wyłączyć oznaczenie. Ten plan nadal można zapisać.',
 } as const

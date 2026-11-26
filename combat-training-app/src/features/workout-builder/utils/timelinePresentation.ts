@@ -44,6 +44,11 @@ export function formatExerciseParams(configuration: ExerciseConfiguration, conti
   return roundCount > 1 ? `${rounds} / ${formatSecondsAsClock(restBetweenRoundsSeconds)}` : rounds
 }
 
+/** "bloku 1 — Technika" for genitive use ("Dodaj ćwiczenie do bloku 1"). */
+export function formatBlockDescriptorGenitive(position: number, blockLabel: string): string {
+  return `bloku ${position} — ${blockLabel}`
+}
+
 export interface PositionedItem {
   item: WorkoutItem
   /** One-based position of the item in its block. */

@@ -4,7 +4,7 @@ import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 export const workoutFeedbackLabels = {
   title: 'Podsumowanie',
   savedEntry: 'Zapisane w dzienniku. Oceny dopiszą się do wpisu.',
-  savedBadge: 'Zapisane',
+  savedBadge: 'Zapisano',
   status: { completed: 'Trening ukończony', partial: 'Trening częściowy' },
   metrics: ['Trening', 'Praca', 'Ćwiczenia'],
   metricsHeading: 'Podsumowanie czasu sesji',

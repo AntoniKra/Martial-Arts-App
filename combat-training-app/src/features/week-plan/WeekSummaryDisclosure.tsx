@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { DisclosureChevron } from '@/components/ui/DisclosureChevron'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { calculateWeeklySummary } from '@/domain/weekly-summary/weeklySummary'
 import { WeeklySummary } from '@/features/weekly-summary/WeeklySummary'
@@ -17,7 +18,7 @@ export function WeekSummaryDisclosure({ weekStart }: { weekStart: string }) {
         {summary && <span className="block text-[13px] text-muted">
           {labels.summaryStats(summary.workoutCount, Math.ceil(summary.durationSeconds / 60), formatWeeklyLoadPl(summary),
             summary.load.knownCount > 0 && summary.load.knownCount < summary.workoutCount)}
-        </span>}</span><span aria-hidden="true">{open ? '⌃' : '⌄'}</span>
+        </span>}</span><DisclosureChevron />
     </button>
     <div id={id} hidden={!open}>{open && <WeeklySummary weekStart={weekStart} />}</div>
   </section>

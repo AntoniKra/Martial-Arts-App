@@ -46,6 +46,7 @@ export const workoutBuilderLabels = {
   chooseDisciplineFirst: 'Najpierw wybierz dyscyplinę.',
   confirmBlockDelete: 'Usunięty zostanie blok wraz ze wszystkimi jego elementami.',
   deleteBlock: 'Usuń blok',
+  emptyBlock: 'Brak elementów w bloku.',
 
   moveUp: 'W górę',
   moveDown: 'W dół',

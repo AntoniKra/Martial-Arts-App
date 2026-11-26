@@ -24,6 +24,7 @@ for (const theme of ['dark', 'light'] as const) {
     const training = page.getByRole('region', { name: 'Trening', exact: true })
     await expect(training.getByRole('radiogroup', { name: 'Sygnał przed końcem rundy', exact: true }).getByRole('radio', { name: '10 s', exact: true })).toBeChecked()
     await expect(training.getByRole('radiogroup', { name: 'Sygnał przed końcem przerwy', exact: true }).getByRole('radio', { name: '10 s', exact: true })).toBeChecked()
+    await expect(training.getByRole('radio', { name: '10 s', exact: true }).first()).toHaveCSS('text-transform', 'none')
     await page.evaluate(() => { scrollTo(0, 0); return document.fonts.ready })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(({ impact }) => impact && ['moderate', 'serious', 'critical'].includes(impact))).toEqual([])
