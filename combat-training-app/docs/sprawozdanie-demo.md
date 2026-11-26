@@ -61,7 +61,7 @@ Dane (plany i historia) są zapisywane **lokalnie w przeglądarce** (`localStora
 ## 4. Przepływ demonstracyjny (scenariusz)
 
 1. Otwórz **Home** — sprawdź motyw (przełącznik jasny/ciemny).  
-2. Przejdź do **Treningi → Plany**.  
+2. Przejdź do **Trening (+) → Moje plany**.  
 3. Utwórz nowy plan w **kreatorze** (dyscyplina, bloki, ćwiczenia).  
 4. Zapisz plan i otwórz **szczegóły**.  
 5. Uruchom trening — **player** prowadzi etapy timera.  

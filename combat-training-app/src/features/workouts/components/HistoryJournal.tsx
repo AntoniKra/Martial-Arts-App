@@ -153,7 +153,7 @@ export function HistoryJournal({ week, history, matching, contentFiltered, sortO
   }
 
   return <div className="space-y-3">
-    <SegmentedControl ariaLabel={labels.view} options={views} value={mode} onChange={setMode} variant="outlined" />
+    <SegmentedControl ariaLabel={labels.view} options={views} value={mode} onChange={setMode} />
     {week && <div className="flex items-center justify-between gap-2 text-sm">
       <p>{historyRange(week)}</p><button type="button" className="min-h-touch" onClick={clearWeek}>{labels.allWeeks}</button>
     </div>}

@@ -2,7 +2,7 @@ import { MAX_WORKOUT_SESSION_STEPS } from '@/domain/workout-session/workoutSessi
 
 export const workoutBuilderLabels = {
   backToWorkouts: 'Wróć do treningów',
-  newWorkoutTitle: 'Nowy trening',
+  newWorkoutTitle: 'Nowy plan',
   preview: 'Podgląd',
   previewPlan: 'Podgląd planu',
   saveChanges: 'Zapisz zmiany',

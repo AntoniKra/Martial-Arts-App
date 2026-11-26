@@ -146,7 +146,7 @@ test('discards by continuing browser back without leaving the player behind in b
   expect(await app.readSessions()).toHaveLength(0)
   await page.goBack()
   await expect(page).toHaveURL('/workouts')
-  await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Moje plany', exact: true })).toBeVisible()
   await expect(exitDialog(page)).toHaveCount(0)
 })
 

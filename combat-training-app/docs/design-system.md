@@ -36,7 +36,7 @@ Tokeny prototypu Figmy są dobrym punktem wyjścia:
 
 Gradienty są zmiennymi CSS `--app-grad-primary`, `--app-grad-accent`, `--app-grad-bar-current`, `--app-grad-bar-past` i `--app-grad-plus`. Przycisk główny ma Archivo wersalikami, radius 4 px, tekst `on-accent` i gradient główny; wyłączony nie ma gradientu. Dolne menu ma romb 36 px obrócony o 45°, wysunięty o około 24 px, z prostą ikoną + 24 px, obwódką tła 3 px i żaru 1 px (55%). Aktywna pozycja ma górną linię gradientu 2 px i ikonę `crimson-ink`. Menu boczne ma spójne akcenty bez rombu.
 
-Start i Postęp używają wspólnego `WeekDayIndicator` z kropkami 26 px, bez legendy. Wykonany ma gradient główny i ✓, zaplanowany przerywaną ramkę 2 px `crimson-ink`, wolne ramkę 2 px `success` oraz tło 12%, „Nie byłem” tło `missed` i –, a plan niedostępny ramkę `border`. Pod kropką jest skrót dnia. Dziś ma tekst `ink` i kreskę 2 px `crimson-ink` pod skrótem. W Postępie oś łączy środki kropek, a tło kart i kropek osłania oś. Plakietki statusów i RPE są prostokątne (radius 0): zaliczone oraz RPE w gradiencie, „Nie byłem” na szarym tle, „Plan” z przerywaną ramką. Plakietka poprawy używa `success` i `success-ink`.
+Start i Postęp używają wspólnego `WeekDayIndicator` z kropkami 26 px, bez legendy. Wykonany ma gradient główny i ✓, zaplanowany przerywaną ramkę 2 px `crimson-ink`, wolne ramkę 2 px `success` oraz tło 12%, „Nie byłem” tło `missed` i –, a plan niedostępny ramkę `border`. Pod kropką jest skrót dnia. Dziś ma tekst `ink` i kreskę 2 px `crimson-ink` pod skrótem. W Postępie oś łączy środki kropek, a tło kart i kropek osłania oś. Plakietki statusów i RPE są prostokątne (radius 0): zaliczone oraz RPE w gradiencie, „Nie byłem” na szarym tle, „Plan” z przerywaną ramką. Plakietka poprawy używa `success` i `success-ink`. Plakietka „Ukończony” (ostatnia sesja na Starcie, wpis w Historii) jest w gradiencie głównym z tekstem `on-accent`, nie zielona (decyzja właściciela 26.11); „Częściowy” ma neutralną ramkę. Zielony zostaje wyłącznie dla wolnego dnia, plakietki poprawy i koloru dyscypliny kickboxing.
 
 Aktualne wartości obu motywów są w `src/styles/index.css`. `src/features/theme/themeColors.test.ts` pilnuje kontrastu co najmniej 4,5:1 dla wszystkich tokenów tekstu na każdym tle.
 
@@ -46,7 +46,7 @@ Na telefonie i komputerze kolejność to **Start · Plan · Trening (+) · Post�
 
 Plan otwiera bieżący Plan tygodnia (`/progress/week`); datowane adresy `/progress/week/:weekStart` nadal działają i zaznaczają Plan. Postęp ma segmenty **Wykresy / Historia**; Historia (`/progress?tab=history`) zachowuje dziennik tygodniowy, wyszukiwanie i filtr tygodnia. Stary adres `/workouts?tab=history` przekierowuje z zachowaniem parametrów i fragmentu.
 
-Trening otwiera dotychczasowy arkusz wyboru z dostępem do stopera, wpisu spoza aplikacji, biblioteki ćwiczeń, kreatora „Nowy plan treningowy” i listy „Moje plany”. Lista, szczegóły i kreator zachowują adresy `/workouts…`; biblioteka działa pod `/exercises` i `/my-exercises`. Lista i biblioteka są podekranami z powrotem. Karta Startu „Stoper i inne plany” jest opisana poniżej w Start v2 — wg makiety A.
+Trening otwiera dotychczasowy arkusz wyboru z dostępem do stopera, wpisu spoza aplikacji, biblioteki ćwiczeń, kreatora „Nowy plan” i listy „Moje plany” (decyzja właściciela 26.11: „plan” to układ do wykonania, „trening” to wykonanie — romb, odtwarzacz, historia; arkusz po rombie nadal ma tytuł „Nowy trening”). Lista, szczegóły i kreator zachowują adresy `/workouts…`; biblioteka działa pod `/exercises` i `/my-exercises`. Lista i biblioteka są podekranami z powrotem. Karta Startu „Stoper i inne plany” jest opisana poniżej w Start v2 — wg makiety A.
 
 Aktywna pozycja **Trening** w dolnym menu wyróżnia się kolorem etykiety i ma `aria-current="page"`. Romb ma kryjące wypełnienie i leży nad dekoracjami paska. Górna linia aktywności dotyczy pozostałych pozycji (#245).
 
@@ -95,7 +95,7 @@ Issue #188 wprowadza pięć wzorców, wspólnych dla telefonu i komputera. `src/
 - **A — zakładka główna:** Plan tygodnia, Postęp i Profil. Archivo 28 px/800 po lewej, bez powrotu; opcjonalny krótki podtytuł i najwyżej jedna akcja ikoną 44×44 z dostępną nazwą.
 - **B — Start:** bez widocznego nagłówka; ukryty `h1` „Start”. Data pozostaje na głównej karcie.
 - **C — podekran:** strzałka 44×44 z nazwą „Wstecz” oraz tytuł Archivo 24 px/800 w jednym wierszu; najwyżej jedna akcja po prawej. Dotyczy m.in. listy planów (`/workouts`, `/workouts?tab=plans`), szczegółów planu, Stałego tygodnia, podstron Profilu, biblioteki, konfiguracji stopera i podglądów. Bez napisów „Wróć do…” i „‹ Postęp”. Powrót używa poprzedniego wpisu historii aplikacji (`navigate(-1)` przy dodatnim indeksie React Routera), a po wejściu bezpośrednim — stałej trasy nadrzędnej. Kroki wewnątrz kreatora wracają do poprzedniego kroku.
-- **D — formularz:** ten sam układ, ale ✕ z nazwą „Zamknij”. Ręczny wpis, nowy/edytowany plan, konfiguracja i edycja ćwiczenia oraz formularz elementu do poprawy. Zamykanie przy zmianach otwiera pytanie o odrzucenie; Escape zachowuje zmiany i przywraca fokus. Zapis jest wyłącznie akcją główną na dole. Formularz osadzony lub modalny używa odpowiednio niższego poziomu nagłówka, zachowując jeden `h1` strony.
+- **D — formularz:** nagłówek jak w kreatorze (`WorkoutBuilderHeader`, klasy `.wb-topbar` w `src/styles/index.css`; decyzja właściciela 26.11): ✕ 44 px z nazwą „Zamknij” z lewej, tytuł wyśrodkowany Archivo 15 px wersalikami (13,5 px poniżej 375 px; w formularzach długi tytuł zawija się zamiast się ucinać) i opcjonalna akcja po prawej. Ręczny wpis („Trening spoza aplikacji”), nowy/edytowany plan, konfiguracja i edycja ćwiczenia oraz formularz elementu do poprawy. Zamykanie przy zmianach otwiera pytanie o odrzucenie; Escape zachowuje zmiany i przywraca fokus. Zapis jest wyłącznie akcją główną na dole. Formularz osadzony lub modalny używa odpowiednio niższego poziomu nagłówka, zachowując jeden `h1` strony.
 - **E — trening na żywo:** tylko ✕ „Zakończ trening” 44×44 po lewej i wyśrodkowany postęp. Istniejące potwierdzenie, pauza oraz zasady wyjścia przed startem i podczas przygotowania pozostają wspólne dla planu i stopera.
 
 Podsumowanie po treningu należy do równoległego #187; ta migracja nie zmienia jego ekranu.
@@ -136,6 +136,12 @@ Issue #189 ujednolica wygląd kontrolek bez zmiany danych, reguł, obliczeń ani
 Kontrolki używają tokenów obu motywów, widocznej obwódki fokusu i tekstowych lub geometrycznych oznaczeń stanu, niezależnych od koloru. Natywne radio zachowuje wybór strzałkami, checkbox i przełącznik — Spacją.
 
 Ptaszek oznacza status, np. wykonany dzień lub zapisany wynik. Zaznaczenie w formularzu pokazują grubsza ramka i tło (#245).
+
+### Zasada zaznaczania (decyzja właściciela 26.11)
+
+- **Przełącznik segmentowy** (`SegmentedControl`: Rundy / Ciągłe, Wykresy / Historia, Tygodnie / Miesiąc w Historii, ustawienia treningu w Profilu) pokazuje zaznaczenie **wypełnieniem** segmentu (`crimson`, tekst `on-accent`). Nie ma wariantu obwódkowego; Historia → Tygodnie / Miesiąc jest zwykłym segmentem wypełnionym.
+- **Kafel wyboru** (`ChoiceTile`, gotowe formaty ćwiczenia) pokazuje zaznaczenie **obwódką 2 px `crimson-ink` i tłem**, z `aria-checked` / natywnym radiem. Bez ptaszków.
+- Ptaszek zostaje wyłącznie jako status (wykonany dzień, zapisany wynik), nigdy jako znacznik zaznaczenia.
 
 ## Ruch
 

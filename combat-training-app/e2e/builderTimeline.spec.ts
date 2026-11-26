@@ -31,7 +31,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(next).toBeEnabled()
     await next.click()
 
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Nowy trening')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Nowy plan')
     await expect(planCard(page)).toBeFocused()
     await expect(planCard(page)).toContainText('Boks')
     await expect(planCard(page)).toContainText('Czas: 0:00')

@@ -16,6 +16,6 @@ test('asks the browser to keep site storage once after a verified sign-in, not o
   await expect(page.getByRole('heading', { name: 'Zaloguj się', exact: true })).toBeVisible()
   expect(await page.evaluate(() => window.persistCalls)).toBe(0)
   await app.open('/workouts')
-  await expect(page.getByRole('heading', { name: 'Treningi', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Moje plany', exact: true })).toBeVisible()
   await expect.poll(() => page.evaluate(() => window.persistCalls)).toBe(1)
 })

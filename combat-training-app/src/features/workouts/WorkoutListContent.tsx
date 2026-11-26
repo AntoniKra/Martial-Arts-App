@@ -33,7 +33,7 @@ export function WorkoutListContent({ history = false }: { history?: boolean }) {
   }
   return <>
     <WorkoutDataWarning />
-    <WorkoutsView plansSubscreen={params.get('tab') === 'plans'} planDeleted={planDeleted} tab={history ? 'history' : 'plans'} historyWeek={week}
+    <WorkoutsView planDeleted={planDeleted} tab={history ? 'history' : 'plans'} historyWeek={week}
       plansLoadState={plans.status === 'ready' ? { status: 'success', plans: mapWorkoutPlansToListItems(plans.items) }
         : plans.status === 'loading' ? { status: 'loading' } : { status: 'error', message: workoutDataLabels.plansLoadError }}
       historyLoadState={sessions.status === 'ready' ? { status: 'success', sessions: mapWorkoutSessionsToHistoryListItems(sessions.items, sessions.pendingIds) }

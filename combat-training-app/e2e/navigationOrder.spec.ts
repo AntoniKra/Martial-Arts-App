@@ -123,7 +123,7 @@ test('new menu opens all sections, sheet destinations and legacy history', async
     }
     await expect(page.getByRole('button', { name: 'Wstecz', exact: true })).toHaveCount(0)
   }
-  for (const [label, path] of [['Moje plany', '/workouts'], ['Nowy plan treningowy', '/workouts/new'], ['Moje ćwiczenia', '/exercises']]) {
+  for (const [label, path] of [['Moje plany', '/workouts'], ['Nowy plan', '/workouts/new'], ['Moje ćwiczenia', '/exercises']]) {
     await nav.getByRole('button', { name: 'Trening', exact: true }).click()
     const sheet = page.getByRole('dialog', { name: 'Nowy trening', exact: true })
     await sheet.getByRole('link', { name: new RegExp(`^${label}`) }).click()
@@ -136,7 +136,7 @@ test('new menu opens all sections, sheet destinations and legacy history', async
     }
   }
   await app.open('/workouts?tab=plans')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Plany treningowe')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Moje plany')
   await expect(page.getByRole('button', { name: 'Wstecz', exact: true })).toBeVisible()
   await app.open('/workouts?tab=history&week=2026-11-16#journal')
   await expect(page).toHaveURL('/progress?tab=history&week=2026-11-16#journal')
