@@ -7,7 +7,10 @@ Używamy `initializeAuth` bez zależności okien i przekierowań Google.
 `createFirestoreRepositories.ts` jest importowany dynamicznie po pierwszym renderze
 i potwierdzeniu konta. Firestore używa `persistentLocalCache` z
 `persistentMultipleTabManager`. Każde konto otrzymuje repozytoria ograniczone do
-`users/{uid}/workoutPlans` i `users/{uid}/workoutSessions`.
+swojego `users/{uid}` i kolekcji z `IMPLEMENTED_USER_COLLECTIONS` w `userCollections.ts`
+(plany, sesje, elementy do poprawy, plany tygodnia, stały tydzień, Moje ćwiczenia,
+pomiary masy ciała i samopoczucie). `controlTests` i `controlTestResults` to nazwy
+zarezerwowane, bez odczytu i zapisu (ADR 0021).
 
 Provider utrzymuje po jednej subskrypcji na kolekcję. Schematy `zod/mini` sprawdzają
 każdy dokument przy odczycie i zapisie; błędne dokumenty są pomijane z widocznym
