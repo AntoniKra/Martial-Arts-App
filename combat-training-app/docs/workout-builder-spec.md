@@ -75,7 +75,7 @@ Ekran „Ćwiczenie” (#260) ustawia wartości stepperami:
 - przerwa między rundami: krok 15 s, zakres 0:00–1440:00;
 - czas ćwiczenia ciągłego: krok 15 s, zakres 0:01–1440:00.
 
-Wartość spoza siatki 15 s przechodzi przy kroku do najbliższej wielokrotności 15 s w danym kierunku (1:40 + 15 s → 1:45, 1:40 − 15 s → 1:30). Przycisk na granicy zakresu jest wyłączony. Dotknięcie wartości otwiera wpis: rundy jako liczba całkowita, czas jako `m:ss` albo liczba sekund. Enter zapisuje, Esc anuluje; błędny wpis pokazuje komunikat i nie zmienia wartości. Logika kroków jest czystą funkcją (`exerciseStepper.ts`).
+Wartość spoza siatki 15 s przechodzi przy kroku do najbliższej wielokrotności 15 s w danym kierunku (1:40 + 15 s → 1:45, 1:40 − 15 s → 1:30). Przycisk na granicy zakresu jest wyłączony. Steppery pokazują czas w formacie `m:ss`. Dotknięcie wartości otwiera wpis: rundy jako liczba całkowita, czas jako `m:ss` albo liczba sekund. Pod polem na bieżąco widać poprawnie odczytany czas, np. wpisane `90` daje `1:30`. Enter zatwierdza wpis, a Esc go anuluje. Próba zatwierdzenia błędnego wpisu pokazuje komunikat i zachowuje poprzednią wartość. Logika kroków i odczyt wpisu są czystymi funkcjami (`exerciseStepper.ts`).
 
 Gotowe formaty, zawsze te same, nie są zapisywane w planie:
 
@@ -87,7 +87,7 @@ Stuknięcie formatu ustawia naraz liczbę rund, czas rundy i przerwę. Każdą w
 
 Pod stepperami pasek struktury pokazuje segment na każdą rundę i każdą przerwę między rundami (szerokość proporcjonalna do czasu) oraz łączny czas ćwiczenia; aktualizuje się na żywo.
 
-Na ekranie „Ćwiczenie” można też oznaczyć element do poprawy (to samo zachowanie co na osi planu: zwinięcie po wyborze, „Zmień”, limit 3 w planie). Wybór zapisuje się razem z ćwiczeniem po „Zatwierdź ćwiczenie” albo „Gotowe”.
+Ekran nosi tytuł „Ćwiczenie” podczas dodawania i edycji. Dolny przycisk to „Zatwierdź ćwiczenie” przy dodawaniu i „Zapisz zmiany” przy edycji. Element do poprawy zapisuje się razem z ćwiczeniem po użyciu dolnego przycisku albo „Gotowe”. Wybór elementu do poprawy działa jak na osi planu (zwinięcie po wyborze, „Zmień”, limit 3 w planie).
 
 Gdy liczba rund wynosi 1, stepper przerwy między rundami jest ukryty. W jej miejscu widać informację, że przerwy między rundami wtedy nie ma, a przerwę po ćwiczeniu dodaje się w bloku jako element „Przerwa”. Wcześniej ustawiony czas tej przerwy zostaje w planie i wraca na ekran, gdy liczba rund znowu jest większa niż 1. Odtwarzacz się nie zmienia.
 

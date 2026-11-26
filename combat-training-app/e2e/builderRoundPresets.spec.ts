@@ -3,6 +3,7 @@ import type { Page, TestInfo } from '@playwright/test'
 import { expect, test } from './fixtures'
 
 async function addTechniqueBlock(page: Page) {
+  await expect(page.getByRole('heading', { name: 'Dane planu', exact: true })).toBeVisible()
   await page.getByRole('radio', { name: 'Boks', exact: true }).check()
   await page.getByRole('button', { name: 'Zamknij', exact: true }).click()
   await page.getByRole('group', { name: 'Pierwszy blok', exact: true }).getByRole('button', { name: 'Technika', exact: true }).click()
@@ -36,20 +37,21 @@ test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round 
   await addTechniqueBlock(page)
 
   await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
+  await expect(page.getByRole('heading', { name: 'Ćwiczenie', exact: true })).toBeVisible()
   await expect(format(page, '3 × 3:00 · przerwa 1:00')).toBeChecked()
   await press(page, 'Zmniejsz liczbę rund o 1', 1)
   await press(page, 'Zmniejsz czas rundy o 15 s', 8)
   await press(page, 'Zmniejsz przerwę o 15 s', 2)
   await expect(stepperValue(page, 'Rundy')).toHaveText('2')
-  await expect(stepperValue(page, 'Czas rundy')).toHaveText('01:00')
-  await expect(stepperValue(page, 'Przerwa')).toHaveText('00:30')
+  await expect(stepperValue(page, 'Czas rundy')).toHaveText('1:00')
+  await expect(stepperValue(page, 'Przerwa')).toHaveText('0:30')
   await expect(format(page, '3 × 3:00 · przerwa 1:00')).not.toBeChecked()
   await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 
   await chooseLibraryExercise(page, 'Lewy prosty → lewy prosty → prawy prosty')
   await expect(stepperValue(page, 'Rundy')).toHaveText('2')
-  await expect(stepperValue(page, 'Czas rundy')).toHaveText('01:00')
-  await expect(stepperValue(page, 'Przerwa')).toHaveText('00:30')
+  await expect(stepperValue(page, 'Czas rundy')).toHaveText('1:00')
+  await expect(stepperValue(page, 'Przerwa')).toHaveText('0:30')
   await expect(page.getByRole('group', { name: 'Gotowe formaty', exact: true }).getByRole('radio')).toHaveCount(3)
   for (const name of ['3 × 3:00 · przerwa 1:00', '3 × 3:00 · przerwa 0:30', '5 × 3:00 · przerwa 1:00']) {
     await expect(format(page, name)).not.toBeChecked()
@@ -72,7 +74,12 @@ test('builds a boxing plan of 2 × 1:00 with 0:30 rest without typing the round 
   expect(Math.min(...sizes)).toBeGreaterThanOrEqual(44)
 
   await captureConfiguration(page, testInfo, 'dark')
+  const restSegment = page.locator('.exercise-config-structure-rest').first()
+  await expect(restSegment).toHaveCSS('background-image', /^repeating-linear-gradient/)
+  const darkPattern = await restSegment.evaluate((element) => getComputedStyle(element).backgroundImage)
   await app.setTheme('light')
+  await expect(restSegment).toHaveCSS('background-image', /^repeating-linear-gradient/)
+  await expect(restSegment).not.toHaveCSS('background-image', darkPattern)
   await captureConfiguration(page, testInfo, 'light')
   await app.setTheme('dark')
 
@@ -92,9 +99,9 @@ test('steps the round time by 15 s, updates the total live and accepts a typed v
   const structure = page.getByRole('region', { name: 'Struktura ćwiczenia', exact: true })
   await expect(structure).toContainText('Łącznie: 11:00')
   await page.getByRole('button', { name: 'Zwiększ czas rundy o 15 s', exact: true }).click()
-  await expect(stepperValue(page, 'Czas rundy')).toHaveText('03:15')
+  await expect(stepperValue(page, 'Czas rundy')).toHaveText('3:15')
   await expect(structure).toContainText('Łącznie: 11:45')
-  await expect(structure).toContainText('Rundy (03:15)')
+  await expect(structure).toContainText('Rundy (3:15)')
 
   await stepperValue(page, 'Rundy').click()
   const rounds = page.getByRole('textbox', { name: 'Rundy', exact: true })
@@ -110,12 +117,46 @@ test('steps the round time by 15 s, updates the total live and accepts a typed v
   await expect(structure).toContainText('Łącznie: 20:15')
 
   await stepperValue(page, 'Czas rundy').click()
-  await page.getByRole('textbox', { name: 'Czas rundy', exact: true }).fill('3:00')
-  await page.getByRole('textbox', { name: 'Czas rundy', exact: true }).press('Enter')
+  const roundTime = page.getByRole('textbox', { name: 'Czas rundy', exact: true })
+  await roundTime.fill('180')
+  await expect(roundTime).toHaveAccessibleDescription('3:00')
+  await roundTime.press('Enter')
   await expect(format(page, '5 × 3:00 · przerwa 1:00')).toBeChecked()
 
+  await stepperValue(page, 'Przerwa').click()
+  const restTime = page.getByRole('textbox', { name: 'Przerwa', exact: true })
+  await restTime.fill('0:45')
+  await expect(restTime).toHaveAccessibleDescription('0:45')
+  await restTime.press('Enter')
   await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
-  await expect(page.getByText('5 × 3:00 / 1:00', { exact: true })).toBeVisible()
+  await expect(page.getByText('5 × 3:00 / 0:45', { exact: true })).toBeVisible()
+})
+
+test('previews continuous time and rejects invalid time on submit', async ({ app, page }) => {
+  await app.open('/workouts/new')
+  await addTechniqueBlock(page)
+  await chooseLibraryExercise(page, 'Lewy prosty → prawy prosty')
+  await page.getByRole('radio', { name: 'Ciągłe', exact: true }).check()
+  await stepperValue(page, 'Czas').click()
+
+  const time = page.getByRole('textbox', { name: 'Czas', exact: true })
+  const preview = page.getByRole('group', { name: 'Czas', exact: true }).getByRole('status')
+  const submit = page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true })
+  await time.fill('90')
+  await expect(preview).toBeVisible()
+  await expect(preview).toHaveText('1:30')
+  await expect(time).toHaveAccessibleDescription('1:30')
+  await time.fill('1:60')
+  await expect(preview).toBeEmpty()
+  await submit.click()
+  await expect(page.getByRole('alert')).toHaveText('Wpisz czas jako m:ss albo liczbę sekund, od 0:01 do 1440:00.')
+  await expect(time).toHaveAttribute('aria-invalid', 'true')
+  await expect(page.getByRole('heading', { name: 'Ćwiczenie', exact: true })).toBeVisible()
+
+  await time.fill('1:30')
+  await expect(time).toHaveAccessibleDescription('1:30')
+  await submit.click()
+  await expect(page.getByText('Ciągłe · 1:30', { exact: true })).toBeVisible()
 })
 
 test('shares the focus skill between the exercise screen and the timeline', async ({ app, page }) => {
@@ -143,7 +184,7 @@ test('shares the focus skill between the exercise screen and the timeline', asyn
   await expect(picker.getByRole('switch')).toHaveAttribute('aria-checked', 'false')
   await picker.getByRole('switch').click()
   await picker.getByRole('radio', { name: /^Powrót do gardy/ }).check()
-  await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
+  await page.getByRole('button', { name: 'Zapisz zmiany', exact: true }).click()
 
   await app.savePlan()
   await expect.poll(async () => (await app.readPlans())[0]?.blocks[0]?.items[0]).toMatchObject({ focusSkillId: 'guard' })

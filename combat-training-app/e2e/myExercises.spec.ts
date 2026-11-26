@@ -64,7 +64,7 @@ test('reuses a personal exercise across two rated plans, keeps one focus trend a
   await page.getByRole('searchbox', { name: 'Szukaj ćwiczenia', exact: true }).fill('ZOLW lewy SIERP')
   await page.getByRole('button', { name: exerciseName, exact: true }).click()
   await expect(page.getByRole('radio', { name: 'Ciągłe', exact: true })).toBeChecked()
-  await expect(page.getByRole('button', { name: /^Czas: / })).toHaveText('00:05')
+  await expect(page.getByRole('button', { name: /^Czas: / })).toHaveText('0:05')
   await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
   await page.getByRole('button', { name: /^Akcje ćwiczenia / }).click()
   await page.getByRole('switch', { name: 'Element do poprawy · Oceniaj po treningu', exact: true }).click()
