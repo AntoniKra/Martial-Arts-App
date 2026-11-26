@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { continuousExercise, roundsExercise, workoutBreak } from '@/test/workoutBuilders'
 import {
+  formatBlockDescriptorGenitive,
   formatExerciseParams,
   splitTrailingBreaks,
   summarizeBlockTime,
@@ -69,5 +70,11 @@ describe('splitTrailingBreaks', () => {
 
   it('returns nothing for an empty block', () => {
     expect(splitTrailingBreaks([])).toEqual({ inside: [], trailing: [] })
+  })
+})
+
+describe('formatBlockDescriptorGenitive', () => {
+  it('names the block in the genitive case used by list labels', () => {
+    expect(formatBlockDescriptorGenitive(2, 'Technika')).toBe('bloku 2 — Technika')
   })
 })

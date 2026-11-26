@@ -5,13 +5,13 @@ import { useWorkoutData } from '@/application/workoutDataContext'
 import type { WorkoutExercise, WorkoutItem } from '@/domain/workout/workout.types'
 import { FocusSkillPicker } from '@/features/focus-skills/FocusSkillPicker'
 import { RowActionIcon } from '@/features/workout-builder/components/BlockTypeIcon'
+import { TimelineExerciseMain } from '@/features/workout-builder/components/TimelineParts'
 import type { FocusRestoreTarget } from '@/features/workout-builder/components/workoutBuilderUi.types'
 import type { WorkoutBuilderAction } from '@/features/workout-builder/state/workoutBuilder.types'
 import {
   canMoveItemDown,
   canMoveItemUp,
 } from '@/features/workout-builder/state/workoutBuilder.selectors'
-import { formatExerciseParams } from '@/features/workout-builder/utils/timelinePresentation'
 import { workoutBuilderLabels as labels } from '@/features/workout-builder/workoutBuilderLabels'
 
 interface WorkoutExerciseCardProps {
@@ -73,29 +73,24 @@ export function WorkoutExerciseCard({
 
   return (
     <li className={`wb-row${isExpanded ? ' is-expanded' : ''}`}>
-      <div className="wb-row-main">
-        <span className="wb-node" aria-hidden="true" />
-        <div className="wb-row-text">
-          <h4 ref={registerExerciseHeadingRef} tabIndex={-1} className="wb-row-name">
-            {exercise.exerciseNameSnapshot}
-          </h4>
-          <p className="wb-row-details">
-            <span className="wb-row-params">{formatExerciseParams(exercise.configuration, labels.continuous)}</span>
-            {focusSkill ? <span className="wb-row-focus">· {labels.focusMark} {focusSkill.name}</span> : null}
-          </p>
-        </div>
-        <button
-          ref={registerExerciseToggleRef}
-          type="button"
-          className="wb-row-toggle"
-          aria-label={labels.exerciseActions(exerciseContext)}
-          aria-expanded={isExpanded}
-          aria-controls={isExpanded ? panelId : undefined}
-          onClick={onToggle}
-        >
-          <span aria-hidden="true">⋯</span>
-        </button>
-      </div>
+      <TimelineExerciseMain
+        exercise={exercise}
+        focusSkillName={focusSkill?.name}
+        headingRef={registerExerciseHeadingRef}
+        action={
+          <button
+            ref={registerExerciseToggleRef}
+            type="button"
+            className="wb-row-toggle"
+            aria-label={labels.exerciseActions(exerciseContext)}
+            aria-expanded={isExpanded}
+            aria-controls={isExpanded ? panelId : undefined}
+            onClick={onToggle}
+          >
+            <span aria-hidden="true">⋯</span>
+          </button>
+        }
+      />
 
       {isExpanded ? (
         <div id={panelId} className="wb-row-panel">
