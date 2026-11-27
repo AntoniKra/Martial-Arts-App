@@ -178,6 +178,7 @@ for (const theme of ['dark', 'light'] as const) {
       await expect(plansShortcut).toHaveCSS('padding', '12px 14px')
       await expect(plansShortcut).toHaveCSS('height', '62px')
       await expect(plansShortcut).toHaveCSS('border-radius', '4px')
+      await expect(plansShortcut).toHaveCSS('background-color', theme === 'dark' ? 'rgb(22, 22, 24)' : 'rgb(255, 255, 255)')
       await exercisesShortcut.click()
       await expect(page).toHaveURL('/exercises')
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Moje ćwiczenia')
@@ -215,6 +216,9 @@ for (const theme of ['dark', 'light'] as const) {
       await expect(week).toBeChecked()
       await expect(planNav).toHaveAttribute('aria-current', 'page')
       await expect(page.getByRole('list', { name: 'Dni planu tygodnia', exact: true })).toBeVisible()
+      await expect(page.getByRole('button', { name: /^Stały tydzień/ })).toHaveCSS(
+        'background-color', theme === 'dark' ? 'rgb(23, 23, 25)' : 'rgb(255, 255, 255)',
+      )
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
 
       const training = nav.getByRole('button', { name: 'Trening', exact: true })

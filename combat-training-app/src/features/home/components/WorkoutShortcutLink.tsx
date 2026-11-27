@@ -10,7 +10,7 @@ const shortcuts = {
 
 export function WorkoutShortcutLink({ kind }: { kind: keyof typeof shortcuts }) {
   const { title, description, to, icon } = shortcuts[kind]
-  return <Link to={to} className="workout-shortcut">
+  return <Link to={to} className="workout-shortcut bg-[var(--app-home-surface)]">
     <span className="workout-shortcut-icon"><HomeActionIcon kind={icon} className="size-5" strokeWidth={2} /></span>
     <span className="min-w-0 flex-1">
       <span className="block font-display text-[13.5px] font-bold">{title}</span>

@@ -234,7 +234,7 @@
 .home-next-date span { font-size: 10px; font-weight: 800; color: var(--app-crimson-ink); letter-spacing: 0.05em; }
 .home-next-date b { font-family: var(--font-display); font-size: 16px; font-weight: 800; margin-top: 1px; }
 .home-flexible-workout { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; min-height: 44px; border: 1px dashed var(--app-border); background: transparent; border-radius: var(--app-radius-sm); font-size: 12px; font-weight: 600; color: var(--app-muted); }
-.workout-shortcut { display: flex; width: 100%; align-items: center; gap: 12px; padding: 12px 14px; min-height: var(--app-touch-min); border: 1px solid var(--app-border); background: var(--app-home-surface); border-radius: var(--app-radius-sm); line-height: normal; text-align: left; }
+.workout-shortcut { display: flex; width: 100%; align-items: center; gap: 12px; padding: 12px 14px; min-height: var(--app-touch-min); border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); line-height: normal; text-align: left; }
 .workout-shortcut-icon { display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-elevated); color: var(--app-crimson-ink); }
 
 .plan-segments [role='radiogroup'] { background: var(--app-home-surface); border-radius: 2px; }
