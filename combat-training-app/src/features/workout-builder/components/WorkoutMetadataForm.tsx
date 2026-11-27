@@ -1,7 +1,6 @@
-import { ChoiceTile } from '@/components/ui/ChoiceTile'
 import type { Dispatch } from 'react'
 
-import { DisciplineBadge } from '@/components/domain/DisciplineBadge'
+import { DisciplinePicker } from '@/components/ui/DisciplinePicker'
 import type {
   WorkoutBuilderAction,
   WorkoutBuilderState,
@@ -9,7 +8,6 @@ import type {
 import {
   CUSTOM_NAME_MAX_LENGTH,
   MAIN_GOAL_MAX_LENGTH,
-  WORKOUT_BUILDER_DISCIPLINE_KEYS,
 } from '@/features/workout-builder/state/workoutBuilder.types'
 import { selectCanEditDiscipline } from '@/features/workout-builder/state/workoutBuilder.selectors'
 
@@ -24,6 +22,8 @@ const fieldClassName =
 const labelClassName =
   'mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-faint'
 
+const disciplineLabel = 'Dyscyplina'
+
 function normalizeOptionalText(value: string): string | null {
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed : null
@@ -37,20 +37,10 @@ export function WorkoutMetadataForm({ state, dispatch }: WorkoutMetadataFormProp
 
   return (
     <div className="space-y-6">
-      <fieldset className="space-y-3" disabled={!canEditDiscipline}>
-        <legend className={labelClassName}>Dyscyplina</legend>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {WORKOUT_BUILDER_DISCIPLINE_KEYS.map((disciplineKey) => {
-            const isSelected = draft.disciplineKey === disciplineKey
-
-            return (
-              <ChoiceTile key={disciplineKey} name="workout-builder-discipline" value={disciplineKey}
-                checked={isSelected} onChange={() => dispatch({ type: 'setDiscipline', disciplineKey })} className="compact-choice">
-                <DisciplineBadge disciplineKey={disciplineKey} className="text-[11px]" />
-              </ChoiceTile>
-            )
-          })}
-        </div>
+      <fieldset className="space-y-2" disabled={!canEditDiscipline}>
+        <legend className={labelClassName}>{disciplineLabel}</legend>
+        <DisciplinePicker label={disciplineLabel} value={draft.disciplineKey}
+          onChange={(disciplineKey) => dispatch({ type: 'setDiscipline', disciplineKey })} />
         {!canEditDiscipline ? (
           <p className="text-[13px] leading-relaxed text-muted">
             Dyscyplina jest zablokowana po dodaniu pierwszego ćwiczenia.
