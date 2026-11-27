@@ -131,8 +131,8 @@ test('archives offline with two plans, keeps history, and restores without resto
   // transfer its IndexedDB primary lease and can defer server writes for five seconds.
   const nav = page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true })
   for (const name of ['Worek', 'Tarcze']) {
-    await nav.getByRole('button', { name: 'Trening', exact: true }).click()
-    await page.getByRole('dialog', { name: 'Nowy trening', exact: true }).getByRole('link', { name: /^Moje plany/ }).click()
+    await nav.getByRole('link', { name: 'Plan', exact: true }).click()
+    await page.getByRole('radio', { name: 'Moje plany', exact: true }).check()
     await page.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) })
       .getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     await expect(page.getByText(/^· ★ /)).toHaveCount(0)

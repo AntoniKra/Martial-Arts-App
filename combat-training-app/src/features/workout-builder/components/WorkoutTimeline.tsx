@@ -10,7 +10,8 @@ import type {
   FocusRestoreTarget,
 } from '@/features/workout-builder/components/workoutBuilderUi.types'
 import { WorkoutBlockCard } from '@/features/workout-builder/components/WorkoutBlockCard'
-import { createWorkoutBlock } from '@/features/workout-builder/state/workoutBuilder.factories'
+import { WorkoutBreakSheet } from '@/features/workout-builder/components/WorkoutBreakSheet'
+import { createWorkoutBlock, createWorkoutBreak } from '@/features/workout-builder/state/workoutBuilder.factories'
 import type {
   WorkoutBuilderAction,
   WorkoutBuilderState,
@@ -208,6 +209,9 @@ export function WorkoutTimeline({
 
   function openInlinePanel(panel: Exclude<ActiveInlinePanel, null>) {
     setIsPickerOpen(false)
+    if (panel.type === 'addBreak' || panel.type === 'editBreak') {
+      setExpandedId(null)
+    }
     setActiveInlinePanel(panel)
   }
 
@@ -238,6 +242,12 @@ export function WorkoutTimeline({
     setIsPickerOpen(false)
     scheduleFocusRestore({ type: 'addBlock' })
   }
+
+  const editingBreakItem = resolvedPanel?.type === 'editBreak'
+    ? blocks
+      .find((block) => block.id === resolvedPanel.blockId)
+      ?.items.find((item) => item.id === resolvedPanel.itemId && item.type === 'break')
+    : undefined
 
   return (
     <section ref={sectionRef} aria-labelledby="workout-builder-timeline-heading" className="flex flex-col gap-[14px]">
@@ -280,6 +290,42 @@ export function WorkoutTimeline({
           <TimelinePlusIcon strokeWidth={2.6} />
           {labels.addNextBlock}
         </button>
+      ) : null}
+
+      {resolvedPanel?.type === 'addBreak' ? (
+        <WorkoutBreakSheet
+          key={`add:${resolvedPanel.blockId}`}
+          mode="add"
+          onCancel={() => closeInlinePanel({ type: 'addBreak', blockId: resolvedPanel.blockId })}
+          onSubmit={(durationSeconds, instruction) => {
+            dispatch({
+              type: 'addBreak',
+              blockId: resolvedPanel.blockId,
+              breakItem: createWorkoutBreak(durationSeconds, instruction),
+            })
+            closeInlinePanel({ type: 'addBreak', blockId: resolvedPanel.blockId })
+          }}
+        />
+      ) : null}
+
+      {resolvedPanel?.type === 'editBreak' && editingBreakItem?.type === 'break' ? (
+        <WorkoutBreakSheet
+          key={`edit:${resolvedPanel.itemId}`}
+          mode="edit"
+          initialDurationSeconds={editingBreakItem.durationSeconds}
+          initialInstruction={editingBreakItem.instruction}
+          onCancel={() => closeInlinePanel({ type: 'editBreak', itemId: resolvedPanel.itemId })}
+          onSubmit={(durationSeconds, instruction) => {
+            dispatch({
+              type: 'updateBreak',
+              blockId: resolvedPanel.blockId,
+              breakId: resolvedPanel.itemId,
+              durationSeconds,
+              instruction,
+            })
+            closeInlinePanel({ type: 'editBreak', itemId: resolvedPanel.itemId })
+          }}
+        />
       ) : null}
     </section>
   )

@@ -1,0 +1,264 @@
+/* Break bottom sheet in the plan builder (#274, approved variants P1 A · P2 B · P3 B · P4 A). */
+
+.break-sheet {
+  position: fixed;
+  inset: auto 0 0;
+  width: 100%;
+  max-width: none;
+  max-height: calc(100dvh - 64px);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 0;
+  border-top: 2px solid var(--app-ember);
+  border-radius: var(--app-radius-sm) var(--app-radius-sm) 0 0;
+  background: var(--app-bg);
+  color: var(--app-ink);
+}
+
+.break-sheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.break-sheet::backdrop {
+  background: rgb(0 0 0 / 0.62);
+}
+
+:root[data-theme='light'] .break-sheet::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+
+@media (min-width: 768px) {
+  .break-sheet {
+    width: min(100%, 32rem);
+    margin-inline: auto;
+  }
+}
+
+.break-sheet-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 8px 16px 0;
+}
+
+.break-sheet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* P1 A: four preset tiles in one row. */
+.break-sheet-section {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.break-sheet-section-title {
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-faint);
+}
+
+fieldset.break-sheet-section > .break-sheet-section-title {
+  margin-bottom: 10px;
+}
+
+.break-sheet-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.break-sheet-preset {
+  position: relative;
+  display: flex;
+  min-height: var(--app-touch-min);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 6px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-surface);
+  color: var(--app-ink);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  cursor: pointer;
+}
+
+.break-sheet-preset:hover {
+  background: var(--app-elevated);
+}
+
+.break-sheet-preset[aria-pressed='true'] {
+  padding: 9px 5px;
+  border: 2px solid var(--app-crimson-ink);
+  background: color-mix(in srgb, var(--app-crimson) 15%, var(--app-surface));
+  box-shadow: inset 0 0 0 1px var(--app-crimson);
+}
+
+.break-sheet-preset:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+/* P2 B: prominent duration value flanked by −15 s / +15 s buttons with M5 corners. */
+.break-stepper-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.break-stepper-label {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.break-stepper-row {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 76px;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-surface);
+}
+
+.break-stepper-row .exercise-config-step {
+  height: 56px;
+  min-height: 56px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+.break-stepper-mid {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.break-stepper-input-wrap {
+  display: flex;
+  width: 100%;
+  min-height: 56px;
+  align-items: center;
+  justify-content: center;
+  cursor: text;
+}
+
+.break-stepper-row .exercise-config-stepper-value {
+  min-height: 56px;
+  margin: 0;
+  font-size: 40px;
+}
+
+.break-stepper-row .exercise-config-stepper-value[data-long] {
+  font-size: 30px;
+}
+
+.break-stepper-row .exercise-config-stepper-input {
+  width: 100%;
+  max-width: 100%;
+  height: 44px;
+  min-height: 0;
+  margin: 0;
+  font-size: 36px;
+}
+
+.break-stepper-row .exercise-config-stepper-input[data-long] {
+  font-size: 28px;
+}
+
+.break-stepper-preview {
+  margin: 0;
+}
+
+.break-stepper-hint {
+  margin-top: 2px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--app-muted);
+}
+
+/* P3 B: optional instruction field always visible. */
+.break-sheet-field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-faint);
+}
+
+.break-sheet-field-optional {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.break-sheet-field-input {
+  display: block;
+  width: 100%;
+  min-height: var(--app-touch-min);
+  padding: 8px 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 0;
+  background: var(--app-input);
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--app-ink);
+}
+
+.break-sheet-field-input::placeholder {
+  color: var(--app-faint);
+}
+
+/* Primary action bar at the bottom of the sheet. */
+.break-sheet-submit-bar {
+  margin: 0 -16px;
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid color-mix(in srgb, var(--app-ink) 8%, transparent);
+  background: var(--app-bg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .break-sheet[open] {
+    animation: break-sheet-open var(--motion-med) var(--ease-out);
+  }
+
+  @keyframes break-sheet-open {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .break-sheet-preset {
+    transition: background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
+  }
+}

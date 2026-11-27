@@ -19,9 +19,9 @@ export function WorkoutListContent({ history = false }: { history?: boolean }) {
   const [planDeleted] = useState(() => isPlanDeletedNavigationState(location.state))
   useEffect(() => {
     if (isPlanDeletedNavigationState(location.state)) {
-      navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
+      navigate({ pathname: location.pathname, search: location.search, hash: location.hash }, { replace: true, state: null })
     }
-  }, [location.pathname, location.search, location.state, navigate])
+  }, [location.pathname, location.search, location.hash, location.state, navigate])
   const { plans, sessions, sessionRepository, retry } = useWorkoutData()
   const params = new URLSearchParams(location.search)
   const requestedWeek = history ? params.get('week') : null

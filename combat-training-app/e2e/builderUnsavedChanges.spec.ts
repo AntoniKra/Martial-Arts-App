@@ -88,7 +88,7 @@ test('leaves a clean builder and still warns the browser before unload', async (
   await expect(saveChanges(page)).toHaveCount(0)
   await closeButton(page).click()
   await expect(discardDialog(page)).toHaveCount(0)
-  await expect(page.getByRole('heading', { name: 'Moje plany', exact: true })).toBeVisible()
+  await expect(page.getByRole('radio', { name: 'Moje plany', exact: true })).toBeChecked()
 
   await app.createPlan('Plan bez zmian')
   await openEdit(page)

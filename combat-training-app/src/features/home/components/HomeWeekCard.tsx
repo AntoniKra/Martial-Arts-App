@@ -52,9 +52,5 @@ export function HomeWeekCard({ weekStart, schedule, progress, today }: {
         <span className="min-w-0 break-words">+ {labels.flexibleAction}: {activityTitle(item)}</span><span aria-hidden="true">›</span>
       </Link>)}
     </section>}
-    <Link to={routes.workouts} className="home-other-plans">
-      <span aria-hidden="true" className="home-other-icon"><HomeActionIcon kind="timer" /></span>
-      <span className="min-w-0 flex-1"><span className="block font-display text-sm font-bold">{labels.otherPlans}</span><span className="block text-[11px] text-muted">{labels.otherPlansHint}</span></span><span aria-hidden="true" className="text-muted">›</span>
-    </Link>
   </section>
 }

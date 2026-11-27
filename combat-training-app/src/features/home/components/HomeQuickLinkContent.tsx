@@ -1,7 +1,7 @@
 import { HomeActionIcon } from './HomeActionIcon'
 
 export function HomeQuickLinkContent({ icon, title, subtitle }: {
-  icon: 'book' | 'clock' | 'heart'
+  icon: 'clock' | 'heart'
   title: string
   subtitle: string
 }) {

@@ -14,8 +14,10 @@ export function createWorkoutBlock(blockType: WorkoutBlockType): WorkoutBlock {
   }
 }
 
+export const DEFAULT_BREAK_DURATION_SECONDS = 60
+
 export function createWorkoutBreak(
-  durationSeconds = 60,
+  durationSeconds = DEFAULT_BREAK_DURATION_SECONDS,
   instruction: string | null = null,
 ): WorkoutBreak {
   return {

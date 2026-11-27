@@ -1,9 +1,7 @@
-import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/routes'
-import { homeLabels } from '@/features/home/homeLabels'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
 import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 import { HistoryJournal } from './HistoryJournal'
@@ -200,25 +198,20 @@ export function WorkoutsView({
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
-      <div className={tab === 'plans' ? 'mx-auto w-full max-w-lg shrink-0 px-4 pt-6 md:max-w-4xl md:pt-2' : 'w-full shrink-0'}>
-        {tab === 'plans' && <>
-          <RouteScreenHeader title={workoutPlanLabels.listTitle} fallback={routes.home} />
-          <Link to={routes.quickTimer} className="mr-4 inline-flex min-h-touch items-center text-sm font-semibold text-crimson-ink">{homeLabels.timerRounds}</Link>
-          <Link to={routes.myExercises} className="inline-flex min-h-touch items-center text-sm font-semibold text-crimson-ink">Moje ćwiczenia</Link>
-        </>}
+    <div className={tab === 'plans' ? 'flex flex-col' : 'flex flex-1 flex-col overflow-hidden'}>
+      <div className="w-full shrink-0">
         {planDeleted ? (
-          <p role="status" className="mt-3 border border-bd bg-surface px-3 py-3 text-[13px] text-ink">
+          <p role="status" className="mb-3 border border-bd bg-surface px-3 py-3 text-[13px] text-ink">
             {workoutPlanLabels.deleted}
           </p>
         ) : null}
-        <div className={tab === 'plans' ? 'mt-3 pb-3' : 'pb-3'}>
+        <div className="pb-3">
           <WorkoutsFilters filters={filters} onChange={setFilters} idPrefix="workouts" addAction={createWorkoutLink} history={tab === 'history'} />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className={tab === 'plans' ? 'mx-auto w-full max-w-lg px-4 pb-4 md:max-w-4xl md:pb-6' : 'w-full pb-4 md:pb-6'}>
+      <div className={tab === 'plans' ? undefined : 'flex-1 overflow-y-auto'}>
+        <div className={tab === 'plans' ? 'w-full' : 'w-full pb-4 md:pb-6'}>
           {tab === 'plans' ? (
             <section aria-labelledby="workouts-plans-heading" className="space-y-3">
               <h2 id="workouts-plans-heading" className="sr-only">
