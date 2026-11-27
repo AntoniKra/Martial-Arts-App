@@ -53,11 +53,3 @@ export const DEFAULT_ROUND_EXERCISE_CONFIGURATION = {
   roundDurationSeconds: 180,
   restBetweenRoundsSeconds: 60,
 } as const satisfies ExerciseConfiguration
-
-export const WORKOUT_BUILDER_DISCIPLINE_KEYS = [
-  'boxing',
-  'kickboxing',
-  'muay_thai',
-  'k1',
-  'mma_striking',
-] as const satisfies readonly DisciplineKey[]

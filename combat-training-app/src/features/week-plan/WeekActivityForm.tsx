@@ -1,11 +1,9 @@
 import { Switch } from '@/components/ui/Switch'
 import { MultiChoiceChip } from '@/components/ui/MultiChoiceChip'
-import { ChoiceTile } from '@/components/ui/ChoiceTile'
+import { DisciplinePicker } from '@/components/ui/DisciplinePicker'
 import { useId, useState } from 'react'
 import type { WeekActivity, Weekday } from '@/domain/week-plan/weekPlan.types'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
-import type { DisciplineKey } from '@/domain/discipline/discipline.types'
-import { DISCIPLINE_LABELS_PL } from '@/domain/discipline/disciplineLabels'
 import { MANUAL_WORKOUT_PARTS } from '@/domain/workout-session/workoutSession.types'
 import { manualPartLabel } from '@/features/manual-workout/manualWorkoutLabels'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
@@ -54,7 +52,7 @@ export function WeekActivityForm({ initial, defaultDay, recurring, plans, onSave
         set('days', day === undefined ? [] : [day])
       }}><option value="">Wybierz dzień</option>{weekdays.map(({ day, name }) => <option key={day} value={day}>{name}</option>)}</select></label>}
       {draft.kind === 'club' && <fieldset><legend className={legend}>{labels.discipline}</legend>
-        <div className="flex flex-wrap gap-1.5">{Object.entries(DISCIPLINE_LABELS_PL).map(([key, name]) => <ChoiceTile key={key} value={key} className="compact-choice" name="week-discipline" checked={draft.disciplineKey === key} onChange={() => set('disciplineKey', key as DisciplineKey)}>{name}</ChoiceTile>)}</div>
+        <DisciplinePicker label={labels.discipline} value={draft.disciplineKey || null} onChange={(value) => set('disciplineKey', value)} />
       </fieldset>}
       {draft.kind === 'own' && <>
         <label className="space-y-1 text-sm">{labels.category}<select className={input} value={draft.category} onChange={(event) => {

@@ -94,6 +94,7 @@
   --app-discipline-muay-thai: #f06b82;
   --app-discipline-k1: #7b9fd4;
   --app-discipline-mma-striking: #a7a7aa;
+  --app-discipline-picker-surface: #161618;
   --app-radius-sm: 4px;
   --app-touch-min: 2.75rem;
   --app-ember: #f0753a;
@@ -137,6 +138,7 @@
   --app-discipline-muay-thai: #b5122b;
   --app-discipline-k1: #365d91;
   --app-discipline-mma-striking: #5f5f63;
+  --app-discipline-picker-surface: var(--app-surface);
   --app-ember: #f0753a;
   --app-ember-ink: #9a370e;
   --app-success: #3fb56b;
@@ -738,6 +740,17 @@ button.m5-flat-control:hover:not(:disabled) { background: var(--app-border); col
 
 .disclosure-trigger:focus-visible { outline-offset: -3px; }
 .compact-choice input:checked + .choice-face { background: color-mix(in srgb, var(--app-crimson) 14%, var(--app-surface)); }
+
+.discipline-picker .choice-face { background: var(--app-discipline-picker-surface); }
+.discipline-picker-label { font-size: 11px; line-height: 1.2; }
+.discipline-picker input:checked + .choice-face {
+  padding: 9px 11px;
+  background: color-mix(in srgb, var(--app-crimson) 14%, var(--app-discipline-picker-surface));
+  box-shadow: none;
+}
+.discipline-picker input:disabled + .choice-face { opacity: .5; }
+.discipline-picker input:disabled:checked + .choice-face { opacity: 1; }
+.discipline-picker .choice-option:hover input:not(:checked):not(:disabled) + .choice-face { background: var(--app-elevated); }
 
 /* State colours remain available with reduced motion. No shadow or layout transitions. */
 .motion-controls :is(.primary-action, .motion-press, .choice-face, .multi-chip-face, .multi-chip-button, .switch-track),
