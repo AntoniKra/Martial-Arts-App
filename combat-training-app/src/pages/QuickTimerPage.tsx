@@ -1,32 +1,34 @@
 import { RouteScreenHeader } from '@/components/ScreenHeader'
-import { useRef, useState, type FormEvent } from 'react'
+import { useId, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { routes } from '@/app/routes'
 import { useAuth } from '@/features/auth/authContext'
 import { useWorkoutData } from '@/application/workoutDataContext'
-import { createQuickTimerPlan, adjustQuickTimerSeconds, quickTimerDuration, validateQuickTimerConfig, type QuickTimerDraft, type QuickTimerErrors } from '@/domain/quick-timer/quickTimer'
+import { createQuickTimerPlan, adjustQuickTimerSeconds, quickTimerDuration, resolveQuickTimerDefaults, validateQuickTimerConfig, type QuickTimerDraft, type QuickTimerErrors } from '@/domain/quick-timer/quickTimer'
 import { ROUND_FORMAT_PRESETS } from '@/domain/workout/roundFormatPresets'
-import { DISCIPLINE_LABELS_PL } from '@/domain/discipline/disciplineLabels'
-import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { createQuickTimerStorage } from '@/infrastructure/storage/quickTimerStorage'
 import { profileSettingsLabels } from '@/features/profile/profileSettingsLabels'
 import { Button } from '@/components/ui/Button'
-import { QuickTimerCategoryField } from '@/features/quick-timer/QuickTimerCategoryField'
 import { quickTimerLabels as labels } from '@/features/quick-timer/quickTimerLabels'
+import '@/features/quick-timer/quickTimer.css'
 
 function Counter({ label, value, display, onChange, minimum, maximum, error }: {
   label: string; value: number; display: string; onChange: (direction: -1 | 1) => void; minimum: number; maximum: number; error?: string
 }) {
-  return <fieldset className="space-y-2">
-    <legend className="mb-2 text-xs font-semibold text-muted">{label}</legend>
-    <div className="flex items-center justify-between border border-bd bg-surface">
-      <button type="button" aria-label={`Zmniejsz: ${label}`} disabled={value <= minimum} onClick={() => onChange(-1)} className="min-h-touch w-14 text-xl text-ink disabled:opacity-40">−</button>
-      <output aria-label={label} className="font-display text-xl font-semibold tabular-nums text-ink">{display}</output>
-      <button type="button" aria-label={`Zwiększ: ${label}`} disabled={value >= maximum} onClick={() => onChange(1)} className="min-h-touch w-14 text-xl text-ink disabled:opacity-40">+</button>
+  const labelId = useId()
+  const errorId = `${labelId}-error`
+  return <div role="group" aria-labelledby={labelId} className="quick-timer-counter">
+    <span id={labelId} className="quick-timer-counter-label">{label}</span>
+    <output aria-labelledby={labelId} className="quick-timer-counter-value">{display}</output>
+    <div className="grid w-full grid-cols-2 gap-1">
+      <button type="button" aria-label={labels.decrease(label)} aria-invalid={!!error} aria-describedby={error ? errorId : undefined}
+        disabled={value <= minimum} onClick={() => onChange(-1)} className="m5-flat-control quick-timer-counter-button">−</button>
+      <button type="button" aria-label={labels.increase(label)} aria-invalid={!!error} aria-describedby={error ? errorId : undefined}
+        disabled={value >= maximum} onClick={() => onChange(1)} className="m5-flat-control quick-timer-counter-button">+</button>
     </div>
-    {error && <p role="alert" className="text-xs text-crimson-ink">{error}</p>}
-  </fieldset>
+    {error && <p id={errorId} role="alert" className="text-xs text-crimson-ink">{error}</p>}
+  </div>
 }
 
 function QuickTimerSettings({ uid }: { uid: string }) {
@@ -36,52 +38,54 @@ function QuickTimerSettings({ uid }: { uid: string }) {
   const [draft, setDraft] = useState(storage.read)
   const [errors, setErrors] = useState<QuickTimerErrors>({})
   const form = useRef<HTMLFormElement>(null)
-  const latest = [...sessions.items].sort((a, b) => b.workoutDate.localeCompare(a.workoutDate) || b.createdAt.localeCompare(a.createdAt))[0]
-  const disciplineKey = draft.disciplineKey ?? latest?.disciplineKey ?? null
   function update(patch: Partial<QuickTimerDraft>) { setDraft((current) => ({ ...current, ...patch })); setErrors({}) }
+  function adjust(patch: Partial<QuickTimerDraft>) { update({ ...patch, format: 'custom' }) }
   function submit(event: FormEvent) {
     event.preventDefault()
-    const result = validateQuickTimerConfig({ ...draft, disciplineKey })
+    if (sessions.status === 'loading') return
+    const { category, disciplineKey } = resolveQuickTimerDefaults(sessions.items)
+    const result = validateQuickTimerConfig({ ...draft, category, disciplineKey })
     if (!result.ok) {
       setErrors(result.errors)
-      requestAnimationFrame(() => form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus())
+      requestAnimationFrame(() => form.current?.querySelector<HTMLElement>('[aria-invalid="true"]:not(:disabled)')?.focus())
       return
     }
     storage.save(result.config)
     const plan = createQuickTimerPlan(result.config, { planId: crypto.randomUUID(), blockId: crypto.randomUUID(), exerciseId: crypto.randomUUID(), now: new Date().toISOString() })
     void navigate(routes.quickTimerActive, { state: { quickTimerPlan: { schemaVersion: 1, ...plan } } })
   }
-  return <div className="mx-auto w-full max-w-lg px-4 py-6">
-    <div className="mb-6"><RouteScreenHeader title={labels.title} fallback={routes.home} /></div>
-    <form ref={form} noValidate onSubmit={submit} className="space-y-6">
-      <QuickTimerCategoryField value={draft.category} onChange={(category) => update({ category })} error={errors.category} />
-      <div>
-        <label htmlFor="quick-timer-discipline" className="mb-2 block font-display text-[11px] font-semibold uppercase tracking-[0.1em] text-muted">{labels.discipline}</label>
-        <select id="quick-timer-discipline" value={disciplineKey ?? ''} aria-invalid={!!errors.disciplineKey} aria-describedby={errors.disciplineKey ? 'quick-timer-discipline-error' : undefined}
-          onChange={(event) => update({ disciplineKey: event.target.value as DisciplineKey })} className="min-h-touch w-full border border-bd bg-input px-3 text-base text-ink">
-          <option value="" disabled>{labels.chooseDiscipline}</option>
-          {Object.entries(DISCIPLINE_LABELS_PL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-        </select>
-        {errors.disciplineKey && <p id="quick-timer-discipline-error" role="alert" className="mt-2 text-xs text-crimson-ink">{errors.disciplineKey}</p>}
-      </div>
-      <fieldset className="min-w-0 space-y-2">
-        <legend className="mb-2 font-display text-[11px] font-semibold uppercase tracking-[0.1em] text-muted">{labels.format}</legend>
-        {[...ROUND_FORMAT_PRESETS.map((preset) => ({ ...preset, description: 'description' in preset ? preset.description : null })), { id: 'custom' as const, label: labels.custom, description: null }].map((preset) => <button key={preset.id} type="button" aria-pressed={draft.format === preset.id}
-          onClick={() => update('roundCount' in preset ? { format: preset.id, roundCount: preset.roundCount, roundDurationSeconds: preset.roundDurationSeconds, restBetweenRoundsSeconds: preset.restBetweenRoundsSeconds } : { format: 'custom' })}
-          className={`block min-h-touch w-full p-3 text-left text-sm ${draft.format === preset.id ? 'border-2 border-crimson bg-elevated font-semibold text-ink' : 'border border-bd bg-surface text-muted'}`}>
-          {preset.label}
-          {preset.description && <span className="mt-1 block text-xs font-normal text-muted">{preset.description}</span>}
-        </button>)}
+  return <div className="quick-timer-screen mx-auto w-full max-w-lg">
+    <RouteScreenHeader title={labels.title} variant="centered" fallback={routes.home} />
+    <form ref={form} noValidate onSubmit={submit} className="quick-timer-stack">
+      <fieldset className="min-w-0">
+        <legend className="quick-timer-legend">{labels.format}</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {ROUND_FORMAT_PRESETS.map((preset) => <button key={preset.id} type="button"
+            aria-pressed={draft.format === preset.id} aria-invalid={!!errors.format}
+            aria-describedby={errors.format ? 'quick-timer-format-error' : undefined}
+            onClick={() => update({ format: preset.id, roundCount: preset.roundCount, roundDurationSeconds: preset.roundDurationSeconds, restBetweenRoundsSeconds: preset.restBetweenRoundsSeconds })}
+            className="quick-timer-choice quick-timer-format">
+            <strong>{preset.roundCount} × {formatSecondsAsClock(preset.roundDurationSeconds)}</strong>
+            <span>{labels.formatRest(formatSecondsAsClock(preset.restBetweenRoundsSeconds))}</span>
+            {'description' in preset && <span className="quick-timer-format-description">{preset.description}</span>}
+          </button>)}
+          <button type="button" aria-pressed={draft.format === 'custom'} onClick={() => update({ format: 'custom' })}
+            className="quick-timer-choice quick-timer-format">
+            <strong>{labels.custom}</strong>
+            <span>{labels.customDescription}</span>
+          </button>
+        </div>
+        {errors.format && <p id="quick-timer-format-error" role="alert" className="mt-2 text-xs text-crimson-ink">{errors.format}</p>}
       </fieldset>
-      {draft.format === 'custom' && <div className="space-y-4">
-        <Counter label={labels.rounds} value={draft.roundCount} display={String(draft.roundCount)} minimum={1} maximum={50} error={errors.roundCount} onChange={(direction) => update({ roundCount: Math.max(1, Math.min(50, draft.roundCount + direction)) })} />
-        <Counter label={labels.work} value={draft.roundDurationSeconds} display={formatSecondsAsClock(draft.roundDurationSeconds)} minimum={5} maximum={600} error={errors.roundDurationSeconds} onChange={(direction) => update({ roundDurationSeconds: adjustQuickTimerSeconds(draft.roundDurationSeconds, direction, 5, 600) })} />
-        <Counter label={labels.rest} value={draft.restBetweenRoundsSeconds} display={formatSecondsAsClock(draft.restBetweenRoundsSeconds)} minimum={0} maximum={300} error={errors.restBetweenRoundsSeconds} onChange={(direction) => update({ restBetweenRoundsSeconds: adjustQuickTimerSeconds(draft.restBetweenRoundsSeconds, direction, 0, 300) })} />
-      </div>}
-      <p className="flex items-center justify-between border-y border-bd py-4 text-sm text-muted">{labels.total}<span className="font-display text-2xl font-bold tabular-nums text-ink">{formatSecondsAsClock(quickTimerDuration(draft))}</span></p>
-      <Link to={`${routes.profile}#profile-training`} className="inline-flex min-h-touch items-center text-sm text-muted">{profileSettingsLabels.trainingLink}</Link>
-      <p className="text-xs leading-relaxed text-muted">{labels.iphone}</p>
-      <Button type="submit" size="lg" className="w-full uppercase tracking-[0.1em]">{labels.start}</Button>
+      <div className="grid grid-cols-3 gap-1.5">
+        <Counter label={labels.rounds} value={draft.roundCount} display={String(draft.roundCount)} minimum={1} maximum={50} error={errors.roundCount} onChange={(direction) => adjust({ roundCount: draft.roundCount + direction })} />
+        <Counter label={labels.work} value={draft.roundDurationSeconds} display={formatSecondsAsClock(draft.roundDurationSeconds)} minimum={5} maximum={600} error={errors.roundDurationSeconds} onChange={(direction) => adjust({ roundDurationSeconds: adjustQuickTimerSeconds(draft.roundDurationSeconds, direction, 5, 600) })} />
+        <Counter label={labels.rest} value={draft.restBetweenRoundsSeconds} display={formatSecondsAsClock(draft.restBetweenRoundsSeconds)} minimum={0} maximum={300} error={errors.restBetweenRoundsSeconds} onChange={(direction) => adjust({ restBetweenRoundsSeconds: adjustQuickTimerSeconds(draft.restBetweenRoundsSeconds, direction, 0, 300) })} />
+      </div>
+      <div className="flex items-center justify-between border-y border-bd py-3.5 text-sm text-muted">{labels.total}<output aria-label={labels.total} className="font-display text-2xl font-extrabold tabular-nums text-ink">{formatSecondsAsClock(quickTimerDuration(draft))}</output></div>
+      <Link to={`${routes.profile}#profile-training`} className="inline-flex min-h-touch items-center self-start text-[13px] text-muted underline underline-offset-[3px]">{profileSettingsLabels.trainingLink}</Link>
+      <p className="text-xs leading-normal text-muted">{labels.iphone}</p>
+      <Button type="submit" disabled={sessions.status === 'loading'} size="sm" className="quick-timer-submit">{labels.start}</Button>
     </form>
   </div>
 }

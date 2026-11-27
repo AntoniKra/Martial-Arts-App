@@ -6,7 +6,7 @@ import { BackButton } from './ui/BackButton'
 
 export function ScreenHeader({ title, variant = 'subscreen', subtitle, action, onBack, disabled = false, headingRef, headingLevel = 1 }: {
   title: string
-  variant?: 'main' | 'home' | 'subscreen' | 'form' | 'summary'
+  variant?: 'main' | 'home' | 'subscreen' | 'form' | 'summary' | 'centered'
   subtitle?: ReactNode
   action?: ReactNode
   onBack?: () => void
@@ -18,6 +18,16 @@ export function ScreenHeader({ title, variant = 'subscreen', subtitle, action, o
   if (variant === 'home') return <Heading className="sr-only">{title}</Heading>
   const main = variant === 'main'
   const summary = variant === 'summary'
+  if (variant === 'centered') {
+    return <header className="w-full">
+      <div className="grid min-h-11 grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2">
+        <BackButton onClick={onBack} disabled={disabled} />
+        <Heading ref={headingRef} tabIndex={headingRef ? -1 : undefined} className="text-center font-display text-[15px] font-extrabold tracking-[0.03em] text-ink uppercase max-[374px]:text-[13.5px]">{title}</Heading>
+        {action}
+      </div>
+      {subtitle && <div className="break-words text-center text-[13px] text-muted">{subtitle}</div>}
+    </header>
+  }
   if (variant === 'form') {
     // Pattern D: the same header as the plan builder (WorkoutBuilderHeader, .wb-topbar).
     return <header className="w-full space-y-0.5">

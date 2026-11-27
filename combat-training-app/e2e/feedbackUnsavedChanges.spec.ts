@@ -170,7 +170,7 @@ test('protects focus ratings, other ratings and sparring intensity, allowing res
   await expect(dialog(page)).toHaveCount(0)
 })
 
-test('protects quick timer category and intensity and allows restored values', async ({ app, page }) => {
+test('protects quick timer category, discipline and intensity and allows restored values', async ({ app, page }) => {
   await app.open('/workouts')
   await app.seedSession({ ...quick, category: 'sparring', sparringSeconds: 60,
     sparring: [{ blockId: null, intensity: null, rounds: 1 }] })
@@ -186,6 +186,12 @@ test('protects quick timer category and intensity and allows restored values', a
   await expect(dialog(page)).toBeVisible()
   await dialog(page).getByRole('button', { name: 'Wróć do edycji', exact: true }).click()
   await page.getByRole('button', { name: 'Sparing', exact: true }).click()
+  const discipline = page.getByRole('radiogroup', { name: 'Dyscyplina', exact: true })
+  await discipline.getByRole('radio', { name: 'Kickboxing', exact: true }).check()
+  await history(page).click()
+  await expect(dialog(page)).toBeVisible()
+  await dialog(page).getByRole('button', { name: 'Wróć do edycji', exact: true }).click()
+  await discipline.getByRole('radio', { name: 'Boks', exact: true }).check()
   await history(page).click()
   await expect(page).toHaveURL('/progress?tab=history')
   await expect(dialog(page)).toHaveCount(0)

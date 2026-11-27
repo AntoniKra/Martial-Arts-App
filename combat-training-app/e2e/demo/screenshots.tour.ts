@@ -125,9 +125,7 @@ test('captures the demo athlete journey', async ({ page, context }, info) => {
     await capture(18, 'postep-celu', 'Trend ocen i sprawdzona poprawka')
 
     await open('/quick-timer', 'Szybki stoper')
-    await page.getByRole('button', { name: 'Sparing', exact: true }).click()
-    await page.getByRole('combobox', { name: 'Dyscyplina', exact: true }).selectOption('kickboxing')
-    await page.getByRole('button', { name: '3 × 2:00 · przerwa 1:00', exact: true }).click()
+    await page.getByRole('button', { name: '3 × 2:00 przerwa 1:00', exact: true }).click()
     await capture(9, 'stoper-ustawienia', 'Szybki stoper — ustawienia')
     await page.getByRole('button', { name: 'Start', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Rozpocznij trening', exact: true })).toBeVisible()

@@ -184,6 +184,6 @@ Koncentracja 1–5, dyskomfort, realizacja celu 1–5 i odczuwany postęp 1–7 
 
 ## Podsumowanie szybkiego stopera (issue #105)
 
-Trasa `/workout-sessions/:sessionId/feedback` obsługuje również `quickTimer`. Pokazuje czas treningu, pracę i ukończone rundy, wspólną kartę RPE z odliczaniem 10 minut, notatkę oraz zmianę jednego z sześciu rodzajów (bez rozgrzewki, rozluźnienia i „Mieszany”). Nie pokazuje ocen ćwiczeń. Przypomnienie RPE na Start i link „Podsumowanie” w Historii obejmują stoper.
+Trasa `/workout-sessions/:sessionId/feedback` obsługuje również `quickTimer`. Pokazuje czas treningu, pracę i ukończone rundy, wspólną kartę RPE z odliczaniem 10 minut, notatkę oraz zmianę jednego z sześciu rodzajów (bez rozgrzewki, rozluźnienia i „Mieszany”). Pod rodzajem jest wspólny `DisciplinePicker`. Zmiana wyboru aktualizuje `disciplineKey` wpisu przy zapisie ocen. Nie pokazuje ocen ćwiczeń. Przypomnienie RPE na Start i link „Podsumowanie” w Historii obejmują stoper.
 
 Dla rodzaju „Sparing” intensywność jest opcjonalna: lekki, techniczny lub twardy, z tymi samymi etykietami co w planie. Zmiana rodzaju na sparing tworzy jeden wpis z `blockId: null`, liczbą ukończonych rund i `sparringSeconds = workSeconds`. Zmiana na inny rodzaj usuwa wpis sparingu i zeruje czas sparingu. Ten sam zapis uaktualnia `stepResults[].blockType`, `nameSnapshot` etykietą rodzaju, notatkę i `updatedAt`, po walidacji całego dokumentu; zachowuje RPE i czasy treningu. „Zapisz oceny” wraca do Historii także offline. Intensywność w podsumowaniu treningu z planu wdrożono w issue #122 (Q4).

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { BackIcon } from '@/components/ui/BackButton'
 import { useAuth } from '@/features/auth/authContext'
 import { prepareQuickTimerFeedback } from '@/domain/quick-timer/quickTimerFeedback'
+import { resolveQuickTimerDefaults } from '@/domain/quick-timer/quickTimer'
 import { QuickTimerFeedbackForm } from '@/features/quick-timer/QuickTimerFeedbackForm'
 import { WorkoutRpeSummary } from '@/features/workout-feedback/WorkoutRpeSummary'
 import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWorkoutLine'
@@ -36,7 +37,9 @@ export function Component() {
   return <><WorkoutDataWarning /><WorkoutRpeSummary key={session.id} session={session} uid={uid} initialOpen={searchParams.get('rpe') === '1'}
     onSave={async (value, recordedAt) => {
       if (!await sessionRepository.saveRpe(session.id, value, recordedAt)) throw new Error('Session no longer available')
-    }}>{(rpeCard) => session.source === 'quickTimer' ? <QuickTimerFeedbackForm key={session.id} session={session} pending={sessions.pendingIds.has(session.id)} rpeCard={<>{rpeCard}<LazyWellbeingWorkoutLine date={session.workoutDate} /></>}
+    }}>{(rpeCard) => session.source === 'quickTimer' ? <QuickTimerFeedbackForm key={session.id} session={session} pending={sessions.pendingIds.has(session.id)}
+      hasPreviousCategory={resolveQuickTimerDefaults(sessions.items, session).hasPreviousCategory}
+      rpeCard={<>{rpeCard}<LazyWellbeingWorkoutLine date={session.workoutDate} /></>}
       onSave={async (draft) => {
         const feedback = prepareQuickTimerFeedback(session, draft, new Date().toISOString())
         if (!await sessionRepository.saveQuickTimerFeedback(session.id, feedback)) throw new Error('Session no longer available')

@@ -1,18 +1,20 @@
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
-import type { WorkoutSessionCategory } from '@/domain/workout-session/workoutSession.types'
+import type { WorkoutSession, WorkoutSessionCategory } from '@/domain/workout-session/workoutSession.types'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { ROUND_FORMAT_PRESETS, type RoundFormatId } from '@/domain/workout/roundFormatPresets'
 
 export const QUICK_TIMER_CATEGORIES = ['technique', 'pads', 'bag', 'sparring', 'conditioning', 'strengthAndConditioning'] as const
 export type QuickTimerCategory = (typeof QUICK_TIMER_CATEGORIES)[number]
-export interface QuickTimerDraft {
-  category: QuickTimerCategory | null
-  disciplineKey: DisciplineKey | null
+interface QuickTimerTiming {
   format: RoundFormatId | 'custom'
   roundCount: number
   roundDurationSeconds: number
   restBetweenRoundsSeconds: number
+}
+export interface QuickTimerDraft extends QuickTimerTiming {
+  category: QuickTimerCategory | null
+  disciplineKey: DisciplineKey | null
 }
 export interface QuickTimerConfig extends QuickTimerDraft {
   category: QuickTimerCategory
@@ -29,22 +31,50 @@ export function defaultQuickTimerDraft(): QuickTimerDraft {
     roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 }
 }
 
+type QuickTimerHistoryEntry = Pick<WorkoutSession, 'id' | 'source' | 'category' | 'disciplineKey' | 'workoutDate' | 'createdAt'>
+type SessionOrder = Pick<QuickTimerHistoryEntry, 'id' | 'workoutDate' | 'createdAt'>
+
+function newestFirst(left: SessionOrder, right: SessionOrder): number {
+  return right.workoutDate.localeCompare(left.workoutDate)
+    || right.createdAt.localeCompare(left.createdAt)
+    || right.id.localeCompare(left.id)
+}
+
+export function resolveQuickTimerDefaults(
+  sessions: readonly QuickTimerHistoryEntry[],
+  before?: SessionOrder,
+): Pick<QuickTimerConfig, 'category' | 'disciplineKey'> & { hasPreviousCategory: boolean } {
+  const history = sessions.filter((session) => !before || newestFirst(session, before) > 0).sort(newestFirst)
+  const previousCategory = history.find((session) => session.source === 'quickTimer')?.category
+  const category = previousCategory && isQuickTimerCategory(previousCategory) ? previousCategory : undefined
+  return {
+    category: category ?? 'bag',
+    disciplineKey: history[0]?.disciplineKey ?? 'boxing',
+    hasPreviousCategory: category !== undefined,
+  }
+}
+
 function validTime(value: number, minimum: number, maximum: number): boolean {
   return Number.isInteger(value) && value >= minimum && value <= maximum
     && value % (value <= 60 ? 5 : 15) === 0
 }
 
-export function validateQuickTimerConfig(draft: QuickTimerDraft):
-  { ok: true; config: QuickTimerConfig } | { ok: false; errors: QuickTimerErrors } {
-  const errors: QuickTimerErrors = {}
-  if (!draft.category || !QUICK_TIMER_CATEGORIES.includes(draft.category)) errors.category = 'Wybierz rodzaj treningu'
-  if (!draft.disciplineKey || !['boxing', 'kickboxing', 'muay_thai', 'k1', 'mma_striking'].includes(draft.disciplineKey)) errors.disciplineKey = 'Wybierz dyscyplinę'
+export function validateQuickTimerTiming(draft: QuickTimerTiming): Partial<Record<keyof QuickTimerTiming, string>> {
+  const errors: Partial<Record<keyof QuickTimerTiming, string>> = {}
   if (!Number.isInteger(draft.roundCount) || draft.roundCount < 1 || draft.roundCount > 50) errors.roundCount = 'Wybierz od 1 do 50 rund'
   if (!validTime(draft.roundDurationSeconds, 5, 600)) errors.roundDurationSeconds = 'Wybierz czas pracy od 0:05 do 10:00'
   if (!validTime(draft.restBetweenRoundsSeconds, 0, 300)) errors.restBetweenRoundsSeconds = 'Wybierz przerwę od 0:00 do 5:00'
   const preset = ROUND_FORMAT_PRESETS.find((value) => value.id === draft.format)
   if (draft.format !== 'custom' && (!preset || preset.roundCount !== draft.roundCount
     || preset.roundDurationSeconds !== draft.roundDurationSeconds || preset.restBetweenRoundsSeconds !== draft.restBetweenRoundsSeconds)) errors.format = 'Wybierz gotowy format albo Własny'
+  return errors
+}
+
+export function validateQuickTimerConfig(draft: QuickTimerDraft):
+  { ok: true; config: QuickTimerConfig } | { ok: false; errors: QuickTimerErrors } {
+  const errors: QuickTimerErrors = validateQuickTimerTiming(draft)
+  if (!draft.category || !QUICK_TIMER_CATEGORIES.includes(draft.category)) errors.category = 'Wybierz rodzaj treningu'
+  if (!draft.disciplineKey || !['boxing', 'kickboxing', 'muay_thai', 'k1', 'mma_striking'].includes(draft.disciplineKey)) errors.disciplineKey = 'Wybierz dyscyplinę'
   if (Object.keys(errors).length || !draft.category || !draft.disciplineKey) return { ok: false, errors }
   return { ok: true, config: { ...draft, category: draft.category, disciplineKey: draft.disciplineKey } }
 }

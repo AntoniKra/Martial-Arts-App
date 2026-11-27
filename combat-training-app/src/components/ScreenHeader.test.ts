@@ -23,3 +23,13 @@ it('renders a form header like the builder: close button, centred uppercase titl
   expect(html.match(/<h1/g)).toHaveLength(1)
   expect(html).toContain('Trening spoza aplikacji</h1>')
 })
+
+it('renders a centered subscreen header with the standard back chevron', () => {
+  const router = createMemoryRouter([{ path: '/', element: createElement(RouteScreenHeader, { title: 'Szybki stoper', variant: 'centered', fallback: '/' }) }])
+  const html = renderToStaticMarkup(createElement(RouterProvider, { router }))
+  expect(html).toContain('aria-label="Wstecz"')
+  expect(html).toContain('size-11')
+  expect(html).toContain('d="m15 18-6-6 6-6"')
+  expect(html.match(/<h1/g)).toHaveLength(1)
+  expect(html).toContain('Szybki stoper</h1>')
+})

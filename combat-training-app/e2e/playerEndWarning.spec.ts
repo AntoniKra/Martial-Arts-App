@@ -59,13 +59,10 @@ async function setWarningTimes(page: Page, round: string, rest: string) {
 }
 
 async function openQuickTimer(page: Page, restSeconds = 60) {
-  await page.getByRole('button', { name: 'Worek', exact: true }).click()
-  await page.getByRole('combobox', { name: 'Dyscyplina', exact: true }).selectOption('boxing')
-  await page.getByRole('button', { name: '3 × 2:00 · przerwa 1:00', exact: true }).click()
+  await page.getByRole('button', { name: '3 × 2:00 przerwa 1:00', exact: true }).click()
   if (restSeconds !== 60) {
-    await page.getByRole('button', { name: 'Własny', exact: true }).click()
     for (let seconds = 60; seconds > restSeconds; seconds -= 5) {
-      await page.getByRole('button', { name: 'Zmniejsz: Przerwa między rundami', exact: true }).click()
+      await page.getByRole('button', { name: 'Zmniejsz: Przerwa', exact: true }).click()
     }
   }
   await page.getByRole('button', { name: 'Start', exact: true }).click()
@@ -252,11 +249,7 @@ test('uses independent profile warning times in the quick timer and avoids dupli
   await page.getByRole('radiogroup', { name: 'Sygnał przed końcem rundy', exact: true }).getByRole('radio', { name: '15 s', exact: true }).click()
   await page.getByRole('radiogroup', { name: 'Sygnał przed końcem przerwy', exact: true }).getByRole('radio', { name: '5 s', exact: true }).click()
   await app.open('/quick-timer')
-  await page.getByRole('button', { name: 'Worek', exact: true }).click()
-  await page.getByRole('combobox', { name: 'Dyscyplina', exact: true }).selectOption('boxing')
-  await page.getByRole('button', { name: '3 × 2:00 · przerwa 1:00', exact: true }).click()
-  await page.getByRole('button', { name: 'Start', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Rozpocznij trening', exact: true })).toBeVisible()
+  await openQuickTimer(page)
   await app.freezeClock()
   await app.startWorkout()
   await page.clock.runFor(104_750)

@@ -73,7 +73,7 @@ export function WorkoutPlayerControls({
           onClick={onPrevious}
           disabled={!canGoPrevious}
           aria-label={workoutPlayerLabels.previousStep}
-          className="player-icon-button side-control-btn"
+          className="player-icon-button m5-flat-control side-control-btn"
         >
           <SkipBackIcon />
         </button>
@@ -96,7 +96,7 @@ export function WorkoutPlayerControls({
           onClick={onNext}
           disabled={!canGoNext}
           aria-label={workoutPlayerLabels.nextStep}
-          className="player-icon-button side-control-btn"
+          className="player-icon-button m5-flat-control side-control-btn"
         >
           <SkipForwardIcon />
         </button>

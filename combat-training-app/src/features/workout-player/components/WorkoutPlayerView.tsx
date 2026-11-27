@@ -7,6 +7,7 @@ import { routes } from '@/app/routes'
 import { LiveScreenHeader, RouteScreenHeader } from '@/components/ScreenHeader'
 import { BackIcon } from '@/components/ui/BackButton'
 import { getButtonClassName } from '@/components/ui/buttonStyles'
+import { DISCIPLINE_LABELS_PL } from '@/domain/discipline/disciplineLabels'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
@@ -351,14 +352,18 @@ function WorkoutPlayerRuntime({
   const instruction = isPreparing ? workoutPlayerLabels.preparationInstruction : currentStep.instruction
   const lowerInstruction = isPreparing || currentStep.kind !== 'break'
   const focusCue = selectWorkoutFocusCue(playback.status, currentStep, nextStep, plan.blocks, focusCueSkills)
+  const quickTimerBlock = source === 'quickTimer' ? plan.blocks[0] : undefined
+  const headerProgress = quickTimerBlock
+    ? `${getWorkoutBlockLabelPl(quickTimerBlock.blockType)} · ${DISCIPLINE_LABELS_PL[plan.disciplineKey]}`
+    : workoutPlayerLabels.step(playback.currentStepIndex + 1, totalSteps)
 
   return (
-    <main className="workout-player flex min-h-dvh flex-col" data-phase={phase}>
+    <main className="workout-player flex min-h-dvh flex-col" data-phase={phase} data-source={source}>
       <div className="mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col safe-area-pt">
         {focusSkillsUnavailable && <p role="status" className="player-focus-notice px-5 pt-3 text-sm leading-relaxed">{workoutPlayerLabels.focusSkillsUnavailable}</p>}
         <LiveScreenHeader
           title={plan.nameSnapshot}
-          progress={workoutPlayerLabels.step(playback.currentStepIndex + 1, totalSteps)}
+          progress={headerProgress}
           action={soundMuted ? (
             <button type="button" onClick={enableSound} aria-label={workoutPlayerLabels.enableSound} className="player-icon-button topbar-sound-btn">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
