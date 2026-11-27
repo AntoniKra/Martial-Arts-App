@@ -97,7 +97,12 @@ test('adds breaks via preset tile, −/+ stepper and typed m:ss entry with valid
 
   await timeInput.fill('1:75')
   await timeInput.press('Enter')
-  await expect(sheet.getByRole('alert')).toHaveText('Wpisz przerwę jako m:ss albo liczbę sekund, od 0:00 do 1440:00.')
+  await expect(sheet.getByRole('alert')).toHaveText('Wpisz przerwę jako m:ss albo liczbę sekund, od 0:00 do 60:00.')
+  await expect(timeInput).toHaveAttribute('aria-invalid', 'true')
+
+  await timeInput.fill('60:15')
+  await timeInput.press('Enter')
+  await expect(sheet.getByRole('alert')).toHaveText('Wpisz przerwę jako m:ss albo liczbę sekund, od 0:00 do 60:00.')
   await expect(timeInput).toHaveAttribute('aria-invalid', 'true')
 
   // Escape inside the typed input cancels entry only and keeps the sheet open.
@@ -176,6 +181,42 @@ test('edits an existing break from the row menu using the bottom sheet', async (
   })
 })
 
+test('shows a saved break longer than 60:00 on edit and requires lowering it to 60:00 before saving', async ({ app, page }) => {
+  const plan = {
+    ...workoutPlan([
+      block('technique', [
+        { ...roundsExercise('jab', 3, 180, 60), exerciseNameSnapshot: 'Lewy prosty → prawy prosty' },
+        { ...workoutBreak('rest', 5400), instruction: 'Długa przerwa' },
+      ]),
+    ]),
+    customName: 'Plan z długą przerwą',
+    nameSnapshot: 'Plan z długą przerwą',
+  }
+  await app.open('/workouts')
+  await app.seedPlan(plan)
+  await app.open(`/workouts/${plan.id}/edit`)
+
+  await expect(page.getByRole('list', { name: 'Przerwy po bloku 1 — Technika', exact: true })).toContainText('90:00')
+  await page.getByRole('button', { name: 'Akcje przerwy, element 2 w bloku 1 — Technika', exact: true }).click()
+  await page.getByRole('button', { name: 'Edytuj przerwę, element 2 w bloku 1 — Technika', exact: true }).click()
+
+  const sheet = breakSheet(page, 'Edycja przerwy')
+  await expect(durationValue(sheet)).toHaveText('90:00')
+  await expect(sheet.getByRole('button', { name: 'Zwiększ przerwę o 15 s', exact: true })).toHaveAttribute('aria-disabled', 'true')
+
+  const save = sheet.getByRole('button', { name: 'Zapisz przerwę', exact: true })
+  await save.click()
+  await expect(sheet).toBeVisible()
+  await expect(sheet.getByRole('alert')).toHaveText('Wpisz przerwę jako m:ss albo liczbę sekund, od 0:00 do 60:00.')
+
+  await sheet.getByRole('button', { name: 'Zmniejsz przerwę o 15 s', exact: true }).click()
+  await expect(durationValue(sheet)).toHaveText('60:00')
+  await expect(sheet.getByRole('button', { name: 'Zwiększ przerwę o 15 s', exact: true })).toHaveAttribute('aria-disabled', 'true')
+  await save.click()
+  await expect(sheet).toHaveCount(0)
+  await expect(page.getByRole('list', { name: 'Przerwy po bloku 1 — Technika', exact: true })).toContainText('60:00')
+})
+
 async function captureState(page: Page, testInfo: TestInfo, name: string) {
   if (process.env.CAPTURE_SCREENSHOTS !== '1' || testInfo.project.name !== 'phone') return
   await page.screenshot({ path: testInfo.outputPath(`${name}.png`) })
@@ -207,12 +248,12 @@ for (const theme of ['dark', 'light'] as const) {
       await accessible(page, addDialog)
       await captureState(page, testInfo, `break-add-${theme}-${width}`)
 
-      // Max value state (1440:00)
+      // Max value state (60:00)
       await durationValue(addDialog).click()
       const input = addDialog.getByRole('textbox', { name: 'Przerwa', exact: true })
-      await input.fill('1440:00')
+      await input.fill('60:00')
       await input.press('Enter')
-      await expect(durationValue(addDialog)).toHaveText('1440:00')
+      await expect(durationValue(addDialog)).toHaveText('60:00')
       await expect(addDialog.getByRole('button', { name: 'Zwiększ przerwę o 15 s', exact: true })).toHaveAttribute('aria-disabled', 'true')
       await accessible(page, addDialog)
       await captureState(page, testInfo, `break-max-${theme}-${width}`)
@@ -221,7 +262,7 @@ for (const theme of ['dark', 'light'] as const) {
       await durationValue(addDialog).click()
       await input.fill('1:75')
       await input.press('Enter')
-      await expect(addDialog.getByRole('alert')).toHaveText('Wpisz przerwę jako m:ss albo liczbę sekund, od 0:00 do 1440:00.')
+      await expect(addDialog.getByRole('alert')).toHaveText('Wpisz przerwę jako m:ss albo liczbę sekund, od 0:00 do 60:00.')
       await accessible(page, addDialog)
       await captureState(page, testInfo, `break-error-${theme}-${width}`)
 

@@ -4,12 +4,14 @@ import { screenHeaderLabels } from '@/components/screenHeaderLabels'
 import { TimelineCloseIcon } from '@/features/workout-builder/components/BlockTypeIcon'
 import { ExerciseValueStepper } from '@/features/workout-builder/components/ExerciseValueStepper'
 import { exerciseConfigurationLabels as stepperLabels } from '@/features/workout-builder/exerciseConfigurationLabels'
-import { parseStepperEntry, type StepDirection } from '@/features/workout-builder/state/exerciseStepper'
+import type { StepDirection } from '@/features/workout-builder/state/exerciseStepper'
 import {
+  BREAK_DURATION_MAX_SECONDS,
   BREAK_DURATION_PRESETS,
   commitBreakEntry,
   DEFAULT_BREAK_DURATION_SECONDS,
   normalizeBreakInstruction,
+  parseBreakEntry,
   resolveBreakSubmit,
   stepBreakDuration,
   type BreakEntryState,
@@ -61,13 +63,13 @@ export function WorkoutBreakSheet({
     }
   }, [])
 
-  const entryResult = entry ? parseStepperEntry('rest', entry.text) : null
+  const entryResult = entry ? parseBreakEntry(entry.text) : null
   const display = formatBreakDuration(durationSeconds)
   const timePreview = entry && !entry.invalid && entryResult?.ok ? formatBreakDuration(entryResult.value) : null
   const errorMessage = entry?.invalid
     ? entry.error === 'zero'
       ? labels.breakZeroDurationError
-      : stepperLabels.entryErrors.rest
+      : labels.breakEntryRangeError
     : null
 
   function handlePresetSelect(presetSeconds: number) {
@@ -187,6 +189,7 @@ export function WorkoutBreakSheet({
             <ExerciseValueStepper
               field="rest"
               layout="side"
+              maxValue={BREAK_DURATION_MAX_SECONDS}
               label={labels.breakLabel}
               value={durationSeconds}
               display={display}
