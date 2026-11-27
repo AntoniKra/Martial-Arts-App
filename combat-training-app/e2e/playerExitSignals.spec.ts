@@ -56,9 +56,7 @@ test('counts remaining work from a round rest, preserves a pause and hides skip 
 
 test('uses the same exit confirmation and remaining round count in the quick timer', async ({ app, page }) => {
   await app.open('/quick-timer')
-  await page.getByRole('button', { name: 'Worek', exact: true }).click()
-  await page.getByRole('combobox', { name: 'Dyscyplina', exact: true }).selectOption('boxing')
-  await page.getByRole('button', { name: '3 × 2:00 · przerwa 1:00', exact: true }).click()
+  await page.getByRole('button', { name: '3 × 2:00 przerwa 1:00', exact: true }).click()
   await page.getByRole('button', { name: 'Start', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Rozpocznij trening', exact: true })).toBeVisible()
   await app.freezeClock()

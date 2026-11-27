@@ -103,6 +103,23 @@
   font-variant-numeric: tabular-nums;
 }
 
+[data-source='quickTimer'] .topbar-plan-title {
+  color: inherit;
+  font: 800 15px/1.2 var(--font-display);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  opacity: 1;
+}
+
+[data-source='quickTimer'] .player-step-progress {
+  margin-top: 1px;
+  font-family: var(--font-sans);
+}
+
+@media (max-width: 374px) {
+  [data-source='quickTimer'] .topbar-plan-title { font-size: 13.5px; }
+}
+
 .player-icon-button {
   display: flex;
   flex-shrink: 0;
@@ -424,44 +441,13 @@
 }
 
 .side-control-btn {
-  position: relative;
-  width: 58px;
-  height: 58px;
-}
-
-.side-control-btn:disabled { cursor: not-allowed; opacity: .4; }
-
-.side-control-btn::before,
-.diamond-shape-3b::before {
-  --player-corner-fill: linear-gradient(var(--app-ember), var(--app-ember));
-  content: '';
-  position: absolute;
-  background:
-    var(--player-corner-fill) left top / var(--player-corner-length) var(--player-corner-thickness) no-repeat,
-    var(--player-corner-fill) left top / var(--player-corner-thickness) var(--player-corner-length) no-repeat,
-    var(--player-corner-fill) right top / var(--player-corner-length) var(--player-corner-thickness) no-repeat,
-    var(--player-corner-fill) right top / var(--player-corner-thickness) var(--player-corner-length) no-repeat,
-    var(--player-corner-fill) left bottom / var(--player-corner-length) var(--player-corner-thickness) no-repeat,
-    var(--player-corner-fill) left bottom / var(--player-corner-thickness) var(--player-corner-length) no-repeat,
-    var(--player-corner-fill) right bottom / var(--player-corner-length) var(--player-corner-thickness) no-repeat,
-    var(--player-corner-fill) right bottom / var(--player-corner-thickness) var(--player-corner-length) no-repeat,
-    var(--player-diamond-fill, transparent);
-  pointer-events: none;
-}
-
-.side-control-btn::before {
-  --player-corner-length: 12px;
-  --player-corner-thickness: 2px;
-  --player-diamond-fill: color-mix(in srgb, currentColor 9%, transparent);
-  width: 46px;
-  height: 46px;
-  transform: rotate(45deg);
+  width: 52px;
+  height: 52px;
 }
 
 .side-control-btn svg {
-  position: relative;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
 }
 
 .diamond-wrapper-3b { width: 96px; height: 96px; }

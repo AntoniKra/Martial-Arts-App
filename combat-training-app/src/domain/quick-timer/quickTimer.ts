@@ -1,6 +1,6 @@
 import type { DisciplineKey } from '@/domain/discipline/discipline.types'
 import type { WorkoutPlan } from '@/domain/workout/workout.types'
-import type { WorkoutSessionCategory } from '@/domain/workout-session/workoutSession.types'
+import type { WorkoutSession, WorkoutSessionCategory } from '@/domain/workout-session/workoutSession.types'
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import { ROUND_FORMAT_PRESETS, type RoundFormatId } from '@/domain/workout/roundFormatPresets'
 
@@ -27,6 +27,30 @@ export function isQuickTimerCategory(value: WorkoutSessionCategory): value is Qu
 export function defaultQuickTimerDraft(): QuickTimerDraft {
   return { category: null, disciplineKey: null, format: ROUND_FORMAT_PRESETS[0].id,
     roundCount: 3, roundDurationSeconds: 180, restBetweenRoundsSeconds: 60 }
+}
+
+type QuickTimerHistoryEntry = Pick<WorkoutSession, 'id' | 'source' | 'category' | 'disciplineKey' | 'workoutDate' | 'createdAt'>
+type SessionOrder = Pick<QuickTimerHistoryEntry, 'id' | 'workoutDate' | 'createdAt'>
+
+function newestFirst(left: SessionOrder, right: SessionOrder): number {
+  return right.workoutDate.localeCompare(left.workoutDate)
+    || right.createdAt.localeCompare(left.createdAt)
+    || right.id.localeCompare(left.id)
+}
+
+export function resolveQuickTimerDefaults(
+  draftDiscipline: QuickTimerDraft['disciplineKey'],
+  sessions: readonly QuickTimerHistoryEntry[],
+  before?: SessionOrder,
+): Pick<QuickTimerConfig, 'category' | 'disciplineKey'> & { hasPreviousCategory: boolean } {
+  const history = sessions.filter((session) => !before || newestFirst(session, before) > 0).sort(newestFirst)
+  const previousCategory = history.find((session) => session.source === 'quickTimer')?.category
+  const category = previousCategory && isQuickTimerCategory(previousCategory) ? previousCategory : undefined
+  return {
+    category: category ?? 'bag',
+    disciplineKey: draftDiscipline ?? history[0]?.disciplineKey ?? 'boxing',
+    hasPreviousCategory: category !== undefined,
+  }
 }
 
 function validTime(value: number, minimum: number, maximum: number): boolean {

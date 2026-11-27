@@ -54,7 +54,7 @@ Etykiety dolnego menu: Archivo 10 px, grubość 700, odstęp liter 0,05 em, wiel
 
 ## Sterowanie odtwarzacza (#253)
 
-Wiersz sterowania ma 96 px wysokości i zachowuje 8 px górnego odstępu. Boczne przyciski „Poprzedni etap” i „Następny etap” (wariant E) mają obszary dotyku 58×58 px, romby z kwadratów 46×46 px obróconych o 45° i proste ikony 26 px. Tło rombu to `currentColor` z kryciem 9%. Każdy wierzchołek ma narożnik w kształcie L o wymiarach 12×2 px w kolorze `--app-ember`. Wyłączone przyciski są przygaszone.
+Wiersz sterowania ma 96 px wysokości i zachowuje 8 px górnego odstępu. Wyjątek od rombów dla przycisków bocznych (#273) obejmuje stoper i trening z planu. „Poprzedni etap” i „Następny etap” mają płaską powierzchnię `--app-elevated` 52×52 px, ikony 24 px oraz takie same obicia M5 jak przyciski −/+ w ustawieniach stopera. Obicia w kształcie L mają wymiary 6×1,5 px, kolor `--app-ember` i leżą 4 px od krawędzi. Wyłączone przyciski są przygaszone.
 
 Środkowy przycisk (M5) ma obszar dotyku 96×96 px, ostro zakończony romb z kwadratu 68×68 px obróconego o 45° i prostą ikonę 31 px. Romb ma gradient odtwarzacza, czerwony cień i narożniki żaru 16×2,5 px na krawędzi. Wszystkie romby mają kształt bez obwódki. Środkowy pokazuje rombową obwódkę fokusu 2 px przy nawigacji klawiaturą. W przygotowaniu „Zacznij teraz” jest dostępną nazwą przycisku i nie pojawia się w plakietce. Układ mieści się bez przewijania na 360×640 i 390×844 w obu motywach, także z kartą elementu do poprawy w przerwie.
 

@@ -98,9 +98,7 @@ for (const audio of ['deferred', 'native'] as const) {
             await app.openPlayer()
           } else {
             await app.open('/quick-timer')
-            await page.getByRole('button', { name: 'Worek', exact: true }).click()
-            await page.getByRole('combobox', { name: 'Dyscyplina', exact: true }).selectOption('boxing')
-            await page.getByRole('button', { name: '3 × 2:00 · przerwa 1:00', exact: true }).click()
+            await page.getByRole('button', { name: '3 × 2:00 przerwa 1:00', exact: true }).click()
             await page.getByRole('button', { name: 'Start', exact: true }).click()
             await expect(page.getByRole('button', { name: 'Rozpocznij trening', exact: true })).toBeVisible()
           }

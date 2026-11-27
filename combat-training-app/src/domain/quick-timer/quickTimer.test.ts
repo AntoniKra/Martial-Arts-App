@@ -2,7 +2,37 @@ import { describe, expect, it } from 'vitest'
 import { workoutPlanDocumentSchema } from '@/infrastructure/firebase/workoutDocumentSchemas'
 import { createWorkoutPlaybackTimeline } from '@/domain/workout-playback/createWorkoutPlaybackTimeline'
 import { quickTimerConfig, quickTimerPlan } from '@/test/quickTimerBuilders'
-import { QUICK_TIMER_CATEGORIES, adjustQuickTimerSeconds, defaultQuickTimerDraft, quickTimerDuration, validateQuickTimerConfig } from './quickTimer'
+import { QUICK_TIMER_CATEGORIES, adjustQuickTimerSeconds, defaultQuickTimerDraft, quickTimerDuration, resolveQuickTimerDefaults, validateQuickTimerConfig } from './quickTimer'
+
+describe('quick timer defaults from history', () => {
+  const olderTimer = { id: 'older-timer', source: 'quickTimer', category: 'technique', disciplineKey: 'boxing', workoutDate: '2026-11-24', createdAt: '2026-11-24T10:00:00.000Z' } as const
+  const previousTimer = { ...olderTimer, id: 'previous-timer', category: 'sparring', disciplineKey: 'kickboxing', createdAt: '2026-11-24T11:00:00.000Z' } as const
+  const latestManual = { ...olderTimer, id: 'manual', source: 'manual', category: 'pads', disciplineKey: 'muay_thai', workoutDate: '2026-11-25' } as const
+
+  it('defaults to bag and boxing with empty history', () => {
+    expect(resolveQuickTimerDefaults(null, [])).toEqual({ category: 'bag', disciplineKey: 'boxing', hasPreviousCategory: false })
+  })
+  it('uses the latest quick timer category and the latest entry discipline independently', () => {
+    expect(resolveQuickTimerDefaults(null, [olderTimer, latestManual, previousTimer])).toEqual({
+      category: 'sparring', disciplineKey: 'muay_thai', hasPreviousCategory: true,
+    })
+  })
+  it('uses the draft discipline ahead of history', () => {
+    expect(resolveQuickTimerDefaults('k1', [latestManual])).toEqual({
+      category: 'bag', disciplineKey: 'k1', hasPreviousCategory: false,
+    })
+  })
+  it('defaults to bag when the last timer has an unsupported mixed category', () => {
+    expect(resolveQuickTimerDefaults(null, [olderTimer, { ...previousTimer, category: 'mixed' }])).toEqual({
+      category: 'bag', disciplineKey: 'kickboxing', hasPreviousCategory: false,
+    })
+  })
+  it('excludes the summary entry itself and later sessions when looking for a previous timer', () => {
+    const history = [previousTimer, olderTimer, latestManual]
+    expect(resolveQuickTimerDefaults(null, history, olderTimer).hasPreviousCategory).toBe(false)
+    expect(resolveQuickTimerDefaults(null, history, previousTimer).hasPreviousCategory).toBe(true)
+  })
+})
 
 describe('quick timer configuration and one-off plan', () => {
   it.each(QUICK_TIMER_CATEGORIES)('creates a valid rounds plan for %s without library references', (category) => {

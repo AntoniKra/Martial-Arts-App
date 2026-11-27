@@ -53,8 +53,8 @@ for (const theme of ['dark', 'light'] as const) {
         await page.setViewportSize(viewport)
         await expect(card.getByText(skill.name, { exact: true })).toBeVisible()
         await expect(card).toBeInViewport({ ratio: 1 })
-        await expectTarget(previous, 58)
-        await expectTarget(next, 58)
+        await expectTarget(previous, 52)
+        await expectTarget(next, 52)
         await expectTarget(primary, 96)
         const row = main.locator('.controls-row-3b')
         const footer = main.locator('.controls-bottom-bar')
@@ -83,13 +83,13 @@ for (const theme of ['dark', 'light'] as const) {
     await checkLayout(pause)
     for (const side of [previous, next]) {
       await expect(side).toHaveCSS('border-width', '0px')
-      await expect(side.locator('svg')).toHaveCSS('width', '26px')
-      await expect(side.locator('svg')).toHaveCSS('height', '26px')
+      await expect(side.locator('svg')).toHaveCSS('width', '24px')
+      await expect(side.locator('svg')).toHaveCSS('height', '24px')
       const shape = await side.evaluate((button) => {
         const decoration = getComputedStyle(button, '::before')
-        return [decoration.width, decoration.height, decoration.getPropertyValue('--player-corner-length'), decoration.getPropertyValue('--player-corner-thickness')]
+        return [decoration.inset, decoration.transform, decoration.getPropertyValue('--player-corner-length'), decoration.getPropertyValue('--player-corner-thickness')]
       })
-      expect(shape).toEqual(['46px', '46px', '12px', '2px'])
+      expect(shape).toEqual(['4px', 'none', '6px', '1.5px'])
     }
     const corners = await pause.locator('.diamond-shape-3b').evaluate((shape) => {
       const decoration = getComputedStyle(shape, '::before')

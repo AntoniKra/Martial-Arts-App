@@ -117,22 +117,18 @@ test('collapses the focus skill picker and restores keyboard focus to the select
   }
 })
 
-test('uses pressed state and different border widths for quick timer selections in both themes', async ({ app, page }) => {
+test('uses pressed state and different outline widths for quick timer selections in both themes', async ({ app, page }) => {
   await app.open('/quick-timer')
-  const bag = page.getByRole('button', { name: 'Worek', exact: true })
-  await bag.click()
-  const preset = page.getByRole('button', { name: '3 × 2:00 · przerwa 1:00', exact: true })
+  const preset = page.getByRole('button', { name: '3 × 2:00 przerwa 1:00', exact: true })
   await preset.click()
-  const otherPreset = page.getByRole('button', { name: '3 × 3:00 · przerwa 1:00', exact: true })
+  const otherPreset = page.getByRole('button', { name: '3 × 3:00 przerwa 1:00', exact: true })
   for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
-    for (const button of [bag, preset]) {
-      await expect(button).toHaveAttribute('aria-pressed', 'true')
-      await expect(button).toHaveCSS('border-top-width', '2px')
-      await expect(button).not.toContainText('✓')
-    }
+    await expect(preset).toHaveAttribute('aria-pressed', 'true')
+    await expect(preset).toHaveCSS('box-shadow', / 2px inset$/)
+    await expect(preset).not.toContainText('✓')
     await expect(otherPreset).toHaveAttribute('aria-pressed', 'false')
-    await expect(otherPreset).toHaveCSS('border-top-width', '1px')
+    await expect(otherPreset).toHaveCSS('box-shadow', / 1px inset$/)
     await audit(page)
   }
 })

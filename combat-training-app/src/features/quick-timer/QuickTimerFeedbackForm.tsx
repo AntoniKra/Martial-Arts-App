@@ -9,15 +9,15 @@ import { workoutSessionName } from '@/features/workouts/utils/workoutSessionPres
 import { formatSecondsAsClock } from '@/domain/time/formatDuration'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { workoutFeedbackLabels as feedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
-import { sparringIntensityLabels } from '@/features/workout-feedback/sparringIntensityLabels'
 import { rpeLabels } from '@/features/workout-feedback/rpeLabels'
 import { Button } from '@/components/ui/Button'
 import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
 import { QuickTimerCategoryField } from './QuickTimerCategoryField'
 import { quickTimerLabels as labels } from './quickTimerLabels'
+import './quickTimer.css'
 
-export function QuickTimerFeedbackForm({ session, pending, rpeCard, onSave }: {
-  session: QuickTimerWorkoutSession; pending: boolean; rpeCard: ReactNode
+export function QuickTimerFeedbackForm({ session, pending, hasPreviousCategory, rpeCard, onSave }: {
+  session: QuickTimerWorkoutSession; pending: boolean; hasPreviousCategory: boolean; rpeCard: ReactNode
   onSave: (draft: QuickTimerFeedbackDraft) => Promise<void>
 }) {
   const [initial] = useState(() => ({ category: isQuickTimerCategory(session.category) ? session.category : null,
@@ -51,41 +51,49 @@ export function QuickTimerFeedbackForm({ session, pending, rpeCard, onSave }: {
   const metrics = [formatSecondsAsClock(Math.floor(session.durationSeconds)), formatSecondsAsClock(session.workSeconds), `${session.completion.completed}/${session.completion.planned}`]
   const metricLabels = [feedbackLabels.metrics[0], feedbackLabels.metrics[1], labels.roundsMetric]
   return <UnsavedPlanChangesGuard isDirty={isDirty} allowLeaveRef={allowLeave} description={feedbackLabels.discardDescription}>
-    <div className="mx-auto w-full max-w-xl space-y-6 px-4 py-5">
-    <RouteScreenHeader title={feedbackLabels.title} fallback={routes.progressHistory} />
-    <header className="space-y-3">
-      <p className="font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-crimson-ink">{feedbackLabels.status[session.status]}</p>
-      <h2 className="font-display text-[22px] font-extrabold text-ink">{workoutSessionName(session)}</h2>
-      <p className="text-[13px] leading-relaxed text-muted">{feedbackLabels.savedEntry}</p>
-      {pending && <p role="status" className="text-xs font-semibold text-muted">{workoutDataLabels.pending}</p>}
-      <dl className="grid grid-cols-3 divide-x divide-bd border-y border-bd py-4">
-        {metrics.map((value, index) => <div key={metricLabels[index]} className="min-w-0 px-2 text-center">
-          <dd className="font-display text-[22px] font-bold tabular-nums text-ink">{value}</dd>
-          <dt className="mt-1 font-display text-[9px] font-semibold uppercase tracking-[0.1em] text-muted">{metricLabels[index]}</dt>
+    <div className="quick-timer-screen mx-auto w-full max-w-xl">
+      <RouteScreenHeader title={feedbackLabels.title} variant="centered" fallback={routes.progressHistory} />
+      <header className="space-y-2">
+        <p className="font-display text-[11px] font-extrabold uppercase tracking-[0.12em] text-crimson-ink">{feedbackLabels.status[session.status]}</p>
+        <h2 className="font-display text-[22px] leading-[1.15] font-extrabold text-ink">{workoutSessionName(session)}</h2>
+        <p className="text-xs leading-normal text-muted">{feedbackLabels.savedEntry}</p>
+        {pending && <p role="status" className="text-xs font-semibold text-muted">{workoutDataLabels.pending}</p>}
+      </header>
+      <dl className="quick-timer-metrics grid grid-cols-3 divide-x divide-bd">
+        {metrics.map((value, index) => <div key={metricLabels[index]} className="flex min-w-0 flex-col px-1 text-center">
+          <dt className="mt-1 font-display text-[10px] font-bold uppercase tracking-[0.1em] text-muted">{metricLabels[index]}</dt>
+          <dd className="order-first font-display text-[28px] leading-[1.1] font-extrabold tabular-nums text-ink max-[374px]:text-[25px]">{value}</dd>
         </div>)}
       </dl>
-    </header>
-    {rpeCard}
-    <form ref={form} noValidate onSubmit={(event) => { void submit(event) }} className="space-y-6">
-      <fieldset disabled={saving} className="min-w-0 space-y-6">
-        <QuickTimerCategoryField value={category} error={categoryError} onChange={(value) => { setCategory(value); setCategoryError(undefined); if (value !== 'sparring') setIntensity(null) }} />
-        {category === 'sparring' && <fieldset className="min-w-0 space-y-2">
-          <legend className="mb-2 text-sm font-semibold text-ink">{labels.intensity} <span className="text-xs font-normal text-muted">({labels.optional})</span></legend>
-          {(['light', 'technical', 'hard'] as const).map((value) => <button key={value} type="button" aria-pressed={intensity === value} onClick={() => setIntensity(intensity === value ? null : value)}
-            className={`block min-h-touch w-full p-3 text-left text-sm leading-relaxed ${intensity === value ? 'border-2 border-crimson bg-elevated font-semibold text-ink' : 'border border-bd bg-surface text-muted'}`}>
-            {sparringIntensityLabels[value]}
-          </button>)}
-        </fieldset>}
+      <form ref={form} noValidate onSubmit={(event) => { void submit(event) }} className="quick-timer-stack">
+        <fieldset disabled={saving} className="quick-timer-stack">
+          <p className="border-l-[3px] border-ember py-0.5 pl-2.5 text-[12.5px] leading-[1.45] text-muted">
+            {hasPreviousCategory ? labels.previousCategoryHint : labels.firstCategoryHint}
+          </p>
+          <QuickTimerCategoryField value={category} error={categoryError} onChange={(value) => { setCategory(value); setCategoryError(undefined); if (value !== 'sparring') setIntensity(null) }} />
+          {category === 'sparring' && <fieldset className="min-w-0">
+            <legend className="quick-timer-legend">{labels.intensity} <span className="font-sans text-[11px] font-normal normal-case tracking-normal">({labels.optional})</span></legend>
+            <div className="grid gap-2">
+              {(['light', 'technical', 'hard'] as const).map((value) => {
+                const { name, description } = feedbackLabels.sparringOptions[value]
+                return <button key={value} type="button" aria-pressed={intensity === value} onClick={() => setIntensity(intensity === value ? null : value)}
+                  className="quick-timer-choice px-3 py-2.5 leading-[1.4]">
+                  <strong className="font-extrabold">{name}</strong>{' — '}{description}
+                </button>
+              })}
+            </div>
+          </fieldset>}
+        </fieldset>
+        {rpeCard}
         <label className="block font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{feedbackLabels.noteHeading}
-          <textarea rows={3} maxLength={1000} value={note} placeholder={feedbackLabels.notePlaceholder} aria-invalid={!!noteError} aria-describedby={noteError ? 'quick-timer-note-error' : undefined}
-            onChange={(event) => { setNote(event.target.value); setNoteError(undefined) }} className="mt-2 block w-full resize-none border border-bd bg-input p-3 font-sans text-base font-normal normal-case tracking-normal text-ink" />
+          <textarea rows={3} maxLength={1000} value={note} disabled={saving} placeholder={feedbackLabels.notePlaceholder} aria-invalid={!!noteError} aria-describedby={noteError ? 'quick-timer-note-error' : undefined}
+            onChange={(event) => { setNote(event.target.value); setNoteError(undefined) }} className="mt-2 block w-full resize-none rounded-[2px] border border-bd bg-bg p-3 font-sans text-base leading-[1.4] font-normal normal-case tracking-normal text-ink placeholder:text-faint" />
         </label>
         {noteError && <p id="quick-timer-note-error" role="alert" className="text-xs text-crimson-ink">{noteError}</p>}
-      </fieldset>
-      {error && <p role="alert" className="text-sm text-crimson-ink">{feedbackLabels.saveError}</p>}
-      <Button type="submit" loading={saving} size="lg" className="w-full uppercase tracking-[0.1em]">{feedbackLabels.done}</Button>
-      <p className="text-center text-xs leading-relaxed text-muted">{rpeLabels.reminderHint}</p>
-    </form>
-  </div>
+        {error && <p role="alert" className="text-sm text-crimson-ink">{feedbackLabels.saveError}</p>}
+        <Button type="submit" loading={saving} size="sm" className="quick-timer-submit mt-0.5">{feedbackLabels.done}</Button>
+        <p className="text-center text-xs leading-normal text-muted">{rpeLabels.reminderHint}</p>
+      </form>
+    </div>
   </UnsavedPlanChangesGuard>
 }

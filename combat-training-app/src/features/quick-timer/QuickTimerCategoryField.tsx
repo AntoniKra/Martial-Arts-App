@@ -7,15 +7,15 @@ export function QuickTimerCategoryField({ value, onChange, error }: {
   value: QuickTimerCategory | null; onChange: (value: QuickTimerCategory) => void; error?: string
 }) {
   const errorId = useId()
-  return <fieldset className="min-w-0 space-y-2">
-    <legend className="mb-2 font-display text-[11px] font-semibold uppercase tracking-[0.1em] text-muted">{labels.category}</legend>
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+  return <fieldset className="min-w-0">
+    <legend className="quick-timer-legend">{labels.category}</legend>
+    <div className="grid grid-cols-2 gap-2">
       {QUICK_TIMER_CATEGORIES.map((category) => <button key={category} type="button" aria-pressed={value === category}
         aria-invalid={!!error} aria-describedby={error ? errorId : undefined} onClick={() => onChange(category)}
-        className={`min-h-touch px-3 py-3 text-sm font-semibold ${value === category ? 'border-2 border-crimson bg-elevated text-ink' : 'border border-bd bg-surface text-muted'}`}>
+        className="quick-timer-choice px-3">
         {getWorkoutBlockLabelPl(category)}
       </button>)}
     </div>
-    {error && <p id={errorId} role="alert" className="text-xs text-crimson-ink">{error}</p>}
+    {error && <p id={errorId} role="alert" className="mt-2 text-xs text-crimson-ink">{error}</p>}
   </fieldset>
 }

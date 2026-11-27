@@ -1077,6 +1077,13 @@ describe('week plan ownership and shallow validation', () => {
 })
 
 describe('quick timer feedback', () => {
+  it('allows the owner to change the discipline of a quick timer session', async () => {
+    const reference = ownerDatabase().doc(`users/${ownerId}/workoutSessions/${documentId}`)
+    await assertSucceeds(reference.set(workoutSession('quickTimer')))
+    await assertSucceeds(reference.update({ disciplineKey: 'kickboxing' }))
+    expect((await reference.get()).data()?.disciplineKey).toBe('kickboxing')
+  })
+
   it.each([null, 'light', 'technical', 'hard'])('allows owner sparring with intensity %s, round completion and later category changes', async (intensity) => {
     const reference = ownerDatabase().doc(`users/${ownerId}/workoutSessions/${documentId}`)
     const session = workoutSession('quickTimer')

@@ -3,6 +3,9 @@ import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import type { Page, TestInfo } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { createWorkoutPlaybackTimeline } from '../src/domain/workout-playback/createWorkoutPlaybackTimeline'
+import { buildRecordedWorkoutSession } from '../src/features/workout-player/utils/workoutSessionRecording'
+import { quickTimerPlan, quickTimerRecording } from '../src/test/quickTimerBuilders'
 import { test, expect } from './fixtures'
 
 test.use({ screenshot: 'off' })
@@ -17,10 +20,8 @@ async function capture(page: Page, info: TestInfo, name: string) {
   await info.attach(name, { path: file, contentType: 'image/png' })
 }
 
-async function settings(page: Page, category = 'Worek') {
-  await page.getByRole('button', { name: category, exact: true }).click()
-  await page.getByRole('combobox', { name: 'Dyscyplina', exact: true }).selectOption('boxing')
-  await page.getByRole('button', { name: '3 × 2:00 · przerwa 1:00', exact: true }).click()
+async function settings(page: Page) {
+  await page.getByRole('button', { name: '3 × 2:00 przerwa 1:00', exact: true }).click()
 }
 
 async function openPlayer(page: Page) {
@@ -50,24 +51,33 @@ test('opens New, configures three two-minute bag rounds and saves RPE and a note
   await dialog.getByRole('link', { name: /Szybki stoper/ }).click()
   await expect(page).toHaveURL('/quick-timer')
   await expect(nav.getByRole('button', { name: 'Trening', exact: true })).toHaveAttribute('aria-current', 'page')
-  await page.getByRole('button', { name: 'Start', exact: true }).click()
-  await expect(page.getByText('Wybierz rodzaj treningu', { exact: true })).toBeVisible()
-  await expect(page.getByRole('alert').filter({ hasText: 'Wybierz dyscyplinę' })).toBeVisible()
+  await expect(page.getByRole('group', { name: 'Rodzaj treningu', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('combobox', { name: 'Dyscyplina', exact: true })).toHaveCount(0)
   await settings(page)
-  await expect(page.getByText('8:00', { exact: true })).toBeVisible()
-  for (const theme of ['dark', 'light'] as const) {
-    await app.setTheme(theme)
-    await page.evaluate(() => scrollTo(0, 0))
-    await capture(page, info, `settings-${theme}-360x800`)
+  await expect(page.getByRole('status', { name: 'Łączny czas', exact: true })).toHaveText('8:00')
+  if (info.project.name === 'phone') {
+    for (const theme of ['dark', 'light'] as const) {
+      await app.setTheme(theme)
+      for (const width of [360, 390]) {
+        await page.setViewportSize({ width, height: 800 })
+        const controls = page.getByRole('button', { name: /^(Zmniejsz|Zwiększ):/ })
+        await expect(controls).toHaveCount(6)
+        const positions = await controls.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().top))
+        expect(new Set(positions).size).toBe(1)
+        await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
+      }
+    }
   }
   await openPlayer(page)
+  await expect(page.getByText('Worek · Boks', { exact: true })).toBeVisible()
   await app.freezeClock()
   await app.startWorkout()
   await page.clock.fastForward(480_000)
   await app.expectWorkoutSaved()
   const entry = (await app.readSessions())[0]
-  expect(entry).toMatchObject({ source: 'quickTimer', category: 'bag', durationSeconds: 480, workSeconds: 360,
+  expect(entry).toMatchObject({ source: 'quickTimer', category: 'bag', disciplineKey: 'boxing', durationSeconds: 480, workSeconds: 360,
     completion: { completed: 3, planned: 3, unit: 'round' } })
+  await expect(page.getByText('Ustawione domyślnie – zmień, jeśli trzeba', { exact: true })).toBeVisible()
   expect(await app.readPlans()).toHaveLength(0)
   const note = page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })
   await note.fill('Trzy rundy na worku.')
@@ -92,24 +102,54 @@ test('opens New, configures three two-minute bag rounds and saves RPE and a note
   expect((await app.readSessions())[0].rpe).toBe(6)
   await nav.getByRole('button', { name: 'Trening', exact: true }).click()
   await dialog.getByRole('link', { name: /Szybki stoper/ }).click()
-  await expect(page.getByRole('button', { name: 'Worek', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByRole('combobox', { name: 'Dyscyplina', exact: true })).toHaveValue('boxing')
-  await expect(page.getByRole('button', { name: '3 × 2:00 · przerwa 1:00', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('button', { name: '3 × 2:00 przerwa 1:00', exact: true })).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('summarizes sparring in both themes, saves optional intensity and removes it when changed to pads', async ({ app, page }, info) => {
+  await app.open()
+  const plan = quickTimerPlan({ category: 'sparring' })
+  const startedAt = '2026-11-02T10:00:00.000Z'
+  const recording = { ...quickTimerRecording(plan), startedAt }
+  const previous = buildRecordedWorkoutSession(plan, createWorkoutPlaybackTimeline(plan).steps, recording, Date.parse(startedAt) + 660_000, false, 'quickTimer')
+  if (previous.kind !== 'save') throw new Error('Expected a previous quick timer entry')
+  await app.seedSession({ ...previous.session, rpe: 6, rpeRecordedAt: '2026-11-02T10:21:00.000Z' })
+  await app.open(`/workout-sessions/${previous.session.id}/feedback`)
+  await expect(page.getByRole('button', { name: 'Sparing', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await app.open('/quick-timer')
-  await settings(page, 'Sparing')
+  await settings(page)
   await openPlayer(page)
+  await expect(page.getByText('Sparing · Boks', { exact: true })).toBeVisible()
   await app.freezeClock()
   await app.startWorkout()
   await page.clock.fastForward(480_000)
   await app.expectWorkoutSaved()
+  const sessionId = new URL(page.url()).pathname.split('/')[2]
+  const readCurrentSession = async () => (await app.readSessions()).find((session) => session.id === sessionId)
+  await expect(page.getByText('Ustawione jak ostatnio – zmień, jeśli trzeba', { exact: true })).toBeVisible()
   await expect(page.getByRole('group', { name: /Intensywność sparingu/ })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Elementy do poprawy', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: /^Techniczny —/ }).click()
   for (const theme of ['dark', 'light'] as const) {
     await app.setTheme(theme)
+    if (info.project.name === 'phone') {
+      for (const width of [360, 390]) {
+        await page.setViewportSize({ width, height: 800 })
+        const [metrics, category, intensity, rpe, note] = await Promise.all([
+          page.locator('dl.quick-timer-metrics').boundingBox(),
+          page.getByRole('group', { name: 'Rodzaj treningu', exact: true }).boundingBox(),
+          page.getByRole('group', { name: /Intensywność sparingu/ }).boundingBox(),
+          page.getByRole('region', { name: 'RPE · zmęczenie całym treningiem', exact: true }).boundingBox(),
+          page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true }).boundingBox(),
+        ])
+        if (!metrics || !category || !intensity || !rpe || !note) throw new Error('Expected visible quick timer summary sections')
+        expect(metrics.y + metrics.height).toBeLessThan(category.y)
+        expect(category.y + category.height).toBeLessThan(intensity.y)
+        expect(intensity.y + intensity.height).toBeLessThan(rpe.y)
+        expect(rpe.y + rpe.height).toBeLessThan(note.y)
+        await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
+      }
+      await page.setViewportSize({ width: 360, height: 800 })
+    }
     await page.evaluate(() => scrollTo(0, 0))
     await page.getByRole('group', { name: /Intensywność sparingu/ }).scrollIntoViewIfNeeded()
     await capture(page, info, `sparring-summary-${theme}-360x800`)
@@ -117,17 +157,17 @@ test('summarizes sparring in both themes, saves optional intensity and removes i
     expect(violations).toEqual([])
   }
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-  await expect.poll(async () => (await app.readSessions())[0]?.sparring[0]?.intensity).toBe('technical')
+  await expect.poll(async () => (await readCurrentSession())?.sparring[0]?.intensity).toBe('technical')
   await page.getByRole('article').getByRole('button', { name: /Szczegóły wpisu/ }).first().click()
   await page.getByRole('link', { name: 'Podsumowanie', exact: true }).click()
   await page.getByRole('button', { name: 'Tarcze', exact: true }).click()
   await expect(page.getByRole('group', { name: /Intensywność sparingu/ })).toHaveCount(0)
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-  await expect.poll(async () => (await app.readSessions())[0]?.category).toBe('pads')
-  const entry = (await app.readSessions())[0]
+  await expect.poll(async () => (await readCurrentSession())?.category).toBe('pads')
+  const entry = await readCurrentSession()
+  if (entry?.source !== 'quickTimer') throw new Error('Expected quick timer')
   expect(entry.sparring).toEqual([])
   expect(entry.sparringSeconds).toBe(0)
-  if (entry.source !== 'quickTimer') throw new Error('Expected quick timer')
   expect(entry.stepResults.every((step) => step.blockType === 'pads' && step.nameSnapshot === 'Tarcze')).toBe(true)
 })
 
@@ -186,9 +226,9 @@ test('requires an active quick timer for direct entry and supports custom counte
   await app.open('/quick-timer/active')
   await expect(page).toHaveURL('/quick-timer')
   await settings(page)
-  await page.getByRole('button', { name: 'Własny', exact: true }).click()
   await page.getByRole('button', { name: 'Zmniejsz: Liczba rund', exact: true }).click()
   await page.getByRole('button', { name: 'Zmniejsz: Czas pracy', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Własny ustawiasz sam', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('status', { name: 'Liczba rund', exact: true })).toHaveText('2')
   await expect(page.getByRole('status', { name: 'Czas pracy', exact: true })).toHaveText('1:45')
   await openPlayer(page)
