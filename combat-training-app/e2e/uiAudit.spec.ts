@@ -15,8 +15,9 @@ for (const theme of ['dark', 'light'] as const) {
     }
 
     await app.open('/workouts')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Moje plany')
-    await expect(page.getByRole('button', { name: 'Wstecz', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Plan')
+    await expect(page.getByRole('radio', { name: 'Moje plany', exact: true })).toBeChecked()
+    await expect(page.getByRole('button', { name: 'Wstecz', exact: true })).toHaveCount(0)
     await expect(page.getByRole('article').getByText('ok. 2:30', { exact: true })).toBeVisible()
     const main = page.getByRole('main')
     const bottomPadding = await main.evaluate((element) => Number.parseFloat(getComputedStyle(element).paddingBottom))

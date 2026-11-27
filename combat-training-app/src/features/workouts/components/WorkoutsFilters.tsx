@@ -29,7 +29,7 @@ export function WorkoutsFilters({ filters, onChange, idPrefix, addAction, histor
     <svg aria-hidden="true" width={history ? 16 : 18} height={history ? 16 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
     <span className="sr-only">{history ? labels.searchHistory : labels.search}</span>
     <input type="search" value={filters.searchQuery} onChange={(event) => onChange({ ...filters, searchQuery: event.target.value })}
-      placeholder={history ? labels.searchPlaceholder : labels.search} className="h-full min-w-0 w-full bg-transparent text-base text-ink placeholder:text-muted" />
+      placeholder={labels.searchPlaceholder} className="h-full min-w-0 w-full bg-transparent text-base text-ink placeholder:text-muted" />
   </label>
   const filterIcon = <svg aria-hidden="true" width={history ? 14 : 18} height={history ? 14 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
   const filterToggle = <button type="button" aria-expanded={expanded} aria-controls={panelId} onClick={() => setExpanded(!expanded)}

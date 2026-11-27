@@ -122,7 +122,7 @@ class WorkoutApp {
     await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
 
     await this.savePlan()
-    await expect(page.getByRole('heading', { name: 'Moje plany', exact: true })).toBeVisible()
+    await expect(page.getByRole('radio', { name: 'Moje plany', exact: true })).toBeChecked()
     await page.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) })
       .getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     // The list already has the same heading while the details chunk is loading.

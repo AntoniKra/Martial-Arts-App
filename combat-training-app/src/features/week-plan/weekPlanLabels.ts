@@ -2,6 +2,7 @@ import type { WorkoutSessionCategory } from '@/domain/workout-session/workoutSes
 import { getWorkoutBlockLabelPl } from '@/domain/workout/workoutBlockLabels'
 import type { WeekPlanItem } from '@/domain/week-plan/weekPlan.types'
 import { shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
+import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 
 export const WEEK_PLAN_CATEGORIES: readonly WorkoutSessionCategory[] = ['technique', 'pads', 'bag', 'sparring', 'conditioning', 'strengthAndConditioning', 'mixed']
 export function categoryLabel(category: WorkoutSessionCategory) { return category === 'mixed' ? 'Mieszany' : getWorkoutBlockLabelPl(category) }
@@ -10,6 +11,7 @@ export function weekLabel(weekStart: string) { return `${formatDate(weekStart)} 
 function formatDate(date: string) { const [year, month, day] = date.split('-'); return `${day}.${month}.${year}` }
 
 export const weekPlanLabels = {
+  heading: 'Plan', weekSegment: 'Tydzień', plansSegment: workoutPlanLabels.listTitle,
   title: 'Plan tygodnia', details: 'Szczegóły planu tygodnia', arrange: 'Ułóż plan tygodnia',
   open: 'Otwórz plan tygodnia',
   edit: 'Edytuj plan tygodnia', save: 'Zapisz plan tygodnia', saved: 'Plan zapisany na urządzeniu.',

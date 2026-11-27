@@ -88,7 +88,7 @@ test('@issue204 separate consent, collapsed home card, offline daily entry, prog
   await nav(page, 'Profil').click(); await grant(page)
   expect((await app.readProfile())?.healthDataConsent).toBeNull()
   await nav(page, 'Start').click(); await expect(card(page)).toBeVisible()
-  await expect(page.getByRole('link', { name: /^Baza ćwiczeń i kombinacji/ })
+  await expect(page.getByRole('navigation', { name: 'Skróty', exact: true })
     .locator('xpath=following-sibling::*[1]')).toHaveAccessibleName('Jak się dziś czujesz?')
   await expect(toggle(page)).toHaveAttribute('aria-expanded', 'false')
   await expect(toggle(page)).toHaveAttribute('aria-controls', /.+/)

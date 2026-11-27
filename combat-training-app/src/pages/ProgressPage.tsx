@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { WorkoutListContent } from '@/features/workouts/WorkoutListContent'
 import { CollapsibleCard } from '@/components/ui/CollapsibleCard'
@@ -52,12 +51,7 @@ function SkillCard({ skill }: { skill: FocusSkill }) {
 
 export function Component() {
   const [params, setParams] = useSearchParams()
-  const routeTab = params.get('tab') === 'history' ? 'history' : 'charts'
-  const [selection, setSelection] = useState({ routeTab, tab: routeTab })
-  // Update the radio immediately while the route transition commits; follow browser Back.
-  if (selection.routeTab !== routeTab) setSelection({ routeTab, tab: routeTab })
-  const tab = selection.routeTab === routeTab ? selection.tab : routeTab
-  const history = tab === 'history'
+  const history = params.get('tab') === 'history'
   const { focusSkills, sessions, plans, currentWeek, weekPlans } = useWorkoutData()
   const ready = focusSkills.status === 'ready' && sessions.status === 'ready' && focusSkills.complete && sessions.complete && !focusSkills.invalidDocumentIds.length && !sessions.invalidDocumentIds.length
   const lastNote = ready ? latestOpenCorrection(focusSkills.items, sessions.items) : null
@@ -67,11 +61,10 @@ export function Component() {
     <ScreenHeader variant="main" title={labels.title} subtitle={<>{new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', timeZone: 'UTC' }).formatRange(new Date(`${currentWeek}T12:00:00Z`), new Date(`${shiftCalendarDate(currentWeek, 6)}T12:00:00Z`))} · ten tydzień</>} />
     <SegmentedControl ariaLabel={labels.tabs} options={[{ label: labels.charts, value: 'charts' }, { label: labels.history, value: 'history' }]} value={history ? 'history' : 'charts'}
       onChange={(nextTab) => {
-        setSelection({ routeTab, tab: nextTab })
         const next = new URLSearchParams(params)
         if (nextTab === 'history') next.set('tab', nextTab)
         else { next.delete('tab'); next.delete('week') }
-        setParams(next)
+        setParams(next, { flushSync: true })
       }} />
     {history ? <WorkoutListContent history /> : <>
     <ProgressOverview />

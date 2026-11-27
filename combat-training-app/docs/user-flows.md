@@ -3,7 +3,7 @@
 ## Tworzenie i wykonanie
 
 1. Start.
-2. Utwórz trening.
+2. Wybierz **Trening (+)** → **Nowy plan** lub **Plan** → **Moje plany** → **+**.
 3. W „Dane planu” wybierz dyscyplinę.
 4. Opcjonalnie wpisz nazwę i cel, potem wróć na oś (✕).
 5. Dodaj bloki (kafle rodzajów), ćwiczenia i przerwy.
@@ -17,13 +17,16 @@
 
 ## Plany i Historia
 
-Lista „Moje plany” zawiera zapisane, jeszcze niewykonane plany. Zakończone treningi są w Postęp › Historia.
+1. Zakładka **Plan** otwiera bieżący **Tydzień** (`/progress/week`). Adres z datą (`/progress/week/:weekStart`) otwiera wskazany tydzień.
+2. Wybierz **Moje plany** w segmencie pod nagłówkiem **Plan** albo użyj skrótu **Moje plany** na Starcie. Obie ścieżki otwierają `/progress/week?tab=plans`. Zakładka **Plan** jest aktywna w obu segmentach. Wstecz w przeglądarce przywraca poprzedni widok.
+3. W **Moich planach** kafel **Moje ćwiczenia** otwiera bibliotekę (`/exercises`). Ten sam skrót jest na Starcie. Pod kaflem są wyszukiwanie, filtry i **+** do utworzenia planu, a dalej lista zapisanych planów.
+4. Stare linki `/workouts` i `/workouts?tab=plans` przekierowują do **Moich planów**. `/workouts?tab=history` otwiera **Postęp** → **Historia**, gdzie są zakończone treningi. Przekierowania zachowują dodatkowe parametry i fragment adresu.
 
 Plan nie ma wymaganej daty wykonania. Data historii wynika z rozpoczęcia.
 
 ## Trening spoza aplikacji
 
-1. Na stronie głównej (pod ostatnimi sesjami) albo w Postęp › Historia wybierz **+ Dodaj trening spoza aplikacji**.
+1. Wybierz **Trening (+)** → **Trening spoza aplikacji**, **Trening w klubie** na Starcie albo **+ Dodaj trening spoza aplikacji** w **Postęp** → **Historia**.
 2. Wybierz datę do 7 dni wstecz, dyscyplinę i co najmniej jedną część zajęć. „Jak ostatnio” kopiuje tylko dyscyplinę, czas i części poprzednich zajęć. Dyscyplinę podpowiada najnowszy wpis, a bez wpisów trzeba ją wybrać.
 3. Podaj cały czas zajęć, łącznie z rozgrzewką (60/90/120 min albo 1–480 min) i obowiązkowe RPE 0–10. Przy treningu sprzed co najmniej 3 dni zobaczysz wyjaśnienie „z pamięci”.
 4. Zaznaczenie części „Sparing” otwiera sekcję intensywności i opcjonalnej liczby rund. Odznaczenie czyści te odpowiedzi.
@@ -70,9 +73,9 @@ Nie można zmieniać:
 
 Jeżeli nie ma jeszcze żadnych wpisów `focusRatings`, zamiast chowania dostępne jest **Usuń ćwiczenie celu**, z potwierdzeniem i listą planów. Trwający trening zachowuje swoją kopię planu i zapisuje oceny normalnie.
 
-## „+ Nowy” i szybki stoper (issue #105)
+## „Nowy trening” i szybki stoper
 
-1. **Nowy** w nawigacji telefonu lub komputera otwiera okno z trzema linkami: **Szybki stoper**, **Nowy plan**, **Trening spoza aplikacji**. Escape zamyka okno i przywraca fokus na przycisku. Dotychczasowe linki do kreatora na Start, Treningach i Postępie pozostają.
+1. Romb **Trening (+)** na telefonie lub przycisk **Trening** na komputerze otwiera arkusz **Nowy trening**. Są w nim kolejno **Szybki stoper**, **Trening spoza aplikacji** i **Nowy plan**. ✕ lub Escape zamyka arkusz i przywraca fokus na przycisku.
 2. W stoperze wybierz rodzaj (Technika, Tarcze, Worek, Sparing, Kondycja albo Siła i motoryka), dyscyplinę i gotowy format lub własne rundy. Pierwsze wejście nie zaznacza rodzaju; dyscyplinę podpowiada najnowszy wpis, jeśli nie ma zapamiętanego wyboru stopera.
 3. **Start** zapisuje ostatnią konfigurację dla konta na urządzeniu i otwiera odtwarzacz. Dopiero **Rozpocznij trening** w odtwarzaczu odblokowuje gong i rozpoczyna przygotowanie. Przygotowanie i sygnał 10 s korzystają z tych samych ustawień urządzenia co plan.
 4. Stoper wykonuje jednorazowy plan, którego nie zapisuje na liście planów. Obsługuje pauzę, ±15 s, powrót do poprzedniego etapu, gong i wznowienie po przeładowaniu. Przerwany trening zachowuje źródło `quickTimer` i realizację w rundach.

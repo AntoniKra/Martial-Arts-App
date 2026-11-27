@@ -3,6 +3,8 @@ import { formatPolishCount } from '@/domain/language/polishPlural'
 import type { WeekActivity } from '@/domain/week-plan/weekPlan.types'
 import { shiftCalendarDate } from '@/domain/week-plan/weekCalendar'
 import { activityTitle } from '@/features/week-plan/scheduleLabels'
+import { exerciseLabels } from '@/features/exercises/exerciseLabels'
+import { workoutPlanLabels } from '@/features/workouts/workoutPlanLabels'
 
 const calendarDate = (date: string) => new Date(`${date}T12:00:00Z`)
 export const homeDateLabel = (date: string) => new Intl.DateTimeFormat('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(calendarDate(date))
@@ -17,13 +19,15 @@ export const homeLabels = {
   club: 'Klub', entry: 'Wpisz trening po zajęciach', moveDay: 'Przenieś dzień',
   entryHint: (discipline: string, minutes: string) => `Data, ${discipline.toLocaleLowerCase('pl')}${minutes ? `, ${minutes} min` : ''} i części są już wpisane — dodajesz RPE i notatkę.`,
   usual: (parts: string) => `Zwykle: ${parts}`, noParts: 'Wybierzesz części przy wpisie po zajęciach.',
-  later: 'W tym tygodniu jeszcze', otherPlans: 'Stoper i inne plany', allPlans: 'Wszystkie plany i nowy plan',
+  later: 'W tym tygodniu jeszcze', allPlans: 'Wszystkie plany i nowy plan',
   startPlan: 'Rozpocznij plan', timer: 'Stoper', clubWorkout: 'Trening w klubie',
   createPlan: 'Utwórz plan', empty: 'Zacznij swój pierwszy trening',
   emptyHint: 'Utwórz plan treningowy lub wpisz trening po zajęciach w klubie.',
   quickStartHint: 'Utwórz własny plan lub wpisz trening po zajęciach w klubie.',
   firstStep: 'Pierwszy krok', newProfile: 'Nowy profil',
-  exerciseLibrary: 'Baza ćwiczeń i kombinacji', exerciseLibraryHint: 'Przeglądaj techniki boksu i kickboxingu',
+  shortcuts: 'Skróty',
+  plansShortcut: { title: workoutPlanLabels.listTitle, description: 'Lista planów treningowych' },
+  exercisesShortcut: { title: exerciseLabels.title, description: 'Biblioteka ćwiczeń' },
   wellbeing: 'Jak się dziś czujesz?', wellbeingHint: '4 pytania · ok. 30 s',
   todo: 'Do uzupełnienia', overdueWorkout: 'Zaległy trening', occurred: 'Czy trening się odbył?', write: 'Wpisz',
   overdueBadge: (date: string, discipline: string) => `${homeShortDate(date)} · ${discipline} · klub`,
@@ -35,15 +39,13 @@ export const homeLabels = {
   week: 'Ten tydzień', weekPlan: 'Plan tygodnia', days: 'Dni tygodnia',
   next: 'Następny', flexible: 'W dowolny dzień tego tygodnia',
   flexibleAction: 'Wykonaj w dowolny dzień',
-  otherPlansHint: 'Interwały, runda wolna lub biblioteka ćwiczeń',
-  timerRounds: 'Stoper rund',
   completed: 'Ukończone:', progress: 'Postęp:',
   units: (count: number) => formatPolishCount(count, 'jednostki', 'jednostek', 'jednostek'),
   goal: (count: number, total: number) => `${count} z ${total}`,
   setGoal: 'Bez celu · Ustal cel tygodnia',
   last: 'Ostatnia sesja', history: 'Historia',
   loadingPlan: 'Ładowanie planu…', loadingSessions: 'Ładowanie sesji…',
-  retry: 'Spróbuj ponownie', otherPlansSuffix: 'i inne plany',
+  retry: 'Spróbuj ponownie',
   rest: (next: { date: string; item: WeekActivity } | null) => next
     ? `Dziś odpoczynek · następny: ${new Intl.DateTimeFormat('pl-PL', { weekday: 'short', timeZone: 'UTC' }).format(calendarDate(next.date))}, ${activityTitle(next.item).toLocaleLowerCase('pl')}${next.item.kind === 'club' ? ` ${next.item.startTime}` : ''}`
     : 'Dziś odpoczynek',

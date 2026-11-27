@@ -35,7 +35,7 @@ test('opens New, configures three two-minute bag rounds and saves RPE and a note
   const nav = page.getByRole('navigation', { name: 'Główna nawigacja' }).filter({ visible: true })
   await nav.getByRole('button', { name: 'Trening', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Nowy trening', exact: true })
-  await expect(dialog.getByRole('link')).toHaveCount(5)
+  await expect(dialog.getByRole('link')).toHaveCount(3)
   for (const link of await dialog.getByRole('link').all()) {
     const box = await link.boundingBox()
     expect(box?.height).toBeGreaterThanOrEqual(44)

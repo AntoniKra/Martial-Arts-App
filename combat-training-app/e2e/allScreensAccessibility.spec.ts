@@ -233,8 +233,8 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open(`/workouts/${plan.id}`)
     // Load account settings in this document before deliberately disabling network requests.
     await openProfile(page)
-    await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('button', { name: 'Trening', exact: true }).click()
-    await page.getByRole('dialog', { name: 'Nowy trening', exact: true }).getByRole('link', { name: /^Moje plany/ }).click()
+    await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Plan', exact: true }).click()
+    await page.getByRole('radio', { name: 'Moje plany', exact: true }).check()
     await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     await page.getByRole('link', { name: 'Edytuj plan', exact: true }).click()
     await app.setTheme(theme)

@@ -34,7 +34,7 @@ async function expectSingleLineLabels(labels: Locator) {
 test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(instant)) })
 
 for (const theme of ['dark', 'light'] as const) {
-  test(`mockup A: card parameters, exact CSS, single timer row and shared Progress checkmark in ${theme}`, async ({ app, page }) => {
+  test(`mockup A: card parameters, exact CSS and shared Progress checkmark in ${theme}`, async ({ app, page }) => {
     // Mockup A is a phone layout; its exact values (min-height 360 px and others) apply below md.
     await page.setViewportSize({ width: 390, height: 844 })
     await app.open('/workouts'); await app.setTheme(theme)
@@ -67,14 +67,8 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(weekCard(page).getByRole('img').first()).toHaveCSS('border-radius', '50%')
     await expect(weekCard(page).getByRole('img').first()).toHaveCSS('width', '26px')
     await expect(weekCard(page).getByText('So', { exact: true })).toHaveCSS('text-transform', 'none')
-    const timerRow = page.locator('.home-other-plans')
-    await expect(timerRow).toHaveCount(1)
-    await expect(timerRow).toHaveAttribute('href', '/workouts')
-    await expect(timerRow.locator('a')).toHaveCount(0)
-    await timerRow.click()
-    await page.getByRole('link', { name: 'Stoper rund', exact: true }).click()
-    await expect(page).toHaveURL('/quick-timer')
-    await app.open('/')
+    const shortcuts = page.getByRole('navigation', { name: 'Skróty', exact: true })
+    await expect(shortcuts.getByRole('link')).toHaveText(['Moje planyLista planów treningowych', 'Moje ćwiczeniaBiblioteka ćwiczeń'])
     await app.seedSession(manualWorkoutSession({ workoutDate: '2026-11-16', category: 'bag', parts: ['bag'], rpe: 0 }))
     const done = weekCard(page).getByRole('img', { name: 'poniedziałek: wykonany', exact: true })
     await expect(done).toHaveText('✓')
@@ -154,7 +148,8 @@ for (const theme of ['dark', 'light'] as const) {
     expect(action!.y).toBeGreaterThan((await todayCard(page).boundingBox())!.y)
     expect(action!.y + action!.height).toBeLessThan(844 - 72)
     await expect(weekCard(page).getByRole('link', { name: '+ Wykonaj w dowolny dzień: Worek', exact: true })).toHaveAttribute('href', `/progress/week/${weekStart}#flexible-workouts`)
-    await expect(weekCard(page).getByRole('link', { name: /^Stoper i inne plany/ })).toHaveAttribute('href', '/workouts')
+    await expect(weekCard(page).getByRole('link', { name: /^Moje plany/ })).toHaveCount(0)
+    await expect(page.getByRole('navigation', { name: 'Skróty', exact: true }).getByRole('link', { name: /^Moje plany/ })).toBeVisible()
     await expect(weekCard(page)).toContainText('Ukończone: 0 z 2 jednostek')
     await expect(page.getByRole('img', { name: 'wtorek: zaplanowany, dziś', exact: true })).toBeVisible()
     for (const width of [320, 360, 390]) {
@@ -372,7 +367,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/')
     await app.setTheme(theme)
     const empty = page.getByRole('region', { name: 'Zacznij swój pierwszy trening', exact: true })
-    const library = page.getByRole('link', { name: /^Baza ćwiczeń i kombinacji/ })
+    const library = page.getByRole('link', { name: /^Moje ćwiczenia/ })
     await expect(empty).toContainText('Pierwszy krok')
     await expect(empty).toContainText('Nowy profil')
     await expect(empty).toHaveCSS('min-height', '330px')

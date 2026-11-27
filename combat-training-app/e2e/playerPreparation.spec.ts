@@ -26,8 +26,8 @@ for (const theme of ['dark', 'light'] as const) {
       await testInfo.attach(`preparation-setting-${theme}`, { path, contentType: 'image/png' })
     }
 
-    await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('button', { name: 'Trening', exact: true }).click()
-    await page.getByRole('dialog', { name: 'Nowy trening', exact: true }).getByRole('link', { name: /^Moje plany/ }).click()
+    await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Plan', exact: true }).click()
+    await page.getByRole('radio', { name: 'Moje plany', exact: true }).check()
     await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
     await app.openPlayer()
     await app.freezeClock()
@@ -167,8 +167,8 @@ test('uses ten seconds in both the setting and player after a failed preference 
   })
   await setting.getByRole('radio', { name: '5 s', exact: true }).click()
   await expect(setting.getByRole('radio', { name: '10 s', exact: true })).toBeChecked()
-  await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('button', { name: 'Trening', exact: true }).click()
-  await page.getByRole('dialog', { name: 'Nowy trening', exact: true }).getByRole('link', { name: /^Moje plany/ }).click()
+  await page.getByRole('navigation', { name: 'Główna nawigacja', exact: true }).getByRole('link', { name: 'Plan', exact: true }).click()
+  await page.getByRole('radio', { name: 'Moje plany', exact: true }).check()
   await page.getByRole('link', { name: 'Zobacz plan', exact: true }).click()
   await app.openPlayer()
   await app.freezeClock()
