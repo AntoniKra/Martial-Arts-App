@@ -4,9 +4,6 @@ import { useId } from 'react'
 import type { WorkoutBreak, WorkoutItem } from '@/domain/workout/workout.types'
 import { RowActionIcon } from '@/features/workout-builder/components/BlockTypeIcon'
 import { TimelineBreakMain } from '@/features/workout-builder/components/TimelineParts'
-import {
-  WorkoutBreakForm,
-} from '@/features/workout-builder/components/WorkoutBreakForm'
 import type {
   ActiveInlinePanel,
   FocusRestoreTarget,
@@ -30,7 +27,6 @@ interface WorkoutBreakCardProps {
   isExpanded: boolean
   onToggle: () => void
   onOpenInlinePanel: (panel: Exclude<ActiveInlinePanel, null>) => void
-  onCloseInlinePanel: (focusTarget?: FocusRestoreTarget) => void
   onScheduleFocusRestore: (focusTarget: FocusRestoreTarget) => void
   registerEditBreakButtonRef: (element: HTMLButtonElement | null) => void
 }
@@ -55,7 +51,6 @@ export function WorkoutBreakCard({
   isExpanded,
   onToggle,
   onOpenInlinePanel,
-  onCloseInlinePanel,
   onScheduleFocusRestore,
   registerEditBreakButtonRef,
 }: WorkoutBreakCardProps) {
@@ -63,7 +58,6 @@ export function WorkoutBreakCard({
   const breakContext = formatBreakContext(itemPosition, blockPosition, blockLabel)
   const canMoveUp = canMoveItemUp(blockItems, breakItem.id)
   const canMoveDown = canMoveItemDown(blockItems, breakItem.id)
-  const editBreakFocusTarget: FocusRestoreTarget = { type: 'editBreak', itemId: breakItem.id }
   const addBreakFocusTarget: FocusRestoreTarget = { type: 'addBreak', blockId }
 
   const isEditing =
@@ -71,33 +65,8 @@ export function WorkoutBreakCard({
     activeInlinePanel.blockId === blockId &&
     activeInlinePanel.itemId === breakItem.id
 
-  if (isEditing) {
-    return (
-      <li className="wb-break-item">
-        <div className="wb-block-form">
-          <WorkoutBreakForm
-            mode="edit"
-            initialDurationSeconds={breakItem.durationSeconds}
-            initialInstruction={breakItem.instruction}
-            onCancel={() => onCloseInlinePanel(editBreakFocusTarget)}
-            onSubmit={(durationSeconds, instruction) => {
-              dispatch({
-                type: 'updateBreak',
-                blockId,
-                breakId: breakItem.id,
-                durationSeconds,
-                instruction,
-              })
-              onCloseInlinePanel(editBreakFocusTarget)
-            }}
-          />
-        </div>
-      </li>
-    )
-  }
-
   return (
-    <li className={`wb-break-item${isExpanded ? ' is-expanded' : ''}`}>
+    <li className={`wb-break-item${isExpanded ? ' is-expanded' : ''}${isEditing ? ' is-active' : ''}`}>
       <TimelineBreakMain
         breakItem={breakItem}
         action={
@@ -141,6 +110,7 @@ export function WorkoutBreakCard({
             <button
               type="button"
               className="wb-action"
+              aria-haspopup="dialog"
               aria-label={`Edytuj przerwę, ${breakContext}`}
               onClick={() => onOpenInlinePanel({ type: 'editBreak', blockId, itemId: breakItem.id })}
             >
