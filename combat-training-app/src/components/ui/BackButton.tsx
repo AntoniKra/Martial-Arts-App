@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { screenHeaderLabels } from '../screenHeaderLabels'
 
 export function BackIcon({ size = 24 }: { size?: number }) {
@@ -7,11 +6,11 @@ export function BackIcon({ size = 24 }: { size?: number }) {
   </svg>
 }
 
-export function BackButton({ onClick, disabled, showLabel = false, className = '', icon }: {
-  onClick?: () => void; disabled?: boolean; showLabel?: boolean; className?: string; icon?: ReactNode
+export function BackButton({ onClick, disabled, showLabel = false, className = '' }: {
+  onClick?: () => void; disabled?: boolean; showLabel?: boolean; className?: string
 }) {
   return <button type="button" aria-label={screenHeaderLabels.back} onClick={onClick} disabled={disabled}
     className={`flex shrink-0 items-center justify-center text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:opacity-40 ${showLabel ? 'min-h-touch min-w-touch' : 'size-11'} ${className}`}>
-    {icon ?? <BackIcon size={showLabel ? 14 : 24} />}{showLabel && screenHeaderLabels.back}
+    <BackIcon size={showLabel ? 14 : 24} />{showLabel && screenHeaderLabels.back}
   </button>
 }

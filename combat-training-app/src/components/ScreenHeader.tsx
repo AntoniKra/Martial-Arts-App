@@ -21,11 +21,7 @@ export function ScreenHeader({ title, variant = 'subscreen', subtitle, action, o
   if (variant === 'centered') {
     return <header className="w-full">
       <div className="grid min-h-11 grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2">
-        <BackButton onClick={onBack} disabled={disabled} icon={
-          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5m7 7-7-7 7-7" />
-          </svg>
-        } />
+        <BackButton onClick={onBack} disabled={disabled} />
         <Heading ref={headingRef} tabIndex={headingRef ? -1 : undefined} className="text-center font-display text-[15px] font-extrabold tracking-[0.03em] text-ink uppercase max-[374px]:text-[13.5px]">{title}</Heading>
         {action}
       </div>

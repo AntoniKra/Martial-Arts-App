@@ -24,7 +24,7 @@ async function checkGeometry(page: Page, label: string, bottomInset = 0) {
   await expect(primary.locator('svg')).toHaveCSS('height', '31px')
   for (const name of ['Poprzedni etap', 'Następny etap']) {
     const side = (await page.getByRole('button', { name, exact: true }).boundingBox())!
-    expect([side.width, side.height]).toEqual([58, 58])
+    expect([side.width, side.height]).toEqual([52, 52])
     expect(side.y + side.height / 2).toBe(box.y + box.height / 2)
   }
   const next = (await page.getByText('Następnie:', { exact: false }).last().boundingBox())!
