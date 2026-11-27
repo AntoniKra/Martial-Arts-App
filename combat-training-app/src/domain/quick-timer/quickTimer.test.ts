@@ -10,27 +10,27 @@ describe('quick timer defaults from history', () => {
   const latestManual = { ...olderTimer, id: 'manual', source: 'manual', category: 'pads', disciplineKey: 'muay_thai', workoutDate: '2026-11-25' } as const
 
   it('defaults to bag and boxing with empty history', () => {
-    expect(resolveQuickTimerDefaults(null, [])).toEqual({ category: 'bag', disciplineKey: 'boxing', hasPreviousCategory: false })
+    expect(resolveQuickTimerDefaults([])).toEqual({ category: 'bag', disciplineKey: 'boxing', hasPreviousCategory: false })
   })
   it('uses the latest quick timer category and the latest entry discipline independently', () => {
-    expect(resolveQuickTimerDefaults(null, [olderTimer, latestManual, previousTimer])).toEqual({
+    expect(resolveQuickTimerDefaults([olderTimer, latestManual, previousTimer])).toEqual({
       category: 'sparring', disciplineKey: 'muay_thai', hasPreviousCategory: true,
     })
   })
-  it('uses the draft discipline ahead of history', () => {
-    expect(resolveQuickTimerDefaults('k1', [latestManual])).toEqual({
-      category: 'bag', disciplineKey: 'k1', hasPreviousCategory: false,
+  it('uses the latest entry discipline even without a previous timer', () => {
+    expect(resolveQuickTimerDefaults([latestManual])).toEqual({
+      category: 'bag', disciplineKey: 'muay_thai', hasPreviousCategory: false,
     })
   })
   it('defaults to bag when the last timer has an unsupported mixed category', () => {
-    expect(resolveQuickTimerDefaults(null, [olderTimer, { ...previousTimer, category: 'mixed' }])).toEqual({
+    expect(resolveQuickTimerDefaults([olderTimer, { ...previousTimer, category: 'mixed' }])).toEqual({
       category: 'bag', disciplineKey: 'kickboxing', hasPreviousCategory: false,
     })
   })
   it('excludes the summary entry itself and later sessions when looking for a previous timer', () => {
     const history = [previousTimer, olderTimer, latestManual]
-    expect(resolveQuickTimerDefaults(null, history, olderTimer).hasPreviousCategory).toBe(false)
-    expect(resolveQuickTimerDefaults(null, history, previousTimer).hasPreviousCategory).toBe(true)
+    expect(resolveQuickTimerDefaults(history, olderTimer).hasPreviousCategory).toBe(false)
+    expect(resolveQuickTimerDefaults(history, previousTimer).hasPreviousCategory).toBe(true)
   })
 })
 

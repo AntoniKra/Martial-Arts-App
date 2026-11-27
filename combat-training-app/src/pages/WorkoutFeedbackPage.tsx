@@ -38,7 +38,7 @@ export function Component() {
     onSave={async (value, recordedAt) => {
       if (!await sessionRepository.saveRpe(session.id, value, recordedAt)) throw new Error('Session no longer available')
     }}>{(rpeCard) => session.source === 'quickTimer' ? <QuickTimerFeedbackForm key={session.id} session={session} pending={sessions.pendingIds.has(session.id)}
-      hasPreviousCategory={resolveQuickTimerDefaults(null, sessions.items, session).hasPreviousCategory}
+      hasPreviousCategory={resolveQuickTimerDefaults(sessions.items, session).hasPreviousCategory}
       rpeCard={<>{rpeCard}<LazyWellbeingWorkoutLine date={session.workoutDate} /></>}
       onSave={async (draft) => {
         const feedback = prepareQuickTimerFeedback(session, draft, new Date().toISOString())

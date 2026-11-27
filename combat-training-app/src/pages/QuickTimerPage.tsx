@@ -43,7 +43,7 @@ function QuickTimerSettings({ uid }: { uid: string }) {
   function submit(event: FormEvent) {
     event.preventDefault()
     if (sessions.status === 'loading') return
-    const { category, disciplineKey } = resolveQuickTimerDefaults(draft.disciplineKey, sessions.items)
+    const { category, disciplineKey } = resolveQuickTimerDefaults(sessions.items)
     const result = validateQuickTimerConfig({ ...draft, category, disciplineKey })
     if (!result.ok) {
       setErrors(result.errors)
