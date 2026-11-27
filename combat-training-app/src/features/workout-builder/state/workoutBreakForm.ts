@@ -11,6 +11,9 @@ export { DEFAULT_BREAK_DURATION_SECONDS }
 /** Quick-select break presets in one row (P1 A: 0:30 / 1:00 / 2:00 / 3:00). */
 export const BREAK_DURATION_PRESETS = [30, 60, 120, 180] as const
 
+/** Standalone break cap in the builder sheet (60:00); rest between rounds keeps STEPPER_LIMITS.rest. */
+export const BREAK_DURATION_MAX_SECONDS = 3_600
+
 export type BreakEntryError = 'rest' | 'zero'
 
 export interface BreakEntryState {
@@ -18,6 +21,8 @@ export interface BreakEntryState {
   invalid: boolean
   error: BreakEntryError | null
 }
+
+export type BreakEntryParseResult = { ok: true; value: number } | { ok: false }
 
 export type BreakCommitResult =
   | { ok: true; durationSeconds: number }
@@ -32,9 +37,16 @@ export function normalizeBreakInstruction(value: string): string | null {
   return trimmed.length > 0 ? trimmed : null
 }
 
-/** Parses a typed break duration (m:ss or seconds within STEPPER_LIMITS.rest). */
+/** Parses a typed break duration (m:ss or seconds within 0:00–60:00). */
+export function parseBreakEntry(input: string): BreakEntryParseResult {
+  const parsed = parseStepperEntry('rest', input)
+  if (!parsed.ok || parsed.value > BREAK_DURATION_MAX_SECONDS) return { ok: false }
+  return { ok: true, value: parsed.value }
+}
+
+/** Parses a typed break duration and returns either the new seconds or an invalid entry state. */
 export function commitBreakEntry(text: string): BreakCommitResult {
-  const parsed = parseStepperEntry('rest', text)
+  const parsed = parseBreakEntry(text)
   if (!parsed.ok) {
     return { ok: false, entry: { text, invalid: true, error: 'rest' } }
   }
@@ -42,7 +54,7 @@ export function commitBreakEntry(text: string): BreakCommitResult {
 }
 
 /**
- * Steps the break duration by 15 s. If the user was editing the text field with a valid
+ * Steps the break duration by 15 s within 0:00–60:00. If the user was editing the text field with a valid
  * value, applies that value first before stepping; otherwise steps from the current duration.
  */
 export function stepBreakDuration(
@@ -52,20 +64,20 @@ export function stepBreakDuration(
 ): number {
   let base = currentDurationSeconds
   if (entry) {
-    const parsed = parseStepperEntry('rest', entry.text)
+    const parsed = parseBreakEntry(entry.text)
     if (parsed.ok) base = parsed.value
   }
-  return stepValue('rest', base, direction)
+  return Math.min(BREAK_DURATION_MAX_SECONDS, stepValue('rest', base, direction))
 }
 
-/** Validates the break duration before adding or saving (must be valid and greater than 0). */
+/** Validates the break duration before adding or saving (must be within 0:01–60:00). */
 export function resolveBreakSubmit(
   currentDurationSeconds: number,
   entry: BreakEntryState | null,
 ): BreakSubmitResult {
   let resolved = currentDurationSeconds
   if (entry) {
-    const parsed = parseStepperEntry('rest', entry.text)
+    const parsed = parseBreakEntry(entry.text)
     if (!parsed.ok) {
       return {
         ok: false,
@@ -74,6 +86,14 @@ export function resolveBreakSubmit(
       }
     }
     resolved = parsed.value
+  }
+
+  if (resolved > BREAK_DURATION_MAX_SECONDS) {
+    return {
+      ok: false,
+      durationSeconds: currentDurationSeconds,
+      entry: { text: formatBreakDuration(resolved), invalid: true, error: 'rest' },
+    }
   }
 
   if (resolved <= 0) {

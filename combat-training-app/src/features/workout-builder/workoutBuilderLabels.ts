@@ -60,6 +60,7 @@ export const workoutBuilderLabels = {
   breakFormats: 'Gotowe formaty',
   breakStepDecrease: '−15 s',
   breakStepIncrease: '+15 s',
+  breakEntryRangeError: 'Wpisz przerwę jako m:ss albo liczbę sekund, od 0:00 do 60:00.',
   breakZeroDurationError: 'Łączny czas przerwy musi być większy od 0.',
   breakInstruction: 'Instrukcja',
   breakInstructionOptional: '(opcjonalnie)',

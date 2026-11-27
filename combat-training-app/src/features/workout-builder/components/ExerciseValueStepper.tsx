@@ -19,6 +19,7 @@ interface ExerciseValueStepperProps {
   errorId: string
   wide?: boolean
   layout?: 'stacked' | 'side'
+  maxValue?: number
   stepLabels?: { decrease: string; increase: string }
   entryHint?: string
   onStep: (direction: StepDirection) => void
@@ -40,6 +41,7 @@ export function ExerciseValueStepper({
   errorId,
   wide = false,
   layout = 'stacked',
+  maxValue,
   stepLabels,
   entryHint,
   onStep,
@@ -83,7 +85,7 @@ export function ExerciseValueStepper({
   const isLong = layout === 'side' && (editing ? entry.text.length : display.length) >= 6
 
   const stepButton = (direction: StepDirection) => {
-    const enabled = canStep(field, value, direction)
+    const enabled = direction === 1 && maxValue !== undefined ? value < maxValue : canStep(field, value, direction)
     const buttonText = direction === 1 ? (stepLabels?.increase ?? '+') : (stepLabels?.decrease ?? '−')
     return (
       <button
