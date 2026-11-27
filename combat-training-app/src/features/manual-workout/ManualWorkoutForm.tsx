@@ -1,5 +1,6 @@
 import { MultiChoiceChip } from '@/components/ui/MultiChoiceChip'
 import { ChoiceTile } from '@/components/ui/ChoiceTile'
+import { DisciplinePicker } from '@/components/ui/DisciplinePicker'
 import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -149,10 +150,9 @@ export function ManualWorkoutForm({ original, sessions, skills, skillsStatus, on
             </div>
             <p className="mt-2 text-xs text-muted">{labels.dateHint}</p><FieldError message={errors.workoutDate} id={errorId('workoutDate')} />
           </div>
-          <fieldset className={groupClass} {...invalidProps('disciplineKey')} tabIndex={errors.disciplineKey ? -1 : undefined}>
+          <fieldset className="min-w-0 space-y-2" {...invalidProps('disciplineKey')} tabIndex={errors.disciplineKey ? -1 : undefined}>
             <legend className={legendClass}>{labels.discipline}{copiedLabel('disciplineKey')}</legend>
-            <div className="grid grid-cols-2 gap-2">{(Object.entries(DISCIPLINE_LABELS_PL) as [keyof typeof DISCIPLINE_LABELS_PL, string][]).map(([value, label]) =>
-              <ChoiceTile key={value} value={value} className="compact-choice" name={`${id}-discipline`} checked={draft.disciplineKey === value} onChange={() => set('disciplineKey', value)}>{label}</ChoiceTile>)}</div>
+            <DisciplinePicker label={labels.discipline} value={draft.disciplineKey || null} onChange={(value) => set('disciplineKey', value)} />
             <FieldError message={errors.disciplineKey} id={errorId('disciplineKey')} />
           </fieldset>
           <fieldset aria-label={labels.category} className={groupClass} {...invalidProps('parts')} tabIndex={errors.parts ? -1 : undefined}>
