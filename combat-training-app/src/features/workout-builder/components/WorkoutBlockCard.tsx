@@ -12,13 +12,11 @@ import {
 } from '@/features/workout-builder/components/BlockTypeIcon'
 import { TimelineBlockHeader } from '@/features/workout-builder/components/TimelineParts'
 import { WorkoutBreakCard } from '@/features/workout-builder/components/WorkoutBreakCard'
-import { WorkoutBreakForm } from '@/features/workout-builder/components/WorkoutBreakForm'
 import { WorkoutExerciseCard } from '@/features/workout-builder/components/WorkoutExerciseCard'
 import type {
   ActiveInlinePanel,
   FocusRestoreTarget,
 } from '@/features/workout-builder/components/workoutBuilderUi.types'
-import { createWorkoutBreak } from '@/features/workout-builder/state/workoutBuilder.factories'
 import type { WorkoutBuilderAction } from '@/features/workout-builder/state/workoutBuilder.types'
 import {
   canMoveBlockDown,
@@ -93,13 +91,10 @@ export function WorkoutBlockCard({
   const canMoveDown = canMoveBlockDown(allBlocks, block.id)
   const isEmpty = block.items.length === 0
   const focusExerciseCount = countFocusExercises(allBlocks)
-  const addBreakFocusTarget: FocusRestoreTarget = { type: 'addBreak', blockId: block.id }
   const time = summarizeBlockTime(block)
   const { inside, trailing } = splitTrailingBreaks(block.items)
   const isMenuOpen = expandedId === blockMenuKey(block.id)
 
-  const isAddingBreak =
-    activeInlinePanel?.type === 'addBreak' && activeInlinePanel.blockId === block.id
   const isConfirmingDelete =
     activeInlinePanel?.type === 'confirmBlockDelete' && activeInlinePanel.blockId === block.id
 
@@ -133,7 +128,6 @@ export function WorkoutBlockCard({
           isExpanded={expandedId === item.id}
           onToggle={() => onToggleExpanded(item.id)}
           onOpenInlinePanel={onOpenInlinePanel}
-          onCloseInlinePanel={onCloseInlinePanel}
           onScheduleFocusRestore={onScheduleFocusRestore}
           registerEditBreakButtonRef={registerEditBreakButtonRef(item.id)}
         />
@@ -264,7 +258,7 @@ export function WorkoutBlockCard({
             ref={registerAddBreakButtonRef}
             type="button"
             aria-label={`Dodaj przerwę do ${blockDescriptorGenitive}`}
-            aria-expanded={isAddingBreak}
+            aria-haspopup="dialog"
             onClick={() => onOpenInlinePanel({ type: 'addBreak', blockId: block.id })}
             className="wb-footer-action"
           >
@@ -274,23 +268,6 @@ export function WorkoutBlockCard({
         </div>
         {!canAddExercise ? (
           <p id={addExerciseHintId} className="wb-block-note">{labels.chooseDisciplineFirst}</p>
-        ) : null}
-
-        {isAddingBreak ? (
-          <div className="wb-block-form">
-            <WorkoutBreakForm
-              mode="add"
-              onCancel={() => onCloseInlinePanel(addBreakFocusTarget)}
-              onSubmit={(durationSeconds, instruction) => {
-                dispatch({
-                  type: 'addBreak',
-                  blockId: block.id,
-                  breakItem: createWorkoutBreak(durationSeconds, instruction),
-                })
-                onCloseInlinePanel(addBreakFocusTarget)
-              }}
-            />
-          </div>
         ) : null}
       </section>
 

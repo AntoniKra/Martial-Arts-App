@@ -98,7 +98,7 @@ for (const theme of ['dark', 'light'] as const) {
     await capture('configuration-instruction')
     await page.getByRole('button', { name: 'Zatwierdź ćwiczenie', exact: true }).click()
     await page.getByRole('button', { name: 'Dodaj przerwę do bloku 1 — Technika', exact: true }).click()
-    await page.getByText('Nowa przerwa', { exact: true }).scrollIntoViewIfNeeded()
+    await expect(page.getByRole('dialog', { name: 'Przerwa', exact: true })).toBeVisible()
     await capture('builder-break')
 
     await app.open(`/workouts/${plan.id}`)
