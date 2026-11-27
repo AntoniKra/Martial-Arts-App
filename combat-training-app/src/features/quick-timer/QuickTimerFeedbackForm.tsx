@@ -11,6 +11,7 @@ import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { workoutFeedbackLabels as feedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import { rpeLabels } from '@/features/workout-feedback/rpeLabels'
 import { Button } from '@/components/ui/Button'
+import { DisciplinePicker } from '@/components/ui/DisciplinePicker'
 import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
 import { QuickTimerCategoryField } from './QuickTimerCategoryField'
 import { quickTimerLabels as labels } from './quickTimerLabels'
@@ -20,13 +21,15 @@ export function QuickTimerFeedbackForm({ session, pending, hasPreviousCategory, 
   session: QuickTimerWorkoutSession; pending: boolean; hasPreviousCategory: boolean; rpeCard: ReactNode
   onSave: (draft: QuickTimerFeedbackDraft) => Promise<void>
 }) {
-  const [initial] = useState(() => ({ category: isQuickTimerCategory(session.category) ? session.category : null,
+  const [initial] = useState(() => ({ category: isQuickTimerCategory(session.category) ? session.category : null, disciplineKey: session.disciplineKey,
     intensity: session.sparring[0]?.intensity ?? null, note: session.note ?? '' }))
   const [category, setCategory] = useState<QuickTimerCategory | null>(initial.category)
+  const [disciplineKey, setDisciplineKey] = useState(initial.disciplineKey)
   const [intensity, setIntensity] = useState<SparringIntensity | null>(initial.intensity)
   const [note, setNote] = useState(initial.note)
   const allowLeave = useRef(false)
-  const isDirty = category !== initial.category || intensity !== initial.intensity || note !== initial.note
+  const disciplineChanged = disciplineKey !== initial.disciplineKey
+  const isDirty = disciplineChanged || category !== initial.category || intensity !== initial.intensity || note !== initial.note
   const [categoryError, setCategoryError] = useState<string>()
   const [noteError, setNoteError] = useState<string>()
   const [error, setError] = useState(false)
@@ -45,7 +48,7 @@ export function QuickTimerFeedbackForm({ session, pending, hasPreviousCategory, 
     busy.current = true; setSaving(true); setError(false)
     // The save callback also navigates; restore protection if saving fails.
     allowLeave.current = true
-    try { await onSave({ category, intensity, note }) } catch { allowLeave.current = false; setError(true) }
+    try { await onSave({ category, disciplineKey: disciplineChanged ? disciplineKey : undefined, intensity, note }) } catch { allowLeave.current = false; setError(true) }
     finally { busy.current = false; setSaving(false) }
   }
   const metrics = [formatSecondsAsClock(Math.floor(session.durationSeconds)), formatSecondsAsClock(session.workSeconds), `${session.completion.completed}/${session.completion.planned}`]
@@ -71,6 +74,10 @@ export function QuickTimerFeedbackForm({ session, pending, hasPreviousCategory, 
             {hasPreviousCategory ? labels.previousCategoryHint : labels.firstCategoryHint}
           </p>
           <QuickTimerCategoryField value={category} error={categoryError} onChange={(value) => { setCategory(value); setCategoryError(undefined); if (value !== 'sparring') setIntensity(null) }} />
+          <fieldset className="min-w-0">
+            <legend className="quick-timer-legend">{labels.discipline}</legend>
+            <DisciplinePicker label={labels.discipline} value={disciplineKey} onChange={setDisciplineKey} />
+          </fieldset>
           {category === 'sparring' && <fieldset className="min-w-0">
             <legend className="quick-timer-legend">{labels.intensity} <span className="font-sans text-[11px] font-normal normal-case tracking-normal">({labels.optional})</span></legend>
             <div className="grid gap-2">

@@ -136,12 +136,12 @@ it('validates quick timer feedback and resolves from the local snapshot without 
   const { workoutPlanId: _planId, workoutPlanNameSnapshot: _name, focusRatings: _focus, exerciseRatings: _ratings, ...fields } = plan
   const entry: QuickTimerWorkoutSession = { ...fields, source: 'quickTimer', category: 'bag', completion: { completed: 1, planned: 1, unit: 'round' } }
   emit('workoutSessions', [entry])
-  const update = prepareQuickTimerFeedback(entry, { category: 'sparring', intensity: 'hard', note: 'Notes' }, instant)
+  const update = prepareQuickTimerFeedback(entry, { category: 'sparring', disciplineKey: 'kickboxing', intensity: 'hard', note: 'Notes' }, instant)
   const saved = sessions.saveQuickTimerFeedback(entry.id, update)
   expect(sdk.updateDoc).toHaveBeenCalledWith('users/athlete/workoutSessions/session-1', update)
   emit('workoutSessions', [{ ...entry, ...update }], true)
   await expect(saved).resolves.toBe(true)
-  expect(changed.mock.lastCall?.[0]).toMatchObject({ items: [{ source: 'quickTimer', rpe: 6, sparringSeconds: 60 }], hasPendingWrites: true })
+  expect(changed.mock.lastCall?.[0]).toMatchObject({ items: [{ source: 'quickTimer', disciplineKey: 'kickboxing', rpe: 6, sparringSeconds: 60 }], hasPendingWrites: true })
   await expect(sessions.saveQuickTimerFeedback(entry.id, { ...update, note: 'n'.repeat(1001) })).rejects.toThrow()
   expect(sdk.updateDoc).toHaveBeenCalledOnce()
   emit('workoutSessions', [plan])

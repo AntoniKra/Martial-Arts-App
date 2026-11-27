@@ -1,5 +1,5 @@
 export const quickTimerLabels = {
-  title: 'Szybki stoper', category: 'Rodzaj treningu',
+  title: 'Szybki stoper', category: 'Rodzaj treningu', discipline: 'Dyscyplina',
   format: 'Gotowy format', custom: 'Własny', customDescription: 'ustawiasz sam',
   formatRest: (time: string) => `przerwa ${time}`,
   rounds: 'Liczba rund', work: 'Czas pracy', rest: 'Przerwa', total: 'Łączny czas',

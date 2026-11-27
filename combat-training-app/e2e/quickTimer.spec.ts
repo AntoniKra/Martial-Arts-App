@@ -105,7 +105,7 @@ test('opens New, configures three two-minute bag rounds and saves RPE and a note
   await expect(page.getByRole('button', { name: '3 × 2:00 przerwa 1:00', exact: true })).toHaveAttribute('aria-pressed', 'true')
 })
 
-test('summarizes sparring in both themes, saves optional intensity and removes it when changed to pads', async ({ app, page }, info) => {
+test('summarizes sparring in both themes and saves changed category and discipline together', async ({ app, page }, info) => {
   await app.open()
   const plan = quickTimerPlan({ category: 'sparring' })
   const startedAt = '2026-11-02T10:00:00.000Z'
@@ -126,6 +126,10 @@ test('summarizes sparring in both themes, saves optional intensity and removes i
   const sessionId = new URL(page.url()).pathname.split('/')[2]
   const readCurrentSession = async () => (await app.readSessions()).find((session) => session.id === sessionId)
   await expect(page.getByText('Ustawione jak ostatnio – zmień, jeśli trzeba', { exact: true })).toBeVisible()
+  const discipline = page.getByRole('radiogroup', { name: 'Dyscyplina', exact: true })
+  const boxing = discipline.getByRole('radio', { name: 'Boks', exact: true })
+  const kickboxing = discipline.getByRole('radio', { name: 'Kickboxing', exact: true })
+  await expect(boxing).toBeChecked()
   await expect(page.getByRole('group', { name: /Intensywność sparingu/ })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Elementy do poprawy', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: /^Techniczny —/ }).click()
@@ -134,16 +138,21 @@ test('summarizes sparring in both themes, saves optional intensity and removes i
     if (info.project.name === 'phone') {
       for (const width of [360, 390]) {
         await page.setViewportSize({ width, height: 800 })
-        const [metrics, category, intensity, rpe, note] = await Promise.all([
+        await expect(discipline.getByRole('radio')).toHaveCount(5)
+        await expect(discipline).toHaveCSS('grid-template-columns', /^[\d.]+px$/)
+        await expect(boxing.locator('..').locator('.choice-face')).toHaveCSS('height', '52px')
+        const [metrics, category, picker, intensity, rpe, note] = await Promise.all([
           page.locator('dl.quick-timer-metrics').boundingBox(),
           page.getByRole('group', { name: 'Rodzaj treningu', exact: true }).boundingBox(),
+          discipline.boundingBox(),
           page.getByRole('group', { name: /Intensywność sparingu/ }).boundingBox(),
           page.getByRole('region', { name: 'RPE · zmęczenie całym treningiem', exact: true }).boundingBox(),
           page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true }).boundingBox(),
         ])
-        if (!metrics || !category || !intensity || !rpe || !note) throw new Error('Expected visible quick timer summary sections')
+        if (!metrics || !category || !picker || !intensity || !rpe || !note) throw new Error('Expected visible quick timer summary sections')
         expect(metrics.y + metrics.height).toBeLessThan(category.y)
-        expect(category.y + category.height).toBeLessThan(intensity.y)
+        expect(category.y + category.height).toBeLessThan(picker.y)
+        expect(picker.y + picker.height).toBeLessThan(intensity.y)
         expect(intensity.y + intensity.height).toBeLessThan(rpe.y)
         expect(rpe.y + rpe.height).toBeLessThan(note.y)
         await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
@@ -160,15 +169,21 @@ test('summarizes sparring in both themes, saves optional intensity and removes i
   await expect.poll(async () => (await readCurrentSession())?.sparring[0]?.intensity).toBe('technical')
   await page.getByRole('article').getByRole('button', { name: /Szczegóły wpisu/ }).first().click()
   await page.getByRole('link', { name: 'Podsumowanie', exact: true }).click()
+  await expect(boxing).toBeChecked()
   await page.getByRole('button', { name: 'Tarcze', exact: true }).click()
+  await kickboxing.check()
   await expect(page.getByRole('group', { name: /Intensywność sparingu/ })).toHaveCount(0)
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
-  await expect.poll(async () => (await readCurrentSession())?.category).toBe('pads')
+  await expect(page).toHaveURL('/progress?tab=history')
+  await expect.poll(readCurrentSession).toMatchObject({ category: 'pads', disciplineKey: 'kickboxing' })
   const entry = await readCurrentSession()
   if (entry?.source !== 'quickTimer') throw new Error('Expected quick timer')
   expect(entry.sparring).toEqual([])
   expect(entry.sparringSeconds).toBe(0)
   expect(entry.stepResults.every((step) => step.blockType === 'pads' && step.nameSnapshot === 'Tarcze')).toBe(true)
+  await app.open(`/workout-sessions/${sessionId}/feedback`)
+  await expect(kickboxing).toBeChecked()
+  await expect(page.getByRole('button', { name: 'Tarcze', exact: true })).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('reloads an active round with its correct remaining time and redirects home to the same timer', async ({ app, page }) => {
