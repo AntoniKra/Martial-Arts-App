@@ -37,7 +37,7 @@ for (const theme of ['dark', 'light'] as const) {
     const nav = page.getByRole('navigation', { name: 'Główna nawigacja', exact: true })
     for (const name of ['Plan', 'Postęp', 'Profil']) {
       await nav.getByRole('link', { name, exact: true }).click()
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText(name === 'Plan' ? 'Plan tygodnia' : name)
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(name)
       await expect(back(page)).toHaveCount(0)
       await expect(page.getByRole('heading', { level: 1 })).toHaveCSS('font-size', '28px')
       await accessible(page)
@@ -51,7 +51,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.open('/exercises')
     await expectBackChevron(page)
     await accessible(page)
-    await back(page).click(); await expect(page).toHaveURL('/workouts')
+    await back(page).click(); await expect(page).toHaveURL('/progress/week?tab=plans')
     await page.getByRole('link', { name: 'Postęp', exact: true }).click()
     await page.getByRole('radio', { name: 'Historia', exact: true }).check()
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Postęp')

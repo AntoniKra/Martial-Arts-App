@@ -145,8 +145,8 @@ test('discards by continuing browser back without leaving the player behind in b
   await expect(page.getByRole('heading', { name: 'Historia po porzuceniu', exact: true })).toBeVisible()
   expect(await app.readSessions()).toHaveLength(0)
   await page.goBack()
-  await expect(page).toHaveURL('/workouts')
-  await expect(page.getByRole('heading', { name: 'Moje plany', exact: true })).toBeVisible()
+  await expect(page).toHaveURL('/progress/week?tab=plans')
+  await expect(page.getByRole('radio', { name: 'Moje plany', exact: true })).toBeChecked()
   await expect(exitDialog(page)).toHaveCount(0)
 })
 

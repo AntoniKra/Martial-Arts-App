@@ -4,7 +4,7 @@ import { WorkoutDataProvider } from '@/app/WorkoutDataProvider'
 import { AppRoot } from '@/app/AppRoot'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
-import { WorkoutsPage } from '@/pages/WorkoutsPage'
+import { LegacyWorkoutsRedirect } from '@/pages/LegacyWorkoutsRedirect'
 import { AuthGate } from '@/features/auth/AuthGate'
 import { AuthFormPage } from '@/features/auth/AuthFormPage'
 import { VerifyEmailPage } from '@/features/auth/VerifyEmailPage'
@@ -35,7 +35,7 @@ export const router = createBrowserRouter([
             element: <AppLayout />,
             children: [
               { path: '/', element: <HomePage /> },
-              { path: '/workouts', element: <WorkoutsPage /> },
+              { path: '/workouts', element: <LegacyWorkoutsRedirect /> },
               { path: '/exercises', lazy: () => import('@/pages/MyExercisesPage') },
               { path: '/my-exercises', lazy: () => import('@/pages/MyExercisesPage') },
               { path: '/progress', lazy: () => import('@/pages/ProgressPage') },

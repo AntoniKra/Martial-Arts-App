@@ -10,7 +10,7 @@ import type { RecentWorkoutSessionsLoadState, FeaturedWorkoutPlanLoadState } fro
 import { useHomeIntro } from '../useHomeIntro'
 import { HomeActionIcon } from './HomeActionIcon'
 import { RecentSessionCard } from './RecentSessionCard'
-import { HomeQuickLinkContent } from './HomeQuickLinkContent'
+import { WorkoutShortcutLink } from './WorkoutShortcutLink'
 
 interface HomeViewProps {
   today: string
@@ -32,7 +32,7 @@ export function HomeView({ today, featuredPlanLoadState, recentSessionsLoadState
   return <div ref={introRef} className="home-view flex-1">
     <div className="home-content mx-auto flex w-full max-w-lg flex-col gap-3.5 px-4 pb-4 pt-14 md:max-w-2xl md:pb-6 md:pt-2">
       <ScreenHeader variant="home" title={labels.heading} />
-      {empty ? <>
+      {empty ?
         <section aria-labelledby="home-empty-heading" className="storm-card home-main-card home-empty-card">
           <StormDecoration dimmed />
           <div className="home-card-meta">
@@ -51,18 +51,19 @@ export function HomeView({ today, featuredPlanLoadState, recentSessionsLoadState
             </div>
           </div>
         </section>
-        <Link to={routes.myExercises} className="quick-link-row-5a">
-          <HomeQuickLinkContent icon="book" title={labels.exerciseLibrary} subtitle={labels.exerciseLibraryHint} />
-        </Link>
-      </> : <>
+        : <>
         {primary ?? <HomeQuickStart today={today} state={featuredPlanLoadState} onRetry={onRetryLoadFeaturedPlan} />}
         {todo}
         {weekPlan}
-        {recentSessionsLoadState.status === 'loading' ? <p role="status" className="text-sm text-muted">{labels.loadingSessions}</p>
+      </>}
+      <nav aria-label={labels.shortcuts} className="flex flex-col gap-2">
+        <WorkoutShortcutLink kind="plans" />
+        <WorkoutShortcutLink kind="exercises" />
+      </nav>
+      {!empty && (recentSessionsLoadState.status === 'loading' ? <p role="status" className="text-sm text-muted">{labels.loadingSessions}</p>
           : recentSessionsLoadState.status === 'error' ? <div role="alert" className="space-y-2 border border-bd p-4 text-sm text-muted">
             <p>{recentSessionsLoadState.message}</p><button type="button" onClick={onRetryLoadRecentSessions} className={homeSecondaryButton}>{labels.retry}</button>
-          </div> : recentSessionsLoadState.sessions[0] && <RecentSessionCard session={recentSessionsLoadState.sessions[0]} />}
-      </>}
+          </div> : recentSessionsLoadState.sessions[0] && <RecentSessionCard session={recentSessionsLoadState.sessions[0]} />)}
       {wellbeing}
     </div>
   </div>

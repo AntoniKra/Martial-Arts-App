@@ -1,6 +1,9 @@
+const planPath = '/progress/week'
+export const planListTab = 'plans'
+
 export const routes = {
   home: '/',
-  workouts: '/workouts',
+  workouts: `${planPath}?tab=${planListTab}`,
   myExercises: '/exercises',
   newWorkout: '/workouts/new',
   quickTimer: '/quick-timer',
@@ -9,12 +12,12 @@ export const routes = {
   editManualWorkout: (sessionId: string) => `/workout-sessions/${sessionId}/edit`,
   progress: '/progress',
   progressHistory: '/progress?tab=history',
-  plan: '/progress/week',
+  plan: planPath,
   profile: '/profile',
   deleteAccount: '/profile/delete-account',
   profileConsent: '/profile/consent',
   wellbeingConsent: '/profile/wellbeing-consent',
-  weekPlan: (weekStart: string) => `/progress/week/${weekStart}`,
+  weekPlan: (weekStart: string) => `${planPath}/${weekStart}`,
   focusSkillProgress: (focusSkillId: string) => `/progress/focus-skills/${focusSkillId}`,
   workoutDetails: (workoutId: string) => `/workouts/${workoutId}`,
   workoutEdit: (workoutId: string) => `/workouts/${workoutId}/edit`,

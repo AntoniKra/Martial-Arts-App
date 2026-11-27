@@ -75,6 +75,7 @@
   --app-bg: #0b0b0d;
   --app-surface: #171719;
   --app-home-surface: #161618;
+  --app-new-workout-scrim: rgb(0 0 0 / 62%);
   --app-home-chip-bg: rgba(255,255,255,0.04);
   --app-home-badge-ink: var(--app-ember);
   --app-elevated: #1d1d20;
@@ -120,6 +121,7 @@
   --app-bg: #f1f1ef;
   --app-surface: #ffffff;
   --app-home-surface: #ffffff;
+  --app-new-workout-scrim: rgb(0 0 0 / 45%);
   --app-home-chip-bg: rgba(0,0,0,0.04);
   --app-home-badge-ink: var(--app-ember-ink);
   --app-elevated: #e8e8e5;
@@ -232,9 +234,20 @@
 .home-next-date span { font-size: 10px; font-weight: 800; color: var(--app-crimson-ink); letter-spacing: 0.05em; }
 .home-next-date b { font-family: var(--font-display); font-size: 16px; font-weight: 800; margin-top: 1px; }
 .home-flexible-workout { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; min-height: 44px; border: 1px dashed var(--app-border); background: transparent; border-radius: var(--app-radius-sm); font-size: 12px; font-weight: 600; color: var(--app-muted); }
-.home-other-plans { display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 44px; border: 1px solid var(--app-border); background: var(--app-surface); border-radius: var(--app-radius-sm); }
-.home-other-icon { display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--app-radius-sm); background: var(--app-home-card-light); color: var(--app-crimson-ink); }
-.home-other-icon svg { width: 20px; height: 20px; }
+.workout-shortcut { display: flex; width: 100%; align-items: center; gap: 12px; padding: 12px 14px; min-height: var(--app-touch-min); border: 1px solid var(--app-border); background: var(--app-home-surface); border-radius: var(--app-radius-sm); line-height: normal; text-align: left; }
+.workout-shortcut-icon { display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-elevated); color: var(--app-crimson-ink); }
+
+.plan-segments [role='radiogroup'] { background: var(--app-home-surface); border-radius: 2px; }
+.plan-segments [role='radio'] { font-weight: 800; }
+.plan-segments [role='radio'][aria-checked='true'] { box-shadow: none; }
+.plan-segments [role='radio'][aria-checked='true'] > span[aria-hidden='true'] { display: none; }
+.plan-segments [role='radio']:focus-visible { outline-offset: -3px; }
+.plan-segments [role='radio'][aria-checked='true']:focus-visible { outline-color: var(--app-on-accent); }
+
+@media (forced-colors: active) {
+  .plan-segments [role='radio'][aria-checked='true'] { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .plan-segments [role='radio'][aria-checked='true']:focus-visible { outline-color: HighlightText; }
+}
 .home-recent-session { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); background: var(--app-surface); font-size: 12px; }
 .home-session-status { padding: 3px 6px; border-radius: 0; font-weight: 700; text-transform: uppercase; }
 .home-session-status.is-done { background: var(--app-grad-primary); color: var(--app-on-accent); }
@@ -580,6 +593,7 @@
 .schedule-today { background: linear-gradient(180deg, var(--app-ember), var(--app-crimson)) left top / 3px 100% no-repeat; }
 .bottom-navigation { background: var(--app-nav); }
 .new-workout-diamond { position: absolute; width: 36px; height: 36px; transform: rotate(45deg); background: var(--app-grad-plus); box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 4px color-mix(in srgb, var(--app-ember) 55%, transparent); }
+.new-workout-dialog::backdrop { background: var(--app-new-workout-scrim); }
 .storm-card { position: relative; isolation: isolate; overflow: hidden; border: 1px solid var(--app-storm-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
 .storm-card::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: var(--app-storm-opacity); background: repeating-linear-gradient(115deg, color-mix(in srgb, var(--app-storm-line) 2.8%, transparent) 0 1px, transparent 1px 11px); }
 .storm-card::after { content: ''; position: absolute; inset: 0 0 auto; height: 2px; pointer-events: none; background: linear-gradient(90deg, transparent 25%, var(--app-crimson) 75%, var(--app-ember)); opacity: var(--app-storm-opacity); }

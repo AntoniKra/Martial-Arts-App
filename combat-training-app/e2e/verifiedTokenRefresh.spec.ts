@@ -24,14 +24,14 @@ async function registerForPlans(page: Page) {
 test('loads Firestore plans after background verification and a reload', async ({ page }) => {
   const plan = await registerForPlans(page)
   await page.reload()
-  await expect(page).toHaveURL('/workouts')
+  await expect(page).toHaveURL('/progress/week?tab=plans')
   await expect(plan).toBeVisible()
 })
 
 test('checks background verification when the verification screen regains focus', async ({ page }) => {
   const plan = await registerForPlans(page)
   await page.evaluate(() => window.dispatchEvent(new Event('focus')))
-  await expect(page).toHaveURL('/workouts')
+  await expect(page).toHaveURL('/progress/week?tab=plans')
   await expect(plan).toBeVisible()
 })
 
@@ -46,6 +46,6 @@ test('offers a session retry when Auth rejects the token refresh', async ({ page
   await page.reload()
   await expect(page.getByRole('alert')).toContainText('Nie udało się odczytać sesji.')
   await page.getByRole('button', { name: 'Spróbuj ponownie', exact: true }).click()
-  await expect(page).toHaveURL('/workouts')
+  await expect(page).toHaveURL('/progress/week?tab=plans')
   await expect(plan).toBeVisible()
 })
