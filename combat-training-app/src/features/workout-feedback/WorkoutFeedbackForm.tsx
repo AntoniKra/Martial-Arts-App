@@ -7,7 +7,8 @@ import { canEditSparringIntensity, hasCompletedExercise, selectOtherExercises, t
 import { Button } from '@/components/ui/Button'
 import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
 import { FeedbackIcon } from './FeedbackIcon'
-import { AssessmentScale, FocusCard } from './FocusCard'
+import { AssessmentScale } from './AssessmentScale'
+import { FocusCard } from './FocusCard'
 import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
 import { workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
 import { WorkoutFeedbackSummary } from './WorkoutFeedbackSummary'
@@ -67,7 +68,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
               setErrors((current) => ({ ...current, corrections: { ...current.corrections, [edited.workoutItemId]: '' } }))
             }} />)}
         </section>}
-        <div className="feedback-surface space-y-3 p-3.5">
+        {editableSparring.length > 0 && <div className="feedback-surface space-y-3 p-3.5">
           {editableSparring.map(({ entry, index }, visibleIndex) => <fieldset key={entry.blockId} className="min-w-0">
             <legend className="feedback-eyebrow mb-1.5">{labels.sparringIntensity(visibleIndex + 1)}</legend>
             <div className="grid grid-cols-3 gap-1.5">
@@ -80,24 +81,24 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
               </button>)}
             </div>
           </fieldset>)}
-          <div className="rounded-sm border border-bd bg-elevated">
-            <button type="button" aria-expanded={othersOpen} aria-controls="other-exercises" onClick={() => setOthersOpen(!othersOpen)}
-              className="flex min-h-touch w-full items-center gap-2 rounded-sm px-3 py-1.5 text-left text-[12.5px] text-ink">
-              <strong className="mr-auto">{labels.othersHeading}</strong>
-              <span className="feedback-badge is-assessed tabular-nums">{labels.assessed(assessedOthers, others.length)}</span>
-              <FeedbackIcon kind="chevron" size={16} className={`feedback-others-chevron shrink-0 ${othersOpen ? 'rotate-180' : ''}`} />
-            </button>
-            <div id="other-exercises" hidden={!othersOpen} className="space-y-2.5 rounded-b-sm border-t border-bd bg-surface p-3">{others.map((exercise) => <article key={exercise.workoutItemId} aria-label={exercise.nameSnapshot} className="space-y-1.5">
-              <h3 className="wrap-anywhere font-display text-[13.5px] font-extrabold text-ink">{exercise.nameSnapshot}</h3>
-              <AssessmentScale question={labels.otherQuestion} descriptions={labels.otherScale} summary
-                value={draft.exerciseRatings.find((value) => value.workoutItemId === exercise.workoutItemId)?.rating ?? null}
-                onChange={(rating) => setDraft((current) => ({ ...current, exerciseRatings: [
-                  ...current.exerciseRatings.filter((value) => value.workoutItemId !== exercise.workoutItemId),
-                  ...(typeof rating === 'number' ? [{ ...exercise, rating }] : []),
-                ] }))} />
-            </article>)}</div>
-          </div>
-        </div>
+        </div>}
+        <section aria-label={labels.othersHeading} className="feedback-surface">
+          <button type="button" aria-expanded={othersOpen} aria-controls="other-exercises" onClick={() => setOthersOpen(!othersOpen)}
+            className="flex min-h-touch w-full items-center gap-2 rounded-sm px-3.5 py-2.5 text-left text-ink">
+            <strong className="mr-auto font-display text-sm font-extrabold">{labels.othersHeading}</strong>
+            <span className="feedback-badge is-assessed tabular-nums">{labels.assessed(assessedOthers, others.length)}</span>
+            <FeedbackIcon kind="chevron" size={16} className={`feedback-others-chevron shrink-0 ${othersOpen ? 'rotate-180' : ''}`} />
+          </button>
+          <div id="other-exercises" hidden={!othersOpen} className="space-y-4 border-t border-bd p-3.5">{others.map((exercise) => <article key={exercise.workoutItemId} aria-label={exercise.nameSnapshot} className="feedback-other-item min-w-0 space-y-2">
+            <h3 className="wrap-anywhere font-display text-sm font-extrabold text-ink">{exercise.nameSnapshot}</h3>
+            <AssessmentScale question={labels.otherScaleLegend(exercise.nameSnapshot)} descriptions={labels.otherScale} hideLegend
+              value={draft.exerciseRatings.find((value) => value.workoutItemId === exercise.workoutItemId)?.rating ?? null}
+              onChange={(rating) => setDraft((current) => ({ ...current, exerciseRatings: [
+                ...current.exerciseRatings.filter((value) => value.workoutItemId !== exercise.workoutItemId),
+                ...(typeof rating === 'number' ? [{ ...exercise, rating }] : []),
+              ] }))} />
+          </article>)}</div>
+        </section>
         <label className="feedback-surface feedback-eyebrow block p-3">
           {labels.noteHeading}
           <AutoGrowTextarea rows={3} maxLength={1000} value={draft.note ?? ''} placeholder={labels.notePlaceholder} aria-invalid={!!errors.note}

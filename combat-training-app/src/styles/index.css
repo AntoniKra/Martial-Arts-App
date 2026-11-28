@@ -80,6 +80,7 @@
   --app-home-badge-ink: var(--app-ember);
   --app-elevated: #1d1d20;
   --app-border: #2a2a2e;
+  --app-border-faint: color-mix(in srgb, var(--app-ink) 8%, transparent);
   --app-ink: #f4f4f1;
   --app-muted: #a7a7aa;
   --app-faint: #85858a;
@@ -126,6 +127,7 @@
   --app-home-badge-ink: var(--app-ember-ink);
   --app-elevated: #e8e8e5;
   --app-border: #c9c9c5;
+  --app-border-faint: color-mix(in srgb, var(--app-ink) 8%, transparent);
   --app-ink: #111113;
   --app-muted: #5f5f63;
   --app-faint: #66666a;

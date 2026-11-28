@@ -54,7 +54,7 @@ export const workoutFeedbackLabels = {
   othersHeading: 'Pozostałe ćwiczenia',
   skippedHeading: 'Dziś bez oceny',
   skippedHint: 'Ćwiczenie nie zostało wykonane, więc nie oceniasz go. Twoja średnia się nie zmienia.',
-  otherQuestion: 'Jak oceniasz wykonanie tego ćwiczenia?',
+  otherScaleLegend: (name: string) => `Ocena wykonania: ${name}`,
   otherScale: [
     'Nie udało się wykonać zgodnie z założeniem.',
     'Dużo błędów i mała kontrola.',

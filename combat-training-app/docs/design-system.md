@@ -40,6 +40,8 @@ Start i Postęp używają wspólnego `WeekDayIndicator` z kropkami 26 px, bez le
 
 Aktualne wartości obu motywów są w `src/styles/index.css`. `src/features/theme/themeColors.test.ts` pilnuje kontrastu co najmniej 4,5:1 dla wszystkich tokenów tekstu na każdym tle.
 
+`--app-border-faint` to kolor tekstu `--app-ink` z kryciem 8% w obu motywach. Służy do cienkich separatorów wewnątrz kart ocen. Obramowania pól i wskaźniki fokusu korzystają z własnych tokenów.
+
 ## Menu główne (#198)
 
 Na telefonie i komputerze kolejność to **Start · Plan · Trening (+) · Postęp · Profil**. Wygląd paska, rombu, etykiet i wskaźnika aktywności pozostaje bez zmian; jedynie etykieta „Trening” pod rombem leży 4 px niżej niż pozostałe, a romb 2 px wyżej (poprawka właściciela 19.11). Start zachowuje dotychczasowy domek; Plan, Postęp i Profil używają konturowych ikon z zatwierdzonej makiety `design-lab/start-v2/final-approval.html` (gałąź `design/antigravity-lab`).
