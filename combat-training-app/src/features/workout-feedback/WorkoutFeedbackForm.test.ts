@@ -54,6 +54,6 @@ it('shows the metrics for the current session', () => {
   const html = renderToStaticMarkup(createElement(FeedbackTestRouter, {}, createElement(WorkoutFeedbackForm, {
     session, skills: [], pending: false, rpeCard: null, onSave: async () => {},
   })))
-  expect(html).toMatch(/<h1[^>]*>Trening ukończony<\/h1>.*Podsumowanie czasu sesji.*Czas czystej pracy<\/dt><dd[^>]*>15:00<\/dd>/)
-  expect(html).toMatch(/>Trening<\/dt><dd[^>]*>52:10<\/dd>.*>Ćwiczenia<\/dt><dd[^>]*>5\/5<\/dd>/)
+  expect(html).toMatch(/Trening ukończony<\/p><h1[^>]*>Workout<\/h1>/)
+  expect(html).toMatch(/Podsumowanie czasu sesji.*>Trening<\/dt><dd[^>]*>52:10<\/dd>.*>Praca<\/dt><dd[^>]*>15:00<\/dd>.*>Ćwiczenia<\/dt><dd[^>]*>5\/5<\/dd>/)
 })

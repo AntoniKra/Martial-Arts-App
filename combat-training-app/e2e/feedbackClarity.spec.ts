@@ -27,25 +27,28 @@ test('lays out the simplified plan summary in both themes', async ({ app, page }
   await app.seedSession(current)
   await app.seedSession(completed)
 
-  for (const [session, title, theme, width] of [
+  for (const [session, statusText, theme, width] of [
     [current, 'Trening częściowy', 'dark', 360],
     [completed, 'Trening ukończony', 'light', 390],
   ] as const) {
     if (info.project.name === 'phone') await page.setViewportSize({ width, height: 800 })
     await app.open(`/workout-sessions/${session.id}/feedback`)
     await app.setTheme(theme)
-    const heading = page.getByRole('heading', { name: title, exact: true, level: 1 })
+    const heading = page.getByRole('heading', { name: session.workoutPlanNameSnapshot, exact: true, level: 1 })
+    const status = page.getByText(statusText, { exact: true })
     const back = page.getByRole('button', { name: 'Wstecz', exact: true })
     const saved = page.getByText('Zapisano', { exact: true }).first()
-    const planName = page.getByRole('heading', { name: session.workoutPlanNameSnapshot, exact: true, level: 2 })
     const metrics = page.getByRole('region', { name: 'Podsumowanie czasu sesji', exact: true })
     const rpe = page.getByRole('region', { name: 'RPE · zmęczenie całym treningiem', exact: true })
     const focusSection = page.getByRole('region', { name: 'Elementy do poprawy', exact: true })
     await expect(heading).toHaveCSS('font-family', /^"?Archivo Variable"?,/)
-    await expect(heading).toHaveCSS('font-size', '20px')
-    await expect(heading).toHaveCSS('font-weight', '600')
-    await expect(heading).toHaveCSS('white-space', 'nowrap')
-    await expect(heading).toHaveCSS('text-overflow', 'ellipsis')
+    await expect(heading).toHaveCSS('font-size', info.project.name === 'phone' && width === 360 ? '20px' : '22px')
+    await expect(heading).toHaveCSS('font-weight', '800')
+    await expect(heading).toHaveCSS('overflow-wrap', 'anywhere')
+    await expect(status).toHaveCSS('text-transform', 'uppercase')
+    await expect(metrics.locator('dt')).toHaveText(['Trening', 'Praca', 'Ćwiczenia'])
+    await expect(metrics.locator('dd').first()).toHaveCSS('font-size', info.project.name === 'phone' && width === 360 ? '34px' : '36px')
+    await expect(metrics.locator('dd').nth(1)).toHaveCSS('font-size', '20px')
     await expect(back).toHaveCSS('width', '44px')
     await expect(back).toHaveCSS('height', '44px')
     await expect(back.locator('svg[aria-hidden="true"] path')).toHaveAttribute('d', 'm15 18-6-6 6-6')
@@ -55,18 +58,15 @@ test('lays out the simplified plan summary in both themes', async ({ app, page }
     const headingBox = (await heading.boundingBox())!
     const backBox = (await back.boundingBox())!
     const savedBox = (await saved.boundingBox())!
-    const planBox = (await planName.boundingBox())!
+    const statusBox = (await status.boundingBox())!
     const metricsBox = (await metrics.boundingBox())!
     const rpeBox = (await rpe.boundingBox())!
     const focusBox = (await focusSection.boundingBox())!
-    expect(headingBox.x).toBeGreaterThanOrEqual(backBox.x + backBox.width)
-    expect(savedBox.x).toBeGreaterThanOrEqual(headingBox.x + headingBox.width)
-    for (const box of [headingBox, savedBox]) {
-      expect(box.y).toBeGreaterThanOrEqual(backBox.y)
-      expect(box.y + box.height).toBeLessThanOrEqual(backBox.y + backBox.height)
-    }
-    expect(planBox.y - backBox.y - backBox.height).toBe(10)
-    expect(metricsBox.y - planBox.y - planBox.height).toBe(16)
+    expect(savedBox.y).toBeGreaterThanOrEqual(backBox.y)
+    expect(savedBox.y + savedBox.height).toBeLessThanOrEqual(backBox.y + backBox.height)
+    expect(statusBox.y - backBox.y - backBox.height).toBe(10)
+    expect(headingBox.y - statusBox.y - statusBox.height).toBe(6)
+    expect(metricsBox.y - headingBox.y - headingBox.height).toBe(16)
     expect(rpeBox.y - metricsBox.y - metricsBox.height).toBe(20)
     expect(focusBox.y - rpeBox.y - rpeBox.height).toBe(20)
     await expect(page.getByText('Zapisane w dzienniku. Oceny dopiszą się do wpisu.', { exact: true })).toHaveCount(0)
@@ -92,7 +92,7 @@ for (const theme of ['dark', 'light'] as const) {
     await app.seedSession(current)
     await app.open('/workout-sessions/clarity/feedback')
     await app.setTheme(theme)
-    await expect(page.getByRole('heading', { name: 'Trening częściowy', exact: true, level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: current.workoutPlanNameSnapshot, exact: true, level: 1 })).toBeVisible()
     const card = page.getByRole('article', { name: skill.name, exact: true })
     await expect(card.getByText('Cel', { exact: true })).toBeVisible()
     await expect(card.getByText(/Ostatnio/i)).toHaveCount(1)

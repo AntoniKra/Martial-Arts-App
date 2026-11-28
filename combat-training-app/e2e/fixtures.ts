@@ -175,14 +175,16 @@ class WorkoutApp {
     // The controlled playback clock also freezes Firestore's task queue; release it after playback.
     await this.page.clock.resume()
     await expect(this.page).toHaveURL(/\/workout-sessions\/[^/]+\/feedback$/)
-    const quickTimerSummary = this.page.getByText('Zapisane w dzienniku. Oceny dopiszą się do wpisu.', { exact: true })
-    await expect(this.page.getByRole('region', { name: 'Podsumowanie czasu sesji', exact: true }).or(quickTimerSummary)).toBeVisible()
+    const metrics = this.page.getByRole('region', { name: 'Podsumowanie czasu sesji', exact: true })
+    await expect(metrics).toBeVisible()
     if (await this.page.evaluate(() => navigator.onLine)) {
       await expect.poll(async () => (await this.readSessions()).length).toBeGreaterThan(0)
       // The emulator REST read can see a write before this client's metadata
       // acknowledges it. Sign-out must wait for that acknowledgement as well.
       await expect(this.page.getByText('Czeka na wysłanie', { exact: true })).toHaveCount(0)
-      await expect(this.page.getByText('Zapisano', { exact: true }).first().or(quickTimerSummary)).toBeVisible()
+      if (await metrics.getByText('Ćwiczenia', { exact: true }).isVisible()) {
+        await expect(this.page.getByText('Zapisano', { exact: true }).first()).toBeVisible()
+      }
     }
   }
 

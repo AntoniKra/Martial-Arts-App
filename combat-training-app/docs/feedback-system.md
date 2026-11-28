@@ -16,7 +16,7 @@ Zasada: każda funkcja ma pomagać kontrolować postęp. Jakość wykonania i il
 2. **Podsumowanie** pokazuje oceny ćwiczeń celu, notatkę i intensywność sparingu.
 3. **RPE po 10 minutach wyciszenia.** Podsumowanie odlicza 10 minut i kończy odliczanie gongiem. Można odpowiedzieć wcześniej albo pominąć pytanie (Q2).
 
-**Nagłówek v2 dla sesji z planu (PR #216).** Tytuł to „Trening ukończony” lub „Trening częściowy”. Pod nim widać zapisaną nazwę planu i komunikat „Zapisane w dzienniku. Oceny dopiszą się do wpisu.”. Z boku pojawia się plakietka „Zapisane” lub „Czeka na wysłanie”. „Wstecz” wraca do poprzedniego ekranu aplikacji lub do Historii. Osobna karta wyróżnia „Czas czystej pracy”, a niżej pokazuje czas treningu i realizację ćwiczeń.
+**Podsumowanie planu i stopera (decyzja właściciela 28.11).** Nad tytułem widnieje „Trening ukończony” albo „Trening częściowy” (U1 A). Tytuł to nazwa zapisana z planem albo „Szybki stoper”. „Wstecz” wraca do poprzedniego ekranu aplikacji lub do Historii. Nagłówek planu pokazuje plakietkę „Zapisano”, a oczekujące wpisy obu źródeł mają plakietkę „Czeka na wysłanie”. Karta liczb wyróżnia czas treningu, a niżej pokazuje „Praca” i „Ćwiczenia” albo „Rundy” (U2 B). Decyzja usuwa porównanie z wcześniejszym wykonaniem planu i kontekst samopoczucia z ekranu podsumowania.
 
 Wyjście z podsumowania treningu z planu lub szybkiego stopera z niezapisanymi zmianami formularza wymaga potwierdzenia odrzucenia ocen i notatki; RPE zapisuje się osobno i nie uruchamia ostrzeżenia.
 

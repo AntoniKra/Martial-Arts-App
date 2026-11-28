@@ -1,13 +1,9 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { routes } from '@/app/routes'
-import { RouteScreenHeader } from '@/components/ScreenHeader'
 import type { QuickTimerWorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import type { SparringIntensity } from '@/domain/workout/workout.types'
 import { isQuickTimerCategory, type QuickTimerCategory } from '@/domain/quick-timer/quickTimer'
 import type { QuickTimerFeedbackDraft } from '@/domain/quick-timer/quickTimerFeedback'
-import { workoutSessionName } from '@/features/workouts/utils/workoutSessionPresentation'
-import { formatSecondsAsClock } from '@/domain/time/formatDuration'
-import { workoutDataLabels } from '@/application/workoutDataLabels'
+import { WorkoutFeedbackSummary } from '@/features/workout-feedback/WorkoutFeedbackSummary'
 import { workoutFeedbackLabels as feedbackLabels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import { rpeLabels } from '@/features/workout-feedback/rpeLabels'
 import { Button } from '@/components/ui/Button'
@@ -51,23 +47,9 @@ export function QuickTimerFeedbackForm({ session, pending, hasPreviousCategory, 
     try { await onSave({ category, disciplineKey: disciplineChanged ? disciplineKey : undefined, intensity, note }) } catch { allowLeave.current = false; setError(true) }
     finally { busy.current = false; setSaving(false) }
   }
-  const metrics = [formatSecondsAsClock(Math.floor(session.durationSeconds)), formatSecondsAsClock(session.workSeconds), `${session.completion.completed}/${session.completion.planned}`]
-  const metricLabels = [feedbackLabels.metrics[0], feedbackLabels.metrics[1], labels.roundsMetric]
   return <UnsavedPlanChangesGuard isDirty={isDirty} allowLeaveRef={allowLeave} description={feedbackLabels.discardDescription}>
     <div className="quick-timer-screen mx-auto w-full max-w-xl">
-      <RouteScreenHeader title={feedbackLabels.title} variant="centered" fallback={routes.progressHistory} />
-      <header className="space-y-2">
-        <p className="font-display text-[11px] font-extrabold uppercase tracking-[0.12em] text-crimson-ink">{feedbackLabels.status[session.status]}</p>
-        <h2 className="font-display text-[22px] leading-[1.15] font-extrabold text-ink">{workoutSessionName(session)}</h2>
-        <p className="text-xs leading-normal text-muted">{feedbackLabels.savedEntry}</p>
-        {pending && <p role="status" className="text-xs font-semibold text-muted">{workoutDataLabels.pending}</p>}
-      </header>
-      <dl className="quick-timer-metrics grid grid-cols-3 divide-x divide-bd">
-        {metrics.map((value, index) => <div key={metricLabels[index]} className="flex min-w-0 flex-col px-1 text-center">
-          <dt className="mt-1 font-display text-[10px] font-bold uppercase tracking-[0.1em] text-muted">{metricLabels[index]}</dt>
-          <dd className="order-first font-display text-[28px] leading-[1.1] font-extrabold tabular-nums text-ink max-[374px]:text-[25px]">{value}</dd>
-        </div>)}
-      </dl>
+      <WorkoutFeedbackSummary session={session} pending={pending} />
       <form ref={form} noValidate onSubmit={(event) => { void submit(event) }} className="quick-timer-stack">
         <fieldset disabled={saving} className="quick-timer-stack">
           <p className="border-l-[3px] border-ember py-0.5 pl-2.5 text-[12.5px] leading-[1.45] text-muted">
