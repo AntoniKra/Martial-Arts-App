@@ -11,6 +11,12 @@ Issue #164: trening własny w planie tygodnia może wskazywać zatwierdzony plan
 
 Jeśli użytkownik nie wpisze nazwy, kreator i podgląd pokazują „{Dyscyplina} — {DD.MM.RRRR}”. Data pochodzi z `createdAt` szkicu, w UTC. Edycja zachowuje pierwotne `createdAt` planu. Jeśli daty nie da się odczytać, nazwa ma postać „{Dyscyplina} — plan treningu”.
 
+### Wybór dyscypliny
+
+Na podekranie „Dane planu” `DisciplinePicker` wyświetla grupę „Dyscyplina” z pięcioma natywnymi przyciskami radiowymi w kolejności Boks, Kickboxing, Muay Thai, K-1, MMA stójka. Można zaznaczyć jedną opcję dotknięciem kafla lub klawiaturą. Kafle mają 52 px wysokości i odstępy 8 px. Układają się w jednej kolumnie, a od 640 px w dwóch. Etykiety mają kolory dyscyplin, a zaznaczenie pokazują obwódka 2 px i tło z domieszką karmazynu.
+
+Nowy plan zaczyna się bez zaznaczenia. Dolny przycisk „Dalej” jest wtedy wyłączony i opisany komunikatem „Wybierz dyscyplinę, aby przejść dalej.”. Po wyborze „Dalej” wraca na oś planu. Przy edycji istniejącego planu lub gdy szkic ma już blok, przycisk nazywa się „Gotowe”. Po dodaniu pierwszego ćwiczenia grupa jest wyłączona. Wybrany kafel zachowuje pełne krycie, pozostałe mają 50%, a pod grupą widać „Dyscyplina jest zablokowana po dodaniu pierwszego ćwiczenia.”.
+
 ## Oś treningu
 
 Kreator prezentuje bloki i elementy w kolejności odtwarzania. Rodzaje bloków, w kolejności na liście:
@@ -37,6 +43,20 @@ Użytkownik może:
 Drag and drop nie należy do MVP.
 
 Issue #259: nowy plan zaczyna się od podekranu „Dane planu” (dyscyplina, nazwa, cel); ✕ wraca na oś. Na osi te dane pokazuje karta planu, która ponownie otwiera podekran. Pusty plan pokazuje kafle wszystkich rodzajów bloków; dotknięcie kafla dodaje pierwszy blok. Kolejne bloki dodaje „Dodaj kolejny blok”. Akcje ćwiczenia, przerwy i bloku są w menu „⋯”. Przerwy kończące blok są rysowane na osi pod jego kartą, bo tak zapisujemy przerwę między blokami. „Podgląd” jest w nagłówku i jest wyłączony, dopóki plan nie ma bloku.
+
+## Panel „Dodaj przerwę” (#274)
+
+Akcja „Dodaj przerwę” w bloku otwiera modalny arkusz od dołu z nagłówkiem „Przerwa”. Arkusz przyciemnia tło i blokuje przewijanie strony. Ma górną linię w kolorze żaru o grubości 2 px, zajmuje całą szerokość na telefonie, a od 768 px jest wyśrodkowany i ma do 32 rem szerokości. Wysokość jest ograniczona do wysokości widoku pomniejszonej o 64 px, a nadmiar treści można przewinąć wewnątrz arkusza.
+
+- „Gotowe formaty” to cztery kafle w jednym rzędzie, w kolejności `0:30`, `1:00`, `2:00`, `3:00`. Nowa przerwa zaczyna się od `1:00`. Kafel jest zaznaczony, gdy jego czas odpowiada ustawionej wartości. Dotknięcie kafla ustawia czas i zamyka ręczny wpis.
+- `ExerciseValueStepper` w układzie `layout="side"` pokazuje pod etykietą „Przerwa” podkreślony czas `m:ss` między przyciskami „−15 s” i „+15 s” z obiciami M5. Jeśli czas wypada poza siatką 15 s, przycisk przechodzi do najbliższej wielokrotności w swoim kierunku. Przy otwartym wpisie krok korzysta z wpisanej wartości, jeśli jest poprawna, a w przeciwnym razie z ostatniego ustawionego czasu.
+- Dotknięcie czasu otwiera pole. Można wpisać `m:ss` albo całkowitą liczbę sekund w zakresie `0:00`–`60:00` (`BREAK_DURATION_MAX_SECONDS = 3600`). Pod poprawnym wpisem widać podgląd `m:ss`. Enter zatwierdza wpis. Opuszczenie pola także zatwierdza wpis, z wyjątkiem przejścia fokusu na kafel formatu, przycisk kroku, przycisk zamknięcia lub przycisk dolny. Niepoprawny wpis zostaje w polu z komunikatem „Wpisz przerwę jako m:ss albo liczbę sekund, od 0:00 do 60:00.”.
+- „Instrukcja (opcjonalnie)” jest zawsze widocznym jednoliniowym polem o limicie 120 znaków z podpowiedzią „np. Woda i reset oddechu”. Przy zapisie aplikacja usuwa skrajne białe znaki i zapisuje `null`, jeśli pole jest puste.
+- Dolny przycisk „Dodaj przerwę” ma ścięty prawy górny róg. Sprawdza również jeszcze niezatwierdzony wpis i dodaje przerwę na końcu bloku w szkicu planu. Zapis wymaga czasu od `0:01` do `60:00`. Przy `0:00` panel pozostaje otwarty i pokazuje „Łączny czas przerwy musi być większy od 0.”.
+
+Po otwarciu fokus trafia na ✕ „Zamknij”, a Tab i Shift+Tab krążą po kontrolkach w arkuszu. ✕ i dotknięcie tła zamykają panel bez zapisu. Escape przy otwartym wpisie czasu anuluje wpis, a poza nim zamyka panel. Po zamknięciu fokus wraca do przycisku dodawania lub menu akcji edytowanej przerwy.
+
+Akcja „Edytuj przerwę” w menu „⋯” otwiera ten sam arkusz z nagłówkiem „Edycja przerwy”, aktualnym czasem i instrukcją oraz przyciskiem „Zapisz przerwę”. Jeśli w istniejącym planie zapisano czas dłuższy niż `60:00`, panel go wyświetla, wyłącza „+15 s” i wymaga skrócenia czasu przed zapisem. W tym przypadku „−15 s” ustawia `60:00`.
 
 ## Biblioteka
 

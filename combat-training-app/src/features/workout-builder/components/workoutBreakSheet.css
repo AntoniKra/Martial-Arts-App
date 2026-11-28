@@ -22,11 +22,7 @@
 }
 
 .break-sheet::backdrop {
-  background: rgb(0 0 0 / 0.62);
-}
-
-:root[data-theme='light'] .break-sheet::backdrop {
-  background: rgb(0 0 0 / 0.45);
+  background: var(--app-sheet-scrim);
 }
 
 @media (min-width: 768px) {

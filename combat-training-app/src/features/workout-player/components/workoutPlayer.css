@@ -501,7 +501,7 @@
   box-shadow: 0 -8px 30px rgb(0 0 0 / .5);
 }
 
-.player-exit-sheet::backdrop { background: rgb(0 0 0 / .7); }
+.player-exit-sheet::backdrop { background: var(--app-player-exit-scrim); }
 
 .player-exit-description {
   margin: 8px 0 20px;

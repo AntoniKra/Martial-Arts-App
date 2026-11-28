@@ -75,7 +75,11 @@
   --app-bg: #0b0b0d;
   --app-surface: #171719;
   --app-home-surface: #161618;
-  --app-new-workout-scrim: rgb(0 0 0 / 62%);
+  --app-sheet-scrim: rgb(0 0 0 / 62%);
+  /* These sheets use the same scrim opacity in both themes. */
+  --app-form-sheet-scrim: rgb(0 0 0 / 60%);
+  --app-exercise-library-scrim: rgb(0 0 0 / 65%);
+  --app-player-exit-scrim: rgb(0 0 0 / 70%);
   --app-home-chip-bg: rgba(255,255,255,0.04);
   --app-home-badge-ink: var(--app-ember);
   --app-elevated: #1d1d20;
@@ -122,7 +126,7 @@
   --app-bg: #f1f1ef;
   --app-surface: #ffffff;
   --app-home-surface: #ffffff;
-  --app-new-workout-scrim: rgb(0 0 0 / 45%);
+  --app-sheet-scrim: rgb(0 0 0 / 45%);
   --app-home-chip-bg: rgba(0,0,0,0.04);
   --app-home-badge-ink: var(--app-ember-ink);
   --app-elevated: #e8e8e5;
@@ -631,7 +635,7 @@ button.m5-flat-control:hover:not(:disabled) { background: var(--app-border); col
 .schedule-today { background: linear-gradient(180deg, var(--app-ember), var(--app-crimson)) left top / 3px 100% no-repeat; }
 .bottom-navigation { background: var(--app-nav); }
 .new-workout-diamond { position: absolute; width: 36px; height: 36px; transform: rotate(45deg); background: var(--app-grad-plus); box-shadow: 0 0 0 3px var(--app-nav), 0 0 0 4px color-mix(in srgb, var(--app-ember) 55%, transparent); }
-.new-workout-dialog::backdrop { background: var(--app-new-workout-scrim); }
+.new-workout-dialog::backdrop { background: var(--app-sheet-scrim); }
 .storm-card { position: relative; isolation: isolate; overflow: hidden; border: 1px solid var(--app-storm-border); border-radius: var(--app-radius-sm); background: var(--app-surface); }
 .storm-card::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: var(--app-storm-opacity); background: repeating-linear-gradient(115deg, color-mix(in srgb, var(--app-storm-line) 2.8%, transparent) 0 1px, transparent 1px 11px); }
 .storm-card::after { content: ''; position: absolute; inset: 0 0 auto; height: 2px; pointer-events: none; background: linear-gradient(90deg, transparent 25%, var(--app-crimson) 75%, var(--app-ember)); opacity: var(--app-storm-opacity); }
