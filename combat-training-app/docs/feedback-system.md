@@ -16,7 +16,7 @@ Zasada: każda funkcja ma pomagać kontrolować postęp. Jakość wykonania i il
 2. **Podsumowanie** pokazuje oceny ćwiczeń celu, notatkę i intensywność sparingu.
 3. **RPE po 10 minutach wyciszenia.** Podsumowanie odlicza 10 minut i kończy odliczanie gongiem. Można odpowiedzieć wcześniej albo pominąć pytanie (Q2).
 
-**Nagłówek v2 dla sesji z planu (PR #216).** Tytuł to „Trening ukończony” lub „Trening częściowy”. Pod nim widać zapisaną nazwę planu i komunikat „Zapisane w dzienniku. Oceny dopiszą się do wpisu.”. Z boku pojawia się plakietka „Zapisane” lub „Czeka na wysłanie”. „Wstecz” wraca do poprzedniego ekranu aplikacji lub do Historii. Osobna karta wyróżnia „Czas czystej pracy”, a niżej pokazuje czas treningu i realizację ćwiczeń.
+**Podsumowanie planu i stopera (decyzja właściciela 28.11).** Nad tytułem widnieje „Trening ukończony” albo „Trening częściowy” (U1 A). Tytuł to nazwa zapisana z planem albo „Szybki stoper”. „Wstecz” wraca do poprzedniego ekranu aplikacji lub do Historii. Nagłówek planu pokazuje plakietkę „Zapisano”, a oczekujące wpisy obu źródeł mają plakietkę „Czeka na wysłanie”. Karta liczb wyróżnia czas treningu, a niżej pokazuje „Praca” i „Ćwiczenia” albo „Rundy” (U2 B). Decyzja usuwa porównanie z wcześniejszym wykonaniem planu i kontekst samopoczucia z ekranu podsumowania.
 
 Wyjście z podsumowania treningu z planu lub szybkiego stopera z niezapisanymi zmianami formularza wymaga potwierdzenia odrzucenia ocen i notatki; RPE zapisuje się osobno i nie uruchamia ostrzeżenia.
 
@@ -134,7 +134,7 @@ Norma dla każdego pytania to mediana i P25–P75 z 28 dni **przed** ocenianym d
 
 W Postępie karta „Samopoczucie” pokazuje cztery wiersze z kategoriami ostatniego wpisu i wykresami ostatnich 28 dni. Szare pasmo pokazuje P25–P75 sprzed każdego dnia; punkty to odpowiedzi 1–5, pominięte dni są puste. Każdy wykres ma tabelę danych, a status opis słowny, bez czerwieni i zieleni. Przed normą widać ostatnie odpowiedzi i „Jeszcze N wpisów do Twojej normy” oraz warunek 21 dni. Stopka: „To nie jest ocena medyczna. Jeśli coś Cię niepokoi albo dolegliwości się utrzymują, skonsultuj się z lekarzem.”
 
-Przy RPE podsumowania planu, szybkiego stopera, formularza ręcznego wpisu i szczegółów Historii pokazujemy „Dziś rano: …” według `workoutDate`: tylko pytania gorsze niż norma albo „typowo dla Ciebie”, gdy żadne nie jest gorsze. Dla „Poprzednio ten plan” prefiks to „Tamtego dnia”. Bez normy lub wpisu z tamtego dnia linia jest ukryta. Dane pozostają oddzielone od RPE i nie zmieniają obciążenia. Bez wyniku 0–100, procentów i zaleceń treningowych.
+W formularzu ręcznego wpisu przy RPE i w szczegółach Historii pokazujemy „Dziś rano: …” według `workoutDate`: tylko pytania gorsze niż norma albo „typowo dla Ciebie”, gdy żadne nie jest gorsze. Bez normy lub wpisu z tamtego dnia linia jest ukryta. Dane pozostają oddzielone od RPE i nie zmieniają obciążenia. Bez wyniku 0–100, procentów i zaleceń treningowych.
 
 ## Podsumowanie tygodnia (Q5, R3)
 
@@ -161,8 +161,6 @@ Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 - **pokrycie danych**, np. „RPE w 4 z 5 treningów” oraz liczba wpisów ze znanym czasem pracy i sparingu;
 - wdrożone porównanie liczb w tabeli „Ten tydzień” i „Zwykle”: liczba treningów, czas treningu i obciążenie obok średniej z 3 poprzednich tygodni; bez słownej oceny i arbitralnego progu „więcej niż zwykle”, dopiero gdy historia sięga początku tego okresu;
 - wdrożony wykres ostatnich 12 tygodni: liczba treningów lub minuty czasu treningu (ADR 0011), bez obciążenia.
-
-Wdrożone (issue #127): pod liczbami w podsumowaniu treningu z planu pokazujemy blok **„Poprzednio ten plan”** z datą jak w Historii, czasem treningu i pracy, liczbą ukończonych i zaplanowanych ćwiczeń oraz RPE („RPE: brak”, gdy go nie podano). Poprzednie wykonanie to najnowsza inna sesja z tego samego `workoutPlanId`, wcześniejsza według `startedAt`, a przy remisie według `id`; ręczne wpisy i szybki stoper nie biorą udziału. Dopisek „Plan zmieniono po tamtym treningu.” pokazujemy, gdy zapisane listy `stepResults` obu sesji różnią się długością lub układem kroków (`blockId`, `workoutItemId`, `kind`, `roundNumber`, `roundCount`, porównane po kolei), także po usunięciu planu. Przy tym samym układzie dopisek wymaga różnicy `plannedDurationSeconds` co najmniej jednego kroku oraz istniejącego planu z `updatedAt` późniejszym niż `completedAt` poprzedniej sesji, ponieważ korekty zegara też zmieniają zapisany czas docelowy. Sama zmiana nazwy lub odpięcie ćwiczenia celu nie wywołuje dopisku. Link „Zobacz” otwiera podsumowanie poprzedniego treningu; przy pierwszym wykonaniu blok jest niewidoczny. Bez poprzednich ocen ćwiczeń, strzałek, kolorów oceniających i procentów.
 
 Nie pokazujemy: ACWR, monotonii i strain Fostera, wyniku 0–100, prognoz.
 

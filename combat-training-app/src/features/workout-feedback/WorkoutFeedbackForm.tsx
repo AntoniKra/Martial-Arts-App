@@ -1,26 +1,21 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { routes } from '@/app/routes'
-import { RouteScreenHeader } from '@/components/ScreenHeader'
 import { AutoGrowTextarea } from '@/components/ui/AutoGrowTextarea'
 import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { PlanWorkoutSession, WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { findPreviousAssessment } from '@/domain/focus-skill/previousAssessment'
 import { canEditSparringIntensity, hasCompletedExercise, selectOtherExercises, type WorkoutFeedbackDraft } from '@/domain/workout-session/workoutFeedback'
-import type { PreviousPlanRun } from '@/domain/workout-session/previousPlanRun'
 import { Button } from '@/components/ui/Button'
-import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
 import { FeedbackIcon } from './FeedbackIcon'
 import { AssessmentScale, FocusCard } from './FocusCard'
 import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
-import { formatWorkoutFeedbackMetrics, workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
-import { PreviousPlanRunSummary } from './PreviousPlanRunSummary'
+import { workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
+import { WorkoutFeedbackSummary } from './WorkoutFeedbackSummary'
 import { hasUnsavedWorkoutFeedback } from './unsavedWorkoutFeedback'
 
-export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, previousRun, sessions = [] }: {
+export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, sessions = [] }: {
   sessions?: readonly WorkoutSession[]
   session: PlanWorkoutSession; skills: readonly FocusSkill[]; pending: boolean
-  previousRun?: PreviousPlanRun | null
   rpeCard: ReactNode
   onSave: (draft: WorkoutFeedbackDraft) => Promise<void>
 }) {
@@ -37,7 +32,6 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
   const editableSparring = draft.sparring.map((entry, index) => ({ entry, index })).filter(({ entry }) => canEditSparringIntensity(entry))
   const assessed = draft.focusRatings.filter((rating) => hasCompletedExercise(session, rating.workoutItemId) && rating.assessment !== null).length
   const assessedOthers = draft.exerciseRatings.filter((rating) => others.some((other) => other.workoutItemId === rating.workoutItemId)).length
-  const [duration, work, completion] = formatWorkoutFeedbackMetrics(session)
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -56,27 +50,7 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
 
   return <UnsavedPlanChangesGuard isDirty={hasUnsavedWorkoutFeedback(draft, initial)} allowLeaveRef={allowLeave} description={labels.discardDescription}>
     <div className="motion-controls mx-auto w-full max-w-xl space-y-5 px-4 pt-3 pb-9">
-    <div className="space-y-4">
-      <RouteScreenHeader title={labels.status[session.status]} variant="summary" fallback={routes.progressHistory}
-        action={pending
-          ? <span role="status" className="feedback-badge is-countdown">{workoutDataLabels.pending}</span>
-          : <span className="feedback-badge is-saved"><FeedbackIcon kind="check" size={12} />{labels.savedBadge}</span>}
-        subtitle={<h2 className="wrap-anywhere font-display text-base font-extrabold tracking-tight text-ink">{session.workoutPlanNameSnapshot}</h2>} />
-      <section aria-label={labels.metricsHeading} className="feedback-surface">
-        <dl className="grid grid-cols-2">
-          <div className="feedback-work-time col-span-2 space-y-0.5 rounded-t-sm px-4 pt-4 pb-3.5">
-            <dt className="feedback-eyebrow flex items-center gap-1.5"><FeedbackIcon kind="clock" size={13} />{labels.workTime}</dt>
-            <dd className="font-display text-[36px] leading-[1.05] font-black tracking-tight tabular-nums text-ink">{work}</dd>
-          </div>
-          {[[labels.metrics[0], duration], [labels.metrics[2], completion]].map(([name, value], index) => <div key={name}
-            className={`flex min-w-0 flex-col border-t border-bd px-3.5 py-2.5 ${index === 0 ? 'border-r' : ''}`}>
-            <dt className="order-last text-[10px] font-bold tracking-wider text-muted uppercase">{name}</dt>
-            <dd className="font-display text-lg font-extrabold tabular-nums text-ink">{value}</dd>
-          </div>)}
-        </dl>
-        {previousRun && <PreviousPlanRunSummary previous={previousRun} />}
-      </section>
-    </div>
+    <WorkoutFeedbackSummary session={session} pending={pending} />
     {rpeCard}
     <form ref={form} onSubmit={(event) => { void submit(event) }} noValidate className="space-y-5">
       <fieldset disabled={saving} className="min-w-0 space-y-5">

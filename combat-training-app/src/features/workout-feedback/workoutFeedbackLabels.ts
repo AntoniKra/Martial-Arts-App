@@ -1,22 +1,14 @@
-import type { PlanWorkoutSession } from '@/domain/workout-session/workoutSession.types'
-import { formatSecondsAsClock } from '@/domain/time/formatDuration'
-
 export const workoutFeedbackLabels = {
   title: 'Podsumowanie',
-  savedEntry: 'Zapisane w dzienniku. Oceny dopiszą się do wpisu.',
   savedBadge: 'Zapisano',
   status: { completed: 'Trening ukończony', partial: 'Trening częściowy' },
-  metrics: ['Trening', 'Praca', 'Ćwiczenia'],
+  metrics: { duration: 'Trening', work: 'Praca', exercises: 'Ćwiczenia', rounds: 'Rundy' },
   metricsHeading: 'Podsumowanie czasu sesji',
-  workTime: 'Czas czystej pracy',
   rpeCountdown: 'Odliczanie',
   rpeActive: 'Wybór 0–10',
   rpeSaved: 'Zapisano',
   rpeRange: '0 Odpoczynek ··· 10 Maksimum',
   rpeValue: (value: number) => `RPE ${value}`,
-  previousPlanRunMetrics: 'Poprzednie wykonanie planu',
-  viewPreviousPlanRun: 'Zobacz poprzedni trening z tym planem',
-  planChanged: 'Plan zmieniono po tamtym treningu.',
   focusHeading: 'Elementy do poprawy',
   sparringIntensity: (number: number) => `Sparing ${number} · intensywność (opcjonalnie)`,
   sparringOptions: {
@@ -82,10 +74,6 @@ export const workoutFeedbackLabels = {
   correctionError: 'Błąd i wskazówka muszą mieć po 1–200 znaków.',
   noteError: 'Notatka może mieć do 1000 znaków.',
 } as const
-
-export function formatWorkoutFeedbackMetrics(session: PlanWorkoutSession): string[] {
-  return [formatSecondsAsClock(Math.floor(session.durationSeconds)), formatSecondsAsClock(session.workSeconds), `${session.completion.completed}/${session.completion.planned}`]
-}
 
 export function formatCorrectionDate(date: string): string {
   return `${Number(date.slice(8))}.${date.slice(5, 7)}`

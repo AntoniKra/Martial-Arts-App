@@ -2,7 +2,6 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useWorkoutData } from '@/application/workoutDataContext'
 import { routes } from '@/app/routes'
 import { prepareWorkoutFeedback } from '@/domain/workout-session/workoutFeedback'
-import { findPreviousPlanRun } from '@/domain/workout-session/previousPlanRun'
 import { WorkoutFeedbackForm } from '@/features/workout-feedback/WorkoutFeedbackForm'
 import { workoutFeedbackLabels as labels } from '@/features/workout-feedback/workoutFeedbackLabels'
 import { WorkoutDataWarning } from '@/features/workouts/components/WorkoutDataWarning'
@@ -13,11 +12,10 @@ import { prepareQuickTimerFeedback } from '@/domain/quick-timer/quickTimerFeedba
 import { resolveQuickTimerDefaults } from '@/domain/quick-timer/quickTimer'
 import { QuickTimerFeedbackForm } from '@/features/quick-timer/QuickTimerFeedbackForm'
 import { WorkoutRpeSummary } from '@/features/workout-feedback/WorkoutRpeSummary'
-import { LazyWellbeingWorkoutLine } from '@/features/wellbeing/LazyWellbeingWorkoutLine'
 
 export function Component() {
   const { sessionId = '' } = useParams()
-  const { sessions, plans, focusSkills, sessionRepository, retry } = useWorkoutData()
+  const { sessions, focusSkills, sessionRepository, retry } = useWorkoutData()
   const { state } = useAuth()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -39,13 +37,12 @@ export function Component() {
       if (!await sessionRepository.saveRpe(session.id, value, recordedAt)) throw new Error('Session no longer available')
     }}>{(rpeCard) => session.source === 'quickTimer' ? <QuickTimerFeedbackForm key={session.id} session={session} pending={sessions.pendingIds.has(session.id)}
       hasPreviousCategory={resolveQuickTimerDefaults(sessions.items, session).hasPreviousCategory}
-      rpeCard={<>{rpeCard}<LazyWellbeingWorkoutLine date={session.workoutDate} /></>}
+      rpeCard={rpeCard}
       onSave={async (draft) => {
         const feedback = prepareQuickTimerFeedback(session, draft, new Date().toISOString())
         if (!await sessionRepository.saveQuickTimerFeedback(session.id, feedback)) throw new Error('Session no longer available')
         await navigate(routes.progressHistory)
-      }} /> : <WorkoutFeedbackForm key={session.id} session={session} sessions={sessions.items} skills={focusSkills.items} rpeCard={<>{rpeCard}<LazyWellbeingWorkoutLine date={session.workoutDate} /></>}
-    previousRun={findPreviousPlanRun(session, sessions.items, plans.status === 'ready' ? plans.items.find((plan) => plan.id === session.workoutPlanId) : undefined)}
+      }} /> : <WorkoutFeedbackForm key={session.id} session={session} sessions={sessions.items} skills={focusSkills.items} rpeCard={rpeCard}
     pending={sessions.pendingIds.has(session.id)} onSave={async (draft) => {
       const feedback = prepareWorkoutFeedback(session, draft, focusSkills.items, new Date().toISOString())
       if (!await sessionRepository.saveFeedback(session.id, feedback)) throw new Error('Session no longer available')

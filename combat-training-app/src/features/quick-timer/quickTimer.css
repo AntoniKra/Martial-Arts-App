@@ -91,23 +91,6 @@
 
 .quick-timer-counter-button { min-height: 44px; font: 700 18px/1 var(--font-display); }
 
-.quick-timer-metrics {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-sm);
-  background: var(--app-surface);
-  padding: 16px 8px;
-}
-
-.quick-timer-metrics::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: var(--app-grad-accent);
-}
-
 .quick-timer-submit {
   min-height: 52px;
   padding-block: 8px;

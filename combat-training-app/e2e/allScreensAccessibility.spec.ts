@@ -127,15 +127,13 @@ for (const theme of ['dark', 'light'] as const) {
     await audit(page, info, 'focus-skill-progress', theme)
   })
 
-  test(`audits plan feedback with ratings, RPE and previous run in ${theme}`, async ({ app, page }, info) => {
+  test(`audits plan feedback with ratings and RPE in ${theme}`, async ({ app, page }, info) => {
     await app.open('/workouts')
     await app.seedFocusSkill(skill)
-    await app.seedPlan(plan)
-    await app.seedSession(previous)
     await app.seedSession(current)
     await app.open(`/workout-sessions/${current.id}/feedback`)
     await app.setTheme(theme)
-    await expect(page.getByRole('region', { name: 'Poprzednie wykonanie planu', exact: true }).locator('dt')).toHaveText(['Trening', 'Praca', 'Ćwiczenia'])
+    await expect(page.getByRole('region', { name: 'Podsumowanie czasu sesji', exact: true })).toBeVisible()
     await expect(page.getByRole('article', { name: skill.name, exact: true }).getByRole('radio', { name: /^4 / })).toBeChecked()
     await page.getByRole('button', { name: /^Pozostałe ćwiczenia/ }).click()
     await expect(page.getByRole('article', { name: 'Praca na nogach', exact: true })).toBeVisible()

@@ -125,6 +125,12 @@ test('summarizes sparring in both themes and saves changed category and discipli
   await app.expectWorkoutSaved()
   const sessionId = new URL(page.url()).pathname.split('/')[2]
   const readCurrentSession = async () => (await app.readSessions()).find((session) => session.id === sessionId)
+  const summaryMetrics = page.getByRole('region', { name: 'Podsumowanie czasu sesji', exact: true })
+  await expect(page.getByRole('heading', { name: 'Szybki stoper', exact: true, level: 1 })).toBeVisible()
+  await expect(page.getByText('Trening ukończony', { exact: true })).toBeVisible()
+  await expect(page.getByText('Zapisane w dzienniku. Oceny dopiszą się do wpisu.', { exact: true })).toHaveCount(0)
+  await expect(summaryMetrics.locator('dt')).toHaveText(['Trening', 'Praca', 'Rundy'])
+  await expect(summaryMetrics.locator('dd').last()).toHaveText('3/3')
   await expect(page.getByText('Ustawione jak ostatnio – zmień, jeśli trzeba', { exact: true })).toBeVisible()
   const discipline = page.getByRole('radiogroup', { name: 'Dyscyplina', exact: true })
   const boxing = discipline.getByRole('radio', { name: 'Boks', exact: true })
@@ -142,7 +148,7 @@ test('summarizes sparring in both themes and saves changed category and discipli
         await expect(discipline).toHaveCSS('grid-template-columns', /^[\d.]+px$/)
         await expect(boxing.locator('..').locator('.choice-face')).toHaveCSS('height', '52px')
         const [metrics, category, picker, intensity, rpe, note] = await Promise.all([
-          page.locator('dl.quick-timer-metrics').boundingBox(),
+          summaryMetrics.boundingBox(),
           page.getByRole('group', { name: 'Rodzaj treningu', exact: true }).boundingBox(),
           discipline.boundingBox(),
           page.getByRole('group', { name: /Intensywność sparingu/ }).boundingBox(),

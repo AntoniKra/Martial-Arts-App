@@ -3,7 +3,7 @@ import { WorkoutDataContext } from '@/application/workoutDataContext'
 import { hasWellbeingConsent } from '@/domain/wellbeing/wellbeingConsent'
 
 const Line = lazy(() => import('./WellbeingWorkoutLine').then((module) => ({ default: module.WellbeingWorkoutLine })))
-export function LazyWellbeingWorkoutLine(props: { date: string; previous?: boolean }) {
+export function LazyWellbeingWorkoutLine({ date }: { date: string }) {
   const data = useContext(WorkoutDataContext)
-  return data && hasWellbeingConsent(data.profile.items[0]) ? <Suspense fallback={null}><Line {...props} /></Suspense> : null
+  return data && hasWellbeingConsent(data.profile.items[0]) ? <Suspense fallback={null}><Line date={date} /></Suspense> : null
 }

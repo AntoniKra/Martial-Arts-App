@@ -4,10 +4,11 @@ import { screenBackTarget } from './screenBackTarget'
 import { screenHeaderLabels } from './screenHeaderLabels'
 import { BackButton } from './ui/BackButton'
 
-export function ScreenHeader({ title, variant = 'subscreen', subtitle, action, onBack, disabled = false, headingRef, headingLevel = 1 }: {
+export function ScreenHeader({ title, variant = 'subscreen', subtitle, eyebrow, action, onBack, disabled = false, headingRef, headingLevel = 1 }: {
   title: string
   variant?: 'main' | 'home' | 'subscreen' | 'form' | 'summary' | 'centered'
   subtitle?: ReactNode
+  eyebrow?: ReactNode
   action?: ReactNode
   onBack?: () => void
   disabled?: boolean
@@ -17,7 +18,18 @@ export function ScreenHeader({ title, variant = 'subscreen', subtitle, action, o
   const Heading = `h${headingLevel}` as const
   if (variant === 'home') return <Heading className="sr-only">{title}</Heading>
   const main = variant === 'main'
-  const summary = variant === 'summary'
+  if (variant === 'summary') {
+    return <header className="w-full space-y-2.5">
+      <div className="flex min-h-11 items-center justify-between">
+        <BackButton onClick={onBack} disabled={disabled} />
+        {action}
+      </div>
+      <div className="space-y-1.5">
+        {eyebrow}
+        <Heading ref={headingRef} tabIndex={headingRef ? -1 : undefined} className="wrap-anywhere font-display text-[22px] leading-[1.15] font-extrabold tracking-[-0.01em] text-ink max-[374px]:text-xl">{title}</Heading>
+      </div>
+    </header>
+  }
   if (variant === 'centered') {
     return <header className="w-full">
       <div className="grid min-h-11 grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2">
@@ -43,10 +55,10 @@ export function ScreenHeader({ title, variant = 'subscreen', subtitle, action, o
       {subtitle && <div className="break-words text-center text-[13px] text-muted">{subtitle}</div>}
     </header>
   }
-  return <header className={`w-full ${summary ? 'space-y-2.5' : 'space-y-0.5'}`}>
+  return <header className="w-full space-y-0.5">
     <div className={`flex min-h-11 items-center gap-1 ${main ? '' : '-ml-3'}`}>
       {!main && <BackButton onClick={onBack} disabled={disabled} />}
-      <Heading ref={headingRef} tabIndex={headingRef ? -1 : undefined} className={`min-w-0 flex-1 font-display leading-snug text-ink ${summary ? 'truncate text-xl font-semibold' : `break-words font-extrabold ${main ? 'text-[28px]' : 'text-[24px]'}`}`}>{title}</Heading>
+      <Heading ref={headingRef} tabIndex={headingRef ? -1 : undefined} className={`min-w-0 flex-1 break-words font-display leading-snug font-extrabold text-ink ${main ? 'text-[28px]' : 'text-[24px]'}`}>{title}</Heading>
       {action}
     </div>
     {subtitle && <div className="break-words text-[13px] text-muted">{subtitle}</div>}

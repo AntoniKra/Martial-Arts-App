@@ -56,12 +56,26 @@
   color: var(--app-crimson-ink);
 }
 
-.feedback-work-time {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--app-ink) 2%, transparent), transparent);
+.feedback-summary-metrics {
+  position: relative;
+  overflow: hidden;
 }
 
-.feedback-work-time .feedback-eyebrow {
+.feedback-summary-metrics::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--app-grad-accent);
+}
+
+.feedback-session-time {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-ink) 2.5%, transparent), transparent);
+}
+
+.feedback-session-time .feedback-eyebrow {
   color: var(--app-ember-ink);
+  letter-spacing: 0.08em;
 }
 
 .rpe-telemetry-slider {
