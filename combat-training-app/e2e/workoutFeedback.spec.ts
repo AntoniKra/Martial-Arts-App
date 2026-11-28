@@ -19,6 +19,7 @@ const plan = { ...workoutPlan([
   block('pads', [{ ...continuousExercise('second', 60), focusSkillId: 'counter' }, { ...continuousExercise('other', 60), exerciseNameSnapshot: 'Praca na nogach' }], 'pads'),
 ]), nameSnapshot: 'Technika i kontrola gardy' }
 const card = (page: Page, name = skills[0].name) => page.getByRole('article', { name, exact: true })
+const changeRating = (page: Page, name?: string) => card(page, name).getByRole('button', { name: /Zmień$/ })
 
 async function assess(page: Page, name: string, value: number) {
   await card(page, name).getByRole('radio', { name: new RegExp(`^${value} `) }).check()
@@ -63,9 +64,16 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
     { skillNameSnapshot: skills[1].name, blockType: 'pads', assessment: null },
   ] }])
   await assess(page, skills[0].name, 3)
-  await card(page, skills[1].name).getByRole('radio', { name: 'Nie umiem ocenić', exact: true }).check()
+  const unable = card(page, skills[1].name).getByRole('radio', { name: 'Nie umiem ocenić', exact: true })
+  await unable.check()
+  await expect(changeRating(page, skills[1].name)).toBeFocused()
+  await changeRating(page, skills[1].name).click()
+  await expect(unable).toBeChecked()
+  await expect(unable).toBeFocused()
   await expect(card(page, skills[1].name).getByText('Wybrano odpowiedź: Nie umiem ocenić.', { exact: true })).toBeVisible()
+  await expect(unable.locator('..')).toHaveCSS('min-height', '44px')
   await expect(card(page, skills[1].name).getByRole('button', { name: 'Wyczyść ocenę', exact: true })).toHaveCSS('min-height', '44px')
+  await changeRating(page).click()
   await card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true }).click()
   const drawer = card(page).getByRole('group', { name: 'Notatka', exact: true })
   await expect(drawer).toHaveAccessibleDescription('jeden błąd i jedna wskazówka')
@@ -77,6 +85,8 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   }
   await card(page).getByRole('textbox', { name: 'Błąd', exact: true }).fill('Opuszczam prawą rękę po ciosie.')
   await expect(card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true })).toHaveCount(0)
+  await card(page).getByRole('radio', { name: /^3 / }).click()
+  await expect(changeRating(page)).toBeFocused()
   // Incomplete corrections are validated without submitting a partial batch.
   await page.getByRole('button', { name: 'Zapisz oceny', exact: true }).click()
   await expect(card(page).getByRole('alert')).toHaveText('Błąd i wskazówka muszą mieć po 1–200 znaków.')
@@ -90,6 +100,8 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   await expect(page).toHaveURL(/\/progress\?tab=history$/)
   await expect.poll(async () => (await app.readSessions())[0]?.note).toBe('Pilnuj powrotu do gardy.')
   await app.open(firstSummary)
+  await expect(card(page).getByRole('radio')).toHaveCount(0)
+  await changeRating(page).click()
   await expect(card(page).getByRole('radio', { name: /^3 / })).toBeChecked()
   await expect(card(page).getByRole('textbox', { name: 'Błąd', exact: true })).toHaveValue('Opuszczam prawą rękę po ciosie.')
   await expect(page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })).toHaveValue('Pilnuj powrotu do gardy.')
@@ -112,6 +124,7 @@ test('persists R1 and R2, shows the previous correction in the next workout, and
   await card(page).getByRole('radio', { name: 'Rzadziej', exact: true }).check()
   await assess(page, skills[0].name, 4)
   await assess(page, skills[1].name, 3)
+  await changeRating(page).click()
   await card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true }).click()
   await page.getByRole('button', { name: /^Pozostałe ćwiczenia/ }).click()
   for (const theme of ['dark', 'light'] as const) {
@@ -191,6 +204,7 @@ offlineTest('queues ratings and a new correction together offline and sends both
   await page.clock.fastForward(180_000)
   await app.expectWorkoutSaved()
   await assess(page, skills[0].name, 2)
+  await changeRating(page).click()
   await card(page).getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true }).click()
   await card(page).getByRole('textbox', { name: 'Błąd', exact: true }).fill('Garda opada.')
   await card(page).getByRole('textbox', { name: 'Wskazówka', exact: true }).fill('Ręka do brody.')
@@ -201,6 +215,7 @@ offlineTest('queues ratings and a new correction together offline and sends both
   expect((await app.readFocusSkills()).find((skill) => skill.id === 'guard')?.openCorrection).toBeNull()
   await page.getByRole('article').getByRole('button', { name: /Szczegóły wpisu/ }).first().click()
   await page.getByRole('link', { name: 'Podsumowanie', exact: true }).click()
+  await changeRating(page).click()
   await expect(card(page).getByRole('radio', { name: /^2 / })).toBeChecked()
   await context.setOffline(false)
   await expect.poll(async () => (await app.readFocusSkills()).find((skill) => skill.id === 'guard')?.openCorrection?.problem).toBe('Garda opada.')

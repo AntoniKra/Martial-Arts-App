@@ -45,6 +45,8 @@ Do tego **„Nie umiem ocenić”**. Ta odpowiedź zostaje zapisana, ale nie wch
 
 Decyzja właściciela 28.11, makieta v4 R1 C. W podsumowaniu i ręcznym wpisie pięć rosnących słupków ma wysokości 32, 42, 52, 62 i 72 px. Każdy ma numer i pole dotyku o wysokości 72 px. Wybrany poziom ma obramowanie 2 px i wypełnienie, a niższe poziomy delikatne wypełnienie. Poprzednia ocena jest oznaczona słowem „ostatnio”. Pod skalą czytnik ogłasza zmianę w wierszu „Poziom N: opis”. „Nie umiem ocenić” i „Wyczyść ocenę” korzystają z osobnych celów dotyku co najmniej 44 px w jednym wierszu.
 
+W podsumowaniu (v4 R2 B) element z zapisaną lub właśnie wybraną oceną, także „Nie umiem ocenić”, zajmuje dwa wiersze. Pod nazwą jest skrót „Poziom N · opis · Zmień”, a czytnik otrzymuje pełny opis. Po zwinięciu fokus trafia na „Zmień”. Otwarcie przywraca fokus wybranej ocenie. Wyczyszczenie oceny pozostawia kartę otwartą i przenosi fokus na pierwszy słupek. Błąd walidacji otwiera kartę i umożliwia poprawkę notatki. W ręcznym wpisie karta jest rozwinięta podczas oceny i walidacji.
+
 - Oceniamy tylko ćwiczenie, w którym dokończono co najmniej jeden etap. Pominięte nie dostaje oceny ani zera.
 - Ocena jest opcjonalna. Brak oceny nie wchodzi do średnich.
 - Każda ocena zapisuje kontekst, czyli typ bloku (worek, tarcze, sparing…). Wykres go pokazuje, żeby nie mylić techniki na worku z techniką w sparingu.

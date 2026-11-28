@@ -1,3 +1,5 @@
+const changeAssessment = 'Zmień'
+
 export const workoutFeedbackLabels = {
   title: 'Podsumowanie',
   savedBadge: 'Zapisano',
@@ -22,7 +24,9 @@ export const workoutFeedbackLabels = {
   focusContext: (discipline: string, block: string) => `${discipline} · ${block}`,
   previousAssessment: (result: string, date: string, block: string) => `Ostatnio ${result} · ${date} · ${block}`,
   lastRating: 'ostatnio',
-  assessmentLevel: (value: number) => `Poziom ${value}:`,
+  assessmentLevel: (value: number) => `Poziom ${value}`,
+  changeAssessment,
+  changeAssessmentLabel: (name: string, summary: string) => `${name} — ${summary} · ${changeAssessment}`,
   assessmentPrompt: 'Wybierz stopień opanowania 1–5',
   assessmentUnable: 'Wybrano odpowiedź: Nie umiem ocenić.',
   focusQuestion: 'Jak dobrze ci wychodziło?',

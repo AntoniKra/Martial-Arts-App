@@ -124,11 +124,19 @@ for (const theme of ['dark', 'light'] as const) {
     await page.keyboard.press('ArrowRight')
     await expect(checks.getByRole('radio', { name: 'Nie sprawdzałem', exact: true })).toBeChecked()
     const rating = card.getByRole('radio', { name: /^3 / })
+    const change = card.getByRole('button', { name: /Zmień$/ })
     await rating.check()
-    await rating.focus()
+    await expect(change).toBeFocused()
+    await expect(change).toHaveAttribute('aria-expanded', 'false')
+    await expect(focusGrid).toBeHidden()
+    await change.press('Enter')
+    await expect(rating).toBeFocused()
     await page.keyboard.press('ArrowDown')
+    await expect(change).toBeFocused()
+    await change.press('Enter')
     const selected = card.getByRole('radio', { name: /^4 / })
     await expect(selected).toBeChecked()
+    await expect(selected).toBeFocused()
     await expect(focusGrid.getByText('✓', { exact: true })).toHaveCount(0)
     const selectedTile = selected.locator('+ .feedback-rating-bar')
     const otherTile = rating.locator('+ .feedback-rating-bar')
@@ -139,6 +147,7 @@ for (const theme of ['dark', 'light'] as const) {
     const level = card.getByText('Poziom 4:', { exact: true })
     await expect(level).toHaveCSS('white-space', 'nowrap')
     await expect(level.locator('..')).toHaveText('Poziom 4: Zwykle się udaje, błąd sam łapię i poprawiam.')
+    await expect(level.locator('../..')).toHaveAttribute('aria-live', 'polite')
     await expect(card.locator('.feedback-rating-grid')).toHaveCSS('grid-template-columns', /^(\S+\s+){4}\S+$/)
     await expect(selected.locator('..')).toHaveCSS('outline-style', 'solid')
     await expect(page.getByRole('region', { name: 'Elementy do poprawy', exact: true }).getByText('1/2 ocenione', { exact: true })).toBeVisible()
@@ -168,7 +177,7 @@ for (const theme of ['dark', 'light'] as const) {
   })
 }
 
-test('keeps summary badges and the level prefix on one line at phone widths', async ({ app, page }, info) => {
+test('truncates a saved assessment visually and retains the full accessible description at phone widths', async ({ app, page }, info) => {
   test.skip(info.project.name !== 'phone', 'Exercises the two summary phone widths')
   const longName = 'Lewy prosty i powrót do gardy po kombinacji na tarczach'
   const longProblem = 'Pod koniec długiej kombinacji opuszczam rękę i tracę pozycję do następnego ciosu. '.repeat(2).trim()
@@ -178,13 +187,23 @@ test('keeps summary badges and the level prefix on one line at phone widths', as
   await app.seedSession({ ...current, focusRatings: [{ ...focus, skillNameSnapshot: longName, assessment: 4 }] })
   await app.open('/workout-sessions/clarity/feedback')
   const card = page.getByRole('article', { name: longName, exact: true })
-  const previousBadge = card.getByText('Ostatnio Nie umiem ocenić · 1.11 · Tarcze', { exact: true })
+  const change = card.getByRole('button', {
+    name: `${longName} — Poziom 4 · Zwykle się udaje, błąd sam łapię i poprawiam. · Zmień`, exact: true,
+  })
   const prefix = card.getByText('Poziom 4:', { exact: true })
-  await expect(card.getByText(longProblem, { exact: true })).toBeVisible()
+  await expect(card.getByText(longProblem, { exact: true })).toBeHidden()
   for (const width of [360, 390]) {
     await page.setViewportSize({ width, height: 800 })
     await page.evaluate(() => document.fonts.ready)
-    for (const value of [previousBadge, prefix, page.getByText('Zapisano', { exact: true }).first(), page.getByText('Zapisano', { exact: true }).last()]) {
+    const shortened = change.getByText(/Poziom 4.*Zwykle/)
+    await expect(shortened).toHaveCSS('text-overflow', 'ellipsis')
+    expect(await shortened.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true)
+    await change.click()
+    const rating = card.getByRole('radio', { name: /^4 / })
+    await expect(rating).toBeFocused()
+    await expect(card.getByText(longProblem, { exact: true })).toBeVisible()
+    const previousRating = card.getByText('Ostatnio Nie umiem ocenić · 1.11 · Tarcze', { exact: true })
+    for (const value of [previousRating, prefix, page.getByText('Zapisano', { exact: true }).first(), page.getByText('Zapisano', { exact: true }).last()]) {
       await expect(value).toBeVisible()
       expect(await value.evaluate((element) => {
         const text = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
@@ -199,6 +218,8 @@ test('keeps summary badges and the level prefix on one line at phone widths', as
       })).toBe(true)
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
+    await rating.click()
+    await expect(change).toBeFocused()
   }
 })
 
