@@ -40,6 +40,8 @@ Start i Postęp używają wspólnego `WeekDayIndicator` z kropkami 26 px, bez le
 
 Aktualne wartości obu motywów są w `src/styles/index.css`. `src/features/theme/themeColors.test.ts` pilnuje kontrastu co najmniej 4,5:1 dla wszystkich tokenów tekstu na każdym tle.
 
+`--app-border-faint` to kolor tekstu `--app-ink` z kryciem 8% w obu motywach. Służy do cienkich separatorów wewnątrz kart ocen. Obramowania pól i wskaźniki fokusu korzystają z własnych tokenów.
+
 ### Przyciemnienie za arkuszami
 
 - `--app-sheet-scrim` przyciemnia tło za arkuszami „Nowy trening” i „Przerwa” czernią o kryciu 62% w motywie ciemnym i 45% w jasnym.

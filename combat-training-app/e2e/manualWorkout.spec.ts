@@ -275,9 +275,13 @@ test('requires a place for mixed focus feedback, closes the correction and links
   await category(page).getByRole('checkbox', { name: /^Tarcze/ }).check()
   await form(page).getByRole('checkbox', { name: skill.name, exact: true }).check()
   const card = form(page).getByRole('article', { name: skill.name, exact: true })
-  await card.getByRole('radio', { name: /^4 Zwykle/ }).check()
+  const assessment = card.getByRole('radio', { name: /^4 Zwykle/ })
+  await assessment.check()
+  await expect(assessment).toBeChecked()
+  await expect(card.getByRole('button', { name: /Zmień$/ })).toHaveCount(0)
   await save(page)
   await expect(form(page).getByText('Wybierz, gdzie ćwiczyłeś.', { exact: true })).toBeVisible()
+  await expect(assessment).toBeVisible()
   expect(await app.readSessions()).toEqual([])
   await card.getByRole('combobox', { name: 'Gdzie ćwiczyłeś?', exact: true }).selectOption('sparring')
   await card.getByRole('radio', { name: 'Rzadziej', exact: true }).check()
@@ -290,6 +294,7 @@ test('requires a place for mixed focus feedback, closes the correction and links
   await expect(row).toHaveAttribute('href', `/workout-sessions/${session.id}/edit`)
   await row.click()
   await expect(page.getByRole('heading', { name: 'Popraw trening spoza aplikacji', exact: true })).toBeVisible()
+  await expect(assessment).toBeChecked()
 })
 
 test('edits duration and RPE while timed entries remain unavailable for editing', async ({ app, page }) => {

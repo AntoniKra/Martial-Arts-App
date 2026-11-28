@@ -43,6 +43,10 @@ Pytanie dotyczy celu, a nie ogólnego wrażenia. Skala z opisanymi stopniami (R1
 
 Do tego **„Nie umiem ocenić”**. Ta odpowiedź zostaje zapisana, ale nie wchodzi do średnich.
 
+Decyzja właściciela 28.11, makieta v4 R1 C. W podsumowaniu i ręcznym wpisie pięć rosnących słupków ma wysokości 32, 42, 52, 62 i 72 px. Każdy ma numer i pole dotyku o wysokości 72 px. Wybrany poziom ma obramowanie 2 px i wypełnienie, a niższe poziomy delikatne wypełnienie. Poprzednia ocena jest oznaczona słowem „ostatnio”. Pod skalą czytnik ogłasza zmianę w wierszu „Poziom N: opis”. „Nie umiem ocenić” i „Wyczyść ocenę” korzystają z osobnych celów dotyku co najmniej 44 px w jednym wierszu.
+
+W podsumowaniu (v4 R2 B) element z oceną, także „Nie umiem ocenić”, zwija kryterium i skalę po udzieleniu odpowiedzi na ewentualne pytanie „Czy ten błąd dziś się powtarzał?”. Pod nazwą jest skrót „Poziom N · opis · Zmień”, a czytnik otrzymuje pełny opis. Poniżej pozostaje dostępny przycisk „Dodaj notatkę: błąd i wskazówka” albo otwarty formularz notatki. Po zwinięciu fokus trafia na „Zmień”. Otwarcie przywraca fokus wybranej ocenie. Wyczyszczenie oceny pozostawia kartę otwartą i przenosi fokus na pierwszy słupek. Błąd walidacji otwiera kartę i umożliwia poprawkę notatki. W ręcznym wpisie karta jest rozwinięta podczas oceny i walidacji.
+
 - Oceniamy tylko ćwiczenie, w którym dokończono co najmniej jeden etap. Pominięte nie dostaje oceny ani zera.
 - Ocena jest opcjonalna. Brak oceny nie wchodzi do średnich.
 - Każda ocena zapisuje kontekst, czyli typ bloku (worek, tarcze, sparing…). Wykres go pokazuje, żeby nie mylić techniki na worku z techniką w sparingu.
@@ -85,7 +89,7 @@ W Postępie i Profilu pokazujemy ostatnie 28 dni: liczbę zajęć spoza aplikacj
 
 ## Pozostałe ćwiczenia
 
-Opcjonalnie, pod „Pozostałe ćwiczenia” (Q1). Pytanie: **Jak oceniasz wykonanie tego ćwiczenia?**
+Opcjonalne oceny są w osobnej zwijanej karcie „Pozostałe ćwiczenia” (Q1, decyzja właściciela 28.11, makieta v4 R3 B). Słupki korzystają z układu R1 C. Nad skalą jest nazwa ćwiczenia. Czytniki otrzymują nazwę grupy „Ocena wykonania: {nazwa}”.
 
 1. Nie udało się wykonać zgodnie z założeniem.
 2. Dużo błędów i mała kontrola.

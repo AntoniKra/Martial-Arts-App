@@ -2,17 +2,17 @@ import { FeedbackIcon } from './FeedbackIcon'
 import type { FocusSkillCorrection } from '@/domain/focus-skill/focusSkill.types'
 import { formatCorrectionDate, workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
 
-export function CorrectionNote({ correction, name, preview = false, summary = false }: {
-  correction: FocusSkillCorrection; name?: string; preview?: boolean; summary?: boolean
+export function CorrectionNote({ correction, name, preview = false, feedback = false }: {
+  correction: FocusSkillCorrection; name?: string; preview?: boolean; feedback?: boolean
 }) {
   const date = formatCorrectionDate(correction.workoutDate)
-  if (summary) return <aside aria-label={labels.previous(date)} className="space-y-1.5">
+  if (feedback) return <aside aria-label={labels.previous(date)} className="space-y-2">
     <p className="feedback-eyebrow tabular-nums">{labels.previous(date)}</p>
-    <dl className="grid grid-cols-2 gap-1.5">
+    <dl className="space-y-2">
       {(['problem', 'fix'] as const).map((field) => <div key={field}
-        className={`min-w-0 rounded-sm border border-bd border-l-[3px] bg-elevated px-2.5 py-2 ${field === 'problem' ? 'border-l-crimson-ink' : 'border-l-ember-ink'}`}>
-        <dt className="font-display text-[9.5px] font-extrabold tracking-wider text-muted uppercase">{labels[field]}</dt>
-        <dd className="mt-0.5 wrap-anywhere text-[11.5px] leading-[1.3] whitespace-pre-wrap text-ink">{correction[field]}</dd>
+        className={`min-w-0 border-l-2 py-px pl-2.5 ${field === 'problem' ? 'border-crimson-ink' : 'border-ember-ink'}`}>
+        <dt className="font-display text-[10px] font-extrabold tracking-[0.07em] text-muted uppercase">{labels[field]}</dt>
+        <dd className="mt-px wrap-anywhere text-[12.5px] leading-[1.4] whitespace-pre-wrap text-ink">{correction[field]}</dd>
       </div>)}
     </dl>
   </aside>

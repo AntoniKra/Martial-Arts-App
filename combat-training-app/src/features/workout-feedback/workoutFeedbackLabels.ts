@@ -1,3 +1,5 @@
+const changeAssessment = 'Zmień'
+
 export const workoutFeedbackLabels = {
   title: 'Podsumowanie',
   savedBadge: 'Zapisano',
@@ -22,7 +24,9 @@ export const workoutFeedbackLabels = {
   focusContext: (discipline: string, block: string) => `${discipline} · ${block}`,
   previousAssessment: (result: string, date: string, block: string) => `Ostatnio ${result} · ${date} · ${block}`,
   lastRating: 'ostatnio',
-  assessmentLevel: (value: number) => `Poziom ${value}:`,
+  assessmentLevel: (value: number) => `Poziom ${value}`,
+  changeAssessment,
+  changeAssessmentLabel: (name: string, summary: string) => `${name} — ${summary} · ${changeAssessment}`,
   assessmentPrompt: 'Wybierz stopień opanowania 1–5',
   assessmentUnable: 'Wybrano odpowiedź: Nie umiem ocenić.',
   focusQuestion: 'Jak dobrze ci wychodziło?',
@@ -54,7 +58,7 @@ export const workoutFeedbackLabels = {
   othersHeading: 'Pozostałe ćwiczenia',
   skippedHeading: 'Dziś bez oceny',
   skippedHint: 'Ćwiczenie nie zostało wykonane, więc nie oceniasz go. Twoja średnia się nie zmienia.',
-  otherQuestion: 'Jak oceniasz wykonanie tego ćwiczenia?',
+  otherScaleLegend: (name: string) => `Ocena wykonania: ${name}`,
   otherScale: [
     'Nie udało się wykonać zgodnie z założeniem.',
     'Dużo błędów i mała kontrola.',
