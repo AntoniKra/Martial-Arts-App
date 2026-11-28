@@ -53,7 +53,7 @@ export function WeekActivitySheet({ initial, day, weekStart, recurring, plans, o
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
     }}
     onClick={(event) => { if (event.target === event.currentTarget) close() }}
-    className="fixed inset-x-0 bottom-0 top-auto m-0 max-h-[90dvh] w-full max-w-none overflow-y-auto border-t border-bd bg-surface px-4 pb-5 pt-3 text-ink backdrop:bg-black/60 md:inset-x-auto md:left-1/2 md:w-[min(100%,32rem)] md:-translate-x-1/2">
+    className="fixed inset-x-0 bottom-0 top-auto m-0 max-h-[90dvh] w-full max-w-none overflow-y-auto border-t border-bd bg-surface px-4 pb-5 pt-3 text-ink backdrop:bg-[var(--app-form-sheet-scrim)] md:inset-x-auto md:left-1/2 md:w-[min(100%,32rem)] md:-translate-x-1/2">
     <div className="mx-auto mb-3 h-1 w-10 rounded-sm bg-bd" aria-hidden="true" />
     <div className="mb-3 flex items-center justify-between gap-2"><h2 id={titleId} className="font-display text-xl font-extrabold first-letter:uppercase">{title}</h2>
       <button type="button" aria-label={labels.close} onClick={close} className="flex size-11 shrink-0 items-center justify-center text-muted">✕</button></div>
