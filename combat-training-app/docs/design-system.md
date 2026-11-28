@@ -40,6 +40,13 @@ Start i Postęp używają wspólnego `WeekDayIndicator` z kropkami 26 px, bez le
 
 Aktualne wartości obu motywów są w `src/styles/index.css`. `src/features/theme/themeColors.test.ts` pilnuje kontrastu co najmniej 4,5:1 dla wszystkich tokenów tekstu na każdym tle.
 
+### Przyciemnienie za arkuszami
+
+- `--app-sheet-scrim` przyciemnia tło za arkuszami „Nowy trening” i „Przerwa” czernią o kryciu 62% w motywie ciemnym i 45% w jasnym.
+- `--app-form-sheet-scrim` przyciemnia tło za formularzem treningu w Planie tygodnia i formularzem elementu do poprawy czernią o kryciu 60% w obu motywach.
+- `--app-exercise-library-scrim` przyciemnia tło za szufladą filtrów biblioteki ćwiczeń czernią o kryciu 65% w obu motywach.
+- `--app-player-exit-scrim` przyciemnia tło za arkuszem zakończenia treningu czernią o kryciu 70% w obu motywach.
+
 ## Menu główne (#198)
 
 Na telefonie i komputerze kolejność to **Start · Plan · Trening (+) · Postęp · Profil**. Wygląd paska, rombu, etykiet i wskaźnika aktywności pozostaje bez zmian; jedynie etykieta „Trening” pod rombem leży 4 px niżej niż pozostałe, a romb 2 px wyżej (poprawka właściciela 19.11). Start zachowuje dotychczasowy domek; Plan, Postęp i Profil używają konturowych ikon z zatwierdzonej makiety `design-lab/start-v2/final-approval.html` (gałąź `design/antigravity-lab`).
@@ -129,6 +136,7 @@ Issue #189 ujednolica wygląd kontrolek bez zmiany danych, reguł, obliczeń ani
 
 - Jedna opcja: wspólny `ChoiceTile` z natywnym radiem w DOM, stanem `aria-checked`, ramką 1 px bez zaznaczenia oraz 2 px `crimson-ink` i tłem crimson po zaznaczeniu. Wariant kafelkowy zachowuje dolny pasek. Krótkie etykiety są w jednej linii; dłuższa opcja pominięcia jest wariantem tekstowym pod kafelkami. Skale z opisami zachowują opisy i numer w kwadracie.
 - Wybór jednej dyscypliny w Danych planu, Treningu spoza aplikacji i Planie tygodnia (#272) używa wspólnego `DisciplinePicker` według makiety D1 A / D2 A. Kafle mają 52 px wysokości i odstępy 8 px. Układają się w jednej kolumnie, a od 640 px w dwóch. Etykiety korzystają z kolorów tokenów dyscyplin w obu motywach oraz z Archivo 11 px/600, wersalików i odstępu `.12em`. Wybrany kafel ma obwódkę 2 px `crimson-ink` i tło z 14% `crimson`, bez ptaszka i dolnego paska. Po zablokowaniu wyboru w kreatorze zaznaczona opcja pozostaje w pełnym kolorze, a pozostałe mają 50% krycia. Pod grupą widać przyczynę blokady. Natywne radia w grupie zachowują nazwy z `DISCIPLINE_LABELS_PL`.
+  `--app-discipline-picker-surface` daje kaflom tło `#161618` w motywie ciemnym i `var(--app-surface)` w jasnym. W ciemnym motywie główna powierzchnia `--app-surface` ma wartość `#171719`.
 - Wiele opcji: `MultiChoiceChip` ma natywny checkbox z `aria-checked` lub przycisk z `aria-pressed`. Ramka ma 1 px bez zaznaczenia i 2 px z delikatnym tłem po zaznaczeniu. Symbol + jest widoczny przy niezaznaczonej opcji. Minimalny obszar dotyku 44 px. Opisy pomocnicze mogą zawijać się pod etykietą.
 - Włączanie i wyłączanie: `Switch` z natywnym checkboxem o roli `switch`. Tor ma 48×28 px, obszar dotyku co najmniej 44 px wysokości; włączenie przesuwa uchwyt i nadaje gradient główny. Zgody zdrowotne i potwierdzenie 18+ zachowują pełne teksty, początkowe wyłączenie i dotychczasowy zapis oraz warunki aktywowania przycisku.
 - Rozwijanie: `CollapsibleCard` z natywnym przyciskiem, `aria-expanded`, `aria-controls` i chevronem. Opis pokazuje dostępne podsumowanie danych; zawartość pozostaje zamontowana i jest ukryta do rozwinięcia. Początkowy stan pozostaje zwinięty. Klawisze Enter i Spacja obsługuje przeglądarka.

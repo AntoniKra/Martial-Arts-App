@@ -13,7 +13,7 @@ function SkillDialog({ children, onClose }: { children: React.ReactNode; onClose
     return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus() }
   }, [])
   return createPortal(<dialog ref={ref} aria-label="Nowy element do poprawy" onCancel={onClose} onSubmit={(event) => event.stopPropagation()}
-    className="fixed inset-x-0 bottom-0 top-auto m-0 max-h-[90dvh] w-full max-w-none overflow-y-auto border border-bd bg-surface p-4 text-ink backdrop:bg-black/60 md:inset-auto md:m-auto md:max-w-lg">{children}</dialog>, document.body)
+    className="fixed inset-x-0 bottom-0 top-auto m-0 max-h-[90dvh] w-full max-w-none overflow-y-auto border border-bd bg-surface p-4 text-ink backdrop:bg-[var(--app-form-sheet-scrim)] md:inset-auto md:m-auto md:max-w-lg">{children}</dialog>, document.body)
 }
 
 export function AddFocusSkill({ manual = false, empty = false }: { manual?: boolean; empty?: boolean }) {
