@@ -23,8 +23,6 @@ const current = workoutSession({
   sparring: [{ blockId: 'sparring', intensity: null, rounds: 1 }],
   rpe: 5, rpeRecordedAt: '2026-11-02T10:10:00.000Z',
 })
-const previous = { ...current, id: 'previous', startedAt: '2026-11-01T09:00:00.000Z',
-  completedAt: '2026-11-01T10:00:00.000Z', workoutDate: '2026-11-01', note: 'Poprzednia notatka.' }
 const quick: QuickTimerWorkoutSession = {
   id: 'quick', source: 'quickTimer', disciplineKey: 'boxing', category: 'bag', status: 'completed',
   startedAt: current.startedAt, completedAt: current.completedAt, workoutDate: current.workoutDate, timezone: current.timezone,
@@ -37,25 +35,22 @@ const dialog = (page: Page) => page.getByRole('dialog', { name: 'Odrzucić zmian
 const note = (page: Page) => page.getByRole('textbox', { name: 'Notatka do treningu · opcjonalnie', exact: true })
 const history = (page: Page) => page.getByRole('button', { name: 'Wstecz', exact: true })
 
-test('keeps the note and URL on return, then discards it to open the previous run', async ({ app, page }) => {
+test('keeps the note and URL on return, then discards it to open history', async ({ app, page }) => {
   await app.open('/workouts')
-  await app.seedSession(previous)
   await app.seedSession(current)
   await app.open('/workout-sessions/current/feedback')
   await note(page).fill('Nowa notatka.')
   const url = page.url()
-  const previousRunLink = page.getByRole('link', { name: 'Zobacz poprzedni trening z tym planem', exact: true })
-  await previousRunLink.click()
+  await history(page).click()
   await expect(dialog(page)).toBeVisible()
   await expect(dialog(page)).toHaveAccessibleDescription('Oceny i notatka nie zostaną zapisane.')
   await dialog(page).getByRole('button', { name: 'Wróć do edycji', exact: true }).click()
   await expect(dialog(page)).toHaveCount(0)
   await expect(note(page)).toHaveValue('Nowa notatka.')
   await expect(page).toHaveURL(url)
-  await previousRunLink.click()
+  await history(page).click()
   await dialog(page).getByRole('button', { name: 'Odrzuć zmiany', exact: true }).click()
-  await expect(page).toHaveURL('/workout-sessions/previous/feedback')
-  await expect(note(page)).toHaveValue(previous.note)
+  await expect(page).toHaveURL('/progress?tab=history')
   await expect(dialog(page)).toHaveCount(0)
   expect((await app.readSessions()).find(({ id }) => id === current.id)?.note).toBeNull()
 })

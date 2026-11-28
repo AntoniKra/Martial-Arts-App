@@ -34,5 +34,5 @@ Zrzuty są pełnostronicowe, w rozmiarach 360×800 i 1440×900, w obu motywach. 
 Przebieg nie ma ponowień. Niepełny przebieg zwraca błąd i oznacza galerię jako FAIL.
 
 Pominięto osobny ekran końca odtwarzacza: aplikacja po zapisie od razu przechodzi do podsumowania.
-Trasa pokazuje podsumowania planu (z „Poprzednio ten plan” i RPE) oraz stopera; nie zmienia kodu aplikacji, aby zatrzymać przejście.
+Trasa pokazuje podsumowania planu i stopera z RPE; nie zmienia kodu aplikacji, aby zatrzymać przejście.
 Ekran usunięcia konta jest tylko otwierany — trasa nigdy nie potwierdza usuwania ani wylogowania z niewysłanymi danymi.

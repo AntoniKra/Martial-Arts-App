@@ -134,7 +134,7 @@ Norma dla każdego pytania to mediana i P25–P75 z 28 dni **przed** ocenianym d
 
 W Postępie karta „Samopoczucie” pokazuje cztery wiersze z kategoriami ostatniego wpisu i wykresami ostatnich 28 dni. Szare pasmo pokazuje P25–P75 sprzed każdego dnia; punkty to odpowiedzi 1–5, pominięte dni są puste. Każdy wykres ma tabelę danych, a status opis słowny, bez czerwieni i zieleni. Przed normą widać ostatnie odpowiedzi i „Jeszcze N wpisów do Twojej normy” oraz warunek 21 dni. Stopka: „To nie jest ocena medyczna. Jeśli coś Cię niepokoi albo dolegliwości się utrzymują, skonsultuj się z lekarzem.”
 
-Przy RPE podsumowania planu, szybkiego stopera, formularza ręcznego wpisu i szczegółów Historii pokazujemy „Dziś rano: …” według `workoutDate`: tylko pytania gorsze niż norma albo „typowo dla Ciebie”, gdy żadne nie jest gorsze. Dla „Poprzednio ten plan” prefiks to „Tamtego dnia”. Bez normy lub wpisu z tamtego dnia linia jest ukryta. Dane pozostają oddzielone od RPE i nie zmieniają obciążenia. Bez wyniku 0–100, procentów i zaleceń treningowych.
+W formularzu ręcznego wpisu przy RPE i w szczegółach Historii pokazujemy „Dziś rano: …” według `workoutDate`: tylko pytania gorsze niż norma albo „typowo dla Ciebie”, gdy żadne nie jest gorsze. Bez normy lub wpisu z tamtego dnia linia jest ukryta. Dane pozostają oddzielone od RPE i nie zmieniają obciążenia. Bez wyniku 0–100, procentów i zaleceń treningowych.
 
 ## Podsumowanie tygodnia (Q5, R3)
 
@@ -161,8 +161,6 @@ Tydzień od poniedziałku do niedzieli, według dnia treningu. Pokazujemy:
 - **pokrycie danych**, np. „RPE w 4 z 5 treningów” oraz liczba wpisów ze znanym czasem pracy i sparingu;
 - wdrożone porównanie liczb w tabeli „Ten tydzień” i „Zwykle”: liczba treningów, czas treningu i obciążenie obok średniej z 3 poprzednich tygodni; bez słownej oceny i arbitralnego progu „więcej niż zwykle”, dopiero gdy historia sięga początku tego okresu;
 - wdrożony wykres ostatnich 12 tygodni: liczba treningów lub minuty czasu treningu (ADR 0011), bez obciążenia.
-
-Wdrożone (issue #127): pod liczbami w podsumowaniu treningu z planu pokazujemy blok **„Poprzednio ten plan”** z datą jak w Historii, czasem treningu i pracy, liczbą ukończonych i zaplanowanych ćwiczeń oraz RPE („RPE: brak”, gdy go nie podano). Poprzednie wykonanie to najnowsza inna sesja z tego samego `workoutPlanId`, wcześniejsza według `startedAt`, a przy remisie według `id`; ręczne wpisy i szybki stoper nie biorą udziału. Dopisek „Plan zmieniono po tamtym treningu.” pokazujemy, gdy zapisane listy `stepResults` obu sesji różnią się długością lub układem kroków (`blockId`, `workoutItemId`, `kind`, `roundNumber`, `roundCount`, porównane po kolei), także po usunięciu planu. Przy tym samym układzie dopisek wymaga różnicy `plannedDurationSeconds` co najmniej jednego kroku oraz istniejącego planu z `updatedAt` późniejszym niż `completedAt` poprzedniej sesji, ponieważ korekty zegara też zmieniają zapisany czas docelowy. Sama zmiana nazwy lub odpięcie ćwiczenia celu nie wywołuje dopisku. Link „Zobacz” otwiera podsumowanie poprzedniego treningu; przy pierwszym wykonaniu blok jest niewidoczny. Bez poprzednich ocen ćwiczeń, strzałek, kolorów oceniających i procentów.
 
 Nie pokazujemy: ACWR, monotonii i strain Fostera, wyniku 0–100, prognoz.
 

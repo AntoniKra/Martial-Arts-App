@@ -299,7 +299,7 @@ for (const method of ['touch', 'keyboard'] as const) {
   })
 }
 
-test('seeded personal norms, neutral chart data and wellbeing beside RPE for all sources and the previous plan run', async ({ app, page }) => {
+test('shows personal norms and wellbeing in history and manual entry only', async ({ app, page }) => {
   await app.open('/profile'); await grant(page)
   for (let offset = -32; offset <= 0; offset++) await app.seedWellbeing(entry(offset, offset >= -3 ? { sleep: 1 } : {}))
   await nav(page, 'Postęp').click()
@@ -319,20 +319,19 @@ test('seeded personal norms, neutral chart data and wellbeing beside RPE for all
   await page.getByRole('radio', { name: 'Historia', exact: true }).check()
   await page.getByRole('article').filter({ has: page.locator(`a[href="/workout-sessions/${current.id}/feedback"]`) }).getByRole('button', { name: /Szczegóły wpisu/ }).first().click()
   await page.locator(`a[href="/workout-sessions/${current.id}/feedback"]`).click()
-  await expect(page.getByText('Dziś rano: sen gorzej niż zwykle', { exact: true })).toBeVisible()
-  const previous = page.getByRole('region', { name: 'Poprzednie wykonanie planu', exact: true })
-  await expect(previous.getByText('RPE: 6', { exact: true })).toHaveCount(0)
-  await expect(previous.getByText('Tamtego dnia: typowo dla Ciebie', { exact: true })).toBeVisible()
+  await expect(page.getByText('Zapisano RPE 8', { exact: true })).toBeVisible()
+  await expect(page.getByText(/^Dziś rano:/)).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Poprzednie wykonanie planu', exact: true })).toHaveCount(0)
   const { workoutPlanId: _id, workoutPlanNameSnapshot: _name, focusRatings: _focus, exerciseRatings: _ratings, ...timed } = current
   const quick: QuickTimerWorkoutSession = { ...timed, id: 'wellbeing-quick', source: 'quickTimer', completion: { completed: 1, planned: 1, unit: 'round' } }
   await app.seedSession(quick); await app.open(`/workout-sessions/${quick.id}/feedback`)
-  await expect(page.getByText('Dziś rano: sen gorzej niż zwykle', { exact: true })).toBeVisible()
+  await expect(page.getByText('Zapisano RPE 8', { exact: true })).toBeVisible()
+  await expect(page.getByText(/^Dziś rano:/)).toHaveCount(0)
   const manual: ManualWorkoutSession = { id: 'wellbeing-manual', source: 'manual', status: 'completed', disciplineKey: 'boxing', category: 'bag', workoutDate: today, timezone: 'Europe/Warsaw', durationSeconds: 600,
     workSeconds: null, sparringSeconds: null, completion: null, note: null, rpe: 8, rpeRecordedAt: instant, sparring: [], focusRatings: [], createdAt: instant, updatedAt: instant }
   await app.seedSession(manual); await app.open(`/workout-sessions/${manual.id}/edit`)
   await expect(page.getByText('Dziś rano: sen gorzej niż zwykle', { exact: true })).toBeVisible()
   const history = await app.openHistory()
   await expect(history.getByText('Dziś rano: sen gorzej niż zwykle', { exact: true })).toHaveCount(3)
-  await app.open(`/workout-sessions/${first.id}/feedback`)
-  await expect(page.getByText('Dziś rano: typowo dla Ciebie', { exact: true })).toBeVisible()
+  await expect(history.getByText('Dziś rano: typowo dla Ciebie', { exact: true })).toBeVisible()
 })

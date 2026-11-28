@@ -6,7 +6,6 @@ import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { PlanWorkoutSession, WorkoutSession } from '@/domain/workout-session/workoutSession.types'
 import { findPreviousAssessment } from '@/domain/focus-skill/previousAssessment'
 import { canEditSparringIntensity, hasCompletedExercise, selectOtherExercises, type WorkoutFeedbackDraft } from '@/domain/workout-session/workoutFeedback'
-import type { PreviousPlanRun } from '@/domain/workout-session/previousPlanRun'
 import { Button } from '@/components/ui/Button'
 import { workoutDataLabels } from '@/application/workoutDataLabels'
 import { UnsavedPlanChangesGuard } from '@/features/workout-builder/components/UnsavedPlanChangesGuard'
@@ -14,13 +13,11 @@ import { FeedbackIcon } from './FeedbackIcon'
 import { AssessmentScale, FocusCard } from './FocusCard'
 import { validateWorkoutFeedback, type FeedbackErrors } from './validateWorkoutFeedback'
 import { formatWorkoutFeedbackMetrics, workoutFeedbackLabels as labels } from './workoutFeedbackLabels'
-import { PreviousPlanRunSummary } from './PreviousPlanRunSummary'
 import { hasUnsavedWorkoutFeedback } from './unsavedWorkoutFeedback'
 
-export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, previousRun, sessions = [] }: {
+export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard, sessions = [] }: {
   sessions?: readonly WorkoutSession[]
   session: PlanWorkoutSession; skills: readonly FocusSkill[]; pending: boolean
-  previousRun?: PreviousPlanRun | null
   rpeCard: ReactNode
   onSave: (draft: WorkoutFeedbackDraft) => Promise<void>
 }) {
@@ -74,7 +71,6 @@ export function WorkoutFeedbackForm({ session, skills, pending, onSave, rpeCard,
             <dd className="font-display text-lg font-extrabold tabular-nums text-ink">{value}</dd>
           </div>)}
         </dl>
-        {previousRun && <PreviousPlanRunSummary previous={previousRun} />}
       </section>
     </div>
     {rpeCard}
