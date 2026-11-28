@@ -1,6 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { expect, it } from 'vitest'
+import type { FocusSkill } from '@/domain/focus-skill/focusSkill.types'
 import type { FocusRating } from '@/domain/workout-session/workoutSession.types'
 import { manualFocusRating } from '@/test/manualWorkoutBuilder'
 import { sessionStep, workoutSession } from '@/test/workoutSessionBuilders'
@@ -23,6 +24,15 @@ const skipped = workoutSession({
 
 const collapsedDetails = /<div[^>]*hidden=""[^>]*class="feedback-focus-details"/
 const cardProps = { skills: [], first: true, onChange: () => {} }
+const skill: FocusSkill = {
+  id: rating.focusSkillId,
+  name: rating.skillNameSnapshot,
+  criterion: rating.criterionSnapshot,
+  openCorrection: { sessionId: 'earlier', workoutDate: '2026-11-01', problem: 'Ręka opada.', fix: 'Wracam do gardy.' },
+  archivedAt: null,
+  createdAt: '2026-11-01T10:00:00.000Z',
+  updatedAt: '2026-11-01T10:00:00.000Z',
+}
 
 it.each([
   [4, 'Poziom 4 · Zwykle się udaje, błąd sam łapię i poprawiam.'],
@@ -45,6 +55,29 @@ it('keeps an unrated card open and a skipped card outside the rating interaction
   expect(skippedCard).not.toMatch(collapsedDetails)
   expect(skippedCard).not.toContain('Zmień')
   expect(skippedCard).toContain('Pominięte w treningu')
+})
+
+it.each([
+  [null, 'Dodaj notatkę: błąd i wskazówka'],
+  [{ problem: 'Ręka opada.', fix: 'Wracam do gardy.' }, 'Wracam do gardy.'],
+] as const)('renders the note action or saved form after the hidden assessment details', (correction, noteText) => {
+  const html = renderToStaticMarkup(createElement(FocusCard, {
+    ...cardProps, session: completed, rating: { ...rating, correction },
+  }))
+  expect(html).toMatch(collapsedDetails)
+  const noteSection = html.split('</fieldset></div></div><div class="feedback-card-section">')[1]
+  expect(noteSection).toContain(noteText)
+})
+
+it('keeps a saved rating open until the earlier correction has an answer', () => {
+  const props = { ...cardProps, session: completed, skills: [skill] }
+  const unanswered = renderToStaticMarkup(createElement(FocusCard, { ...props, rating }))
+  const answered = renderToStaticMarkup(createElement(FocusCard, {
+    ...props, rating: { ...rating, previousCorrectionCheck: 'notChecked' },
+  }))
+  expect(unanswered).toContain('Czy ten błąd dziś się powtarzał?')
+  expect(unanswered).not.toMatch(collapsedDetails)
+  expect(answered).toMatch(collapsedDetails)
 })
 
 it('opens a rated summary card when a correction is invalid', () => {

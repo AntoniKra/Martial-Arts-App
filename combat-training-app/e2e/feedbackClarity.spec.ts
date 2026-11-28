@@ -184,7 +184,7 @@ test('truncates a saved assessment visually and retains the full accessible desc
   await app.open('/workouts')
   await app.seedFocusSkill({ ...skill, openCorrection: { ...skill.openCorrection!, problem: longProblem } })
   await app.seedSession({ ...previous, focusRatings: [{ ...focus, assessment: 'unableToRate' }] })
-  await app.seedSession({ ...current, focusRatings: [{ ...focus, skillNameSnapshot: longName, assessment: 4 }] })
+  await app.seedSession({ ...current, focusRatings: [{ ...focus, skillNameSnapshot: longName, assessment: 4, previousCorrectionCheck: 'notChecked' }] })
   await app.open('/workout-sessions/clarity/feedback')
   const card = page.getByRole('article', { name: longName, exact: true })
   const change = card.getByRole('button', {
@@ -221,6 +221,23 @@ test('truncates a saved assessment visually and retains the full accessible desc
     await rating.click()
     await expect(change).toBeFocused()
   }
+})
+
+test('keeps a saved assessment expanded until the previous correction is answered', async ({ app, page }) => {
+  await app.open('/workouts')
+  await app.seedFocusSkill(skill)
+  await app.seedSession({ ...current, focusRatings: [{ ...focus, assessment: 4 }] })
+  await app.open('/workout-sessions/clarity/feedback')
+  const card = page.getByRole('article', { name: skill.name, exact: true })
+  const change = card.getByRole('button', { name: /Zmień$/ })
+  const question = card.getByRole('group', { name: 'Czy ten błąd dziś się powtarzał?', exact: true })
+  await expect(card.getByRole('radio', { name: /^4 / })).toBeChecked()
+  await expect(question).toBeVisible()
+  await expect(change).toHaveCount(0)
+  await question.getByRole('radio', { name: 'Nie sprawdzałem', exact: true }).check()
+  await expect(change).toBeFocused()
+  await expect(question).toBeHidden()
+  await expect(card.getByRole('button', { name: 'Dodaj notatkę: błąd i wskazówka', exact: true })).toBeVisible()
 })
 
 test('opens and removes a correction note, keeping its earlier workout note', async ({ app, page }, info) => {
